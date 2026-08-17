@@ -414,7 +414,7 @@ label {
   bottom: calc(6px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 20px), 620px);
+  width: min(calc(100% - 48px), 520px);
   height: 80px;
   z-index: 60;
   display: flex;
@@ -422,27 +422,13 @@ label {
   border-radius: 30px;
   overflow: hidden;
   isolation: isolate;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.018)),
-    rgba(12, 12, 18, 0.56);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.17);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 42px rgba(0, 0, 0, 0.36),
-    0 3px 12px rgba(0, 0, 0, 0.22);
+  background: #08080b;
+  border: 1px solid #202027;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
 }
 
 .tabbar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(115deg, rgba(255, 255, 255, 0.1), transparent 38%, rgba(255, 255, 255, 0.035) 68%, transparent);
+  content: none;
 }
 
 .tabbar-indicator-slot {
@@ -463,16 +449,9 @@ label {
   width: calc(100% - 4px);
   height: 68px;
   border-radius: 25px;
-  background:
-    radial-gradient(circle at 34% 20%, rgba(255, 255, 255, 0.14), transparent 38%),
-    rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(18px) saturate(185%);
-  -webkit-backdrop-filter: blur(18px) saturate(185%);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -8px 16px rgba(255, 255, 255, 0.025),
-    0 7px 18px rgba(0, 0, 0, 0.2);
+  background: #28282e;
+  border: 0;
+  box-shadow: none;
 }
 
 .tabbar a {
@@ -530,9 +509,7 @@ label {
 }
 
 [data-theme="dark"] .tabbar {
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.018)),
-    rgba(10, 10, 16, 0.56);
+  background: #08080b;
 }
 
 [data-theme="dark"] .tabbar a {
@@ -544,14 +521,7 @@ label {
 }
 
 [data-theme="dark"] .tabbar-indicator {
-  background:
-    radial-gradient(circle at 34% 20%, rgba(255, 255, 255, 0.14), transparent 38%),
-    rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.13);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    inset 0 -8px 16px rgba(255, 255, 255, 0.025),
-    0 8px 22px rgba(0, 0, 0, 0.34);
+  background: #28282e;
 }
 
 @media (prefers-reduced-motion: reduce) {
