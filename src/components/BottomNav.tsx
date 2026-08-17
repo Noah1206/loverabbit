@@ -10,17 +10,18 @@ const NAV_ITEMS = [
     label: "홈",
     matches: (path: string) => path === "/",
     icon: (
-      <path d="M3 10.75 12 3l9 7.75v8.5A1.75 1.75 0 0 1 19.25 21h-14.5A1.75 1.75 0 0 1 3 19.25v-8.5ZM9 21v-6.5h6V21" />
+      <path className="tabbar-home-shape" d="M3 10.75 12 3l9 7.75v8.5A1.75 1.75 0 0 1 19.25 21h-14.5A1.75 1.75 0 0 1 3 19.25v-8.5ZM9 21v-6.5h6V21" />
     ),
   },
   {
     href: "/reading",
-    label: "리딩",
+    label: "내 사주",
     matches: (path: string) => path.startsWith("/reading") || path.startsWith("/product"),
     icon: (
       <>
-        <path d="m12 2 1.45 5.05L18.5 8.5l-5.05 1.45L12 15l-1.45-5.05L5.5 8.5l5.05-1.45L12 2Z" />
-        <path d="m18.5 14 .75 2.25L21.5 17l-2.25.75L18.5 20l-.75-2.25L15.5 17l2.25-.75L18.5 14Z" />
+        <circle cx="12" cy="10" r="6.5" />
+        <path d="M7.5 17h9M6.5 21h11M8 17l-1.5 4M16 17l1.5 4" />
+        <path d="M8.5 7.5c.9-1.8 2.5-2.8 4.5-2.8" />
       </>
     ),
   },
@@ -30,8 +31,29 @@ const NAV_ITEMS = [
     matches: (path: string) => path.startsWith("/my"),
     icon: (
       <>
-        <path d="M6.25 3h9.5A2.25 2.25 0 0 1 18 5.25v13.5A2.25 2.25 0 0 1 15.75 21h-9.5A2.25 2.25 0 0 1 4 18.75V5.25A2.25 2.25 0 0 1 6.25 3Z" />
-        <path d="M8 8h6M8 12h6M8 16h4" />
+        <path d="M4 4.5h16v12H9l-5 4v-16Z" />
+      </>
+    ),
+  },
+  {
+    href: "/rewards",
+    label: "보상",
+    matches: (path: string) => path.startsWith("/rewards"),
+    icon: (
+      <>
+        <path d="M3 9h18v4H3V9ZM5 13h14v8H5v-8ZM12 9v12" />
+        <path d="M12 9H8.25A2.25 2.25 0 1 1 10.5 6.75C10.5 8 12 9 12 9Zm0 0h3.75A2.25 2.25 0 1 0 13.5 6.75C13.5 8 12 9 12 9Z" />
+      </>
+    ),
+  },
+  {
+    href: "/profile",
+    label: "마이",
+    matches: (path: string) => path.startsWith("/profile"),
+    icon: (
+      <>
+        <circle cx="12" cy="7.5" r="4" />
+        <path d="M4.5 21v-2.25A5.75 5.75 0 0 1 10.25 13h3.5a5.75 5.75 0 0 1 5.75 5.75V21h-15Z" />
       </>
     ),
   },
