@@ -1,7 +1,10 @@
-// 리딩 파일 저장소 — 결제 전에는 풀 리딩이 클라이언트로 절대 나가지 않게 하는 핵심.
-// ⚠️ Vercel 등 서버리스 배포 시 파일시스템은 휘발성 — 런칭 시 Upstash Redis/Vercel KV로 교체할 것.
+import "server-only";
+
+// 리딩 저장소 — Supabase를 기본으로 사용하고 로컬 개발에서만 파일로 폴백한다.
+// 결제 전에는 풀 리딩이 클라이언트로 절대 나가지 않게 하는 핵심 서버 모듈.
 import { promises as fs } from "fs";
 import path from "path";
+import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 
 const DIR = path.join(process.cwd(), "data", "readings");
 
@@ -21,9 +24,44 @@ export interface StoredReading {
   chart: { me: string; partner: string | null };
   provider: string;
   price: number;
+  score?: number;
+  scoreLabel?: string | null;
   unlocked: boolean;
   // 결제 기록 — 계좌이체는 입금코드로 통장 내역과 사후 대조한다
   payment?: { method: "toss-pg" | "transfer" | "membership" | "mock"; depositorCode?: string; at: string };
+}
+
+interface ReadingRow {
+  id: string;
+  user_id: number | null;
+  category: string;
+  teaser: string;
+  full_text: string;
+  chart: StoredReading["chart"];
+  provider: string;
+  price: number;
+  score: number | null;
+  score_label: string | null;
+  unlocked: boolean;
+  payment: StoredReading["payment"] | null;
+  created_at: string;
+}
+
+function fromRow(row: ReadingRow): StoredReading {
+  return {
+    id: row.id,
+    createdAt: row.created_at,
+    category: row.category,
+    teaser: row.teaser,
+    full: row.full_text,
+    chart: row.chart,
+    provider: row.provider,
+    price: row.price,
+    score: row.score ?? undefined,
+    scoreLabel: row.score_label,
+    unlocked: row.unlocked,
+    payment: row.payment ?? undefined,
+  };
 }
 
 function fileOf(id: string): string | null {
@@ -33,6 +71,34 @@ function fileOf(id: string): string | null {
 }
 
 export async function saveReading(r: StoredReading): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (db) {
+    const { error } = await db.from("lr_readings").upsert(
+      {
+        id: r.id,
+        category: r.category,
+        teaser: r.teaser,
+        full_text: r.full,
+        chart: r.chart,
+        provider: r.provider,
+        price: r.price,
+        score: r.score ?? null,
+        score_label: r.scoreLabel ?? null,
+        unlocked: r.unlocked,
+        payment: r.payment ?? null,
+        created_at: r.createdAt,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" }
+    );
+    if (error) throw databaseError("리딩 저장", error);
+    return;
+  }
+
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_FILE_STORE !== "true") {
+    throw new Error("Supabase 환경변수가 없어 운영 리딩을 저장할 수 없습니다.");
+  }
+
   await fs.mkdir(DIR, { recursive: true });
   const f = fileOf(r.id);
   if (!f) throw new Error("invalid reading id");
@@ -42,6 +108,18 @@ export async function saveReading(r: StoredReading): Promise<void> {
 export async function getReading(id: string): Promise<StoredReading | null> {
   const f = fileOf(id);
   if (!f) return null;
+
+  const db = getSupabaseAdmin();
+  if (db) {
+    const { data, error } = await db
+      .from("lr_readings")
+      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,unlocked,payment,created_at")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) throw databaseError("리딩 조회", error);
+    return data ? fromRow(data as ReadingRow) : null;
+  }
+
   try {
     return JSON.parse(await fs.readFile(f, "utf8")) as StoredReading;
   } catch {
@@ -51,8 +129,28 @@ export async function getReading(id: string): Promise<StoredReading | null> {
 
 export async function markUnlocked(
   id: string,
-  payment: StoredReading["payment"]
+  payment: StoredReading["payment"],
+  userId?: number
 ): Promise<StoredReading | null> {
+  const db = getSupabaseAdmin();
+  if (db) {
+    const updates: Record<string, unknown> = {
+      unlocked: true,
+      payment,
+      updated_at: new Date().toISOString(),
+    };
+    if (userId) updates.user_id = userId;
+
+    const { data, error } = await db
+      .from("lr_readings")
+      .update(updates)
+      .eq("id", id)
+      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,unlocked,payment,created_at")
+      .maybeSingle();
+    if (error) throw databaseError("리딩 해금", error);
+    return data ? fromRow(data as ReadingRow) : null;
+  }
+
   const r = await getReading(id);
   if (!r) return null;
   r.unlocked = true;

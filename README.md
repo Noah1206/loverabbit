@@ -13,21 +13,40 @@ npm run dev
 API 키 없이도 데모 모드(목업 리딩)로 전체 퍼널이 동작합니다.
 실제 AI 리딩은 `.env`에 `ANTHROPIC_API_KEY` / `GEMINI_API_KEY`(무료 티어) / `OPENAI_API_KEY`(OpenRouter·Groq·Ollama 호환) 중 하나만 넣으면 켜집니다.
 
+## DB 연결
+
+Supabase 프로젝트 `project1`에 아래 서버 전용 테이블과 RLS 정책이 구축돼 있습니다.
+
+- `lr_users`: 이메일 가입·생년월일·마케팅 동의
+- `lr_readings`: 생성된 리딩 원문·지수·해금 상태
+- `lr_orders`: 단품/멤버십 주문과 결제 상태
+- `lr_memberships`: 멤버십 유효 기간
+
+Supabase 대시보드의 **Project Settings → API Keys**에서 Secret key를 확인한 뒤 `.env.local`에 설정하세요. 이 키는 브라우저에 노출하면 안 되므로 `NEXT_PUBLIC_` 접두사를 붙이지 않습니다.
+
+```dotenv
+SUPABASE_URL=https://qvkxhhicnadgcnbycbyf.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+READING_SECRET=충분히-긴-임의-문자열
+```
+
+스키마 변경 이력은 `supabase/migrations/`에 있습니다. 키가 없는 로컬 개발 환경에서는 `data/readings/` 파일 저장소가 보조 경로로 동작하지만, 운영 환경은 DB 연결이 없으면 저장·가입·결제를 거부합니다.
+
 ## 구조
 
 | 경로 | 역할 |
 |---|---|
 | `src/app/page.tsx` | 랜딩 (후킹 카피 + CTA) |
-| `src/components/AdultGate.tsx` | 성인 확인 게이트 (⚠️ 런칭 전 PASS 본인인증으로 교체 필수) |
 | `src/app/reading/page.tsx` | 사주 입력 폼 + 무료 티저 + 페이월 + 공유 이미지 생성 |
-| `src/app/api/reading/route.ts` | 간지 계산 → AI 리딩 생성·서버 저장, 티저만 응답 |
-| `src/app/api/unlock/route.ts` | 결제 승인(토스) 또는 모의결제 후 풀 리딩 해금 |
-| `src/lib/store.ts` | 리딩 파일 저장소 (배포 시 Redis/KV로 교체) |
+| `src/app/api/reading/route.ts` | 간지 계산 → AI 리딩 생성·DB 저장, 티저만 응답 |
+| `src/app/api/unlock/route.ts` | 결제 승인·주문 기록 후 풀 리딩 해금 |
+| `src/lib/database.ts` | 사용자·주문·멤버십 DB 접근 계층 |
+| `src/lib/store.ts` | Supabase 리딩 저장소 + 로컬 파일 폴백 |
 | `src/lib/saju.ts` | 60갑자 연주·월주·일주·시주 계산 |
 
 ## 배포
 
-Vercel 무료 플랜으로 즉시 배포 가능: `npx vercel`
+Vercel 환경변수에 `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `READING_SECRET`을 설정한 뒤 배포합니다: `npx vercel --prod`
 
 ## 런칭 전 필수 체크리스트 (법적)
 

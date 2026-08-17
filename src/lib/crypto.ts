@@ -1,11 +1,16 @@
 // 풀 리딩 봉인 토큰 — AES-256-GCM.
-// 서버리스(Vercel)에는 영속 저장소가 없으므로, 풀 리딩을 서버 키로 암호화해 클라이언트에 맡기고
-// 결제 확인 시 서버가 열어준다. 클라이언트는 키가 없어 내용을 볼 수 없고, 변조 시 복호화가 실패한다.
+import "server-only";
+
+// DB 장애·이전 리딩 호환을 위해 풀 리딩 사본을 서버 키로 암호화해 클라이언트에도 맡긴다.
+// 결제 확인 시 서버만 열 수 있으며, 클라이언트는 키가 없어 내용을 볼 수 없고 변조 시 복호화가 실패한다.
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 function key(): Buffer {
-  const secret = process.env.READING_SECRET ?? "dev-secret-change-me";
-  return createHash("sha256").update(secret).digest();
+  const secret = process.env.READING_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("운영 환경에는 READING_SECRET이 필요합니다.");
+  }
+  return createHash("sha256").update(secret ?? "dev-secret-change-me").digest();
 }
 
 export function seal(obj: unknown): string {

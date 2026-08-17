@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReading, markUnlocked } from "@/lib/store";
 import { open } from "@/lib/crypto";
+import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { resolveUserToken, validateMembershipToken } from "@/lib/tokens";
 
 // 풀 리딩 해금 — 결제 방식 3가지:
 // 1) transfer: 계좌이체. 입금코드를 기록해 두고 즉시 해금 → 운영자가 통장 내역과 사후 대조.
@@ -8,8 +10,7 @@ import { open } from "@/lib/crypto";
 // 2) toss-pg: TOSS_SECRET_KEY가 있으면 토스페이먼츠 결제 승인 API로 실결제 검증.
 // 3) mock: 키·방식 지정 없을 때 개발용 모의결제.
 //
-// 리딩 원문은 로컬에선 파일 저장소에서, 서버리스(Vercel)에선 클라이언트가 보관한
-// 암호화 blob에서 복원한다. blob은 서버 키(READING_SECRET)로만 열린다.
+// 리딩 원문은 Supabase에서 읽고, 클라이언트의 암호화 blob은 이전 리딩 호환용으로만 복원한다.
 
 interface Body {
   readingId: string;
@@ -23,12 +24,6 @@ interface Body {
   amount?: number;
 }
 
-// 유료 결제(계좌이체·PG)는 회원가입이 선행돼야 한다 — 이메일이 결제 기록에 묶인다
-function requireUser(userToken?: string): { email: string } | null {
-  const u = userToken ? open<{ type: string; email: string }>(userToken) : null;
-  return u?.type === "user" && u.email ? { email: u.email } : null;
-}
-
 interface SealedReading {
   id: string;
   full: string;
@@ -39,16 +34,27 @@ interface SealedReading {
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
+  if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
+    return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다. 잠시 후 다시 시도해주세요." }, { status: 503 });
+  }
 
-  const stored = await getReading(body?.readingId ?? "").catch(() => null);
+  let stored: Awaited<ReturnType<typeof getReading>> = null;
+  try {
+    stored = await getReading(body?.readingId ?? "");
+  } catch (error) {
+    console.error("리딩 조회 실패:", error);
+    if (isDatabaseConfigured()) {
+      return NextResponse.json({ error: "리딩 DB를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+  }
   const sealed = body.blob ? open<SealedReading>(body.blob) : null;
 
   // blob 위조 방지: 복호화 성공 + readingId 일치까지 확인
   const fromBlob = sealed && sealed.id === body.readingId ? sealed : null;
   const full = stored?.full ?? fromBlob?.full;
   const price = stored?.price ?? fromBlob?.price;
-  const score = fromBlob?.score;
-  const scoreLabel = fromBlob?.scoreLabel ?? null;
+  const score = stored?.score ?? fromBlob?.score;
+  const scoreLabel = stored?.scoreLabel ?? fromBlob?.scoreLabel ?? null;
 
   if (!full || !price) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
@@ -63,47 +69,93 @@ export async function POST(req: NextRequest) {
 
   // ── 멤버십 (30일 무제한 토큰) ──
   if (body.method === "membership") {
-    const m = body.membershipToken
-      ? open<{ type: string; exp: number }>(body.membershipToken)
-      : null;
-    if (!m || m.type !== "membership") {
-      return NextResponse.json({ error: "유효하지 않은 멤버십입니다." }, { status: 403 });
+    let membership;
+    try {
+      membership = await validateMembershipToken(body.membershipToken);
+    } catch (error) {
+      console.error("멤버십 DB 확인 실패:", error);
+      return NextResponse.json({ error: "멤버십을 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
     }
-    if (m.exp < Date.now()) {
-      return NextResponse.json({ error: "멤버십이 만료되었습니다. 갱신해주세요." }, { status: 403 });
+    if (!membership) {
+      return NextResponse.json({ error: "유효하지 않거나 만료된 멤버십입니다." }, { status: 403 });
     }
-    console.log(`[멤버십 사용] reading=${body.readingId} exp=${new Date(m.exp).toISOString()}`);
-    await markUnlocked(body.readingId, { method: "membership", at: now }).catch(() => null);
+    try {
+      const unlocked = await markUnlocked(body.readingId, { method: "membership", at: now }, membership.userId);
+      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
+    } catch (error) {
+      console.error("멤버십 리딩 해금 저장 실패:", error);
+      return NextResponse.json({ error: "해금 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+    console.log(`[멤버십 사용] reading=${body.readingId} membershipId=${membership.membershipId ?? "legacy"}`);
     return NextResponse.json({ full, score, scoreLabel, method: "membership" });
   }
 
   // ── 계좌이체 ──
   if (body.method === "transfer") {
-    const user = requireUser(body.userToken);
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("결제 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
     if (!user) {
       return NextResponse.json({ error: "풀 리딩을 열려면 회원가입이 필요해요.", needSignup: true }, { status: 401 });
     }
-    if (!body.depositorCode) {
-      return NextResponse.json({ error: "입금코드가 없습니다." }, { status: 400 });
+    const expectedCode = `레빗-${body.readingId.slice(0, 4).toUpperCase()}`;
+    if (body.depositorCode !== expectedCode) {
+      return NextResponse.json({ error: "입금코드가 올바르지 않습니다." }, { status: 400 });
     }
-    // 서버리스에서는 파일 기록 대신 로그로 남는다 (Vercel 대시보드 → Logs에서 입금코드 대조)
-    console.log(`[결제:계좌이체] user=${user.email} reading=${body.readingId} code=${body.depositorCode} amount=${price} at=${now}`);
-    await markUnlocked(body.readingId, {
-      method: "transfer",
-      depositorCode: body.depositorCode,
-      at: now,
-    }).catch(() => null);
+    if (isDatabaseConfigured() && !user.userId) {
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 다시 가입해주세요." }, { status: 503 });
+    }
+    try {
+      if (user.userId) {
+        await createOrder({
+          userId: user.userId,
+          readingId: body.readingId,
+          kind: "reading",
+          method: "transfer",
+          status: "pending",
+          amount: price,
+          depositorCode: body.depositorCode,
+        });
+      }
+      const unlocked = await markUnlocked(
+        body.readingId,
+        { method: "transfer", depositorCode: body.depositorCode, at: now },
+        user.userId
+      );
+      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
+    } catch (error) {
+      console.error("계좌이체 주문 저장 실패:", error);
+      return NextResponse.json({ error: "결제 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+    console.log(`[결제:계좌이체] userId=${user.userId ?? "local"} reading=${body.readingId} amount=${price}`);
     return NextResponse.json({ full, score, scoreLabel, method: "transfer" });
   }
 
   // ── 토스페이먼츠 PG ──
-  const secret = process.env.TOSS_SECRET_KEY;
-  if (secret && body.paymentKey) {
-    if (!requireUser(body.userToken)) {
+  if (body.method === "toss-pg") {
+    const secret = process.env.TOSS_SECRET_KEY;
+    if (!secret) {
+      return NextResponse.json({ error: "토스페이먼츠 설정이 완료되지 않았습니다." }, { status: 503 });
+    }
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("PG 결제 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+    if (!user) {
       return NextResponse.json({ error: "풀 리딩을 열려면 회원가입이 필요해요.", needSignup: true }, { status: 401 });
     }
-    if (!body.orderId || body.amount !== price) {
+    if (!body.paymentKey || !body.orderId || body.amount !== price) {
       return NextResponse.json({ error: "결제 정보가 올바르지 않습니다." }, { status: 400 });
+    }
+    if (isDatabaseConfigured() && !user.userId) {
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 다시 가입해주세요." }, { status: 503 });
     }
     const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
       method: "POST",
@@ -124,12 +176,35 @@ export async function POST(req: NextRequest) {
         { status: 402 }
       );
     }
-    console.log(`[결제:토스PG] reading=${body.readingId} paymentKey=${body.paymentKey} at=${now}`);
-    await markUnlocked(body.readingId, { method: "toss-pg", at: now }).catch(() => null);
+    try {
+      if (user.userId) {
+        await createOrder({
+          userId: user.userId,
+          readingId: body.readingId,
+          kind: "reading",
+          method: "toss-pg",
+          status: "paid",
+          amount: price,
+          providerOrderId: body.orderId,
+        });
+      }
+      const unlocked = await markUnlocked(body.readingId, { method: "toss-pg", at: now }, user.userId);
+      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
+    } catch (error) {
+      console.error("PG 승인 결과 저장 실패:", error);
+      return NextResponse.json(
+        { error: "결제는 승인됐지만 결과 저장에 실패했습니다. 주문번호로 고객센터에 문의해주세요.", orderId: body.orderId },
+        { status: 503 }
+      );
+    }
+    console.log(`[결제:토스PG] userId=${user.userId ?? "local"} reading=${body.readingId} orderId=${body.orderId}`);
     return NextResponse.json({ full, score, scoreLabel, method: "toss-pg" });
   }
 
   // ── 개발용 모의결제 ──
-  await markUnlocked(body.readingId, { method: "mock", at: now }).catch(() => null);
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "결제 방식을 확인할 수 없습니다." }, { status: 400 });
+  }
+  await markUnlocked(body.readingId, { method: "mock", at: now });
   return NextResponse.json({ full, score, scoreLabel, method: "mock", mock: true });
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { open } from "@/lib/crypto";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
+import { validateMembershipToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
 
@@ -64,9 +65,14 @@ export async function POST(req: NextRequest) {
 
   // 첫 질문은 무료, 이후는 멤버십 필요
   if (userTurns >= 1) {
-    const m = body.membershipToken ? open<{ type: string; exp: number }>(body.membershipToken) : null;
-    const valid = m?.type === "membership" && m.exp > Date.now();
-    if (!valid) {
+    let membership;
+    try {
+      membership = await validateMembershipToken(body.membershipToken);
+    } catch (error) {
+      console.error("상담 멤버십 확인 실패:", error);
+      return NextResponse.json({ error: "멤버십을 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+    if (!membership) {
       return NextResponse.json(
         { error: "무료 상담 1회를 이미 사용했어요. 멤버십이면 무제한으로 물어볼 수 있어요.", needMembership: true },
         { status: 402 }

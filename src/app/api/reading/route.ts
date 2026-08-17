@@ -5,6 +5,7 @@ import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
 import { chatComplete } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
+import { isDatabaseConfigured } from "@/lib/database";
 
 export const maxDuration = 60;
 
@@ -173,7 +174,7 @@ export async function POST(req: NextRequest) {
   const score = scoreFrom(chart.me, chart.partner);
   const scoreLabel = product?.scoreLabel ?? null;
   const id = randomUUID();
-  // 파일 저장은 로컬 전용 편의 기능 — 서버리스(읽기 전용 fs)에서는 조용히 건너뛴다
+  // 운영에서는 반드시 Supabase에 저장하고, 로컬 무설정 환경만 파일 저장소를 쓴다.
   try {
     await saveReading({
       id,
@@ -184,10 +185,18 @@ export async function POST(req: NextRequest) {
       chart,
       provider: providerName,
       price,
+      score,
+      scoreLabel,
       unlocked: false,
     });
   } catch (e) {
-    console.warn("리딩 파일 저장 생략(서버리스 환경):", e instanceof Error ? e.message : e);
+    console.error("리딩 저장 실패:", e);
+    if (isDatabaseConfigured() || process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "리딩을 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 503 }
+      );
+    }
   }
 
   return NextResponse.json({
