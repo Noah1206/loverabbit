@@ -55,7 +55,7 @@ body {
 
 body {
   /* 떠 있는 하단 탭바와 탭 아래 여백까지 확보 */
-  padding-bottom: calc(108px + env(safe-area-inset-bottom));
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
 }
 
 a {
@@ -275,11 +275,11 @@ label {
 /* 홈 상단바 — 하단 탭바와 같은 떠 있는 Liquid Glass 재질 */
 .app-header {
   position: sticky;
-  top: calc(10px + env(safe-area-inset-top));
+  top: calc(6px + env(safe-area-inset-top));
   z-index: 40;
-  min-height: 58px;
-  margin: 10px 14px 0;
-  padding: 8px 9px 8px 14px;
+  min-height: 48px;
+  margin: 6px 20px 0;
+  padding: 5px 7px 5px 11px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -287,7 +287,7 @@ label {
   overflow: hidden;
   isolation: isolate;
   border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 25px;
+  border-radius: 21px;
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.3)),
     rgba(247, 240, 244, 0.4);
@@ -312,18 +312,18 @@ label {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: var(--text);
-  font-size: 1rem;
+  font-size: 0.92rem;
   line-height: 1;
   letter-spacing: 0.035em;
   white-space: nowrap;
 }
 
 .app-header-brand img {
-  width: 30px;
-  height: 30px;
-  border-radius: 11px;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
   object-fit: cover;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 12px rgba(0, 0, 0, 0.16);
 }
@@ -333,18 +333,18 @@ label {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 5px;
 }
 
 .app-header-action {
-  height: 36px;
-  padding: 0 12px;
+  height: 30px;
+  padding: 0 10px;
   border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 18px;
+  border-radius: 15px;
   background: rgba(255, 255, 255, 0.28);
   color: #111114;
   font: inherit;
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
@@ -364,7 +364,7 @@ label {
 }
 
 .app-header-login {
-  max-width: 108px;
+  max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -678,11 +678,11 @@ label {
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 48px), 520px);
-  height: 80px;
+  height: 66px;
   z-index: 60;
   display: flex;
-  padding: 6px;
-  border-radius: 30px;
+  padding: 4px;
+  border-radius: 24px;
   overflow: hidden;
   isolation: isolate;
   background: #08080b;
@@ -696,10 +696,10 @@ label {
 
 .tabbar-indicator-slot {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  width: calc((100% - 12px) / var(--nav-count));
-  height: 68px;
+  top: 4px;
+  left: 4px;
+  width: calc((100% - 8px) / var(--nav-count));
+  height: 58px;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -710,8 +710,8 @@ label {
 
 .tabbar-indicator {
   width: calc(100% - 4px);
-  height: 68px;
-  border-radius: 25px;
+  height: 58px;
+  border-radius: 20px;
   background: #28282e;
   border: 0;
   box-shadow: none;
@@ -726,7 +726,7 @@ label {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 1px;
   color: rgba(255, 255, 255, 0.56);
   -webkit-tap-highlight-color: transparent;
   transition: color 220ms ease, transform 220ms ease;
@@ -743,15 +743,15 @@ label {
 }
 
 .tabbar-icon {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   display: grid;
   place-items: center;
 }
 
 .tabbar-icon svg {
-  width: 27px;
-  height: 27px;
+  width: 23px;
+  height: 23px;
   filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.24));
 }
 
@@ -761,7 +761,7 @@ label {
 }
 
 .tabbar-label {
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   line-height: 1;
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -797,7 +797,7 @@ label {
 .theme-toggle {
   position: fixed;
   right: 16px;
-  bottom: calc(98px + env(safe-area-inset-bottom));
+  bottom: calc(82px + env(safe-area-inset-bottom));
   z-index: 65;
   display: inline-flex;
   align-items: center;

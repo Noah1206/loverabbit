@@ -107,26 +107,26 @@ export default function AppHome() {
         </header>
 
         {/* ── 공지 배너 캐러셀 ── */}
-        <div style={{ padding: "16px 20px 4px" }}>
+        <div style={{ padding: "10px 20px 2px" }}>
           <div
             style={{
-              borderRadius: 16, padding: "18px 20px", textAlign: "center", cursor: "default",
+              borderRadius: 14, padding: "11px 16px", textAlign: "center", cursor: "default",
               background: dark
                 ? "linear-gradient(120deg, rgba(255,61,127,0.85), rgba(139,92,246,0.85))"
                 : "linear-gradient(120deg, rgba(255,140,180,0.95), rgba(185,157,248,0.95))",
               boxShadow: dark ? "0 6px 28px rgba(255,61,127,0.25)" : "0 6px 24px rgba(255,140,180,0.35)",
             }}
           >
-            <p style={{ fontWeight: 800, fontSize: "1.02rem", color: "#fff" }}>{NOTICES[notice].text}</p>
-            <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.88)" }}>{NOTICES[notice].sub}</p>
-            <div style={{ display: "flex", gap: 6, justifyContent: "center", marginTop: 10 }}>
+            <p style={{ fontWeight: 800, fontSize: "0.92rem", lineHeight: 1.35, color: "#fff" }}>{NOTICES[notice].text}</p>
+            <p style={{ fontSize: "0.75rem", lineHeight: 1.35, color: "rgba(255,255,255,0.88)" }}>{NOTICES[notice].sub}</p>
+            <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 6 }}>
               {NOTICES.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setNotice(i)}
                   aria-label={`공지 ${i + 1}`}
                   style={{
-                    width: i === notice ? 18 : 7, height: 7, borderRadius: 999, border: "none", cursor: "pointer",
+                    width: i === notice ? 16 : 6, height: 6, borderRadius: 999, border: "none", cursor: "pointer",
                     background: i === notice ? "#fff" : "rgba(255,255,255,0.45)", transition: "width 0.25s",
                   }}
                 />
