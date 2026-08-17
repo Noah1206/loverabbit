@@ -22,11 +22,12 @@ const NOTICES = [
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 
-function CardArt({ p, height }: { p: Product; height: number }) {
+function CardArt({ p, height, className }: { p: Product; height?: number; className?: string }) {
   // 로딩·실패 시에도 무드가 유지되도록 그라데이션을 밑색으로 깔고 일러스트를 얹는다
   return (
     <div
       aria-hidden
+      className={className}
       style={{
         height,
         position: "relative",
@@ -46,7 +47,7 @@ function CardArt({ p, height }: { p: Product; height: number }) {
 }
 
 export default function AppHome() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
   const dark = theme === "dark";
   const [notice, setNotice] = useState(0);
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
@@ -137,10 +138,10 @@ export default function AppHome() {
 
         {/* ── 히어로 상품 캐러셀 ── */}
         <section style={{ marginTop: 16, position: "relative" }}>
-          <div className="hero-scroll">
+          <div className="home-product-scroll">
             {heroes.map((p) => (
-              <Link key={p.id} href={`/product/${p.id}`} className="hero-card">
-                <CardArt p={p} height={300} />
+              <Link key={p.id} href={`/product/${p.id}`} className="hero-card home-product-card">
+                <CardArt p={p} className="home-product-art" />
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 35%, rgba(10,6,16,0.95) 82%)" }} />
                 {/* 히어로 텍스트는 어두운 오버레이 위라 테마와 무관하게 밝은 색 고정 */}
                 <div style={{ position: "absolute", left: 18, right: 18, bottom: 16 }}>
@@ -160,10 +161,10 @@ export default function AppHome() {
             <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
             <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령과 직접 대화하기 — 무료 5번</span>
           </div>
-          <div className="hero-scroll">
+          <div className="shrine-scroll">
             {Object.values(CHARACTERS).map((ch) => (
-              <Link key={ch.id} href={`/shrine/${ch.id}`} className="hero-card">
-                <div aria-hidden style={{ height: 280, position: "relative", overflow: "hidden", background: "#0a0710" }}>
+              <Link key={ch.id} href={`/shrine/${ch.id}`} className="hero-card shrine-card">
+                <div aria-hidden className="shrine-card-art">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={ch.img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }} />
                 </div>
@@ -229,15 +230,7 @@ export default function AppHome() {
             </div>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>러브레빗</strong>
-              <p style={{ marginTop: 6 }}>
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  style={{ color: "var(--text)", background: "none", border: 0, padding: 0, cursor: "pointer", font: "inherit" }}
-                >
-                  {dark ? "☀️ 라이트 테마 보기" : "🌙 다크 테마 보기"}
-                </button>
-              </p>
+              <p style={{ marginTop: 6 }}><Link href="/profile" style={{ color: "var(--text)" }}>프로필 설정</Link></p>
               <p><Link href="/reading" style={{ color: "var(--text)" }}>리딩 바로가기</Link></p>
             </div>
           </div>

@@ -16,6 +16,13 @@ export interface DatabaseSignupResult extends DatabaseUser {
   referralClaimed: boolean;
 }
 
+export type ProfileTheme = "dark" | "light";
+
+export interface DatabaseUserProfile {
+  theme: ProfileTheme;
+  displayName: string | null;
+}
+
 export type ReferralRewardType = "reading_unlock" | "chat_credits";
 
 export interface ReferralStatus {
@@ -27,6 +34,51 @@ export interface ReferralStatus {
 export type OrderKind = "reading";
 export type OrderMethod = "transfer" | "toss-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
+
+export async function getUserProfile(userId: number): Promise<DatabaseUserProfile | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_user_profiles")
+    .select("theme,display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) throw databaseError("프로필 조회", error);
+  if (!data) return null;
+  return {
+    theme: data.theme === "light" ? "light" : "dark",
+    displayName: data.display_name ?? null,
+  };
+}
+
+export async function saveUserProfile(
+  userId: number,
+  input: { theme: ProfileTheme }
+): Promise<DatabaseUserProfile | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_user_profiles")
+    .upsert(
+      {
+        user_id: userId,
+        theme: input.theme,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    )
+    .select("theme,display_name")
+    .single();
+
+  if (error) throw databaseError("프로필 저장", error);
+  return {
+    theme: data.theme === "light" ? "light" : "dark",
+    displayName: data.display_name ?? null,
+  };
+}
 
 export async function upsertDatabaseUser(input: {
   email: string;

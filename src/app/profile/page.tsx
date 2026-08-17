@@ -1,18 +1,45 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import SignupModal from "@/components/SignupModal";
+import { useTheme, type Theme } from "@/components/ThemeProvider";
 import { clearUser, getUser, saveUser, type User } from "@/lib/user";
 
 export default function ProfilePage() {
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState<Theme>(theme);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
+
+  const loadSavedProfile = useCallback(async (account: User) => {
+    setProfileLoading(true);
+    try {
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: account.token }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { theme?: Theme };
+      if (response.ok && (data.theme === "dark" || data.theme === "light")) {
+        setSelectedTheme(data.theme);
+        setTheme(data.theme);
+      }
+    } catch {
+      // 네트워크가 끊겨도 이 기기에 저장된 테마는 그대로 유지한다.
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [setTheme]);
 
   useEffect(() => {
     const stored = getUser();
     setUser(stored);
     if (!stored) return;
+    void loadSavedProfile(stored);
     fetch("/api/referral/status", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,7 +57,29 @@ export default function ProfilePage() {
         saveUser(next);
       })
       .catch(() => undefined);
-  }, []);
+  }, [loadSavedProfile]);
+
+  const saveThemePreference = async () => {
+    setProfileSaving(true);
+    setProfileNotice("");
+    try {
+      if (user) {
+        const response = await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userToken: user.token, theme: selectedTheme }),
+        });
+        const data = (await response.json().catch(() => ({}))) as { theme?: Theme; error?: string };
+        if (!response.ok) throw new Error(data.error ?? "프로필을 저장하지 못했어요.");
+      }
+      setTheme(selectedTheme);
+      setProfileNotice(user ? "계정에 화면 설정을 저장했어요." : "이 기기에 화면 설정을 저장했어요. 로그인하면 계정에도 저장할 수 있어요.");
+    } catch (error) {
+      setProfileNotice(error instanceof Error ? error.message : "화면 설정을 저장하지 못했어요.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   const shareForCredits = async () => {
     if (!user?.referralCode) return;
@@ -81,6 +130,44 @@ export default function ProfilePage() {
           </button>
         )}
       </div>
+      <section className="card profile-theme-card">
+        <span className="badge">화면 설정</span>
+        <h2>테마</h2>
+        <p>기본은 블랙입니다. 여기에서만 라이트 모드로 바꾸고 저장할 수 있어요.</p>
+        <div className="profile-theme-options" role="radiogroup" aria-label="화면 테마">
+          <button
+            type="button"
+            role="radio"
+            aria-checked={selectedTheme === "dark"}
+            className={selectedTheme === "dark" ? "on" : ""}
+            onClick={() => setSelectedTheme("dark")}
+          >
+            <span className="theme-preview theme-preview-dark" aria-hidden />
+            <strong>블랙</strong>
+            <small>기본 테마</small>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={selectedTheme === "light"}
+            className={selectedTheme === "light" ? "on" : ""}
+            onClick={() => setSelectedTheme("light")}
+          >
+            <span className="theme-preview theme-preview-light" aria-hidden />
+            <strong>라이트</strong>
+            <small>밝은 테마</small>
+          </button>
+        </div>
+        <button
+          type="button"
+          className="btn profile-theme-save"
+          onClick={saveThemePreference}
+          disabled={profileLoading || profileSaving}
+        >
+          {profileLoading ? "불러오는 중…" : profileSaving ? "저장 중…" : "화면 설정 저장"}
+        </button>
+        {profileNotice && <p className="profile-theme-notice" role="status">{profileNotice}</p>}
+      </section>
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
           <span className="badge">친구 초대 보상</span>
@@ -98,6 +185,7 @@ export default function ProfilePage() {
         <SignupModal
           onDone={(nextUser) => {
             setUser(nextUser);
+            void loadSavedProfile(nextUser);
             setShowSignup(false);
           }}
           onClose={() => setShowSignup(false)}

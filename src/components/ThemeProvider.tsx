@@ -7,7 +7,6 @@ export type Theme = "dark" | "light";
 type ThemeContextValue = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
 };
 
 const THEME_STORAGE_KEY = "loverabbit-theme";
@@ -43,16 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setThemeState((currentTheme) => {
-      const nextTheme: Theme = currentTheme === "dark" ? "light" : "dark";
-      applyTheme(nextTheme);
-      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
-      return nextTheme;
-    });
-  }, []);
-
-  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [setTheme, theme, toggleTheme]);
+  const value = useMemo(() => ({ theme, setTheme }), [setTheme, theme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

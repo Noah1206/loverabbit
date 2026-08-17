@@ -229,11 +229,21 @@ label {
 }
 
 /* ── 앱형 홈 (콘텐츠 마켓 레이아웃) ── */
-.hero-scroll {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.home-product-scroll,
+.shrine-scroll {
+  display: flex;
   gap: 14px;
   padding: 4px 20px 8px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-product-scroll::-webkit-scrollbar,
+.shrine-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .hero-card {
@@ -243,12 +253,29 @@ label {
   border: 1px solid var(--line);
   background: var(--bg-card);
   position: relative;
+  scroll-snap-align: start;
 }
 
-@media (max-width: 520px) {
-  .hero-scroll {
-    grid-template-columns: 1fr;
-  }
+.home-product-card {
+  flex: 0 0 clamp(214px, 72vw, 244px);
+  aspect-ratio: 3 / 4;
+}
+
+.home-product-art,
+.shrine-card-art {
+  width: 100%;
+  height: 100%;
+}
+
+.shrine-card {
+  flex: 0 0 min(86vw, 430px);
+  aspect-ratio: 15 / 5;
+}
+
+.shrine-card-art {
+  position: relative;
+  overflow: hidden;
+  background: #0a0710;
 }
 
 .chip {
@@ -272,7 +299,7 @@ label {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 4px 14px rgba(255, 92, 148, 0.3);
 }
 
-/* 홈 상단바 — 하단 탭바와 같은 떠 있는 Liquid Glass 재질 */
+/* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-header {
   position: sticky;
   top: calc(6px + env(safe-area-inset-top));
@@ -286,26 +313,14 @@ label {
   gap: 10px;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  border: 1px solid #202027;
   border-radius: 21px;
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.3)),
-    rgba(247, 240, 244, 0.4);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.94),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.2),
-    0 12px 30px rgba(58, 32, 46, 0.15);
+  background: #08080b;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
 }
 
 .app-header::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(112deg, rgba(255, 255, 255, 0.4), transparent 38%, rgba(255, 255, 255, 0.12) 68%, transparent);
+  content: none;
 }
 
 .app-header-brand {
@@ -313,7 +328,7 @@ label {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--text);
+  color: #fff;
   font-size: 0.92rem;
   line-height: 1;
   letter-spacing: 0.035em;
@@ -325,7 +340,7 @@ label {
   height: 26px;
   border-radius: 9px;
   object-fit: cover;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 12px rgba(0, 0, 0, 0.16);
+  box-shadow: none;
 }
 
 .app-header-actions {
@@ -339,18 +354,16 @@ label {
 .app-header-action {
   height: 30px;
   padding: 0 10px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid #2c2c33;
   border-radius: 15px;
-  background: rgba(255, 255, 255, 0.28);
-  color: #111114;
+  background: #17171c;
+  color: rgba(255, 255, 255, 0.82);
   font: inherit;
   font-size: 0.7rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
-  backdrop-filter: blur(16px) saturate(175%);
-  -webkit-backdrop-filter: blur(16px) saturate(175%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 4px 12px rgba(40, 24, 32, 0.09);
+  box-shadow: none;
   transition: transform 180ms ease, background-color 180ms ease;
 }
 
@@ -370,21 +383,16 @@ label {
 }
 
 [data-theme="dark"] .app-header {
-  border-color: rgba(255, 255, 255, 0.18);
-  background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
-    rgba(10, 8, 16, 0.62);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 16px 36px rgba(0, 0, 0, 0.38);
+  border-color: #202027;
+  background: #08080b;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
 }
 
 [data-theme="dark"] .app-header-action {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.075);
-  color: #fff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 5px 14px rgba(0, 0, 0, 0.22);
+  border-color: #2c2c33;
+  background: #17171c;
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: none;
 }
 
 @media (max-width: 360px) {
@@ -794,30 +802,86 @@ label {
   }
 }
 
-.theme-toggle {
-  position: fixed;
-  right: 16px;
-  bottom: calc(82px + env(safe-area-inset-bottom));
-  z-index: 65;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 13px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--bg-card) 86%, transparent);
-  color: var(--text);
-  font: inherit;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+.profile-theme-card {
+  margin-top: 14px;
+  padding: 24px;
 }
 
-.theme-toggle:focus-visible {
-  outline: 2px solid var(--accent-soft);
-  outline-offset: 3px;
+.profile-theme-card h2 {
+  margin: 12px 0 4px;
+  font-size: 1.15rem;
+}
+
+.profile-theme-card > p {
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.profile-theme-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.profile-theme-options button {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card2);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.profile-theme-options button.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.profile-theme-options strong,
+.profile-theme-options small {
+  display: block;
+}
+
+.profile-theme-options strong {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.profile-theme-options small {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.theme-preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.theme-preview-dark {
+  background: linear-gradient(150deg, #08080b 55%, #28282e 55%);
+}
+
+.theme-preview-light {
+  background: linear-gradient(150deg, #fff6f8 55%, #ffd7e2 55%);
+  border-color: #ead7de;
+}
+
+.profile-theme-save {
+  width: 100%;
+  margin-top: 16px;
+  padding-block: 13px;
+}
+
+.profile-theme-card .profile-theme-notice {
+  margin-top: 10px;
+  color: var(--gold);
+  text-align: center;
 }

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
-import ThemeToggle from "@/components/ThemeToggle";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const themeInitScript = `
@@ -60,7 +59,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <p>본 서비스의 리딩은 오락 목적이며 의학적·법률적 조언이 아닙니다.</p>
           </footer>
           <BottomNav />
-          <ThemeToggle />
         </ThemeProvider>
       </body>
     </html>
