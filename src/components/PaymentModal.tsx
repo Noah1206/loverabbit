@@ -27,6 +27,7 @@ export default function PaymentModal({
 
   return (
     <div
+      className="app-modal-layer"
       style={{
         position: "fixed",
         inset: 0,

@@ -239,6 +239,7 @@ export default function AppHome() {
 
       {showQr && (
         <div
+          className="app-modal-layer"
           role="dialog"
           aria-modal="true"
           aria-labelledby="qr-title"

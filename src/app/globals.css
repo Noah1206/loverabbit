@@ -2,6 +2,7 @@
 :root,
 [data-theme="dark"],
 .theme-dark {
+  --app-max-width: 480px;
   --bg: #0d0a14;
   --bg-card: #17121f;
   --bg-card2: #1e1729;
@@ -43,7 +44,6 @@
 
 html,
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", -apple-system, sans-serif;
   line-height: 1.6;
@@ -54,8 +54,49 @@ body {
 }
 
 body {
-  /* 떠 있는 하단 탭바와 탭 아래 여백까지 확보 */
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255, 61, 127, 0.13), transparent 34rem),
+    #050409;
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255, 92, 148, 0.15), transparent 34rem),
+    #eee6ea;
+}
+
+/* 모바일에서는 전체 폭, 태블릿·PC에서는 중앙 480px 앱 화면으로 제한 */
+.app-viewport {
+  width: min(100%, var(--app-max-width));
+  min-height: 100dvh;
+  margin-inline: auto;
   padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  position: relative;
+  isolation: isolate;
+  overflow-x: clip;
+  background: var(--bg);
+  box-shadow:
+    -18px 0 48px rgba(0, 0, 0, 0.22),
+    18px 0 48px rgba(0, 0, 0, 0.22);
+}
+
+.app-footer {
+  margin-top: 60px;
+  padding: 40px 20px;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
+.app-modal-layer,
+.shrine-immersive-shell {
+  left: 50% !important;
+  right: auto !important;
+  width: min(100vw, var(--app-max-width)) !important;
+  transform: translateX(-50%);
 }
 
 a {
@@ -64,7 +105,8 @@ a {
 }
 
 .container {
-  max-width: 640px;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -685,7 +727,7 @@ label {
   bottom: calc(6px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100% - 48px), 520px);
+  width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
   height: 66px;
   z-index: 60;
   display: flex;
@@ -793,6 +835,22 @@ label {
 
 [data-theme="dark"] .tabbar-indicator {
   background: #28282e;
+}
+
+@media (max-width: 479px) {
+  .app-viewport {
+    box-shadow: none;
+  }
+}
+
+@media (min-width: 480px) {
+  .app-viewport {
+    border-inline: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  [data-theme="light"] .app-viewport {
+    border-inline-color: rgba(69, 43, 56, 0.08);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

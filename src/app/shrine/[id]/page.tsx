@@ -71,7 +71,7 @@ export default function ShrinePage() {
   const locked = limitReached;
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 70, background: "#0a0710", display: "flex", flexDirection: "column" }}>
+    <div className="shrine-immersive-shell" style={{ position: "fixed", inset: 0, zIndex: 70, background: "#0a0710", display: "flex", flexDirection: "column" }}>
       {/* 배경 — 도령 전신 */}
       <div
         aria-hidden

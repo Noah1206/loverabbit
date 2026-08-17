@@ -61,6 +61,7 @@ export default function SignupModal({
 
   return (
     <div
+      className="app-modal-layer"
       role="dialog"
       aria-modal="true"
       aria-labelledby="social-login-title"

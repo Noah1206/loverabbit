@@ -43,21 +43,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {themeInitScript}
         </Script>
         <ThemeProvider>
-          {/* 성인 확인은 입장 게이트 대신 회원가입 시 생년월일 검증으로 수행 (SignupModal + /api/signup) */}
-          {children}
-          <footer
-            style={{
-              textAlign: "center",
-              padding: "40px 20px",
-              color: "var(--text-dim)",
-              fontSize: "0.8rem",
-              borderTop: "1px solid var(--line)",
-              marginTop: 60,
-            }}
-          >
-            <p>러브레빗 LoveRabbit · 만 19세 이상 전용 서비스</p>
-            <p>본 서비스의 리딩은 오락 목적이며 의학적·법률적 조언이 아닙니다.</p>
-          </footer>
+          <div className="app-viewport">
+            {/* 성인 확인은 입장 게이트 대신 회원가입 시 생년월일 검증으로 수행 (SignupModal + /api/signup) */}
+            {children}
+            <footer className="app-footer">
+              <p>러브레빗 LoveRabbit · 만 19세 이상 전용 서비스</p>
+              <p>본 서비스의 리딩은 오락 목적이며 의학적·법률적 조언이 아닙니다.</p>
+            </footer>
+          </div>
           <BottomNav />
         </ThemeProvider>
       </body>
