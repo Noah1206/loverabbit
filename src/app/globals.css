@@ -956,21 +956,12 @@ label {
   font: 500 1.05rem/1 Arial, sans-serif;
 }
 
-.signup-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 16px 0;
+.social-login-note {
+  margin: 16px 4px 2px;
   color: var(--text-dim);
-  font-size: 0.73rem;
-}
-
-.signup-divider::before,
-.signup-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--line);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .auth-shell {
