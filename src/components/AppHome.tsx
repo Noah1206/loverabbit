@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import SignupModal from "@/components/SignupModal";
-import { getUser, clearUser, type User } from "@/lib/user";
+import { getUser, logoutUser, type User } from "@/lib/user";
 import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
@@ -90,10 +90,10 @@ export default function AppHome() {
               ▦ QR
             </button>
             <button
-              onClick={() => {
+              onClick={async () => {
                 if (user) {
                   if (window.confirm(`${user.email} 로 로그인 중이에요. 로그아웃할까요?`)) {
-                    clearUser();
+                    await logoutUser();
                     setUser(null);
                   }
                 } else {

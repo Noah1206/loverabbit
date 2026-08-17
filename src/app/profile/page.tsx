@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import SignupModal from "@/components/SignupModal";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
-import { clearUser, getUser, saveUser, type User } from "@/lib/user";
+import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
 
 export default function ProfilePage() {
   const { theme, setTheme } = useTheme();
@@ -117,8 +117,8 @@ export default function ProfilePage() {
           <button
             className="btn btn-ghost"
             style={{ width: "100%" }}
-            onClick={() => {
-              clearUser();
+            onClick={async () => {
+              await logoutUser();
               setUser(null);
             }}
           >

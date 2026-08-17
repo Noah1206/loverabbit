@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { saveUser, type User } from "@/lib/user";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 
@@ -20,6 +20,36 @@ export default function SignupModal({
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [providers, setProviders] = useState<{ google: boolean; kakao: boolean } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/providers", { cache: "no-store" })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => ({}))) as {
+          google?: boolean;
+          kakao?: boolean;
+        };
+        if (active) {
+          setProviders({ google: data.google === true, kakao: data.kakao === true });
+        }
+      })
+      .catch(() => {
+        if (active) setProviders({ google: false, kakao: false });
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const startSocialLogin = (provider: "google" | "kakao") => {
+    if (!providers?.[provider]) {
+      setError(`${provider === "google" ? "Google" : "카카오"} 로그인을 준비 중이에요.`);
+      return;
+    }
+    const next = `${window.location.pathname}${window.location.search}`;
+    window.location.assign(`/auth/login?provider=${provider}&next=${encodeURIComponent(next)}`);
+  };
 
   // 청소년보호법 기준(연 나이 19세: 만 19세가 되는 해의 1월 1일부터 성인)
   const isAdult = (() => {
@@ -43,6 +73,7 @@ export default function SignupModal({
       const u = {
         token: data.token,
         email: data.email,
+        authProvider: data.authProvider,
         referralCode: data.referralCode,
         chatCredits: data.chatCredits,
         referralClaimed: data.referralClaimed === true,
@@ -67,10 +98,41 @@ export default function SignupModal({
     >
       <div className="card" style={{ maxWidth: 420, width: "100%" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ textAlign: "center", fontSize: "2rem" }}>🐰</div>
-        <h3 style={{ textAlign: "center", margin: "8px 0 4px" }}>3초 회원가입</h3>
+        <h3 style={{ textAlign: "center", margin: "8px 0 4px" }}>로그인 · 회원가입</h3>
         <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", textAlign: "center", marginBottom: 16 }}>
-          {reason}. 비밀번호 없이 이메일이면 끝.
+          {reason}. 자주 쓰는 계정으로 빠르게 시작하세요.
         </p>
+
+        <div className="social-login-stack">
+          <button
+            type="button"
+            className="social-login-button social-login-google"
+            onClick={() => startSocialLogin("google")}
+            disabled={providers?.google !== true}
+          >
+            <span className="social-google-mark" aria-hidden>G</span>
+            {providers === null
+              ? "로그인 확인 중…"
+              : providers.google
+                ? "Google로 계속하기"
+                : "Google 로그인 준비 중"}
+          </button>
+          <button
+            type="button"
+            className="social-login-button social-login-kakao"
+            onClick={() => startSocialLogin("kakao")}
+            disabled={providers?.kakao !== true}
+          >
+            <span className="social-kakao-mark" aria-hidden>💬</span>
+            {providers === null
+              ? "로그인 확인 중…"
+              : providers.kakao
+                ? "카카오로 계속하기"
+                : "카카오 로그인 준비 중"}
+          </button>
+        </div>
+
+        <div className="signup-divider"><span>또는 이메일로 계속</span></div>
 
         <div className="field">
           <label>이메일</label>

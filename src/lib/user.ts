@@ -7,6 +7,7 @@
 export interface User {
   token: string;
   email: string;
+  authProvider?: "google" | "kakao";
   referralCode?: string;
   chatCredits?: number;
   referralClaimed?: boolean;
@@ -29,4 +30,12 @@ export function saveUser(u: User): void {
 
 export function clearUser(): void {
   localStorage.removeItem(KEY);
+}
+
+export async function logoutUser(): Promise<void> {
+  try {
+    await fetch("/api/auth/logout", { method: "POST" });
+  } finally {
+    clearUser();
+  }
 }

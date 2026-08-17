@@ -16,6 +16,13 @@ export interface DatabaseSignupResult extends DatabaseUser {
   referralClaimed: boolean;
 }
 
+export type DatabaseAuthProvider = "google" | "kakao";
+
+export interface DatabaseSocialUser extends DatabaseUser {
+  authUserId: string | null;
+  authProvider: DatabaseAuthProvider | null;
+}
+
 export type ProfileTheme = "dark" | "light";
 
 export interface DatabaseUserProfile {
@@ -34,6 +41,72 @@ export interface ReferralStatus {
 export type OrderKind = "reading";
 export type OrderMethod = "transfer" | "toss-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
+
+const SOCIAL_USER_COLUMNS =
+  "id,email,birthdate,marketing_consent,referral_code,chat_credits,auth_user_id,auth_provider";
+
+function mapSocialUser(data: Record<string, unknown>): DatabaseSocialUser {
+  const provider = data.auth_provider;
+  return {
+    id: Number(data.id),
+    email: String(data.email),
+    birthdate: String(data.birthdate),
+    marketingConsent: Boolean(data.marketing_consent),
+    referralCode: String(data.referral_code),
+    chatCredits: Number(data.chat_credits ?? 0),
+    authUserId: typeof data.auth_user_id === "string" ? data.auth_user_id : null,
+    authProvider: provider === "google" || provider === "kakao" ? provider : null,
+  };
+}
+
+export async function getDatabaseUserByAuthId(authUserId: string): Promise<DatabaseSocialUser | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_users")
+    .select(SOCIAL_USER_COLUMNS)
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+  if (error) throw databaseError("소셜 로그인 회원 조회", error);
+  return data ? mapSocialUser(data as Record<string, unknown>) : null;
+}
+
+export async function getDatabaseUserByEmail(email: string): Promise<DatabaseSocialUser | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_users")
+    .select(SOCIAL_USER_COLUMNS)
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle();
+  if (error) throw databaseError("이메일 회원 조회", error);
+  return data ? mapSocialUser(data as Record<string, unknown>) : null;
+}
+
+export async function linkDatabaseUserAuth(
+  userId: number,
+  authUserId: string,
+  authProvider: DatabaseAuthProvider
+): Promise<DatabaseSocialUser | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_users")
+    .update({
+      auth_user_id: authUserId,
+      auth_provider: authProvider,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId)
+    .or(`auth_user_id.is.null,auth_user_id.eq.${authUserId}`)
+    .select(SOCIAL_USER_COLUMNS)
+    .maybeSingle();
+  if (error) throw databaseError("소셜 로그인 계정 연결", error);
+  return data ? mapSocialUser(data as Record<string, unknown>) : null;
+}
 
 export async function getUserProfile(userId: number): Promise<DatabaseUserProfile | null> {
   const db = getSupabaseAdmin();
