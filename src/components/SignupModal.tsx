@@ -4,6 +4,15 @@ import { useEffect, useState } from "react";
 import { saveUser, type User } from "@/lib/user";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 
+type SocialLoginProvider = "google" | "kakao" | "x";
+type ProviderStatus = Record<SocialLoginProvider, boolean>;
+
+const PROVIDER_LABEL: Record<SocialLoginProvider, string> = {
+  google: "Google",
+  kakao: "카카오",
+  x: "X",
+};
+
 // 3초 간편가입 모달 — 이메일 + 동의만. 결제 직전 관문으로 사용된다.
 export default function SignupModal({
   onDone,
@@ -20,7 +29,7 @@ export default function SignupModal({
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [providers, setProviders] = useState<{ google: boolean; kakao: boolean } | null>(null);
+  const [providers, setProviders] = useState<ProviderStatus | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -29,22 +38,27 @@ export default function SignupModal({
         const data = (await response.json().catch(() => ({}))) as {
           google?: boolean;
           kakao?: boolean;
+          x?: boolean;
         };
         if (active) {
-          setProviders({ google: data.google === true, kakao: data.kakao === true });
+          setProviders({
+            google: data.google === true,
+            kakao: data.kakao === true,
+            x: data.x === true,
+          });
         }
       })
       .catch(() => {
-        if (active) setProviders({ google: false, kakao: false });
+        if (active) setProviders({ google: false, kakao: false, x: false });
       });
     return () => {
       active = false;
     };
   }, []);
 
-  const startSocialLogin = (provider: "google" | "kakao") => {
+  const startSocialLogin = (provider: SocialLoginProvider) => {
     if (!providers?.[provider]) {
-      setError(`${provider === "google" ? "Google" : "카카오"} 로그인을 준비 중이에요.`);
+      setError(`${PROVIDER_LABEL[provider]} 로그인을 준비 중이에요.`);
       return;
     }
     const next = `${window.location.pathname}${window.location.search}`;
@@ -129,6 +143,19 @@ export default function SignupModal({
               : providers.kakao
                 ? "카카오로 계속하기"
                 : "카카오 로그인 준비 중"}
+          </button>
+          <button
+            type="button"
+            className="social-login-button social-login-x"
+            onClick={() => startSocialLogin("x")}
+            disabled={providers?.x !== true}
+          >
+            <span className="social-x-mark" aria-hidden>X</span>
+            {providers === null
+              ? "로그인 확인 중…"
+              : providers.x
+                ? "X로 계속하기"
+                : "X 로그인 준비 중"}
           </button>
         </div>
 

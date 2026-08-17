@@ -16,7 +16,7 @@ export interface DatabaseSignupResult extends DatabaseUser {
   referralClaimed: boolean;
 }
 
-export type DatabaseAuthProvider = "google" | "kakao";
+export type DatabaseAuthProvider = "google" | "kakao" | "x";
 
 export interface DatabaseSocialUser extends DatabaseUser {
   authUserId: string | null;
@@ -55,7 +55,8 @@ function mapSocialUser(data: Record<string, unknown>): DatabaseSocialUser {
     referralCode: String(data.referral_code),
     chatCredits: Number(data.chat_credits ?? 0),
     authUserId: typeof data.auth_user_id === "string" ? data.auth_user_id : null,
-    authProvider: provider === "google" || provider === "kakao" ? provider : null,
+    authProvider:
+      provider === "google" || provider === "kakao" || provider === "x" ? provider : null,
   };
 }
 

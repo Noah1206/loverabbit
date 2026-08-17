@@ -7,7 +7,7 @@
 export interface User {
   token: string;
   email: string;
-  authProvider?: "google" | "kakao";
+  authProvider?: "google" | "kakao" | "x";
   referralCode?: string;
   chatCredits?: number;
   referralClaimed?: boolean;

@@ -31,7 +31,9 @@ function validAdultBirthdate(value: string) {
 }
 
 function normalizeProvider(value: unknown): DatabaseAuthProvider | null {
-  return value === "google" || value === "kakao" ? value : null;
+  if (value === "google" || value === "kakao" || value === "x") return value;
+  // Older GoTrue metadata can still use the historical provider name.
+  return value === "twitter" ? "x" : null;
 }
 
 function normalizeReward(value: unknown): ReferralRewardType | undefined {

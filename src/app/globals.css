@@ -941,6 +941,21 @@ label {
   font-size: 1rem;
 }
 
+.social-login-x {
+  color: #fff;
+  background: #000;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.social-x-mark {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: #fff;
+  font: 500 1.05rem/1 Arial, sans-serif;
+}
+
 .signup-divider {
   display: flex;
   align-items: center;

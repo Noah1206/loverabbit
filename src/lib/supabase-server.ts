@@ -35,7 +35,7 @@ export async function createSupabaseServerClient() {
   });
 }
 
-export type SocialProvider = "google" | "kakao";
+export type SocialProvider = "google" | "kakao" | "x";
 
 export async function getSocialProviderStatus(): Promise<Record<SocialProvider, boolean>> {
   const { url, publishableKey } = getPublicSupabaseConfig();
@@ -47,10 +47,13 @@ export async function getSocialProviderStatus(): Promise<Record<SocialProvider, 
     throw new Error(`Supabase Auth 설정을 확인하지 못했습니다 (${response.status}).`);
   }
   const settings = (await response.json()) as {
-    external?: Partial<Record<SocialProvider, boolean>>;
+    external?: Partial<Record<SocialProvider | "twitter", boolean>>;
   };
   return {
     google: settings.external?.google === true,
     kakao: settings.external?.kakao === true,
+    // GoTrue's public settings response keeps the historical `twitter` key
+    // even though the current Supabase JS OAuth 2.0 provider name is `x`.
+    x: settings.external?.x === true || settings.external?.twitter === true,
   };
 }

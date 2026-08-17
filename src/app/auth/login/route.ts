@@ -7,7 +7,7 @@ import {
 } from "@/lib/supabase-server";
 
 function isSocialProvider(value: string | null): value is SocialProvider {
-  return value === "google" || value === "kakao";
+  return value === "google" || value === "kakao" || value === "x";
 }
 
 function authError(request: NextRequest, reason: string) {
@@ -36,7 +36,9 @@ export async function GET(request: NextRequest) {
         skipBrowserRedirect: true,
         ...(provider === "kakao"
           ? { scopes: "account_email profile_nickname" }
-          : { queryParams: { prompt: "select_account" } }),
+          : provider === "google"
+            ? { queryParams: { prompt: "select_account" } }
+            : {}),
       },
     });
     if (error || !data.url) {
