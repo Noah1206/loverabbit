@@ -1,0 +1,16 @@
+node_modules/
+.next/
+data/
+out/
+.env
+.env.local
+*.tsbuildinfo
+next-env.d.ts
+
+.vercel
+.env*
+!.env.example
+.agents/
+.claude/
+skills-lock.json
+public/cards-pastel-original/
