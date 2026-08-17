@@ -7,8 +7,6 @@ import SignupModal from "@/components/SignupModal";
 import { saveToArchive, updateArchive } from "@/lib/archive";
 import { getUser, type User } from "@/lib/user";
 
-const MEMBERSHIP_KEY = "loverabbit_membership_v1";
-
 const CATEGORIES = [
   { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
   { id: "jaehoe", label: "재회 🥀", needsPartner: true },
@@ -212,9 +210,8 @@ export default function ReadingPage() {
   const [showSignup, setShowSignup] = useState(false);
   const [full, setFull] = useState<string | null>(null);
   const [showPay, setShowPay] = useState(false);
-  const [membership, setMembership] = useState<{ token: string; expiresAt: number } | null>(null);
 
-  // 홈 상품 카드에서 ?c= 로 진입하면 해당 카테고리를 자동 선택 + 멤버십 확인
+  // 홈 상품 카드에서 ?c= 로 진입하면 해당 카테고리를 자동 선택한다.
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("c");
     const found = CATEGORIES.find((x) => x.id === c);
@@ -222,46 +219,8 @@ export default function ReadingPage() {
       setCategory(found.id);
       setWithPartner(found.needsPartner);
     }
-    try {
-      const saved = JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) ?? "null");
-      if (saved?.expiresAt > Date.now()) setMembership(saved);
-    } catch {}
     setUser(getUser());
   }, []);
-
-  // 멤버십 보유 시: 결제창 없이 서버가 토큰을 검증하고 바로 해금
-  const unlockWithMembership = async () => {
-    if (!result || !membership) return;
-    setPaying(true);
-    setError("");
-    try {
-      const res = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          readingId: result.readingId,
-          blob: result.blob,
-          method: "membership",
-          membershipToken: membership.token,
-        }),
-      });
-      if (!res.ok) {
-        if (res.status === 403) {
-          localStorage.removeItem(MEMBERSHIP_KEY);
-          setMembership(null);
-        }
-        throw new Error((await res.json()).error ?? "해금 실패");
-      }
-      const data = await res.json();
-      setFull(data.full);
-      setScore(data.score ?? null);
-      updateArchive(result.readingId, { full: data.full });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
-    } finally {
-      setPaying(false);
-    }
-  };
 
   const submit = async () => {
     setError("");
@@ -449,31 +408,19 @@ export default function ReadingPage() {
                 }}
               >
                 <p style={{ fontWeight: 700 }}>뒷이야기가 더 아찔합니다 🔥</p>
-                {membership ? (
-                  <button className="btn" onClick={unlockWithMembership} disabled={paying}>
-                    {paying ? "해금 중…" : "멤버십으로 무료 열기 🌙"}
-                  </button>
-                ) : (
-                  // 미가입자는 회원가입 → 결제 순서로 (무료 티저까지는 가입 불필요)
-                  <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
-                    {paying ? "해금 중…" : user ? `풀 리딩 해금 — ${result.price.toLocaleString()}원` : `가입하고 풀 리딩 열기 — ${result.price.toLocaleString()}원`}
-                  </button>
-                )}
+                {/* 무료 티저 뒤에는 회원가입 → 단품 결제로 이어진다. */}
+                <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
+                  {paying ? "해금 중…" : user ? `풀 리딩 해금 — ${result.price.toLocaleString()}원` : `가입하고 풀 리딩 열기 — ${result.price.toLocaleString()}원`}
+                </button>
                 <p style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
-                  {membership
-                    ? `멤버십 이용 중 · ${new Date(membership.expiresAt).toLocaleDateString("ko-KR")}까지 무제한`
-                    : `점집 1회 5만원 vs 러브레빗 ${result.price.toLocaleString()}원`}
+                  점집 1회 5만원 vs 러브레빗 {result.price.toLocaleString()}원
                 </p>
               </div>
             )}
           </div>
 
           {full && (
-            <ChatSection
-              readingId={result.readingId}
-              blob={result.blob}
-              membershipToken={membership?.token ?? null}
-            />
+            <ChatSection readingId={result.readingId} blob={result.blob} />
           )}
 
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>

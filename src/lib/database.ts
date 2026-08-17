@@ -9,8 +9,8 @@ export interface DatabaseUser {
   marketingConsent: boolean;
 }
 
-export type OrderKind = "reading" | "membership";
-export type OrderMethod = "transfer" | "toss-pg" | "membership" | "mock";
+export type OrderKind = "reading";
+export type OrderMethod = "transfer" | "toss-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
 export async function upsertDatabaseUser(input: {
@@ -89,52 +89,6 @@ export async function createOrder(input: {
 
   if (error) throw databaseError("주문 저장", error);
   return Number(data.id);
-}
-
-export async function createMembership(input: {
-  userId: number;
-  orderId?: number | null;
-  startsAt: number;
-  expiresAt: number;
-}): Promise<number | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-
-  const { data, error } = await db
-    .from("lr_memberships")
-    .insert({
-      user_id: input.userId,
-      order_id: input.orderId ?? null,
-      status: "active",
-      starts_at: new Date(input.startsAt).toISOString(),
-      expires_at: new Date(input.expiresAt).toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .select("id")
-    .single();
-
-  if (error) throw databaseError("멤버십 저장", error);
-  return Number(data.id);
-}
-
-export async function isActiveMembership(input: {
-  membershipId: number;
-  userId: number;
-}): Promise<boolean> {
-  const db = getSupabaseAdmin();
-  if (!db) return true;
-
-  const { data, error } = await db
-    .from("lr_memberships")
-    .select("id")
-    .eq("id", input.membershipId)
-    .eq("user_id", input.userId)
-    .eq("status", "active")
-    .gt("expires_at", new Date().toISOString())
-    .maybeSingle();
-
-  if (error) throw databaseError("멤버십 확인", error);
-  return Boolean(data);
 }
 
 export { isDatabaseConfigured };

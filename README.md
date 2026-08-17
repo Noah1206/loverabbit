@@ -19,8 +19,7 @@ Supabase 프로젝트 `project1`에 아래 서버 전용 테이블과 RLS 정책
 
 - `lr_users`: 이메일 가입·생년월일·마케팅 동의
 - `lr_readings`: 생성된 리딩 원문·지수·해금 상태
-- `lr_orders`: 단품/멤버십 주문과 결제 상태
-- `lr_memberships`: 멤버십 유효 기간
+- `lr_orders`: 단품 리딩 주문과 결제 상태
 
 Supabase 대시보드의 **Project Settings → API Keys**에서 Secret key를 확인한 뒤 `.env.local`에 설정하세요. 이 키는 브라우저에 노출하면 안 되므로 `NEXT_PUBLIC_` 접두사를 붙이지 않습니다.
 
@@ -40,7 +39,7 @@ READING_SECRET=충분히-긴-임의-문자열
 | `src/app/reading/page.tsx` | 사주 입력 폼 + 무료 티저 + 페이월 + 공유 이미지 생성 |
 | `src/app/api/reading/route.ts` | 간지 계산 → AI 리딩 생성·DB 저장, 티저만 응답 |
 | `src/app/api/unlock/route.ts` | 결제 승인·주문 기록 후 풀 리딩 해금 |
-| `src/lib/database.ts` | 사용자·주문·멤버십 DB 접근 계층 |
+| `src/lib/database.ts` | 사용자·주문 DB 접근 계층 |
 | `src/lib/store.ts` | Supabase 리딩 저장소 + 로컬 파일 폴백 |
 | `src/lib/saju.ts` | 60갑자 연주·월주·일주·시주 계산 |
 

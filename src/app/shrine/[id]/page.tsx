@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 
-const MEMBERSHIP_KEY = "loverabbit_membership_v1";
-
 // 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
 export default function ShrinePage() {
   const { id } = useParams<{ id: string }>();
@@ -16,18 +14,13 @@ export default function ShrinePage() {
   const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [needMembership, setNeedMembership] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
   const [error, setError] = useState("");
-  const [membership, setMembership] = useState<{ token: string } | null>(null);
   const [count, setCount] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (ch) setCount(participantCount(ch.id));
-    try {
-      const saved = JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) ?? "null");
-      if (saved?.expiresAt > Date.now()) setMembership(saved);
-    } catch {}
   }, [ch]);
 
   useEffect(() => {
@@ -51,11 +44,11 @@ export default function ShrinePage() {
       const res = await fetch("/api/shrine-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ characterId: ch.id, question: q, history: msgs, membershipToken: membership?.token }),
+        body: JSON.stringify({ characterId: ch.id, question: q, history: msgs }),
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.needMembership) setNeedMembership(true);
+        if (data.limitReached) setLimitReached(true);
         throw new Error(data.error ?? "대화 실패");
       }
       setMsgs((m) => [...m, { role: "user", content: q }, { role: "assistant", content: data.answer }]);
@@ -67,7 +60,7 @@ export default function ShrinePage() {
     }
   };
 
-  const locked = needMembership && !membership;
+  const locked = limitReached;
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 70, background: "#0a0710", display: "flex", flexDirection: "column" }}>
@@ -139,8 +132,8 @@ export default function ShrinePage() {
           <div style={{ padding: "10px 16px calc(14px + env(safe-area-inset-bottom))" }}>
             {locked ? (
               <div style={{ textAlign: "center", background: "rgba(16,10,20,0.9)", borderRadius: 16, padding: 16 }}>
-                <p style={{ color: "#fff", fontSize: "0.9rem", marginBottom: 10 }}>무료 대화 5번을 다 썼어요. 멤버십이면 <strong>밤새</strong> 대화할 수 있어요.</p>
-                <a href="/membership" className="btn" style={{ display: "inline-block" }}>🌙 멤버십으로 이어서 대화하기</a>
+                <p style={{ color: "#fff", fontSize: "0.9rem", marginBottom: 10 }}>오늘의 무료 대화 5번을 모두 사용했어요.</p>
+                <button className="btn" onClick={() => router.push("/")}>다른 리딩 둘러보기</button>
               </div>
             ) : (
               <div style={{ display: "flex", gap: 8 }}>

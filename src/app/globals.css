@@ -54,8 +54,8 @@ body {
 }
 
 body {
-  /* 하단 탭바 공간 확보 */
-  padding-bottom: 76px;
+  /* 떠 있는 하단 탭바와 탭 아래 여백까지 확보 */
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
 }
 
 a {
@@ -272,57 +272,300 @@ label {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 4px 14px rgba(255, 92, 148, 0.3);
 }
 
-.tabbar {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100%, 640px);
-  z-index: 60;
+/* 홈 상단바 — 하단 탭바와 같은 떠 있는 Liquid Glass 재질 */
+.app-header {
+  position: sticky;
+  top: calc(10px + env(safe-area-inset-top));
+  z-index: 40;
+  min-height: 58px;
+  margin: 10px 14px 0;
+  padding: 8px 9px 8px 14px;
   display: flex;
-  background: rgba(255, 246, 248, 0.55);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  border-top: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 -6px 20px rgba(69, 43, 56, 0.06);
-  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 25px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0.3)),
+    rgba(247, 240, 244, 0.4);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 30px rgba(58, 32, 46, 0.15);
 }
 
-.tabbar a,
-.tabbar button {
+.app-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(112deg, rgba(255, 255, 255, 0.4), transparent 38%, rgba(255, 255, 255, 0.12) 68%, transparent);
+}
+
+.app-header-brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
+}
+
+.app-header-brand img {
+  width: 30px;
+  height: 30px;
+  border-radius: 11px;
+  object-fit: cover;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 12px rgba(0, 0, 0, 0.16);
+}
+
+.app-header-actions {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.app-header-action {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.28);
+  color: #111114;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  backdrop-filter: blur(16px) saturate(175%);
+  -webkit-backdrop-filter: blur(16px) saturate(175%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 4px 12px rgba(40, 24, 32, 0.09);
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.app-header-action:active {
+  transform: scale(0.95);
+}
+
+.app-header-action:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.app-header-login {
+  max-width: 108px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+[data-theme="dark"] .app-header {
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.04)),
+    rgba(10, 8, 16, 0.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 36px rgba(0, 0, 0, 0.38);
+}
+
+[data-theme="dark"] .app-header-action {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.075);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 5px 14px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 360px) {
+  .app-header-brand {
+    gap: 5px;
+    font-size: 0.88rem;
+  }
+
+  .app-header-brand img {
+    width: 27px;
+    height: 27px;
+  }
+
+  .app-header-action {
+    padding-inline: 9px;
+  }
+
+  .app-header-login {
+    max-width: 82px;
+  }
+}
+
+.tabbar {
+  --active-index: 0;
+  --nav-count: 3;
+  position: fixed;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 28px), 604px);
+  height: 70px;
+  z-index: 60;
+  display: flex;
+  padding: 6px;
+  border-radius: 28px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.28)),
+    rgba(247, 240, 244, 0.34);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.2),
+    0 16px 38px rgba(58, 32, 46, 0.18),
+    0 3px 10px rgba(58, 32, 46, 0.08);
+}
+
+.tabbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.38), transparent 38%, rgba(255, 255, 255, 0.12) 68%, transparent);
+}
+
+.tabbar-indicator-slot {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: calc((100% - 12px) / var(--nav-count));
+  height: 56px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  transform: translateX(calc(100% * var(--active-index)));
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.tabbar-indicator {
+  width: calc(100% - 6px);
+  height: 56px;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.7), transparent 34%),
+    rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(18px) saturate(185%);
+  -webkit-backdrop-filter: blur(18px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    inset 0 -8px 16px rgba(255, 255, 255, 0.08),
+    0 7px 18px rgba(32, 20, 27, 0.16);
+}
+
+.tabbar a {
   flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
-  font-size: 0.68rem;
-  color: var(--text-dim);
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
+  color: rgba(15, 15, 18, 0.58);
+  -webkit-tap-highlight-color: transparent;
+  transition: color 220ms ease, transform 220ms ease;
 }
 
-.tabbar .ico {
-  font-size: 1.25rem;
-  line-height: 1.2;
+.tabbar a:active {
+  transform: scale(0.94);
+}
+
+.tabbar a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+  border-radius: 20px;
+}
+
+.tabbar-icon {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+}
+
+.tabbar-icon svg {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.48));
+}
+
+.tabbar-label {
+  font-size: 0.65rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 .tabbar .on {
-  color: var(--accent);
-  font-weight: 700;
+  color: #050507;
 }
 
 [data-theme="dark"] .tabbar {
-  background: rgba(13, 10, 20, 0.72);
-  border-top-color: rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 -6px 20px rgba(0, 0, 0, 0.22);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)),
+    rgba(10, 8, 16, 0.58);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.035),
+    0 18px 42px rgba(0, 0, 0, 0.44),
+    0 3px 12px rgba(0, 0, 0, 0.24);
+}
+
+[data-theme="dark"] .tabbar a {
+  color: rgba(255, 255, 255, 0.54);
+}
+
+[data-theme="dark"] .tabbar .on {
+  color: #fff;
+}
+
+[data-theme="dark"] .tabbar-indicator {
+  background:
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.26), transparent 34%),
+    rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    inset 0 -8px 16px rgba(255, 255, 255, 0.025),
+    0 8px 22px rgba(0, 0, 0, 0.34);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabbar-indicator-slot,
+  .tabbar a {
+    transition-duration: 0.01ms;
+  }
 }
 
 .theme-toggle {
   position: fixed;
   right: 16px;
-  bottom: 86px;
+  bottom: calc(100px + env(safe-area-inset-bottom));
   z-index: 65;
   display: inline-flex;
   align-items: center;

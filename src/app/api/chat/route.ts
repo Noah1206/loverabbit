@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { open } from "@/lib/crypto";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
-import { validateMembershipToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
 
 // 추가 상담 — 해금된 리딩에 대해 '레빗 언니'와 후속 질문 채팅.
-// 과금 규칙: 첫 질문 1회 무료, 이후에는 유효한 멤버십 토큰 필요 (402 → 클라이언트가 멤버십 CTA 표시).
+// 이용 규칙: 풀 리딩마다 후속 질문 1회를 무료로 제공한다.
 // 리딩 컨텍스트는 클라이언트가 보관한 봉인 blob에서 서버가 복호화해 사용한다.
 
 interface Body {
@@ -14,7 +13,6 @@ interface Body {
   blob: string;
   question: string;
   history?: ChatMsg[];
-  membershipToken?: string;
 }
 
 interface SealedReading {
@@ -63,21 +61,12 @@ export async function POST(req: NextRequest) {
   const history = (body.history ?? []).slice(-MAX_HISTORY);
   const userTurns = history.filter((m) => m.role === "user").length;
 
-  // 첫 질문은 무료, 이후는 멤버십 필요
+  // 풀 리딩별 무료 후속 질문은 1회로 제한한다.
   if (userTurns >= 1) {
-    let membership;
-    try {
-      membership = await validateMembershipToken(body.membershipToken);
-    } catch (error) {
-      console.error("상담 멤버십 확인 실패:", error);
-      return NextResponse.json({ error: "멤버십을 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
-    if (!membership) {
-      return NextResponse.json(
-        { error: "무료 상담 1회를 이미 사용했어요. 멤버십이면 무제한으로 물어볼 수 있어요.", needMembership: true },
-        { status: 402 }
-      );
-    }
+    return NextResponse.json(
+      { error: "이번 리딩의 무료 추가 상담 1회를 이미 사용했어요.", limitReached: true },
+      { status: 402 }
+    );
   }
 
   try {

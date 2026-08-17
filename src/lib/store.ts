@@ -9,7 +9,6 @@ import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 const DIR = path.join(process.cwd(), "data", "readings");
 
 export const READING_PRICE = 7900;
-export const MEMBERSHIP_PRICE = 27900; // 밤의 멤버십 (30일 무제한)
 
 export function priceFor(_category: string): number {
   return READING_PRICE;
@@ -28,7 +27,7 @@ export interface StoredReading {
   scoreLabel?: string | null;
   unlocked: boolean;
   // 결제 기록 — 계좌이체는 입금코드로 통장 내역과 사후 대조한다
-  payment?: { method: "toss-pg" | "transfer" | "membership" | "mock"; depositorCode?: string; at: string };
+  payment?: { method: "toss-pg" | "transfer" | "mock"; depositorCode?: string; at: string };
 }
 
 interface ReadingRow {

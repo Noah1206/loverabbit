@@ -1,7 +1,7 @@
 "use client";
 
 // 계좌이체 결제 모달 — "토스로 이체하기"는 토스 앱 송금 딥링크로 은행·계좌·금액을 채워서 연다.
-// 단품 리딩(reading 페이지)과 멤버십(membership 페이지)이 공용으로 사용.
+// 단품 리딩 결제에 사용하는 계좌이체 모달.
 
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME ?? "";
 const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT ?? "";

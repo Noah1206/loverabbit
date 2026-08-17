@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getReading, markUnlocked } from "@/lib/store";
 import { open } from "@/lib/crypto";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
-import { resolveUserToken, validateMembershipToken } from "@/lib/tokens";
+import { resolveUserToken } from "@/lib/tokens";
 
-// 풀 리딩 해금 — 결제 방식 3가지:
+// 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체. 입금코드를 기록해 두고 즉시 해금 → 운영자가 통장 내역과 사후 대조.
 //    (초기 소액 운영용 신뢰 기반. 미입금이 늘면 오픈뱅킹 입금확인 API나 PG로 전환할 것.)
 // 2) toss-pg: TOSS_SECRET_KEY가 있으면 토스페이먼츠 결제 승인 API로 실결제 검증.
@@ -15,8 +15,7 @@ import { resolveUserToken, validateMembershipToken } from "@/lib/tokens";
 interface Body {
   readingId: string;
   blob?: string;
-  method?: "transfer" | "toss-pg" | "membership";
-  membershipToken?: string;
+  method?: "transfer" | "toss-pg";
   userToken?: string; // 회원가입 토큰 — 유료 해금은 가입 필수
   depositorCode?: string;
   paymentKey?: string;
@@ -66,29 +65,6 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
-
-  // ── 멤버십 (30일 무제한 토큰) ──
-  if (body.method === "membership") {
-    let membership;
-    try {
-      membership = await validateMembershipToken(body.membershipToken);
-    } catch (error) {
-      console.error("멤버십 DB 확인 실패:", error);
-      return NextResponse.json({ error: "멤버십을 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
-    if (!membership) {
-      return NextResponse.json({ error: "유효하지 않거나 만료된 멤버십입니다." }, { status: 403 });
-    }
-    try {
-      const unlocked = await markUnlocked(body.readingId, { method: "membership", at: now }, membership.userId);
-      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
-    } catch (error) {
-      console.error("멤버십 리딩 해금 저장 실패:", error);
-      return NextResponse.json({ error: "해금 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
-    console.log(`[멤버십 사용] reading=${body.readingId} membershipId=${membership.membershipId ?? "legacy"}`);
-    return NextResponse.json({ full, score, scoreLabel, method: "membership" });
-  }
 
   // ── 계좌이체 ──
   if (body.method === "transfer") {

@@ -73,30 +73,18 @@ export default function AppHome() {
     <div className={`theme-${theme}`} style={{ margin: "0 auto" }}>
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── 상단바 ── */}
-        <header
-          style={{
-            position: "sticky", top: 0, zIndex: 40, display: "flex", alignItems: "center",
-            justifyContent: "space-between", padding: "14px 20px",
-            background: dark ? "rgba(13,10,20,0.6)" : "rgba(255,246,248,0.55)",
-            backdropFilter: "blur(22px) saturate(180%)", WebkitBackdropFilter: "blur(22px) saturate(180%)",
-            borderBottom: "1px solid rgba(255,255,255,0.5)",
-          }}
-        >
-          <strong style={{ fontSize: "1.15rem", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 8 }}>
+        <header className="app-header">
+          <strong className="app-header-brand">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="러브레빗 로고" style={{ width: 28, height: 28, borderRadius: 9, objectFit: "cover" }} />
+            <img src="/logo.png" alt="러브레빗 로고" />
             LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
           </strong>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div className="app-header-actions">
             <button
               onClick={() => setShowQr(true)}
               aria-label="휴대폰 접속 QR 코드 보기"
               title="휴대폰 접속 QR"
-              style={{
-                border: "1px solid var(--line)", borderRadius: 999, padding: "6px 10px",
-                background: "var(--bg-card)", color: "var(--text)", fontSize: "0.78rem",
-                fontWeight: 800, cursor: "pointer",
-              }}
+              className="app-header-action"
             >
               ▦ QR
             </button>
@@ -111,8 +99,7 @@ export default function AppHome() {
                   setShowSignup(true);
                 }
               }}
-              className="btn btn-ghost"
-              style={{ padding: "7px 16px", fontSize: "0.85rem", color: "var(--text)" }}
+              className="app-header-action app-header-login"
             >
               {user ? user.email.split("@")[0] : "로그인"}
             </button>
@@ -189,27 +176,6 @@ export default function AppHome() {
               </Link>
             ))}
           </div>
-        </section>
-
-        {/* ── 멤버십 배너 ── */}
-        <section style={{ padding: "20px 20px 0" }}>
-          <Link
-            href="/membership"
-            className="card"
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-              background: "linear-gradient(120deg, rgba(185,157,248,0.22), rgba(255,140,180,0.22))",
-              borderColor: "var(--violet)",
-            }}
-          >
-            <div>
-              <strong>🌙 밤의 멤버십</strong>
-              <p style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: 2 }}>
-                월 27,900원 — 모든 리딩 30일 무제한. 이 사람 저 사람 다 물어보세요.
-              </p>
-            </div>
-            <span style={{ color: "var(--accent)", fontWeight: 800, whiteSpace: "nowrap" }}>가입 →</span>
-          </Link>
         </section>
 
         {/* ── 필터 탭 + 상품 그리드 ── */}

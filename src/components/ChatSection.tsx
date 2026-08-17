@@ -2,25 +2,23 @@
 
 import { useState } from "react";
 
-// 추가 상담 — 해금된 리딩 아래에서 명리 분석가와 후속 질문 채팅 (첫 질문 무료 → 이후 멤버십).
+// 추가 상담 — 해금된 리딩 아래에서 명리 분석가와 후속 질문 1회를 제공한다.
 // 리딩 페이지와 내 상담 보관함(/my)이 공용으로 사용.
 export default function ChatSection({
   readingId,
   blob,
-  membershipToken,
 }: {
   readingId: string;
   blob: string;
-  membershipToken: string | null;
 }) {
   const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [needMembership, setNeedMembership] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
   const [error, setError] = useState("");
 
   const userTurns = msgs.filter((m) => m.role === "user").length;
-  const locked = needMembership || (userTurns >= 1 && !membershipToken);
+  const locked = limitReached || userTurns >= 1;
 
   const send = async () => {
     const q = input.trim();
@@ -31,11 +29,11 @@ export default function ChatSection({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readingId, blob, question: q, history: msgs, membershipToken }),
+        body: JSON.stringify({ readingId, blob, question: q, history: msgs }),
       });
       const data = await res.json();
       if (!res.ok) {
-        if (data.needMembership) setNeedMembership(true);
+        if (data.limitReached) setLimitReached(true);
         throw new Error(data.error ?? "상담 실패");
       }
       setMsgs((m) => [...m, { role: "user", content: q }, { role: "assistant", content: data.answer }]);
@@ -52,7 +50,7 @@ export default function ChatSection({
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <span style={{ fontSize: "1.3rem" }}>🔮</span>
         <strong>추가 사주 상담</strong>
-        {!membershipToken && <span className="badge">첫 질문 무료</span>}
+        <span className="badge">첫 질문 무료</span>
       </div>
 
       <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
@@ -79,8 +77,9 @@ export default function ChatSection({
 
       {locked ? (
         <div style={{ textAlign: "center", padding: "8px 0" }}>
-          <p style={{ fontSize: "0.88rem", marginBottom: 10 }}>무료 상담을 다 썼어요. 멤버십이면 <strong>무제한</strong>으로 물어볼 수 있어요.</p>
-          <a href="/membership" className="btn" style={{ display: "inline-block" }}>🌙 멤버십으로 무제한 상담 →</a>
+          <p style={{ fontSize: "0.88rem", color: "var(--text-dim)" }}>
+            이번 리딩의 무료 추가 상담을 사용했어요. 다른 질문은 새 리딩에서 이어가 주세요.
+          </p>
         </div>
       ) : (
         <div style={{ display: "flex", gap: 8 }}>

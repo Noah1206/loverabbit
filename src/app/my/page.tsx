@@ -8,12 +8,9 @@ import PaymentModal from "@/components/PaymentModal";
 import SignupModal from "@/components/SignupModal";
 import { getUser, type User } from "@/lib/user";
 
-const MEMBERSHIP_KEY = "loverabbit_membership_v1";
-
 export default function MyPage() {
   const [entries, setEntries] = useState<ArchiveEntry[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [membership, setMembership] = useState<{ token: string; expiresAt: number } | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [showPay, setShowPay] = useState(false);
@@ -22,10 +19,6 @@ export default function MyPage() {
 
   useEffect(() => {
     setEntries(listArchive());
-    try {
-      const saved = JSON.parse(localStorage.getItem(MEMBERSHIP_KEY) ?? "null");
-      if (saved?.expiresAt > Date.now()) setMembership(saved);
-    } catch {}
     setUser(getUser());
   }, []);
 
@@ -33,7 +26,7 @@ export default function MyPage() {
   const depositorCode = open ? `레빗-${open.readingId.slice(0, 4).toUpperCase()}` : "";
 
   // 보관함에서 해금 — 리딩 페이지와 동일한 /api/unlock 경로 사용
-  const unlock = async (method: "transfer" | "membership") => {
+  const unlock = async () => {
     if (!open) return;
     setPaying(true);
     setError("");
@@ -44,9 +37,8 @@ export default function MyPage() {
         body: JSON.stringify({
           readingId: open.readingId,
           blob: open.blob,
-          method,
-          depositorCode: method === "transfer" ? depositorCode : undefined,
-          membershipToken: method === "membership" ? membership?.token : undefined,
+          method: "transfer",
+          depositorCode,
           userToken: user?.token,
         }),
       });
@@ -114,24 +106,14 @@ export default function MyPage() {
                       <div className="card" style={{ background: "var(--bg-card2)", padding: 16 }}>
                         <p style={{ whiteSpace: "pre-wrap", fontSize: "0.92rem" }}>{e.full}</p>
                       </div>
-                      <ChatSection
-                        readingId={e.readingId}
-                        blob={e.blob}
-                        membershipToken={membership?.token ?? null}
-                      />
+                      <ChatSection readingId={e.readingId} blob={e.blob} />
                     </>
                   ) : (
                     <div style={{ textAlign: "center", padding: "8px 0" }}>
                       <p style={{ fontSize: "0.88rem", marginBottom: 10 }}>풀 리딩이 아직 잠겨 있어요.</p>
-                      {membership ? (
-                        <button className="btn" onClick={() => unlock("membership")} disabled={paying}>
-                          {paying ? "해금 중…" : "멤버십으로 무료 열기 🌙"}
-                        </button>
-                      ) : (
-                        <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
-                          {user ? "풀 리딩 해금" : "가입하고 풀 리딩 해금"} — {e.price.toLocaleString()}원
-                        </button>
-                      )}
+                      <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
+                        {user ? "풀 리딩 해금" : "가입하고 풀 리딩 해금"} — {e.price.toLocaleString()}원
+                      </button>
                     </div>
                   )}
 
@@ -172,7 +154,7 @@ export default function MyPage() {
           price={open.price}
           depositorCode={depositorCode}
           paying={paying}
-          onDone={() => unlock("transfer")}
+          onDone={unlock}
           onClose={() => setShowPay(false)}
         />
       )}

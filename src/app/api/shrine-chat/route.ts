@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
 import { CHARACTERS } from "@/lib/characters";
-import { validateMembershipToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
 
 // 신당 캐릭터 챗 — 도령과의 몰입형 롤플레잉 대화.
-// 과금 규칙: 무료 5턴 → 이후 멤버십 필요 (402 → 클라이언트가 멤버십 CTA 표시).
+// 이용 규칙: 무료 대화 5턴을 제공한다.
 
 interface Body {
   characterId: string;
   question: string;
   history?: ChatMsg[];
-  membershipToken?: string;
 }
 
 const FREE_TURNS = 5;
@@ -34,22 +32,13 @@ export async function POST(req: NextRequest) {
   const userTurns = history.filter((m) => m.role === "user").length;
 
   if (userTurns >= FREE_TURNS) {
-    let membership;
-    try {
-      membership = await validateMembershipToken(body.membershipToken);
-    } catch (error) {
-      console.error("신당 멤버십 확인 실패:", error);
-      return NextResponse.json({ error: "멤버십을 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
-    if (!membership) {
-      return NextResponse.json(
-        {
-          error: `${character.name}과의 무료 대화 ${FREE_TURNS}번을 다 썼어요. 멤버십이면 밤새 대화할 수 있어요.`,
-          needMembership: true,
-        },
-        { status: 402 }
-      );
-    }
+    return NextResponse.json(
+      {
+        error: `${character.name}과의 오늘 무료 대화 ${FREE_TURNS}번을 모두 사용했어요.`,
+        limitReached: true,
+      },
+      { status: 402 }
+    );
   }
 
   try {
