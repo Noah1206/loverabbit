@@ -11,7 +11,7 @@ import { useTheme } from "@/components/ThemeProvider";
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { PRODUCTS, type Product } from "@/lib/products";
 
-const SITE_URL = "https://loverabbit-one.vercel.app/";
+const SITE_URL = "https://loverabbit-ai.vercel.app/";
 const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
 const HERO_IDS = ["sokgunghap", "jaehoe", "bamgijil"];

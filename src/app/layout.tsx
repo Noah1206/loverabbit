@@ -19,7 +19,7 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://loverabbit-one.vercel.app"),
+  metadataBase: new URL("https://loverabbit-ai.vercel.app"),
   title: "러브레빗 LoveRabbit — 19금 속궁합·연애운 AI 사주",
   description:
     "낮의 사주는 잊어라. 성인 전용, 솔직하다 못해 아찔한 속궁합·연애운 리딩. 3분이면 끝.",
