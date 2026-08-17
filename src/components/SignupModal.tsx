@@ -45,9 +45,10 @@ export default function SignupModal({
         email: data.email,
         referralCode: data.referralCode,
         chatCredits: data.chatCredits,
+        referralClaimed: data.referralClaimed === true,
       };
       saveUser(u);
-      if (data.referralClaimed) clearPendingReferral();
+      if (referral) clearPendingReferral();
       onDone(u);
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");

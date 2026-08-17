@@ -6,7 +6,11 @@ import ChatSection from "@/components/ChatSection";
 import SignupModal from "@/components/SignupModal";
 import { saveToArchive, updateArchive } from "@/lib/archive";
 import { getUser, saveUser, type User } from "@/lib/user";
-import { captureReferralFromLocation, type ReferralRewardChoice } from "@/lib/referral";
+import {
+  captureReferralFromLocation,
+  type PendingReferral,
+  type ReferralRewardChoice,
+} from "@/lib/referral";
 
 const CATEGORIES = [
   { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
@@ -208,6 +212,7 @@ export default function ReadingPage() {
   const [full, setFull] = useState<string | null>(null);
   const [showPay, setShowPay] = useState(false);
   const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
+  const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
   const [shareNotice, setShareNotice] = useState("");
   const [checkingReward, setCheckingReward] = useState(false);
 
@@ -228,7 +233,7 @@ export default function ReadingPage() {
         readingUnlocked: false,
       });
     }
-    captureReferralFromLocation();
+    setPendingReferral(captureReferralFromLocation());
   }, []);
 
   const validateForm = (): string | null => {
@@ -425,6 +430,21 @@ export default function ReadingPage() {
         <li><strong>4</strong><span>결제·친구 초대</span></li>
       </ol>
 
+      {!user && pendingReferral && (
+        <aside className="friend-invite-banner" aria-label="친구 초대 안내">
+          <div className="friend-invite-icon" aria-hidden>💌</div>
+          <div>
+            <span>친구 초대로 왔어요</span>
+            <h2>
+              {pendingReferral.referralReward === "reading_unlock"
+                ? "내 가입으로 친구의 리딩이 무료로 열려요"
+                : "내 가입으로 친구에게 질문권 10장이 적립돼요"}
+            </h2>
+            <p>나는 아래에서 사주 미리보기를 무료로 볼 수 있어요. 보상은 신규 회원 가입 완료 후 자동 지급됩니다.</p>
+          </div>
+        </aside>
+      )}
+
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
         {CATEGORIES.map((c) => (
           <button
@@ -588,6 +608,7 @@ export default function ReadingPage() {
           onDone={(u) => {
             setUser(u);
             setShowSignup(false);
+            setPendingReferral(null);
             setReferralStatus(
               u.referralCode
                 ? { referralCode: u.referralCode, chatCredits: u.chatCredits ?? 0, readingUnlocked: false }
@@ -595,7 +616,11 @@ export default function ReadingPage() {
             );
             void generateReading(u);
           }}
-          reason="무료 사주 미리보기를 저장하려면 3초 가입이 필요해요"
+          reason={
+            pendingReferral
+              ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
+              : "무료 사주 미리보기를 저장하려면 3초 가입이 필요해요"
+          }
           onClose={() => setShowSignup(false)}
         />
       )}

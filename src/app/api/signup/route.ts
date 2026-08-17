@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { seal } from "@/lib/crypto";
 import {
-  claimReferralReward,
   isDatabaseConfigured,
+  signupDatabaseUser,
   type ReferralRewardType,
-  upsertDatabaseUser,
 } from "@/lib/database";
 import type { UserToken } from "@/lib/tokens";
 
@@ -61,24 +60,19 @@ export async function POST(req: NextRequest) {
   let chatCredits = 0;
   let referralClaimed = false;
   try {
-    const user = await upsertDatabaseUser({
+    const user = await signupDatabaseUser({
       email,
       birthdate,
       marketingConsent: body.marketingOk === true,
       adultVerifiedAt: now,
+      referralCode: body.referralCode,
+      referralReadingId: body.referralReadingId,
+      referralReward: body.referralReward,
     });
     userId = user?.id;
     referralCode = user?.referralCode;
     chatCredits = user?.chatCredits ?? 0;
-    if (userId) {
-      const claimed = await claimReferralReward({
-        referredUserId: userId,
-        referralCode: body.referralCode,
-        rewardType: body.referralReward,
-        rewardReadingId: body.referralReadingId,
-      });
-      referralClaimed = claimed.granted;
-    }
+    referralClaimed = user?.referralClaimed ?? false;
   } catch (error) {
     console.error("가입 정보 저장 실패:", error);
     return NextResponse.json({ error: "가입 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });

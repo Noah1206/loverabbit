@@ -9,6 +9,7 @@ export interface User {
   email: string;
   referralCode?: string;
   chatCredits?: number;
+  referralClaimed?: boolean;
 }
 
 const KEY = "loverabbit_user_v1";

@@ -441,6 +441,54 @@ label {
   font-size: 0.72rem;
 }
 
+.friend-invite-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin: -10px 0 24px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 62%, var(--line));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 8% 12%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 42%),
+    var(--bg-card);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.friend-invite-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card2));
+  font-size: 1.3rem;
+}
+
+.friend-invite-banner > div:last-child {
+  min-width: 0;
+}
+
+.friend-invite-banner span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.friend-invite-banner h2 {
+  margin: 4px 0 5px;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.friend-invite-banner p {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
 .reading-preview-card {
   overflow: hidden;
   padding: 0;

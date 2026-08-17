@@ -11,6 +11,11 @@ export interface DatabaseUser {
   chatCredits: number;
 }
 
+export interface DatabaseSignupResult extends DatabaseUser {
+  isNew: boolean;
+  referralClaimed: boolean;
+}
+
 export type ReferralRewardType = "reading_unlock" | "chat_credits";
 
 export interface ReferralStatus {
@@ -61,6 +66,43 @@ export async function upsertDatabaseUser(input: {
     marketingConsent: data.marketing_consent,
     referralCode: data.referral_code,
     chatCredits: Number(data.chat_credits ?? 0),
+  };
+}
+
+export async function signupDatabaseUser(input: {
+  email: string;
+  birthdate: string;
+  marketingConsent?: boolean;
+  adultVerifiedAt?: string;
+  referralCode?: string;
+  referralReward?: ReferralRewardType;
+  referralReadingId?: string;
+}): Promise<DatabaseSignupResult | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db.rpc("lr_signup_with_referral", {
+    p_email: input.email.trim().toLowerCase(),
+    p_birthdate: input.birthdate,
+    p_marketing_consent: input.marketingConsent ?? false,
+    p_adult_verified_at: input.adultVerifiedAt ?? new Date().toISOString(),
+    p_referral_code: input.referralCode?.trim().toUpperCase() || null,
+    p_reward_type: input.referralReward ?? null,
+    p_reward_reading_id: input.referralReadingId ?? null,
+  });
+
+  if (error) throw databaseError("원자적 회원가입", error);
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const result = data as Record<string, unknown>;
+  return {
+    id: Number(result.id),
+    email: String(result.email),
+    birthdate: String(result.birthdate),
+    marketingConsent: Boolean(result.marketingConsent),
+    referralCode: String(result.referralCode),
+    chatCredits: Number(result.chatCredits ?? 0),
+    isNew: Boolean(result.isNew),
+    referralClaimed: Boolean(result.referralClaimed),
   };
 }
 
