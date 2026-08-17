@@ -23,17 +23,23 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userToken: account.token }),
       });
-      const data = (await response.json().catch(() => ({}))) as { theme?: Theme };
+      const data = (await response.json().catch(() => ({}))) as {
+        theme?: Theme;
+        showMatureLabels?: boolean;
+      };
       if (response.ok && (data.theme === "dark" || data.theme === "light")) {
         setSelectedTheme(data.theme);
         setTheme(data.theme);
+        if (typeof data.showMatureLabels === "boolean") {
+          setShowMatureLabels(data.showMatureLabels);
+        }
       }
     } catch {
       // 네트워크가 끊겨도 이 기기에 저장된 테마는 그대로 유지한다.
     } finally {
       setProfileLoading(false);
     }
-  }, [setTheme]);
+  }, [setShowMatureLabels, setTheme]);
 
   useEffect(() => {
     const stored = getUser();
@@ -67,7 +73,11 @@ export default function ProfilePage() {
         const response = await fetch("/api/profile", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userToken: user.token, theme: selectedTheme }),
+          body: JSON.stringify({
+            userToken: user.token,
+            theme: selectedTheme,
+            showMatureLabels,
+          }),
         });
         const data = (await response.json().catch(() => ({}))) as { theme?: Theme; error?: string };
         if (!response.ok) throw new Error(data.error ?? "프로필을 저장하지 못했어요.");
@@ -161,7 +171,7 @@ export default function ProfilePage() {
         <div className="profile-label-toggle">
           <div>
             <strong>연령 안내 표시</strong>
-            <p>켜면 홈 상단과 안내 영역에 연령 배지를 표시하며, 변경은 이 기기에 즉시 저장돼요.</p>
+            <p>켜면 홈 상단과 안내 영역에 연령 배지를 표시해요. 로그인 후 저장하면 다른 기기에도 적용돼요.</p>
           </div>
           <button
             type="button"

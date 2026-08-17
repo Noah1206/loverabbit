@@ -9,6 +9,7 @@ import { resolveUserToken } from "@/lib/tokens";
 type ProfileRequest = {
   userToken?: string;
   theme?: ProfileTheme;
+  showMatureLabels?: boolean;
 };
 
 async function authenticatedUser(body: ProfileRequest) {
@@ -27,7 +28,11 @@ export async function POST(req: NextRequest) {
 
     const profile = await getUserProfile(user.userId);
     if (!profile) {
-      return NextResponse.json({ theme: "dark", displayName: null });
+      return NextResponse.json({
+        theme: "dark",
+        displayName: null,
+        showMatureLabels: false,
+      });
     }
     return NextResponse.json(profile);
   } catch (error) {
@@ -41,6 +46,9 @@ export async function PUT(req: NextRequest) {
   if (body.theme !== "dark" && body.theme !== "light") {
     return NextResponse.json({ error: "지원하지 않는 테마예요." }, { status: 400 });
   }
+  if (typeof body.showMatureLabels !== "boolean") {
+    return NextResponse.json({ error: "연령 안내 표시 설정이 올바르지 않아요." }, { status: 400 });
+  }
 
   try {
     const user = await authenticatedUser(body);
@@ -48,7 +56,10 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "로그인이 필요해요." }, { status: 401 });
     }
 
-    const profile = await saveUserProfile(user.userId, { theme: body.theme });
+    const profile = await saveUserProfile(user.userId, {
+      theme: body.theme,
+      showMatureLabels: body.showMatureLabels,
+    });
     if (!profile) {
       return NextResponse.json({ error: "프로필 DB 연결을 확인해주세요." }, { status: 503 });
     }

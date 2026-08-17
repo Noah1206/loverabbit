@@ -28,6 +28,7 @@ export type ProfileTheme = "dark" | "light";
 export interface DatabaseUserProfile {
   theme: ProfileTheme;
   displayName: string | null;
+  showMatureLabels: boolean;
 }
 
 export type ReferralRewardType = "reading_unlock" | "chat_credits";
@@ -115,7 +116,7 @@ export async function getUserProfile(userId: number): Promise<DatabaseUserProfil
 
   const { data, error } = await db
     .from("lr_user_profiles")
-    .select("theme,display_name")
+    .select("theme,display_name,show_mature_labels")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -124,12 +125,13 @@ export async function getUserProfile(userId: number): Promise<DatabaseUserProfil
   return {
     theme: data.theme === "light" ? "light" : "dark",
     displayName: data.display_name ?? null,
+    showMatureLabels: Boolean(data.show_mature_labels),
   };
 }
 
 export async function saveUserProfile(
   userId: number,
-  input: { theme: ProfileTheme }
+  input: { theme: ProfileTheme; showMatureLabels: boolean }
 ): Promise<DatabaseUserProfile | null> {
   const db = getSupabaseAdmin();
   if (!db) return null;
@@ -140,17 +142,19 @@ export async function saveUserProfile(
       {
         user_id: userId,
         theme: input.theme,
+        show_mature_labels: input.showMatureLabels,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" }
     )
-    .select("theme,display_name")
+    .select("theme,display_name,show_mature_labels")
     .single();
 
   if (error) throw databaseError("프로필 저장", error);
   return {
     theme: data.theme === "light" ? "light" : "dark",
     displayName: data.display_name ?? null,
+    showMatureLabels: Boolean(data.show_mature_labels),
   };
 }
 

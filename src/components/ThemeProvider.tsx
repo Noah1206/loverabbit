@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { getUser } from "@/lib/user";
 
 export type Theme = "dark" | "light";
 
@@ -25,10 +26,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [showMatureLabels, setShowMatureLabelsState] = useState(false);
 
   useEffect(() => {
+    let active = true;
     const initialTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
     setThemeState(initialTheme);
     applyTheme(initialTheme);
     setShowMatureLabelsState(window.localStorage.getItem(MATURE_LABEL_STORAGE_KEY) === "show");
+
+    const account = getUser();
+    if (account) {
+      void fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: account.token }),
+      })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((profile: { theme?: Theme; showMatureLabels?: boolean } | null) => {
+          if (!active || !profile) return;
+          if (profile.theme === "dark" || profile.theme === "light") {
+            setThemeState(profile.theme);
+            applyTheme(profile.theme);
+            window.localStorage.setItem(THEME_STORAGE_KEY, profile.theme);
+          }
+          if (typeof profile.showMatureLabels === "boolean") {
+            setShowMatureLabelsState(profile.showMatureLabels);
+            window.localStorage.setItem(
+              MATURE_LABEL_STORAGE_KEY,
+              profile.showMatureLabels ? "show" : "hide"
+            );
+          }
+        })
+        .catch(() => undefined);
+    }
 
     const syncPreferences = (event: StorageEvent) => {
       if (event.key === THEME_STORAGE_KEY) {
@@ -42,7 +70,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
 
     window.addEventListener("storage", syncPreferences);
-    return () => window.removeEventListener("storage", syncPreferences);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", syncPreferences);
+    };
   }, []);
 
   const setTheme = useCallback((nextTheme: Theme) => {
