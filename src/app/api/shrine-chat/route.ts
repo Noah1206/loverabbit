@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
 import { CHARACTERS } from "@/lib/characters";
+import { restoreChatCredit, useChatCredit } from "@/lib/database";
+import { resolveUserToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
 
@@ -11,6 +13,7 @@ interface Body {
   characterId: string;
   question: string;
   history?: ChatMsg[];
+  userToken?: string;
 }
 
 const FREE_TURNS = 5;
@@ -31,14 +34,32 @@ export async function POST(req: NextRequest) {
   const history = (body.history ?? []).slice(-MAX_HISTORY);
   const userTurns = history.filter((m) => m.role === "user").length;
 
+  let creditUserId: number | undefined;
+  let creditsRemaining: number | undefined;
   if (userTurns >= FREE_TURNS) {
-    return NextResponse.json(
-      {
-        error: `${character.name}과의 오늘 무료 대화 ${FREE_TURNS}번을 모두 사용했어요.`,
-        limitReached: true,
-      },
-      { status: 402 }
-    );
+    try {
+      const user = await resolveUserToken(body.userToken);
+      if (!user?.userId) {
+        return NextResponse.json(
+          { error: "추가 질문권을 사용하려면 먼저 가입해주세요.", needSignup: true, limitReached: true },
+          { status: 401 }
+        );
+      }
+      creditsRemaining = (await useChatCredit(user.userId)) ?? undefined;
+      if (creditsRemaining === undefined) {
+        return NextResponse.json(
+          {
+            error: `무료 대화 ${FREE_TURNS}번을 모두 사용했어요. 친구를 초대하면 질문권 10장을 받을 수 있어요.`,
+            limitReached: true,
+          },
+          { status: 402 }
+        );
+      }
+      creditUserId = user.userId;
+    } catch (error) {
+      console.error("캐릭터챗 질문권 확인 실패:", error);
+      return NextResponse.json({ error: "질문권을 확인하지 못했어요." }, { status: 503 });
+    }
   }
 
   try {
@@ -48,13 +69,19 @@ export async function POST(req: NextRequest) {
       600
     );
     if (!result) {
+      if (creditUserId) await restoreChatCredit(creditUserId);
       return NextResponse.json({
         answer: `*${character.name}이 잠시 향을 바라본다*\n\n[데모 모드] 오늘은 신의 목소리가 들리지 않는 날이군. (.env에 API 키를 넣으면 대화가 시작됩니다)`,
         demo: true,
       });
     }
-    return NextResponse.json({ answer: result.text.trim() });
+    return NextResponse.json({ answer: result.text.trim(), creditsRemaining });
   } catch (e) {
+    if (creditUserId) {
+      await restoreChatCredit(creditUserId).catch((refundError) =>
+        console.error("질문권 복구 실패:", refundError)
+      );
+    }
     console.error("신당 챗 AI 호출 실패:", e);
     return NextResponse.json({ error: "향 연기가 짙어 잠시 답을 못 들었어요. 다시 말해주세요." }, { status: 502 });
   }

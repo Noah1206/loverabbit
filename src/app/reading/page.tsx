@@ -5,7 +5,8 @@ import PaymentModal from "@/components/PaymentModal";
 import ChatSection from "@/components/ChatSection";
 import SignupModal from "@/components/SignupModal";
 import { saveToArchive, updateArchive } from "@/lib/archive";
-import { getUser, type User } from "@/lib/user";
+import { getUser, saveUser, type User } from "@/lib/user";
+import { captureReferralFromLocation, type ReferralRewardChoice } from "@/lib/referral";
 
 const CATEGORIES = [
   { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
@@ -24,19 +25,6 @@ const CATEGORIES = [
   { id: "yeonae", label: "올해 연애운 ✨", needsPartner: false },
 ];
 
-// 결제 전 블러 뒤에 깔아두는 미끼 텍스트 — 실제 풀 리딩은 해금 전엔 서버 밖으로 안 나온다
-const LOCKED_PLACEHOLDER = `■ 너의 밤 기질
-네 일주를 보면 겉으로 드러나는 것과 속에서 움직이는 게 완전히 다른 구조야. 특히 상대가 어떤 사람이냐에 따라 …
-
-■ 그 사람과의 합
-이 조합에서 주도권이 어느 쪽에 있는지 명확하게 보여. 문제는 그걸 상대도 알고 있다는 건데 …
-
-■ 위험 구간
-올해 흐름에서 딱 한 번, 관계가 크게 흔들리는 시기가 와. 그 시기가 …
-
-■ 지금 움직이는 법
-지금 네가 하려는 행동, 그거 하면 안 돼. 대신 …`;
-
 interface PersonForm {
   year: string;
   month: string;
@@ -46,6 +34,24 @@ interface PersonForm {
 }
 
 const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "unknown", gender: "F" };
+
+interface ReadingResult {
+  readingId: string;
+  teaser: string;
+  chart: { me: string; partner: string | null };
+  price: number;
+  blob: string;
+  previewSections: { title: string; excerpt: string }[];
+  lockedSectionTitles: string[];
+  scoreLabel?: string | null;
+  demo: boolean;
+}
+
+interface ReferralStatus {
+  referralCode: string;
+  chatCredits: number;
+  readingUnlocked: boolean;
+}
 
 function parsePerson(p: PersonForm) {
   return {
@@ -195,21 +201,15 @@ export default function ReadingPage() {
   const [loading, setLoading] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<{
-    readingId: string;
-    teaser: string;
-    chart: { me: string; partner: string | null };
-    price: number;
-    blob: string; // 암호화된 풀 리딩 — 서버만 열 수 있음
-    preview?: string; // 풀 리딩 실제 도입부 (블러 미끼)
-    scoreLabel?: string | null; // 지수 이름 — 값은 해금 후 공개
-    demo: boolean;
-  } | null>(null);
+  const [result, setResult] = useState<ReadingResult | null>(null);
   const [score, setScore] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [full, setFull] = useState<string | null>(null);
   const [showPay, setShowPay] = useState(false);
+  const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
+  const [shareNotice, setShareNotice] = useState("");
+  const [checkingReward, setCheckingReward] = useState(false);
 
   // 홈 상품 카드에서 ?c= 로 진입하면 해당 카테고리를 자동 선택한다.
   useEffect(() => {
@@ -219,31 +219,38 @@ export default function ReadingPage() {
       setCategory(found.id);
       setWithPartner(found.needsPartner);
     }
-    setUser(getUser());
+    const stored = getUser();
+    setUser(stored);
+    if (stored?.referralCode) {
+      setReferralStatus({
+        referralCode: stored.referralCode,
+        chatCredits: stored.chatCredits ?? 0,
+        readingUnlocked: false,
+      });
+    }
+    captureReferralFromLocation();
   }, []);
 
-  const submit = async () => {
-    setError("");
+  const validateForm = (): string | null => {
     if (!me.year || !me.month || !me.day) {
-      setError("본인 생년월일을 입력해주세요.");
-      return;
+      return "본인 생년월일을 입력해주세요.";
     }
     const myErr = birthError(me, "내");
-    if (myErr) {
-      setError(myErr);
-      return;
-    }
+    if (myErr) return myErr;
     if (withPartner && partner.year) {
       const pErr = birthError(partner, "그 사람");
-      if (pErr) {
-        setError(pErr);
-        return;
-      }
+      if (pErr) return pErr;
     }
+    return null;
+  };
+
+  const generateReading = async (nextUser: User) => {
     setLoading(true);
+    setError("");
     setResult(null);
     setFull(null);
     setScore(null);
+    setShareNotice("");
     try {
       const res = await fetch("/api/reading", {
         method: "POST",
@@ -252,10 +259,14 @@ export default function ReadingPage() {
           category,
           me: parsePerson(me),
           partner: withPartner && partner.year ? parsePerson(partner) : null,
+          userToken: nextUser.token,
         }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "리딩 생성 실패");
       const data = await res.json();
+      if (!res.ok) {
+        if (data.needSignup) setShowSignup(true);
+        throw new Error(data.error ?? "리딩 생성 실패");
+      }
       setResult(data);
       // 내 상담 보관함에 자동 저장 (해금 시 full이 채워진다)
       saveToArchive({
@@ -275,6 +286,20 @@ export default function ReadingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const submit = () => {
+    setError("");
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    if (!user) {
+      setShowSignup(true);
+      return;
+    }
+    void generateReading(user);
   };
 
   // 결제: 지금은 계좌이체(토스 송금 딥링크) 방식.
@@ -310,12 +335,95 @@ export default function ReadingPage() {
     }
   };
 
+  const refreshReferralStatus = async (): Promise<ReferralStatus | null> => {
+    if (!user) return null;
+    const res = await fetch("/api/referral/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token, readingId: result?.readingId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "보상 정보를 확인하지 못했어요.");
+    const status = data as ReferralStatus;
+    setReferralStatus(status);
+    const nextUser = {
+      ...user,
+      referralCode: status.referralCode,
+      chatCredits: status.chatCredits,
+    };
+    setUser(nextUser);
+    saveUser(nextUser);
+    return status;
+  };
+
+  const shareReward = async (reward: ReferralRewardChoice) => {
+    if (!result || !user) return;
+    setShareNotice("");
+    try {
+      const status = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
+      if (!status?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
+      const params = new URLSearchParams({ ref: status.referralCode, reward });
+      if (reward === "reading_unlock") params.set("rid", result.readingId);
+      const url = `${window.location.origin}/reading?${params.toString()}`;
+      const text =
+        reward === "reading_unlock"
+          ? "내 연애 사주 미리보기, 생각보다 소름이었어. 너도 무료로 봐봐 🐰"
+          : "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 미리보기도 볼 수 있어 🐰";
+      if (navigator.share) {
+        await navigator.share({ title: "러브레빗 무료 사주", text, url });
+        setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setShareNotice("초대 링크를 복사했어요. 친구가 가입하면 보상이 자동 지급돼요.");
+      }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      setShareNotice(e instanceof Error ? e.message : "공유 링크를 만들지 못했어요.");
+    }
+  };
+
+  const checkReferralUnlock = async () => {
+    if (!result || !user) return;
+    setCheckingReward(true);
+    setShareNotice("");
+    try {
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          readingId: result.readingId,
+          blob: result.blob,
+          method: "referral",
+          userToken: user.token,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "보상을 확인하지 못했어요.");
+      setFull(data.full);
+      setScore(data.score ?? null);
+      updateArchive(result.readingId, { full: data.full });
+      setShareNotice("친구 가입이 확인되어 이 리딩을 무료로 열었어요 🎉");
+      await refreshReferralStatus();
+    } catch (e) {
+      setShareNotice(e instanceof Error ? e.message : "보상을 확인하지 못했어요.");
+    } finally {
+      setCheckingReward(false);
+    }
+  };
+
   return (
     <main className="container" style={{ paddingTop: 48 }}>
       <h1 style={{ marginBottom: 6 }}>🐰 밤의 리딩</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 28 }}>
         어디 가서 못 물어보는 질문, 여기서 해결하세요.
       </p>
+
+      <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
+        <li><strong>1</strong><span>사주 입력</span></li>
+        <li><strong>2</strong><span>3초 가입</span></li>
+        <li><strong>3</strong><span>약 10문장 무료</span></li>
+        <li><strong>4</strong><span>결제·친구 초대</span></li>
+      </ol>
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
         {CATEGORIES.map((c) => (
@@ -348,7 +456,7 @@ export default function ReadingPage() {
       {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}
 
       <button className="btn" style={{ width: "100%" }} onClick={submit} disabled={loading}>
-        {loading ? "사주 푸는 중… 🔮" : "무료 리딩 받기 →"}
+        {loading ? "사주 푸는 중… 🔮" : user ? "무료 미리보기 보기 →" : "3초 가입하고 무료 미리보기 보기 →"}
       </button>
       {loading && (
         <p className="pulse" style={{ textAlign: "center", color: "var(--text-dim)", marginTop: 14 }}>
@@ -370,7 +478,7 @@ export default function ReadingPage() {
           </div>
 
           <div className="card" style={{ marginBottom: 16, borderColor: "var(--violet)" }}>
-            <span className="badge" style={{ marginBottom: 10 }}>무료 티저</span>
+            <span className="badge" style={{ marginBottom: 10 }}>무료 핵심 요약</span>
             <p style={{ whiteSpace: "pre-wrap", marginTop: 10 }}>{result.teaser}</p>
             {result.scoreLabel && (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
@@ -384,40 +492,75 @@ export default function ReadingPage() {
             )}
           </div>
 
-          <div className="card" style={{ position: "relative", overflow: "hidden" }}>
-            <span className="badge" style={{ marginBottom: 10 }}>{full ? "🔓 풀 리딩" : "🔒 풀 리딩"}</span>
-            <div className={full ? "" : "blur-lock"} style={{ marginTop: 10 }}>
-              {/* 잠금 상태에서는 실제 풀 리딩의 도입부만 살짝 보여주고 블러 */}
-              <p style={{ whiteSpace: "pre-wrap" }}>
-                {full ?? `${result.preview ? result.preview + "…\n\n" : ""}${LOCKED_PLACEHOLDER}`}
-              </p>
+          {full ? (
+            <div className="card">
+              <span className="badge" style={{ marginBottom: 10 }}>🔓 풀 리딩</span>
+              <p style={{ whiteSpace: "pre-wrap", marginTop: 12 }}>{full}</p>
             </div>
-            {!full && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 12,
-                  background: "linear-gradient(180deg, transparent, var(--bg) 45%)",
-                  padding: 24,
-                  textAlign: "center",
-                }}
-              >
-                <p style={{ fontWeight: 700 }}>뒷이야기가 더 아찔합니다 🔥</p>
-                {/* 무료 티저 뒤에는 회원가입 → 단품 결제로 이어진다. */}
-                <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
-                  {paying ? "해금 중…" : user ? `풀 리딩 해금 — ${result.price.toLocaleString()}원` : `가입하고 풀 리딩 열기 — ${result.price.toLocaleString()}원`}
-                </button>
-                <p style={{ fontSize: "0.78rem", color: "var(--text-dim)" }}>
-                  점집 1회 5만원 vs 러브레빗 {result.price.toLocaleString()}원
-                </p>
+          ) : (
+            <div className="card reading-preview-card">
+              <div className="reading-preview-heading">
+                <div>
+                  <span className="badge">무료 미리보기</span>
+                  <h2>목차별 핵심 약 10문장을 먼저 보여드려요</h2>
+                </div>
+                <span>🔒 전문 잠금</span>
               </div>
-            )}
-          </div>
+
+              <div className="reading-preview-sections">
+                {result.previewSections.map((section, index) => (
+                  <article key={`${section.title}-${index}`}>
+                    <small>SECTION {String(index + 1).padStart(2, "0")}</small>
+                    <h3>{section.title}</h3>
+                    <p>{section.excerpt}</p>
+                    <div className="preview-blur-lines" aria-hidden>
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {result.lockedSectionTitles.length > 0 && (
+                <div className="locked-toc" aria-label="잠긴 추가 목차">
+                  <strong>이어서 나오는 {result.lockedSectionTitles.length}개 분석</strong>
+                  {result.lockedSectionTitles.slice(0, 5).map((title) => <span key={title}>■ {title}</span>)}
+                </div>
+              )}
+
+              <div className="reading-paywall">
+                <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
+                <button className="btn" onClick={() => setShowPay(true)} disabled={paying}>
+                  {paying ? "해금 중…" : `전문 보기 — ${result.price.toLocaleString()}원`}
+                </button>
+                <p>점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관</p>
+              </div>
+            </div>
+          )}
+
+          {!full && (
+            <div className="referral-reward-card">
+              <span className="badge">친구 초대 보상</span>
+              <h2>친구가 가입하면, 결제 대신 보상으로 열 수 있어요</h2>
+              <p>친구 한 명이 내 링크로 가입하면 원하는 보상 하나가 자동 지급됩니다.</p>
+              <div className="referral-reward-options">
+                <button onClick={() => void shareReward("reading_unlock")}>
+                  <strong>이 리딩 0원으로 열기</strong>
+                  <span>친구 1명 가입 시 전문 무료</span>
+                </button>
+                <button onClick={() => void shareReward("chat_credits")}>
+                  <strong>캐릭터챗 질문권 10장</strong>
+                  <span>친구 1명 가입 시 바로 적립</span>
+                </button>
+              </div>
+              <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={checkReferralUnlock} disabled={checkingReward}>
+                {checkingReward ? "친구 가입 확인 중…" : "공유했다면 보상 확인하기"}
+              </button>
+              <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
+              {shareNotice && <p className="referral-notice">{shareNotice}</p>}
+            </div>
+          )}
 
           {full && (
             <ChatSection readingId={result.readingId} blob={result.blob} />
@@ -426,22 +569,10 @@ export default function ReadingPage() {
           <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
             <button
               className="btn btn-ghost"
-              style={{ flex: 1 }}
+              style={{ width: "100%" }}
               onClick={() => downloadShareImage(result.teaser)}
             >
               📸 공유 이미지 저장
-            </button>
-            <button
-              className="btn btn-ghost"
-              style={{ flex: 1 }}
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  `🐰 러브레빗이 나한테 한 말:\n\n"${result.teaser}"\n\n너도 해봐 → https://loverabbit.example.com`
-                );
-                alert("복사됐어요! 친구한테 공유해보세요 😏");
-              }}
-            >
-              🔗 텍스트 복사
             </button>
           </div>
           {result.demo && (
@@ -457,8 +588,14 @@ export default function ReadingPage() {
           onDone={(u) => {
             setUser(u);
             setShowSignup(false);
-            setShowPay(true); // 가입 완료 → 바로 결제로 이어짐
+            setReferralStatus(
+              u.referralCode
+                ? { referralCode: u.referralCode, chatCredits: u.chatCredits ?? 0, readingUnlocked: false }
+                : null
+            );
+            void generateReading(u);
           }}
+          reason="무료 사주 미리보기를 저장하려면 3초 가입이 필요해요"
           onClose={() => setShowSignup(false)}
         />
       )}

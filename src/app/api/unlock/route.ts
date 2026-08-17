@@ -15,7 +15,7 @@ import { resolveUserToken } from "@/lib/tokens";
 interface Body {
   readingId: string;
   blob?: string;
-  method?: "transfer" | "toss-pg";
+  method?: "transfer" | "toss-pg" | "referral";
   userToken?: string; // 회원가입 토큰 — 유료 해금은 가입 필수
   depositorCode?: string;
   paymentKey?: string;
@@ -57,6 +57,26 @@ export async function POST(req: NextRequest) {
 
   if (!full || !price) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  if (body.method === "referral") {
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("추천 보상 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
+    }
+    if (!user?.userId || stored?.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩의 보상 권한을 확인할 수 없어요." }, { status: 403 });
+    }
+    if (!stored.unlocked || stored.payment?.method !== "referral") {
+      return NextResponse.json(
+        { error: "아직 친구 가입이 확인되지 않았어요. 친구가 가입한 뒤 다시 눌러주세요." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ full, score, scoreLabel, method: "referral" });
   }
 
   // 이미 해금된 리딩은 재결제 없이 반환 (새로고침 대응)

@@ -7,6 +7,8 @@
 export interface User {
   token: string;
   email: string;
+  referralCode?: string;
+  chatCredits?: number;
 }
 
 const KEY = "loverabbit_user_v1";

@@ -16,6 +16,7 @@ export function priceFor(_category: string): number {
 
 export interface StoredReading {
   id: string;
+  userId?: number;
   createdAt: string;
   category: string;
   teaser: string;
@@ -27,7 +28,12 @@ export interface StoredReading {
   scoreLabel?: string | null;
   unlocked: boolean;
   // 결제 기록 — 계좌이체는 입금코드로 통장 내역과 사후 대조한다
-  payment?: { method: "toss-pg" | "transfer" | "mock"; depositorCode?: string; at: string };
+  payment?: {
+    method: "toss-pg" | "transfer" | "mock" | "referral";
+    depositorCode?: string;
+    referredUserId?: number;
+    at: string;
+  };
 }
 
 interface ReadingRow {
@@ -49,6 +55,7 @@ interface ReadingRow {
 function fromRow(row: ReadingRow): StoredReading {
   return {
     id: row.id,
+    userId: row.user_id ?? undefined,
     createdAt: row.created_at,
     category: row.category,
     teaser: row.teaser,
@@ -75,6 +82,7 @@ export async function saveReading(r: StoredReading): Promise<void> {
     const { error } = await db.from("lr_readings").upsert(
       {
         id: r.id,
+        user_id: r.userId ?? null,
         category: r.category,
         teaser: r.teaser,
         full_text: r.full,

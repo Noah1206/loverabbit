@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { seal } from "@/lib/crypto";
-import { isDatabaseConfigured, upsertDatabaseUser } from "@/lib/database";
+import {
+  claimReferralReward,
+  isDatabaseConfigured,
+  type ReferralRewardType,
+  upsertDatabaseUser,
+} from "@/lib/database";
 import type { UserToken } from "@/lib/tokens";
 
 // 이메일 간편가입 — 비밀번호 없이 서명 토큰 발급.
@@ -15,6 +20,9 @@ export async function POST(req: NextRequest) {
     email?: string;
     birthdate?: string;
     marketingOk?: boolean;
+    referralCode?: string;
+    referralReadingId?: string;
+    referralReward?: ReferralRewardType;
   };
   const email = body.email?.trim().toLowerCase() ?? "";
   const birthdate = body.birthdate?.trim() ?? "";
@@ -49,6 +57,9 @@ export async function POST(req: NextRequest) {
 
   const now = new Date().toISOString();
   let userId: number | undefined;
+  let referralCode: string | undefined;
+  let chatCredits = 0;
+  let referralClaimed = false;
   try {
     const user = await upsertDatabaseUser({
       email,
@@ -57,6 +68,17 @@ export async function POST(req: NextRequest) {
       adultVerifiedAt: now,
     });
     userId = user?.id;
+    referralCode = user?.referralCode;
+    chatCredits = user?.chatCredits ?? 0;
+    if (userId) {
+      const claimed = await claimReferralReward({
+        referredUserId: userId,
+        referralCode: body.referralCode,
+        rewardType: body.referralReward,
+        rewardReadingId: body.referralReadingId,
+      });
+      referralClaimed = claimed.granted;
+    }
   } catch (error) {
     console.error("가입 정보 저장 실패:", error);
     return NextResponse.json({ error: "가입 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
@@ -68,5 +90,11 @@ export async function POST(req: NextRequest) {
   console.log(`[가입] userId=${userId ?? "local"} marketing=${body.marketingOk === true} at=${now}`);
 
   const token = seal({ type: "user", email, birthdate, iat: Date.now(), userId } satisfies UserToken);
-  return NextResponse.json({ token, email });
+  return NextResponse.json({
+    token,
+    email,
+    referralCode,
+    chatCredits,
+    referralClaimed,
+  });
 }

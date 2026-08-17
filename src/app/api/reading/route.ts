@@ -6,6 +6,7 @@ import { seal } from "@/lib/crypto";
 import { chatComplete } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
 import { isDatabaseConfigured } from "@/lib/database";
+import { resolveUserToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
 
@@ -14,6 +15,12 @@ interface Body {
   me: { year: number; month: number; day: number; hour: number | null; gender: string };
   partner?: { year: number; month: number; day: number; hour: number | null; gender: string } | null;
   question?: string;
+  userToken?: string;
+}
+
+interface PreviewSection {
+  title: string;
+  excerpt: string;
 }
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -73,6 +80,42 @@ function mockReading(category: string): { teaser: string; full: string } {
   };
 }
 
+function previewOf(full: string, fallbackTitles: string[]): {
+  sections: PreviewSection[];
+  lockedTitles: string[];
+} {
+  const parsed = full
+    .split(/\n(?=■\s)/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const lines = part.split("\n");
+      const title = lines[0].replace(/^■\s*/, "").trim();
+      const body = lines.slice(1).join(" ").replace(/\s+/g, " ").trim();
+      const sentences = body.match(/[^.!?。]+[.!?。]?/g) ?? [body];
+      return {
+        title,
+        excerpt: sentences.slice(0, 2).join(" ").trim().slice(0, 360),
+      };
+    })
+    .filter((section) => section.title && section.excerpt);
+
+  const source = parsed.length
+    ? parsed
+    : fallbackTitles.map((title, index) => ({
+        title,
+        excerpt:
+          index === 0
+            ? full.replace(/\s+/g, " ").trim().slice(0, 260)
+            : "명식의 핵심 근거와 시기별 흐름을 분석하고 있어요.",
+      }));
+  const sections = source.slice(0, 6);
+  return {
+    sections,
+    lockedTitles: source.slice(6).map((section) => section.title),
+  };
+}
+
 // 생년월일 유효성 — JS Date의 자동 환산(예: 22월 → 이듬해 10월)으로 엉터리 사주가 나가는 것을 차단
 function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
   const { year, month, day, hour } = p;
@@ -89,6 +132,20 @@ function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
+
+  let user;
+  try {
+    user = await resolveUserToken(body.userToken);
+  } catch (error) {
+    console.error("무료 미리보기 회원 확인 실패:", error);
+    return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+  }
+  if (!user?.userId) {
+    return NextResponse.json(
+      { error: "무료 미리보기를 보려면 먼저 가입해주세요.", needSignup: true },
+      { status: 401 }
+    );
+  }
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
     return NextResponse.json({ error: "생년월일을 입력해주세요." }, { status: 400 });
@@ -178,6 +235,7 @@ export async function POST(req: NextRequest) {
   try {
     await saveReading({
       id,
+      userId: user.userId,
       createdAt: new Date().toISOString(),
       category: body.category,
       teaser,
@@ -199,13 +257,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const preview = previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
   return NextResponse.json({
     readingId: id,
     teaser,
     chart,
     price,
-    // 블러 미끼용 — 풀 리딩의 실제 도입부만 살짝 (전체는 blob에 봉인)
-    preview: full.slice(0, 90),
+    // 섹션별 핵심만 공개한다. 실제 나머지 원문은 서버 밖으로 보내지 않는다.
+    previewSections: preview.sections,
+    lockedSectionTitles: preview.lockedTitles,
     // 잠금 상태에선 지수 라벨만 노출 — 실제 지수는 blob에 봉인, 해금 시 공개
     scoreLabel,
     // 봉인된 풀 리딩 — 서버 키 없이는 열 수 없고, /api/unlock에서 결제 확인 후 복호화된다.

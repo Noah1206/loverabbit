@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CHARACTERS, participantCount } from "@/lib/characters";
+import { getUser, saveUser, type User } from "@/lib/user";
 
 // 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
 export default function ShrinePage() {
@@ -17,10 +18,12 @@ export default function ShrinePage() {
   const [limitReached, setLimitReached] = useState(false);
   const [error, setError] = useState("");
   const [count, setCount] = useState(0);
+  const [user, setUser] = useState<User | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (ch) setCount(participantCount(ch.id));
+    setUser(getUser());
   }, [ch]);
 
   useEffect(() => {
@@ -44,7 +47,7 @@ export default function ShrinePage() {
       const res = await fetch("/api/shrine-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ characterId: ch.id, question: q, history: msgs }),
+        body: JSON.stringify({ characterId: ch.id, question: q, history: msgs, userToken: user?.token }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -52,6 +55,11 @@ export default function ShrinePage() {
         throw new Error(data.error ?? "대화 실패");
       }
       setMsgs((m) => [...m, { role: "user", content: q }, { role: "assistant", content: data.answer }]);
+      if (typeof data.creditsRemaining === "number" && user) {
+        const nextUser = { ...user, chatCredits: data.creditsRemaining };
+        setUser(nextUser);
+        saveUser(nextUser);
+      }
       setInput("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
@@ -101,7 +109,10 @@ export default function ShrinePage() {
           >
             지금 신당으로 입장하기
           </button>
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>만 19세 이상 · 무료 대화 5번 제공</p>
+          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>
+            만 19세 이상 · 무료 대화 5번
+            {user?.chatCredits ? ` · 보상 질문권 ${user.chatCredits}장` : " · 친구 초대 시 질문권 10장"}
+          </p>
         </div>
       ) : (
         /* ── 대화 화면 ── */
@@ -132,8 +143,8 @@ export default function ShrinePage() {
           <div style={{ padding: "10px 16px calc(14px + env(safe-area-inset-bottom))" }}>
             {locked ? (
               <div style={{ textAlign: "center", background: "rgba(16,10,20,0.9)", borderRadius: 16, padding: 16 }}>
-                <p style={{ color: "#fff", fontSize: "0.9rem", marginBottom: 10 }}>오늘의 무료 대화 5번을 모두 사용했어요.</p>
-                <button className="btn" onClick={() => router.push("/")}>다른 리딩 둘러보기</button>
+                <p style={{ color: "#fff", fontSize: "0.9rem", marginBottom: 10 }}>무료 대화를 모두 사용했어요.</p>
+                <button className="btn" onClick={() => router.push("/reading")}>친구 초대하고 질문권 10장 받기</button>
               </div>
             ) : (
               <div style={{ display: "flex", gap: 8 }}>

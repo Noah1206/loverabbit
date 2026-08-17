@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { saveUser, type User } from "@/lib/user";
+import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 
 // 3초 간편가입 모달 — 이메일 + 동의만. 결제 직전 관문으로 사용된다.
 export default function SignupModal({
@@ -31,15 +32,22 @@ export default function SignupModal({
     setSubmitting(true);
     setError("");
     try {
+      const referral = getPendingReferral();
       const res = await fetch("/api/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, birthdate, marketingOk }),
+        body: JSON.stringify({ email, birthdate, marketingOk, ...referral }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "가입 실패");
-      const u = { token: data.token, email: data.email };
+      const u = {
+        token: data.token,
+        email: data.email,
+        referralCode: data.referralCode,
+        chatCredits: data.chatCredits,
+      };
       saveUser(u);
+      if (data.referralClaimed) clearPendingReferral();
       onDone(u);
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
