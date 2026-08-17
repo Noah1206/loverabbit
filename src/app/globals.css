@@ -55,7 +55,7 @@ body {
 
 body {
   /* 떠 있는 하단 탭바와 탭 아래 여백까지 확보 */
-  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  padding-bottom: calc(100px + env(safe-area-inset-bottom));
 }
 
 a {
@@ -411,7 +411,7 @@ label {
   --active-index: 0;
   --nav-count: 3;
   position: fixed;
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  bottom: calc(6px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100% - 28px), 604px);
@@ -423,11 +423,11 @@ label {
   overflow: hidden;
   isolation: isolate;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.28)),
-    rgba(247, 240, 244, 0.34);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0.16)),
+    rgba(247, 240, 244, 0.18);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
     inset 0 -1px 0 rgba(255, 255, 255, 0.2),
@@ -442,7 +442,7 @@ label {
   z-index: -1;
   pointer-events: none;
   border-radius: inherit;
-  background: linear-gradient(115deg, rgba(255, 255, 255, 0.38), transparent 38%, rgba(255, 255, 255, 0.12) 68%, transparent);
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.24), transparent 38%, rgba(255, 255, 255, 0.08) 68%, transparent);
 }
 
 .tabbar-indicator-slot {
@@ -464,8 +464,8 @@ label {
   height: 56px;
   border-radius: 24px;
   background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.7), transparent 34%),
-    rgba(255, 255, 255, 0.26);
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.52), transparent 34%),
+    rgba(255, 255, 255, 0.17);
   backdrop-filter: blur(18px) saturate(185%);
   -webkit-backdrop-filter: blur(18px) saturate(185%);
   border: 1px solid rgba(255, 255, 255, 0.72);
@@ -526,9 +526,9 @@ label {
 
 [data-theme="dark"] .tabbar {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)),
-    rgba(10, 8, 16, 0.58);
-  border-color: rgba(255, 255, 255, 0.18);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02)),
+    rgba(10, 8, 16, 0.38);
+  border-color: rgba(255, 255, 255, 0.15);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     inset 0 -1px 0 rgba(255, 255, 255, 0.035),
@@ -546,9 +546,9 @@ label {
 
 [data-theme="dark"] .tabbar-indicator {
   background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.26), transparent 34%),
-    rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.24);
+    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.2), transparent 34%),
+    rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.2);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
     inset 0 -8px 16px rgba(255, 255, 255, 0.025),
@@ -565,7 +565,7 @@ label {
 .theme-toggle {
   position: fixed;
   right: 16px;
-  bottom: calc(100px + env(safe-area-inset-bottom));
+  bottom: calc(88px + env(safe-area-inset-bottom));
   z-index: 65;
   display: inline-flex;
   align-items: center;
