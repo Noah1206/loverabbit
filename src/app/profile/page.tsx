@@ -6,7 +6,7 @@ import { useTheme, type Theme } from "@/components/ThemeProvider";
 import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
 
 export default function ProfilePage() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, showMatureLabels, setShowMatureLabels } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
@@ -156,6 +156,22 @@ export default function ProfilePage() {
             <span className="theme-preview theme-preview-light" aria-hidden />
             <strong>라이트</strong>
             <small>밝은 테마</small>
+          </button>
+        </div>
+        <div className="profile-label-toggle">
+          <div>
+            <strong>연령 안내 표시</strong>
+            <p>켜면 홈 상단과 안내 영역에 연령 배지를 표시하며, 변경은 이 기기에 즉시 저장돼요.</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-label="연령 안내 표시"
+            aria-checked={showMatureLabels}
+            className={showMatureLabels ? "on" : ""}
+            onClick={() => setShowMatureLabels(!showMatureLabels)}
+          >
+            <span aria-hidden />
           </button>
         </div>
         <button

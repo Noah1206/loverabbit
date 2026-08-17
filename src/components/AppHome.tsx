@@ -80,7 +80,7 @@ const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 신당에선 도령과 대화 5번 무료" },
   { text: "🐰 오픈 이벤트 — 오늘 가입 없이 무료 티저 무제한", sub: "풀 리딩은 커피 한 잔 값" },
-  { text: "🔥 친밀 궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
+  { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 
 function CardArt({ p, height, className }: { p: Product; height?: number; className?: string }) {
@@ -108,7 +108,7 @@ function CardArt({ p, height, className }: { p: Product; height?: number; classN
 }
 
 export default function AppHome() {
-  const { theme } = useTheme();
+  const { theme, showMatureLabels } = useTheme();
   const dark = theme === "dark";
   const [notice, setNotice] = useState(0);
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
@@ -140,6 +140,7 @@ export default function AppHome() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="러브레빗 로고" />
             LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
+            {showMatureLabels && <span className="app-header-mature-badge">19+</span>}
           </strong>
           <div className="app-header-actions">
             <button

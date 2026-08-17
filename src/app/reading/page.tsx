@@ -13,7 +13,7 @@ import {
 } from "@/lib/referral";
 
 const CATEGORIES = [
-  { id: "sokgunghap", label: "친밀 궁합 🔥", needsPartner: true },
+  { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
   { id: "jaehoe", label: "재회 🥀", needsPartner: true },
   { id: "bamgijil", label: "연애 기질 🐰", needsPartner: false },
   { id: "baramgi", label: "바람기 🚨", needsPartner: true },
@@ -140,7 +140,7 @@ function downloadShareImage(teaser: string) {
   ctx.fillText("너도 궁금하면 → 러브레빗", W / 2, H - 160);
   ctx.fillStyle = "#a99cbb";
   ctx.font = "28px 'Malgun Gothic', sans-serif";
-  ctx.fillText("궁합·연애운을 섬세하게 읽는 AI 사주", W / 2, H - 110);
+  ctx.fillText("속궁합·연애운을 섬세하게 읽는 AI 사주", W / 2, H - 110);
 
   const a = document.createElement("a");
   a.href = canvas.toDataURL("image/png");
@@ -470,7 +470,7 @@ export default function ReadingPage() {
           onChange={(e) => setWithPartner(e.target.checked)}
           style={{ width: 18, height: 18 }}
         />
-        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (궁합 분석 정확도 ↑)</span>
+        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (속궁합 정확도 ↑)</span>
       </label>
 
       {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}

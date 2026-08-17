@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 import type { User } from "@/lib/user";
 
 type SocialLoginProvider = "google" | "kakao" | "x";
@@ -22,6 +23,7 @@ export default function SignupModal({
   onClose: () => void;
   reason?: string;
 }) {
+  const { showMatureLabels } = useTheme();
   const [error, setError] = useState("");
   const [providers, setProviders] = useState<ProviderStatus | null>(null);
 
@@ -120,7 +122,11 @@ export default function SignupModal({
           </button>
         </div>
 
-        <p className="social-login-note">신규 가입은 로그인 후 최초 한 번만 정보를 확인해요.</p>
+        <p className="social-login-note">
+          {showMatureLabels
+            ? "🔞 신규 가입은 로그인 후 최초 한 번만 성인 확인을 진행해요."
+            : "신규 가입은 로그인 후 최초 한 번만 정보를 확인해요."}
+        </p>
         <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={onClose}>다음에 할게요</button>
         {error && <p role="alert" style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 8, textAlign: "center" }}>{error}</p>}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "@/components/ThemeProvider";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 
@@ -10,6 +11,7 @@ interface SessionResult extends Partial<User> {
 }
 
 export default function AuthComplete({ nextPath }: { nextPath: string }) {
+  const { showMatureLabels } = useTheme();
   const started = useRef(false);
   const [needsProfile, setNeedsProfile] = useState(false);
   const [email, setEmail] = useState("");
@@ -91,10 +93,12 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
         ) : (
           <>
             <span className="badge">마지막 한 단계</span>
-            <h1>가입 정보 확인</h1>
+            <h1>{showMatureLabels ? "성인 확인" : "가입 정보 확인"}</h1>
             <p>{email} 계정으로 시작해요. 최초 한 번만 입력하면 됩니다.</p>
             <div className="field auth-profile-field">
-              <label>생년월일</label>
+              <label>
+                생년월일 {showMatureLabels && <span>— 만 19세 이상</span>}
+              </label>
               <input
                 type="date"
                 value={birthdate}
@@ -104,7 +108,11 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             </div>
             <label className="auth-check-row">
               <input type="checkbox" checked={agree} onChange={(event) => setAgree(event.target.checked)} />
-              <span>(필수) 이용약관 및 개인정보 수집에 동의합니다.</span>
+              <span>
+                {showMatureLabels
+                  ? "(필수) 성인 콘텐츠 열람 및 이용약관·개인정보 수집에 동의합니다."
+                  : "(필수) 이용약관 및 개인정보 수집에 동의합니다."}
+              </span>
             </label>
             <label className="auth-check-row auth-check-optional">
               <input type="checkbox" checked={marketingOk} onChange={(event) => setMarketingOk(event.target.checked)} />

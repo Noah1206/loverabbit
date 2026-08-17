@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useTheme } from "@/components/ThemeProvider";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import { getUser, saveUser, type User } from "@/lib/user";
 
 // 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
 export default function ShrinePage() {
+  const { showMatureLabels } = useTheme();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const ch = CHARACTERS[id ?? ""];
@@ -110,7 +112,7 @@ export default function ShrinePage() {
             지금 신당으로 입장하기
           </button>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>
-            무료 대화 5번
+            {showMatureLabels && "만 19세 이상 · "}무료 대화 5번
             {user?.chatCredits ? ` · 보상 질문권 ${user.chatCredits}장` : " · 친구 초대 시 질문권 10장"}
           </p>
         </div>
