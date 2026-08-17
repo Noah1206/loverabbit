@@ -20,7 +20,7 @@ type CardTone = "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "
 
 const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
   sokgunghap: {
-    copy: "말보다 먼저 반응하는 둘의 온도, 가까워질수록 달라지는 주도권과 쉽게 식지 않는 지점까지 은밀하게 펼쳐봅니다.",
+    copy: "말보다 먼저 닿는 둘의 온도, 가까워질수록 달라지는 주도권과 오래 마음이 머무는 지점까지 섬세하게 펼쳐봅니다.",
     tone: "ember",
   },
   jaehoe: {
@@ -28,7 +28,7 @@ const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
     tone: "rose",
   },
   bamgijil: {
-    copy: "숨기고 있던 욕망의 결부터 사랑받고 싶을 때 드러나는 습관까지, 당신만의 밤 기질을 섬세하게 해석합니다.",
+    copy: "연애할 때 드러나는 감정의 결부터 사랑받고 싶을 때 반복되는 습관까지, 당신만의 관계 기질을 섬세하게 해석합니다.",
     tone: "velvet",
   },
   baramgi: {
@@ -80,7 +80,7 @@ const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 신당에선 도령과 대화 5번 무료" },
   { text: "🐰 오픈 이벤트 — 오늘 가입 없이 무료 티저 무제한", sub: "풀 리딩은 커피 한 잔 값" },
-  { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
+  { text: "🔥 친밀 궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 
 function CardArt({ p, height, className }: { p: Product; height?: number; className?: string }) {

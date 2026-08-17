@@ -68,7 +68,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
   }, []);
 
   const birthYear = Number.parseInt(birthdate.slice(0, 4), 10);
-  const isAdult = Number.isFinite(birthYear) && new Date().getFullYear() - birthYear >= 19;
+  const meetsAgeRequirement = Number.isFinite(birthYear) && new Date().getFullYear() - birthYear >= 19;
 
   return (
     <main className="auth-shell">
@@ -91,10 +91,10 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
         ) : (
           <>
             <span className="badge">마지막 한 단계</span>
-            <h1>성인 확인</h1>
+            <h1>가입 정보 확인</h1>
             <p>{email} 계정으로 시작해요. 최초 한 번만 입력하면 됩니다.</p>
             <div className="field auth-profile-field">
-              <label>생년월일 <span>— 만 19세 이상</span></label>
+              <label>생년월일</label>
               <input
                 type="date"
                 value={birthdate}
@@ -104,7 +104,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             </div>
             <label className="auth-check-row">
               <input type="checkbox" checked={agree} onChange={(event) => setAgree(event.target.checked)} />
-              <span>(필수) 성인 콘텐츠 열람 및 이용약관·개인정보 수집에 동의합니다.</span>
+              <span>(필수) 이용약관 및 개인정보 수집에 동의합니다.</span>
             </label>
             <label className="auth-check-row auth-check-optional">
               <input type="checkbox" checked={marketingOk} onChange={(event) => setMarketingOk(event.target.checked)} />
@@ -113,7 +113,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             <button
               className="btn"
               type="button"
-              disabled={!agree || !isAdult || submitting}
+              disabled={!agree || !meetsAgeRequirement || submitting}
               onClick={() => void connectSession({ birthdate, marketingOk })}
             >
               {submitting ? "가입 중…" : "가입하고 계속하기 →"}

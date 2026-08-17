@@ -13,7 +13,7 @@ const PROVIDER_LABEL: Record<SocialLoginProvider, string> = {
 };
 
 // 로그인 진입점은 소셜 로그인만 제공한다.
-// 신규 사용자의 성인 확인과 약관 동의는 OAuth 완료 화면에서 한 번만 받는다.
+// 신규 사용자의 가입 정보와 약관 동의는 OAuth 완료 화면에서 한 번만 받는다.
 export default function SignupModal({
   onClose,
   reason = "풀 리딩을 열려면 3초 가입이 필요해요",
@@ -120,7 +120,7 @@ export default function SignupModal({
           </button>
         </div>
 
-        <p className="social-login-note">🔞 신규 가입은 로그인 후 최초 한 번만 성인 확인을 진행해요.</p>
+        <p className="social-login-note">신규 가입은 로그인 후 최초 한 번만 정보를 확인해요.</p>
         <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={onClose}>다음에 할게요</button>
         {error && <p role="alert" style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 8, textAlign: "center" }}>{error}</p>}
       </div>

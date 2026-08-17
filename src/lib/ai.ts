@@ -33,9 +33,9 @@ async function callGemini(apiKey: string, system: string, messages: ChatMsg[], m
           parts: [{ text: m.content }],
         })),
         generationConfig: { maxOutputTokens: maxTokens },
-        // 성인 대상 서비스 특성상 암시적 표현이 오탐 차단되지 않도록 완화 (노골적 묘사는 프롬프트에서 금지)
+        // 관계 상담이 자극적인 방향으로 흐르지 않도록 표현 안전 기준을 적용한다.
         safetySettings: [
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
         ],
       }),

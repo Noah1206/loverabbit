@@ -20,19 +20,15 @@ const themeInitScript = `
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://loverabbit-ai.vercel.app"),
-  title: "러브레빗 LoveRabbit — 19금 속궁합·연애운 AI 사주",
+  title: "러브레빗 LoveRabbit — 궁합·연애운 AI 사주",
   description:
-    "낮의 사주는 잊어라. 성인 전용, 솔직하다 못해 아찔한 속궁합·연애운 리딩. 3분이면 끝.",
+    "마음과 인연의 흐름을 섬세하게 풀어보는 궁합·연애운 리딩. 3분이면 확인할 수 있어요.",
   openGraph: {
-    title: "러브레빗 — 밤의 사주는 다르다 🐰",
-    description: "속궁합·재회·환승·밤 기질, 3분 만에 팩폭 리딩. 만 19세 이상.",
+    title: "러브레빗 — 마음과 인연을 읽다 🐰",
+    description: "궁합·재회·인연 타이밍을 3분 만에 섬세하게 풀어보는 AI 사주 리딩.",
     images: ["/og.jpg"],
   },
   robots: { index: true, follow: true },
-  other: {
-    // 청소년유해매체물 자율 표시 (RTA 레이블)
-    rating: "RTA-5042-1996-1400-1577-RTA",
-  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -44,10 +40,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <ThemeProvider>
           <div className="app-viewport">
-            {/* 성인 확인은 입장 게이트 대신 회원가입 시 생년월일 검증으로 수행 (SignupModal + /api/signup) */}
             {children}
             <footer className="app-footer">
-              <p>러브레빗 LoveRabbit · 만 19세 이상 전용 서비스</p>
+              <p>러브레빗 LoveRabbit · AI 기반 연애·인연 리딩 서비스</p>
               <p>본 서비스의 리딩은 오락 목적이며 의학적·법률적 조언이 아닙니다.</p>
             </footer>
           </div>

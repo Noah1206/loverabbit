@@ -44,12 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "올바른 생년월일을 입력해주세요." }, { status: 400 });
   }
 
-  // 청소년 차단 — 연 나이 기준 (만 19세가 되는 해의 1월 1일부터 성인, 청소년보호법 정의)
+  // 가입 정책에 따른 연령 기준을 서버에서도 검증한다.
   const birthYear = parseInt(birthdate.slice(0, 4), 10);
   const age = new Date().getFullYear() - birthYear;
   if (isNaN(birthYear) || birthYear < 1900 || age < 19) {
     return NextResponse.json(
-      { error: "러브레빗은 만 19세 이상 성인 전용 서비스입니다." },
+      { error: "가입 가능한 연령 기준을 충족하지 않습니다." },
       { status: 403 }
     );
   }

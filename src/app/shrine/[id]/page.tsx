@@ -110,7 +110,7 @@ export default function ShrinePage() {
             지금 신당으로 입장하기
           </button>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>
-            만 19세 이상 · 무료 대화 5번
+            무료 대화 5번
             {user?.chatCredits ? ` · 보상 질문권 ${user.chatCredits}장` : " · 친구 초대 시 질문권 10장"}
           </p>
         </div>

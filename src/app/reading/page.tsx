@@ -13,9 +13,9 @@ import {
 } from "@/lib/referral";
 
 const CATEGORIES = [
-  { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
+  { id: "sokgunghap", label: "친밀 궁합 🔥", needsPartner: true },
   { id: "jaehoe", label: "재회 🥀", needsPartner: true },
-  { id: "bamgijil", label: "밤 기질 🐰", needsPartner: false },
+  { id: "bamgijil", label: "연애 기질 🐰", needsPartner: false },
   { id: "baramgi", label: "바람기 🚨", needsPartner: true },
   { id: "gyeolhon", label: "결혼 💍", needsPartner: true },
   { id: "gwontaegi", label: "권태기 🌧️", needsPartner: true },
@@ -140,7 +140,7 @@ function downloadShareImage(teaser: string) {
   ctx.fillText("너도 궁금하면 → 러브레빗", W / 2, H - 160);
   ctx.fillStyle = "#a99cbb";
   ctx.font = "28px 'Malgun Gothic', sans-serif";
-  ctx.fillText("만 19세 이상 · 속궁합 특화 AI 사주", W / 2, H - 110);
+  ctx.fillText("궁합·연애운을 섬세하게 읽는 AI 사주", W / 2, H - 110);
 
   const a = document.createElement("a");
   a.href = canvas.toDataURL("image/png");
@@ -418,9 +418,9 @@ export default function ReadingPage() {
 
   return (
     <main className="container" style={{ paddingTop: 48 }}>
-      <h1 style={{ marginBottom: 6 }}>🐰 밤의 리딩</h1>
+      <h1 style={{ marginBottom: 6 }}>🐰 마음 리딩</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 28 }}>
-        어디 가서 못 물어보는 질문, 여기서 해결하세요.
+        혼자 고민하던 연애 질문을 사주 흐름으로 풀어보세요.
       </p>
 
       <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
@@ -470,7 +470,7 @@ export default function ReadingPage() {
           onChange={(e) => setWithPartner(e.target.checked)}
           style={{ width: 18, height: 18 }}
         />
-        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (속궁합 정확도 ↑)</span>
+        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (궁합 분석 정확도 ↑)</span>
       </label>
 
       {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}

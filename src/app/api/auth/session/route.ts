@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
     if (!validAdultBirthdate(birthdate)) {
       return NextResponse.json(
-        { error: "러브레빗은 만 19세 이상 성인 전용 서비스입니다." },
+        { error: "가입 가능한 연령 기준을 충족하지 않습니다." },
         { status: 403 }
       );
     }
