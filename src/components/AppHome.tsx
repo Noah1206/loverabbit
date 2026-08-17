@@ -16,6 +16,67 @@ const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
 const HERO_IDS = ["sokgunghap", "jaehoe", "bamgijil"];
 
+type CardTone = "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight" | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";
+
+const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
+  sokgunghap: {
+    copy: "말보다 먼저 반응하는 둘의 온도, 가까워질수록 달라지는 주도권과 쉽게 식지 않는 지점까지 은밀하게 펼쳐봅니다.",
+    tone: "ember",
+  },
+  jaehoe: {
+    copy: "끝난 대화 뒤에도 남아 있는 감정의 잔향, 다시 연락이 닿을 가능성과 먼저 움직여야 할 단 한 번의 때를 읽습니다.",
+    tone: "rose",
+  },
+  bamgijil: {
+    copy: "숨기고 있던 욕망의 결부터 사랑받고 싶을 때 드러나는 습관까지, 당신만의 밤 기질을 섬세하게 해석합니다.",
+    tone: "velvet",
+  },
+  baramgi: {
+    copy: "설렘을 좇는 기질인지 관계에서 도망치는 습관인지, 흔들리는 순간과 반드시 확인해야 할 위험 신호를 추적합니다.",
+    tone: "warning",
+  },
+  gyeolhon: {
+    copy: "좋아하는 마음을 넘어 함께 살아도 편안한 사람인지, 결혼 뒤의 생활 온도와 현실 궁합까지 오래 들여다봅니다.",
+    tone: "promise",
+  },
+  gwontaegi: {
+    copy: "익숙함에 가려진 애정과 이미 멀어진 마음을 구분하고, 다시 가까워질 수 있는 대화의 순서와 시기를 짚어드립니다.",
+    tone: "rain",
+  },
+  hwanseung: {
+    copy: "지금 사랑에 남을지 새로운 떨림을 따라갈지, 두 갈래 인연이 데려갈 다음 계절과 후회의 크기를 비교합니다.",
+    tone: "midnight",
+  },
+  sseom: {
+    copy: "다정함인지 호감인지 애매했던 신호를 하나씩 해부해, 이 썸을 연애로 바꿀 수 있는 가장 자연스러운 순간을 찾습니다.",
+    tone: "blush",
+  },
+  jjak: {
+    copy: "혼자만 간직한 마음이 상대에게 닿아 있는지, 고백 전 만들어야 할 분위기와 관계를 지키는 다정한 퇴로까지 설계합니다.",
+    tone: "secret",
+  },
+  bimil: {
+    copy: "아무에게도 말하지 못한 관계의 수명과 새어 나가는 틈, 사랑을 지키거나 놓아야 할 마지막 경계선을 조용히 비춥니다.",
+    tone: "midnight",
+  },
+  ibyeol: {
+    copy: "그 연애가 처음 금이 간 순간부터 끝내 말하지 못한 진짜 사인까지, 다음 사랑에서 반복하지 않을 흔적을 남깁니다.",
+    tone: "candle",
+  },
+  dohwasal: {
+    copy: "사람의 시선이 머무는 이유와 당신의 매력이 가장 선명해지는 순간, 원치 않는 인연은 거르고 좋은 인연을 당기는 법을 봅니다.",
+    tone: "peach",
+  },
+  insun: {
+    copy: "다음 인연이 가까워지는 계절과 만나게 될 가능성이 높은 장소, 스쳐 가기 전에 알아볼 수 있는 작은 신호를 알려드립니다.",
+    tone: "timing",
+  },
+  yeonae: {
+    copy: "올해 남은 달의 설렘과 고비를 달력처럼 펼쳐, 고백·시작·정리에 유리한 순간과 놓치지 말아야 할 흐름을 표시합니다.",
+    tone: "starlight",
+  },
+};
+
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 신당에선 도령과 대화 5번 무료" },
   { text: "🐰 오픈 이벤트 — 오늘 가입 없이 무료 티저 무제한", sub: "풀 리딩은 커피 한 잔 값" },
@@ -150,10 +211,11 @@ export default function AppHome() {
                   <img src={ch.img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }} />
                 </div>
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,6,16,0.95) 85%)" }} />
-                <div style={{ position: "absolute", left: 14, right: 14, bottom: 12 }}>
-                  <strong style={{ color: "#fff", fontSize: "1.05rem" }}>{ch.name}</strong>
-                  <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.78rem", margin: "2px 0 6px" }}>{ch.tagline}</p>
-                  <p style={{ color: "#ffd28a", fontSize: "0.75rem", fontWeight: 700 }}>🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</p>
+                <div className="shrine-card-copy">
+                  <span className="shrine-card-label">{ch.title}</span>
+                  <strong>{ch.name}</strong>
+                  <p>{ch.tagline}</p>
+                  <span className="shrine-card-enter">🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</span>
                 </div>
               </Link>
             ))}
@@ -188,25 +250,30 @@ export default function AppHome() {
             <button className="chip" style={{ marginLeft: "auto", color: "var(--accent-soft)" }} onClick={() => soon("태그 검색")}>태그 &gt;</button>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginTop: 18 }}>
+          <div className="fortune-grid">
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
-            {list.map((p) => (
-              <Link key={p.id} href={`/product/${p.id}`} className="card" style={{ padding: 0, overflow: "hidden", position: "relative", display: "block" }}>
-                <CardArt p={p} height={264} />
-                <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
-                {p.tags.includes("popular") && (
-                  <span style={{ position: "absolute", top: 10, left: 10, fontSize: "0.68rem", fontWeight: 800, background: "var(--accent)", color: "#fff", padding: "2px 8px", borderRadius: 999 }}>인기</span>
-                )}
-                {p.tags.includes("new") && (
-                  <span style={{ position: "absolute", top: 10, left: 10, fontSize: "0.68rem", fontWeight: 800, background: "var(--violet)", color: "#fff", padding: "2px 8px", borderRadius: 999 }}>NEW</span>
-                )}
-                <div style={{ position: "absolute", left: 12, right: 12, bottom: 12 }}>
-                  <strong style={{ fontSize: "0.98rem", color: "#fff", display: "block", marginBottom: 3 }}>{p.title}</strong>
-                  <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.75)", margin: "0 0 7px", lineHeight: 1.45, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{p.desc}</p>
-                  <span style={{ color: "var(--accent-soft)", fontWeight: 800, fontSize: "0.8rem" }}>무료로 시작하기 →</span>
-                </div>
-              </Link>
-            ))}
+            {list.map((p) => {
+              const detail = PRODUCT_CARD_DETAILS[p.id] ?? { copy: p.desc, tone: "starlight" as const };
+
+              return (
+                <Link key={p.id} href={`/product/${p.id}`} className="card fortune-grid-card" data-tone={detail.tone}>
+                  <CardArt p={p} className="fortune-grid-art" />
+                  <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
+                  {p.tags.includes("popular") && (
+                    <span className="fortune-grid-badge fortune-grid-badge-popular">인기</span>
+                  )}
+                  {p.tags.includes("new") && (
+                    <span className="fortune-grid-badge fortune-grid-badge-new">NEW</span>
+                  )}
+                  <div className="fortune-grid-copy">
+                    <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
+                    <strong>{p.title}</strong>
+                    <p>{detail.copy}</p>
+                    <span className="fortune-grid-cta">무료로 시작하기 →</span>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
 
