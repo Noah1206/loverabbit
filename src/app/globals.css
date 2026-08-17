@@ -268,8 +268,8 @@ label {
 }
 
 .shrine-card {
-  flex: 0 0 min(86vw, 430px);
-  aspect-ratio: 15 / 5;
+  flex: 0 0 clamp(164px, 46vw, 200px);
+  aspect-ratio: 9 / 16;
 }
 
 .shrine-card-art {

@@ -136,27 +136,8 @@ export default function AppHome() {
           </div>
         </div>
 
-        {/* ── 히어로 상품 캐러셀 ── */}
-        <section style={{ marginTop: 16, position: "relative" }}>
-          <div className="home-product-scroll">
-            {heroes.map((p) => (
-              <Link key={p.id} href={`/product/${p.id}`} className="hero-card home-product-card">
-                <CardArt p={p} className="home-product-art" />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 35%, rgba(10,6,16,0.95) 82%)" }} />
-                {/* 히어로 텍스트는 어두운 오버레이 위라 테마와 무관하게 밝은 색 고정 */}
-                <div style={{ position: "absolute", left: 18, right: 18, bottom: 16 }}>
-                  <span className="badge" style={{ marginBottom: 8 }}>{p.badge}</span>
-                  <h2 style={{ fontSize: "1.5rem", lineHeight: 1.3, margin: "6px 0 6px", color: "#fff" }}>{p.title}</h2>
-                  <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.78)", marginBottom: 10 }}>{p.desc}</p>
-                  <span style={{ color: "var(--accent-soft)", fontWeight: 800, fontSize: "0.92rem" }}>무료로 시작하기 →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* ── 신당 — 도령 캐릭터 챗 ── */}
-        <section style={{ padding: "26px 0 0" }}>
+        <section style={{ padding: "16px 0 0" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 12px" }}>
             <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
             <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령과 직접 대화하기 — 무료 5번</span>
@@ -173,6 +154,25 @@ export default function AppHome() {
                   <strong style={{ color: "#fff", fontSize: "1.05rem" }}>{ch.name}</strong>
                   <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "0.78rem", margin: "2px 0 6px" }}>{ch.tagline}</p>
                   <p style={{ color: "#ffd28a", fontSize: "0.75rem", fontWeight: 700 }}>🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 히어로 상품 캐러셀 ── */}
+        <section style={{ marginTop: 22, position: "relative" }}>
+          <div className="home-product-scroll">
+            {heroes.map((p) => (
+              <Link key={p.id} href={`/product/${p.id}`} className="hero-card home-product-card">
+                <CardArt p={p} className="home-product-art" />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 35%, rgba(10,6,16,0.95) 82%)" }} />
+                {/* 히어로 텍스트는 어두운 오버레이 위라 테마와 무관하게 밝은 색 고정 */}
+                <div style={{ position: "absolute", left: 18, right: 18, bottom: 16 }}>
+                  <span className="badge" style={{ marginBottom: 8 }}>{p.badge}</span>
+                  <h2 style={{ fontSize: "1.5rem", lineHeight: 1.3, margin: "6px 0 6px", color: "#fff" }}>{p.title}</h2>
+                  <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.78)", marginBottom: 10 }}>{p.desc}</p>
+                  <span style={{ color: "var(--accent-soft)", fontWeight: 800, fontSize: "0.92rem" }}>무료로 시작하기 →</span>
                 </div>
               </Link>
             ))}
