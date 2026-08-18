@@ -253,7 +253,13 @@ export default function AppHome() {
               const detail = PRODUCT_CARD_DETAILS[p.id] ?? { copy: p.desc, tone: "starlight" as const };
 
               return (
-                <Link key={p.id} href={`/product/${p.id}`} className="card fortune-grid-card" data-tone={detail.tone}>
+                <Link
+                  key={p.id}
+                  href={`/product/${p.id}`}
+                  className="card fortune-grid-card"
+                  data-tone={detail.tone}
+                  data-product={p.id}
+                >
                   <CardArt p={p} className="fortune-grid-art" />
                   <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
                   {p.tags.includes("popular") && (
@@ -266,7 +272,11 @@ export default function AppHome() {
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
                     <strong>{p.title}</strong>
                     <p>{detail.copy}</p>
-                    <span className="fortune-grid-cta">무료로 시작하기 →</span>
+                    <span className="fortune-grid-cta">
+                      <span aria-hidden>{p.emoji}</span>
+                      {p.ctaLabel}
+                      <b aria-hidden>→</b>
+                    </span>
                   </div>
                 </Link>
               );

@@ -9,6 +9,8 @@ export interface Product {
   desc: string;
   grad: [string, string];
   tags: ("popular" | "new")[];
+  ctaLabel: string; // 홈 카드와 상세 하단 버튼에 함께 쓰는 상품별 행동 문구
+  ctaHook: string; // 상세 하단 버튼 위에 노출하는 짧은 기대효과
   // ── 상세 판매 페이지 ──
   headline: string; // 질문형 후킹
   sub: string;
@@ -25,6 +27,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "sokgunghap", badge: "속궁합", title: "속궁합 사주", emoji: "🔥",
     desc: "겉궁합만으로는 모르는 두 사람의 온도와 호흡, 가까워질수록 드러나는 속궁합을 일주로 읽는다.",
+    ctaLabel: "두 사람의 숨은 온도 확인하기", ctaHook: "말보다 먼저 닿는 둘의 진짜 상성",
     grad: ["#3b0a2a", "#1a0b2e"], tags: ["popular"],
     headline: "그 사람과 나는, 가까워질수록 더 잘 맞을까?",
     sub: "겉으로 드러나지 않는 두 사람의 끌림 구조와 친밀도의 상성을 일주 단위로 분석합니다",
@@ -61,6 +64,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "jaehoe", badge: "재회신점", title: "재회 사주", emoji: "🥀",
     desc: "아직 남은 정인지 끝난 연인지, 먼저 가려주는 재회 신점.",
+    ctaLabel: "그 사람의 남은 마음 확인하기", ctaHook: "남은 감정과 다시 닿을 타이밍",
     grad: ["#1c0f3a", "#0d0a14"], tags: ["popular"],
     headline: "그 사람, 아직 나에게 마음이 남아 있을까?",
     sub: "이별 뒤에도 남아 있는 감정의 결을 짚어, 상대 속마음과 다시 이어질 타이밍까지 읽어드립니다",
@@ -101,6 +105,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "bamgijil", badge: "연애기질", title: "연애 기질 사주", emoji: "🐰",
     desc: "사주로 보는 연애 속 진짜 나. 감정 습관과 반복되는 끌림의 패턴.",
+    ctaLabel: "내 연애 본능 해부하기", ctaHook: "사랑에 빠질 때 드러나는 진짜 나",
     grad: ["#2a0a3b", "#12060f"], tags: ["popular"],
     headline: "연애할 때 나는 어떤 사람이 될까?",
     sub: "평소의 나도 미처 몰랐던 관계 기질과 감정 습관, 반복되는 끌림의 패턴을 명식에서 읽어냅니다",
@@ -136,6 +141,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "baramgi", badge: "바람감지", title: "바람기 레이더", emoji: "🚨",
     desc: "그 사람 사주에 도화가 몇 개인지. 조심해야 할 시기까지 짚어준다.",
+    ctaLabel: "그 사람의 위험 신호 추적하기", ctaHook: "의심보다 먼저 확인할 관계 경보",
     grad: ["#3b0a0a", "#1a0b2e"], tags: ["popular"],
     headline: "그 사람, 믿어도 되는 걸까?",
     sub: "상대 명식의 도화 기운과 이성운 흐름으로, 흔들릴 수 있는 시기와 신호를 미리 짚습니다",
@@ -171,6 +177,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "gyeolhon", badge: "결혼점", title: "결혼 사주", emoji: "💍",
     desc: "이 사람과 결혼하면 어떻게 되나. 3년 후 미래까지 미리 본다.",
+    ctaLabel: "우리의 결혼 미래 미리보기", ctaHook: "연애의 합 너머, 함께 살 미래",
     grad: ["#2a1c0f", "#140a2e"], tags: ["new"],
     headline: "이 사람과 결혼해도 될까?",
     sub: "연애의 합과 결혼의 합은 다릅니다 — 결혼 후 3년의 흐름까지 미리 봅니다",
@@ -207,6 +214,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "gwontaegi", badge: "권태진단", title: "권태기 사주", emoji: "🌧️",
     desc: "우리 단순한 권태기일까, 끝나가는 걸까. 먼저 가려준다.",
+    ctaLabel: "식어버린 마음의 온도 재보기", ctaHook: "끝인지 쉼표인지 구분할 시간",
     grad: ["#101828", "#0d0a14"], tags: ["new"],
     headline: "우리, 단순한 권태기일까? 끝나가는 걸까?",
     sub: "지나가는 소나기인지 계절이 바뀐 것인지 — 관계의 현재 위치를 명식으로 판정합니다",
@@ -242,6 +250,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "hwanseung", badge: "환승연애", title: "환승 사주", emoji: "🚇",
     desc: "지금 갈아타면 후회할까? 환승 타이밍과 위약금까지 계산해준다.",
+    ctaLabel: "두 인연의 다음 장면 비교하기", ctaHook: "남을지 떠날지, 후회가 적은 선택",
     grad: ["#0f1f3a", "#140a2e"], tags: [],
     headline: "지금 갈아타면, 후회할까?",
     sub: "지금 관계의 남은 운과 새 인연의 크기를 저울에 올려 환승의 손익을 계산합니다",
@@ -275,6 +284,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "sseom", badge: "썸수사", title: "썸 해부 사주", emoji: "💘",
     desc: "3개월째 제자리인 썸, 누가 브레이크를 밟고 있는지 해부한다.",
+    ctaLabel: "이 썸의 진짜 속도 확인하기", ctaHook: "호감과 망설임 사이의 결정적 신호",
     grad: ["#3b0a1c", "#1a0b2e"], tags: [],
     headline: "이 썸, 왜 진도가 안 나갈까?",
     sub: "밀당인지 망설임인지 무관심인지 — 정체된 썸의 브레이크를 찾아냅니다",
@@ -309,6 +319,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "jjak", badge: "짝사랑", title: "짝사랑 사주", emoji: "🤫",
     desc: "고백할까, 접을까. 성공 확률과 타이밍을 계산해준다.",
+    ctaLabel: "고백의 승산과 타이밍 보기", ctaHook: "관계를 잃지 않고 마음을 전할 때",
     grad: ["#2b1030", "#0d0a14"], tags: ["new"],
     headline: "고백하면, 우리 사이는 어떻게 될까?",
     sub: "혼자 키운 마음의 승산을 계산하고, 고백의 타이밍과 방식까지 설계합니다",
@@ -343,6 +354,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "bimil", badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
     desc: "들키면 안 되는 사이. 언제까지 갈 수 있는지, 들킬 고비는 언제인지.",
+    ctaLabel: "이 비밀의 끝을 먼저 보기", ctaHook: "관계의 수명과 흔들리는 경계선",
     grad: ["#1c1030", "#060409"], tags: ["new"],
     headline: "이 비밀, 언제까지 지킬 수 있을까?",
     sub: "들키면 안 되는 관계의 수명과 위험 구간, 그리고 이 사랑의 결말을 미리 봅니다",
@@ -376,6 +388,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "ibyeol", badge: "연애부검", title: "이별 부검 리포트", emoji: "🕯️",
     desc: "그 연애, 어디서부터 죽어 있었나. 사주로 부검해드립니다.",
+    ctaLabel: "그 연애의 진짜 사인 밝히기", ctaHook: "반복하지 않기 위해 남기는 마지막 기록",
     grad: ["#14101c", "#060409"], tags: [],
     headline: "그 연애는, 어디서부터 어긋났을까?",
     sub: "끝난 연애를 명식으로 부검해 진짜 사인(死因)을 밝히고, 다음 연애의 처방을 남깁니다",
@@ -410,6 +423,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "dohwasal", badge: "도화살", title: "도화살 진단", emoji: "🌸",
     desc: "나 도화살 있나? 이성이 꼬이는 사주인지 확인해준다.",
+    ctaLabel: "내 도화의 위치와 힘 확인하기", ctaHook: "시선이 머무는 이유와 매력의 사용법",
     grad: ["#301022", "#140a2e"], tags: ["new"],
     headline: "나한테 도화살, 진짜 있을까?",
     sub: "명식 속 도화(桃花)의 개수와 위치를 확인하고, 그 매력을 축복으로 쓰는 법을 알려드립니다",
@@ -443,6 +457,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "insun", badge: "솔로전용", title: "인연 타이밍", emoji: "⏳",
     desc: "다음 인연은 언제, 어디서. 솔로 탈출 타이밍 전용 리딩.",
+    ctaLabel: "다음 인연이 오는 때 확인하기", ctaHook: "스쳐 가기 전에 알아볼 인연의 신호",
     grad: ["#0f2030", "#0d0a14"], tags: ["new"],
     headline: "내 다음 인연은, 언제 어디서 올까?",
     sub: "운의 흐름에서 인연의 창이 열리는 시기와 만나게 될 경로, 상대의 윤곽까지 봅니다",
@@ -476,6 +491,7 @@ export const PRODUCTS: Product[] = [
   {
     id: "yeonae", badge: "연간운세", title: "올해의 연애운", emoji: "✨",
     desc: "올해 남은 연애운의 흐름. 큰 고비의 달과 기회의 달.",
+    ctaLabel: "올해의 설렘 캘린더 펼치기", ctaHook: "움직일 달과 기다릴 달을 한눈에",
     grad: ["#251530", "#0d0a14"], tags: [],
     headline: "올해 내 연애, 어떻게 흘러갈까?",
     sub: "남은 한 해의 연애운을 월 단위로 펼쳐 기회의 달과 고비의 달을 미리 표시합니다",

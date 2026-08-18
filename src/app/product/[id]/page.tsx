@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
@@ -24,15 +25,21 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const cta = `/reading?c=${p.id}`;
 
   return (
-    <main style={{ maxWidth: 640, margin: "0 auto", paddingBottom: 90 }}>
+    <main className="product-page" data-product={p.id}>
       {/* ── 히어로 ── */}
-      <section style={{ position: "relative", height: 360, overflow: "hidden" }}>
-        <div aria-hidden style={{ position: "absolute", inset: 0, background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})` }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/cards-pastel/${p.id}.jpg`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 18%" }} />
+      <section className="product-hero">
+        <div aria-hidden className="product-hero-art" style={{ background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})` }}>
+          <Image
+            src={`/cards-pastel/${p.id}.jpg`}
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 640px) 100vw, 640px"
+            style={{ objectFit: "cover", objectPosition: "center 18%" }}
+          />
         </div>
-        <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,6,16,0.3), transparent 30%, rgba(10,6,16,0.96) 80%)" }} />
-        <div style={{ position: "absolute", left: 20, right: 20, bottom: 20 }}>
+        <div aria-hidden className="product-hero-shade" />
+        <div className="product-hero-copy">
           <span className="badge">{p.badge}</span>
           <h1 style={{ color: "#fff", fontSize: "1.7rem", lineHeight: 1.3, margin: "8px 0 6px" }}>{p.headline}</h1>
           <p style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.9rem" }}>{p.sub}</p>
@@ -41,25 +48,24 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
       <div style={{ padding: "20px 20px 0", display: "grid", gap: 26 }}>
         {/* ── ??% 게이지 ── */}
-        <section className="card" style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>우리의 {p.scoreLabel}은?</p>
-          <p style={{ fontSize: "2.2rem", fontWeight: 900, margin: "4px 0 2px" }}>
-            상위 <span style={{ color: "var(--accent)" }}>??%</span> <span aria-hidden>🔮</span>
-          </p>
-          <p style={{ fontSize: "0.82rem", color: "var(--text-dim)", marginBottom: 14 }}>{p.gaugeCaption}</p>
-          <div style={{ display: "flex", gap: 4 }}>
-            {p.meterLabels.map((m, i) => (
-              <div key={m} style={{ flex: 1 }}>
-                <div style={{ height: 8, borderRadius: 999, background: `linear-gradient(90deg, var(--accent-soft), var(--violet))`, opacity: 0.25 + i * 0.18 }} />
-                <p style={{ fontSize: "0.58rem", color: "var(--text-dim)", marginTop: 4, lineHeight: 1.3 }}>{m}</p>
-              </div>
+        <section className="card product-score-card">
+          <p className="product-score-question">우리의 {p.scoreLabel}은?</p>
+          <div className="product-score-result">
+            <p>상위 <span>??</span>%</p>
+            <span className="product-score-orb" aria-hidden>{p.emoji}</span>
+          </div>
+          <p className="product-score-caption">{p.gaugeCaption}</p>
+          <div className="product-score-meter" aria-hidden><span /></div>
+          <div className="product-score-labels">
+            {p.meterLabels.map((label) => (
+              <span key={label}>{label}</span>
             ))}
-            <div style={{ width: 26, textAlign: "center", fontWeight: 900, color: "var(--accent)" }}>?</div>
+            <strong aria-label="결과 미공개">?</strong>
           </div>
         </section>
 
         {/* ── 비전(秘傳) 서사 ── */}
-        <section className="card" style={{ position: "relative", overflow: "hidden" }}>
+        <section className="card product-story-card" style={{ position: "relative", overflow: "hidden" }}>
           <span aria-hidden style={{ position: "absolute", right: -6, top: -18, fontSize: "5.5rem", fontFamily: "serif", fontWeight: 900, color: "var(--accent)", opacity: 0.08 }}>秘傳</span>
           <p style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 6 }}>본 사주 분석의 뿌리</p>
           <strong style={{ fontSize: "1.05rem" }}>필사본으로만 전해진 연애 명리 비전, 「연담비결(戀談秘訣)」</strong>
@@ -131,14 +137,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       </div>
 
       {/* ── 고정 CTA ── */}
-      <div
-        style={{
-          position: "fixed", bottom: 76, left: "50%", transform: "translateX(-50%)",
-          width: "min(100% - 32px, 608px)", zIndex: 55,
-        }}
-      >
-        <Link href={cta} className="btn" style={{ display: "block", textAlign: "center", width: "100%" }}>
-          {p.emoji} 무료로 시작하기 → <span style={{ fontWeight: 400, fontSize: "0.85rem" }}>(미리보기 무료 · 풀 리딩 7,900원)</span>
+      <div className="product-sticky-shell">
+        <span className="product-sticky-hook">{p.emoji} {p.ctaHook}</span>
+        <Link href={cta} className="product-sticky-cta">
+          <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>
+          <span className="product-sticky-copy">
+            <strong>{p.ctaLabel}</strong>
+            <small>결과 일부 공개 · 전체 리포트는 확인 후 선택</small>
+          </span>
+          <span className="product-sticky-arrow" aria-hidden>→</span>
         </Link>
       </div>
     </main>
