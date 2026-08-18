@@ -3,7 +3,6 @@ import { SITE_URL } from "@/lib/site";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
-import AppFooter from "@/components/AppFooter";
 import AuthCodeRescue from "@/components/AuthCodeRescue";
 import BottomNav from "@/components/BottomNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -44,10 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <ThemeProvider>
           <AuthCodeRescue />
-          <div className="app-viewport">
-            {children}
-            <AppFooter />
-          </div>
+          <div className="app-viewport">{children}</div>
           <BottomNav />
         </ThemeProvider>
         <Analytics />

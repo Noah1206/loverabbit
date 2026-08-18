@@ -81,27 +81,8 @@ body {
     18px 0 48px rgba(0, 0, 0, 0.22);
 }
 
-.app-footer {
-  margin-top: 60px;
-  padding: 40px 20px;
-  border-top: 1px solid var(--line);
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  text-align: center;
-}
-
 .app-viewport:has(> .product-page) {
   padding-bottom: 0;
-}
-
-.app-viewport:has(> .product-page) > .app-footer {
-  display: none;
-}
-
-/* 리딩 리포트는 결제 카드로 끝난다 — 공용 푸터까지 빈 화면이 길게 남지 않게 붙인다 */
-.app-viewport:has(> .report-page) > .app-footer {
-  margin-top: 20px;
-  padding: 22px 20px 20px;
 }
 
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
