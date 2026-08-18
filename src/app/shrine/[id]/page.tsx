@@ -17,27 +17,37 @@ function shrineSessionKey(characterId: string) {
 }
 
 // *별표 지문*(표정·몸짓 묘사)은 대사와 다르게 — 신당 색으로 기울여 보여준다.
+// 지문 블록이 자체 여백을 갖기 때문에, 지문에 붙어 있던 줄바꿈은 빈 줄로 보이지 않게 지운다.
 function renderSpeech(text: string, stageColor: string) {
-  return text.split(/(\*[^*]+\*)/g).map((part, index) =>
-    part.length > 2 && part.startsWith("*") && part.endsWith("*") ? (
-      <em
-        key={index}
-        style={{
-          display: "block",
-          margin: "2px 0 7px",
-          color: stageColor,
-          fontStyle: "italic",
-          fontSize: "0.86rem",
-          letterSpacing: "0.01em",
-          opacity: 0.95,
-        }}
-      >
-        {part.slice(1, -1)}
-      </em>
-    ) : (
-      <span key={index}>{part}</span>
-    )
-  );
+  const parts = text.split(/(\*[^*]+\*)/g);
+  const isStage = (part: string) => part.length > 2 && part.startsWith("*") && part.endsWith("*");
+
+  return parts.map((raw, index) => {
+    if (isStage(raw)) {
+      return (
+        <em
+          key={index}
+          style={{
+            display: "block",
+            margin: index === 0 ? "0 0 8px" : "10px 0 8px",
+            color: stageColor,
+            fontStyle: "italic",
+            fontSize: "0.86rem",
+            letterSpacing: "0.01em",
+            opacity: 0.95,
+          }}
+        >
+          {raw.slice(1, -1)}
+        </em>
+      );
+    }
+
+    let line = raw;
+    if (index > 0 && isStage(parts[index - 1])) line = line.replace(/^\s*\n+/, "");
+    if (index < parts.length - 1 && isStage(parts[index + 1])) line = line.replace(/\n+\s*$/, "");
+    if (!line) return null;
+    return <span key={index}>{line}</span>;
+  });
 }
 
 // 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
