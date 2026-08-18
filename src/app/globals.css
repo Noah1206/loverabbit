@@ -98,6 +98,12 @@ body {
   display: none;
 }
 
+/* 리딩 리포트는 결제 카드로 끝난다 — 공용 푸터까지 빈 화면이 길게 남지 않게 붙인다 */
+.app-viewport:has(> .report-page) > .app-footer {
+  margin-top: 20px;
+  padding: 22px 20px 20px;
+}
+
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
 .app-modal-layer,
 .shrine-gate,
@@ -1594,7 +1600,8 @@ label {
   --report-measure: 40rem;
   max-width: 680px;
   margin: 0 auto;
-  padding: 0 20px calc(60px + env(safe-area-inset-bottom));
+  /* 아래 여백은 공용 푸터와 하단 탭바가 이미 갖고 있다 — 여기서 또 띄우지 않는다 */
+  padding: 0 20px calc(8px + env(safe-area-inset-bottom));
 }
 
 .report-progress {
@@ -1967,20 +1974,9 @@ label {
 }
 
 .report-footer {
-  display: grid;
-  gap: 10px;
-  margin-top: 34px;
-  padding-top: 24px;
+  margin-top: 24px;
+  padding-top: 18px;
   border-top: 1px solid var(--line);
-}
-
-.report-footer .btn {
-  width: 100%;
-}
-
-.report-footer .report-remove {
-  color: var(--text-dim);
-  font-size: 0.85rem;
 }
 
 .report-demo {
@@ -2931,4 +2927,861 @@ label {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #8b5cf6));
   transition: width 380ms ease;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   신당 관문 — 입장 화면(/shrine/[id])에서 대화 화면(/shrine/[id]/chat)으로
+   넘어가는 동안 재생되는 페이지 전환 연출.
+
+   방향 규칙: 전환 내내 카메라는 "앞으로" 한 방향으로만 민다.
+   - 입장 화면은 커지며 빠지고(scale 1 -> 1.2)
+   - 관문의 장막과 문양도 커지며 덮고
+   - 대화 화면은 작은 데서 커지며 들어온다(0.94 -> 1)
+   방향이 한 번도 뒤집히지 않아야 두 페이지가 한 번의 카메라 이동처럼 이어진다.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.shrine-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  --d: 0ms;
+  --x: 0px;
+  --s: 1;
+  --r: 0deg;
+}
+
+.shrine-gate-veil {
+  position: absolute;
+  inset: -14%;
+  transform-origin: 50% 46%;
+  will-change: transform, opacity;
+  background:
+    radial-gradient(circle at 50% 46%, transparent 4%, var(--gate-ink, rgba(10, 7, 16, 0.9)) 58%),
+    linear-gradient(180deg, var(--gate-ink, rgba(10, 7, 16, 0.9)), rgba(6, 4, 10, 0.98));
+  animation: gate-veil-close 900ms 60ms cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes gate-veil-close {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.95;
+    transform: scale(1.2);
+  }
+}
+
+.shrine-gate-motif {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transform-origin: 50% 50%;
+  animation: gate-motif-push 1150ms cubic-bezier(0.32, 0, 0.67, 0) both;
+}
+
+@keyframes gate-motif-push {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+/* ── 문양과 한마디 — 두 화면을 잇는 매개 ── */
+
+.shrine-gate-seal {
+  position: relative;
+  padding: 0 30px;
+  text-align: center;
+}
+
+.shrine-gate-sigil {
+  display: block;
+  font-size: clamp(66px, 23vw, 130px);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gate-stage, #fff);
+  text-shadow:
+    0 0 32px var(--gate-glow, rgba(255, 255, 255, 0.4)),
+    0 0 88px var(--gate-glow, rgba(255, 255, 255, 0.4));
+  will-change: transform, opacity, filter;
+  animation: gate-sigil-settle 820ms 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-sigil-settle {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+    filter: blur(16px);
+  }
+  58% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+.shrine-gate-name {
+  display: block;
+  margin-top: 12px;
+  color: #fff;
+  font-size: 1.02rem;
+  letter-spacing: 0.24em;
+  animation: gate-copy-rise 460ms 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shrine-gate-line {
+  margin-top: 7px;
+  color: var(--gate-stage, rgba(255, 255, 255, 0.8));
+  font-size: 0.88rem;
+  animation: gate-copy-rise 460ms 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-copy-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ── 소품 — 신당마다 다른 것이 화면을 덮는다 ── */
+
+/* 화린신당 — 불티가 솟는다 */
+.gate-spark {
+  position: absolute;
+  bottom: -8%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff5dd 0%, var(--gate-accent) 46%, transparent 72%);
+  will-change: transform, opacity;
+  animation: gate-spark-rise 1000ms var(--d) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-spark-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(calc(var(--s) * 0.35));
+  }
+  16% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x), -112vh, 0) scale(var(--s));
+  }
+}
+
+.shrine-gate[data-motif="ember"] .shrine-gate-motif::after {
+  content: "";
+  position: absolute;
+  inset: 40% -20% -30%;
+  background: radial-gradient(ellipse at 50% 100%, var(--gate-glow), transparent 66%);
+  animation: gate-heat-swell 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-heat-swell {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  100% {
+    opacity: 0.9;
+    transform: scale(1.5);
+  }
+}
+
+/* 홍련신당 — 검은 물에 연꽃이 핀다 */
+.gate-water {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: 2px solid var(--gate-accent);
+  border-radius: 50%;
+  animation: gate-ripple 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  14% { opacity: 0.95; }
+  100% {
+    opacity: 0;
+    transform: scale(34);
+  }
+}
+
+.gate-petalring {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 26px;
+  height: 72px;
+  margin: -36px 0 0 -13px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: linear-gradient(180deg, var(--gate-accent), var(--gate-accent2));
+  box-shadow: 0 0 22px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-petal-open 940ms var(--d) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-petal-open {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--r)) translateY(0) scale(0.2);
+  }
+  28% { opacity: 0.95; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--r)) translateY(-52vh) scale(calc(var(--s) * 1.7));
+  }
+}
+
+/* 묵연신당 — 먹이 번진다 */
+.gate-blot {
+  position: absolute;
+  width: 24vw;
+  height: 24vw;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 6, 12, 0.96) 0%, var(--gate-accent2) 52%, transparent 74%);
+  filter: blur(12px);
+  will-change: transform, opacity;
+  animation: gate-blot-bleed 1050ms var(--d) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-blot-bleed {
+  0% {
+    opacity: 0;
+    transform: scale(0.14);
+  }
+  26% { opacity: 0.92; }
+  100% {
+    opacity: 0.78;
+    transform: scale(calc(var(--s) * 3.6));
+  }
+}
+
+/* 자월신당 — 거울 조각이 흩어진다 */
+.gate-crescent {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: 46vw;
+  height: 46vw;
+  margin: -23vw 0 0 -23vw;
+  border-radius: 50%;
+  box-shadow: inset -16px 9px 0 -2px var(--gate-accent);
+  filter: drop-shadow(0 0 30px var(--gate-glow));
+  animation: gate-crescent-rise 1060ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-crescent-rise {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-16deg);
+  }
+  44% { opacity: 0.9; }
+  100% {
+    opacity: 0.3;
+    transform: scale(1.3) rotate(6deg);
+  }
+}
+
+.gate-shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 56px;
+  margin: -28px 0 0 -3px;
+  background: linear-gradient(180deg, transparent, var(--gate-stage), transparent);
+  box-shadow: 0 0 16px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-shard-scatter 920ms var(--d) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-shard-scatter {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--r)) translateY(0) scaleY(0.3);
+  }
+  20% { opacity: 1; }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--r)) translateY(calc(var(--x) * -1)) scaleY(var(--s));
+  }
+}
+
+/* 금야신당 — 금이 갈라진다 */
+.gate-crack {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 64vh;
+  margin: -64vh 0 0 -2px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(180deg, transparent, var(--gate-accent) 42%, #fff3cf 100%);
+  box-shadow: 0 0 18px var(--gate-glow);
+  clip-path: polygon(50% 0, 100% 22%, 46% 48%, 100% 70%, 50% 100%, 0 72%, 54% 46%, 0 24%);
+  will-change: transform, opacity;
+  animation: gate-crack-run 780ms var(--d) cubic-bezier(0.12, 0.9, 0.2, 1) both;
+}
+
+@keyframes gate-crack-run {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--r)) scaleY(0);
+  }
+  12% { opacity: 1; }
+  72% {
+    opacity: 1;
+    transform: rotate(var(--r)) scaleY(var(--s));
+  }
+  100% {
+    opacity: 0.4;
+    transform: rotate(var(--r)) scaleY(calc(var(--s) * 1.1));
+  }
+}
+
+/* 매화신당 — 눈과 매화가 내린다 */
+.gate-petal {
+  position: absolute;
+  top: -10%;
+  width: 12px;
+  height: 12px;
+  border-radius: 60% 12% 60% 12%;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.92), var(--gate-accent));
+  box-shadow: 0 0 9px var(--gate-glow);
+  filter: blur(0.3px);
+  will-change: transform, opacity;
+  animation: gate-petal-fall 1200ms var(--d) cubic-bezier(0.36, 0, 0.5, 1) both;
+}
+
+@keyframes gate-petal-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(calc(var(--r) / 5)) scale(var(--s));
+  }
+  14% { opacity: 0.88; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x), 116vh, 0) rotate(var(--r)) scale(var(--s));
+  }
+}
+
+/* 청사신당 — 방울 울림이 퍼진다 */
+.gate-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 82px;
+  height: 82px;
+  margin: -41px 0 0 -41px;
+  border: 2px solid var(--gate-accent);
+  border-radius: 50%;
+  box-shadow: 0 0 26px var(--gate-glow), inset 0 0 20px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-ring-toll 1020ms var(--d) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-ring-toll {
+  0% {
+    opacity: 0;
+    transform: scale(0.18);
+  }
+  18% { opacity: 0.95; }
+  100% {
+    opacity: 0;
+    transform: scale(calc(var(--s) * 9));
+  }
+}
+
+/* 비화신당 — 봉인이 찍히고 갈라진다 */
+.gate-stamp {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: min(34vw, 190px);
+  aspect-ratio: 1;
+  border: 6px solid var(--gate-accent);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--gate-accent2) 0%, transparent 68%);
+  box-shadow: 0 0 44px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-stamp-press 600ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes gate-stamp-press {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.3);
+  }
+  56% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.16);
+  }
+}
+
+.gate-sealcrack {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 3px;
+  height: 42vh;
+  margin: -42vh 0 0 -1.5px;
+  transform-origin: 50% 100%;
+  background: linear-gradient(180deg, transparent, var(--gate-accent) 55%, #e8ecff 100%);
+  box-shadow: 0 0 14px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-crack-run 700ms var(--d) cubic-bezier(0.12, 0.9, 0.2, 1) both;
+}
+
+/* 해월신당 — 달빛 물결이 밀려온다 */
+.gate-band {
+  position: absolute;
+  left: -20%;
+  width: 140%;
+  height: 18px;
+  background: linear-gradient(90deg, transparent, var(--gate-accent), transparent);
+  filter: blur(9px);
+  will-change: transform, opacity;
+  animation: gate-band-swell 1000ms var(--d) cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-band-swell {
+  0% {
+    opacity: 0;
+    transform: translate3d(-26%, 0, 0) scale(0.6, 0.4);
+  }
+  24% { opacity: 0.72; }
+  100% {
+    opacity: 0;
+    transform: translate3d(10%, -18vh, 0) scale(1.25, var(--s));
+  }
+}
+
+/* 연화신당 — 붉은 실이 이어진다 */
+.gate-thread {
+  position: absolute;
+  left: -10%;
+  width: 120%;
+  height: 2px;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, transparent, var(--gate-accent) 28%, #fff 50%, var(--gate-accent) 72%, transparent);
+  box-shadow: 0 0 14px var(--gate-glow);
+  will-change: transform, opacity;
+  animation: gate-thread-draw 900ms var(--d) cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-thread-draw {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--r)) scaleX(0);
+  }
+  18% { opacity: 1; }
+  72% {
+    opacity: 1;
+    transform: rotate(var(--r)) scaleX(1);
+  }
+  100% {
+    opacity: 0.3;
+    transform: rotate(var(--r)) scaleX(1.1);
+  }
+}
+
+.gate-knot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0%, var(--gate-accent) 50%, transparent 74%);
+  box-shadow: 0 0 40px var(--gate-glow);
+  animation: gate-knot-tie 720ms 40ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes gate-knot-tie {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  34% { opacity: 0.7; }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(6);
+  }
+}
+
+/* 적야신당 — 촛불이 흔들리고 향 연기가 오른다 */
+.gate-flame {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: min(24vw, 118px);
+  height: min(40vw, 196px);
+  border-radius: 50% 50% 46% 46% / 68% 68% 32% 32%;
+  background: radial-gradient(ellipse at 50% 72%, #fff4d2 0%, var(--gate-accent) 42%, transparent 72%);
+  filter: blur(2px);
+  will-change: transform, opacity;
+  animation: gate-flame-flare 1000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-flame-flare {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.28);
+  }
+  32% { opacity: 1; }
+  100% {
+    opacity: 0.18;
+    transform: translate(-50%, -64%) scale(2.8);
+  }
+}
+
+.gate-smoke {
+  position: absolute;
+  bottom: 14%;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+  filter: blur(9px);
+  will-change: transform, opacity;
+  animation: gate-smoke-rise 1180ms var(--d) cubic-bezier(0.3, 0, 0.5, 1) both;
+}
+
+@keyframes gate-smoke-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.4);
+  }
+  22% { opacity: 0.85; }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--x), -88vh, 0) scale(calc(var(--s) * 2.4));
+  }
+}
+
+/* ── 도착(arrive) — 대화 화면이 열린 직후. 같은 소품이 같은 방향으로 더 커지며 흩어진다 ── */
+
+.shrine-gate[data-phase="arrive"] {
+  animation: gate-arrive-clear 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-arrive-clear {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(1.16);
+  }
+}
+
+.shrine-gate[data-phase="arrive"] .shrine-gate-veil {
+  animation: gate-veil-open 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-veil-open {
+  0% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+/* 소품은 처음이 아니라 이미 날아가던 중간부터 이어 붙는다 — 컷 뒤에 멈춘 채로 시작하지 않게 */
+.shrine-gate[data-phase="arrive"] .shrine-gate-motif > * {
+  animation-delay: -320ms;
+}
+
+.shrine-gate[data-phase="arrive"] .shrine-gate-sigil {
+  animation: gate-sigil-disperse 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gate-sigil-disperse {
+  0% {
+    opacity: 0.85;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+    filter: blur(14px);
+  }
+}
+
+/* ── 두 화면의 카메라 — 나가는 쪽은 밀고 들어가고, 들어오는 쪽이 그대로 이어받는다 ── */
+
+.shrine-immersive-shell.is-departing .shrine-stage-bg {
+  animation: shrine-depart-push 1150ms cubic-bezier(0.32, 0, 0.67, 0) both;
+}
+
+@keyframes shrine-depart-push {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+.shrine-immersive-shell.is-departing .shrine-stage-panel,
+.shrine-immersive-shell.is-departing > header {
+  animation: shrine-depart-copy 380ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes shrine-depart-copy {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0) scale(1.07);
+  }
+}
+
+.shrine-immersive-shell.is-arriving .shrine-stage-bg {
+  animation: shrine-arrive-settle 940ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shrine-arrive-settle {
+  from {
+    opacity: 0.3;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.shrine-immersive-shell.is-arriving .shrine-stage-panel {
+  animation: shrine-arrive-panel 620ms 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shrine-arrive-panel {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shrine-gate,
+  .shrine-gate * {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .shrine-immersive-shell.is-departing .shrine-stage-bg,
+  .shrine-immersive-shell.is-departing .shrine-stage-panel,
+  .shrine-immersive-shell.is-departing > header,
+  .shrine-immersive-shell.is-arriving .shrine-stage-bg,
+  .shrine-immersive-shell.is-arriving .shrine-stage-panel {
+    animation: none;
+  }
+}
+
+/* 문의 버튼 — 하단 탭바(높이 66px, bottom 6px) 바로 위에 같은 폭으로 정렬한다 */
+.inquiry-fab-slot {
+  position: fixed;
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
+  z-index: 61;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.inquiry-fab {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
+  color: var(--text);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  transition: transform 160ms ease;
+}
+
+.inquiry-fab:active {
+  transform: scale(0.97);
+}
+
+.inquiry-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(8, 5, 14, 0.9);
+}
+
+.inquiry-sheet {
+  width: 100%;
+  max-width: 420px;
+  max-height: min(86dvh, 720px);
+  overflow-y: auto;
+}
+
+.inquiry-hint {
+  margin: 0 0 14px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.inquiry-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 16px;
+}
+
+.inquiry-chips button {
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.inquiry-chips button.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.inquiry-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.inquiry-textarea,
+.inquiry-input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+}
+
+.inquiry-counter {
+  margin: 5px 0 14px;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  text-align: right;
+}
+
+.inquiry-error {
+  margin-top: 12px;
+  color: var(--accent);
+  font-size: 0.84rem;
+}
+
+.inquiry-sent-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 4px auto 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+/* 관리자 문의함 */
+.admin-inquiry-message {
+  margin: 10px 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.admin-inquiry-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 16px;
+  margin: 0 0 14px;
+}
+
+.admin-inquiry-meta dt {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-inquiry-meta dd {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  word-break: break-all;
 }

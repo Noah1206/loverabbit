@@ -19,7 +19,7 @@ export default function ChatPaymentSuccessClient({
   const started = useRef(false);
   const [credits, setCredits] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const shrineHref = `/shrine/${encodeURIComponent(characterId || "hwarin")}?payment=approved`;
+  const shrineHref = `/shrine/${encodeURIComponent(characterId || "hwarin")}/chat?payment=approved`;
 
   useEffect(() => {
     if (started.current) return;

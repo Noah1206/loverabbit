@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "결제 승인 관리 — LoveRabbit",
+  title: "운영 관리 — LoveRabbit",
   robots: { index: false, follow: false },
 };
 

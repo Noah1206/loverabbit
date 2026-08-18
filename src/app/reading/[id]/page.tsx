@@ -6,11 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import SignupModal from "@/components/SignupModal";
-import { listArchive, removeFromArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
+import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
-import { downloadShareImage } from "@/lib/share-image";
 import { getUser, saveUser, type User } from "@/lib/user";
 import BrandMark from "@/components/BrandMark";
 
@@ -413,28 +412,11 @@ export default function ReadingReportPage() {
 
         {unlocked && <ChatSection readingId={entry.readingId} blob={entry.blob} />}
 
-        <footer className="report-footer">
-          <button className="btn btn-ghost" onClick={() => downloadShareImage(entry.teaser)}>
-            📸 공유 이미지 저장
-          </button>
-          <Link className="btn btn-ghost" href="/reading">
-            다른 리딩 받기
-          </Link>
-          <button
-            className="btn btn-ghost report-remove"
-            onClick={() => {
-              if (window.confirm("이 리딩을 보관함에서 삭제할까요?")) {
-                removeFromArchive(entry.readingId);
-                router.push("/my");
-              }
-            }}
-          >
-            보관함에서 삭제
-          </button>
-          {entry.demo && (
+        {entry.demo && (
+          <footer className="report-footer">
             <p className="report-demo">⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>
-          )}
-        </footer>
+          </footer>
+        )}
       </article>
 
       {showSignup && (

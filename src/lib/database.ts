@@ -822,4 +822,125 @@ export async function reviewTransferOrder(
   };
 }
 
+// ── 문의함 ───────────────────────────────────────────────────────────────────
+
+export type InquiryCategory = "payment" | "reading" | "chat" | "account" | "bug" | "etc";
+export type InquiryStatus = "open" | "done";
+
+export interface InquiryRecord {
+  id: number;
+  userId: number | null;
+  userEmail: string | null;
+  email: string | null;
+  category: InquiryCategory;
+  message: string;
+  pagePath: string | null;
+  status: InquiryStatus;
+  adminNote: string | null;
+  createdAt: string;
+}
+
+const INQUIRY_COLUMNS = "id,user_id,email,category,message,page_path,status,admin_note,created_at";
+
+function mapInquiry(row: Record<string, unknown>, userEmail: string | null = null): InquiryRecord {
+  return {
+    id: Number(row.id),
+    userId: row.user_id === null || row.user_id === undefined ? null : Number(row.user_id),
+    userEmail,
+    email: typeof row.email === "string" ? row.email : null,
+    category: String(row.category) as InquiryCategory,
+    message: String(row.message),
+    pagePath: typeof row.page_path === "string" ? row.page_path : null,
+    status: row.status === "done" ? "done" : "open",
+    adminNote: typeof row.admin_note === "string" ? row.admin_note : null,
+    createdAt: String(row.created_at),
+  };
+}
+
+export async function createInquiry(input: {
+  userId: number | null;
+  email: string | null;
+  category: InquiryCategory;
+  message: string;
+  pagePath: string | null;
+}): Promise<InquiryRecord | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_inquiries")
+    .insert({
+      user_id: input.userId,
+      email: input.email,
+      category: input.category,
+      message: input.message,
+      page_path: input.pagePath,
+    })
+    .select(INQUIRY_COLUMNS)
+    .maybeSingle();
+  if (error) throw databaseError("문의 저장", error);
+  return data ? mapInquiry(data as Record<string, unknown>) : null;
+}
+
+/** 도배 방지 — 같은 회원(또는 같은 이메일)이 최근에 보낸 건수를 센다. */
+export async function countRecentInquiries(
+  who: { userId: number } | { email: string },
+  sinceIso: string
+): Promise<number> {
+  const db = getSupabaseAdmin();
+  if (!db) return 0;
+  let query = db
+    .from("lr_inquiries")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", sinceIso);
+  query = "userId" in who ? query.eq("user_id", who.userId) : query.eq("email", who.email);
+  const { count, error } = await query;
+  if (error) throw databaseError("최근 문의 수 확인", error);
+  return count ?? 0;
+}
+
+export async function listInquiries(status?: InquiryStatus): Promise<InquiryRecord[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+  let query = db
+    .from("lr_inquiries")
+    .select(INQUIRY_COLUMNS)
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw databaseError("문의 목록 조회", error);
+
+  const rows = (data ?? []) as Record<string, unknown>[];
+  const userIds = [...new Set(rows.map((row) => Number(row.user_id)).filter(Number.isFinite))];
+  const emailsById = new Map<number, string>();
+  if (userIds.length > 0) {
+    const { data: users, error: usersError } = await db
+      .from("lr_users")
+      .select("id,email")
+      .in("id", userIds);
+    if (usersError) throw databaseError("문의 작성자 조회", usersError);
+    for (const user of users ?? []) emailsById.set(Number(user.id), String(user.email));
+  }
+  return rows.map((row) => mapInquiry(row, emailsById.get(Number(row.user_id)) ?? null));
+}
+
+export async function reviewInquiry(
+  id: number,
+  status: InquiryStatus,
+  note?: string
+): Promise<InquiryRecord | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+  if (typeof note === "string") patch.admin_note = note.trim() || null;
+  const { data, error } = await db
+    .from("lr_inquiries")
+    .update(patch)
+    .eq("id", id)
+    .select(INQUIRY_COLUMNS)
+    .maybeSingle();
+  if (error) throw databaseError("문의 상태 변경", error);
+  return data ? mapInquiry(data as Record<string, unknown>) : null;
+}
+
 export { isDatabaseConfigured };

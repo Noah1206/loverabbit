@@ -1,0 +1,102 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import {
+  countRecentInquiries,
+  createInquiry,
+  isDatabaseConfigured,
+  type InquiryCategory,
+} from "@/lib/database";
+import { resolveUserToken } from "@/lib/tokens";
+
+// 앱 하단 원버튼에서 들어오는 문의 접수.
+// 로그인 없이도 보낼 수 있게 하되, 답장할 곳이 있어야 하므로 이메일은 받는다.
+
+const CATEGORIES: InquiryCategory[] = ["payment", "reading", "chat", "account", "bug", "etc"];
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const MIN_LEN = 5;
+const MAX_LEN = 2000;
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_PER_WINDOW = 3;
+
+interface Body {
+  category?: string;
+  message?: string;
+  email?: string;
+  pagePath?: string;
+  userToken?: string;
+}
+
+export async function POST(request: NextRequest) {
+  if (!isDatabaseConfigured()) {
+    return NextResponse.json({ error: "문의 접수를 준비 중입니다." }, { status: 503 });
+  }
+
+  const body = (await request.json().catch(() => ({}))) as Body;
+  const message = (body.message ?? "").trim();
+  const category = (CATEGORIES as string[]).includes(body.category ?? "")
+    ? (body.category as InquiryCategory)
+    : "etc";
+
+  if (message.length < MIN_LEN) {
+    return NextResponse.json({ error: `문의 내용을 ${MIN_LEN}자 이상 적어주세요.` }, { status: 400 });
+  }
+  if (message.length > MAX_LEN) {
+    return NextResponse.json({ error: `문의 내용은 ${MAX_LEN}자까지 보낼 수 있어요.` }, { status: 400 });
+  }
+
+  let userId: number | null = null;
+  try {
+    const user = await resolveUserToken(body.userToken);
+    userId = user?.userId ?? null;
+  } catch {
+    // 토큰이 상해도 문의 자체는 받는다. 이 경우 이메일로 답장한다.
+    userId = null;
+  }
+
+  const email = (body.email ?? "").trim().toLowerCase();
+  if (!userId) {
+    if (!EMAIL_RE.test(email)) {
+      return NextResponse.json(
+        { error: "답장받을 이메일을 입력해주세요." },
+        { status: 400 }
+      );
+    }
+  } else if (email && !EMAIL_RE.test(email)) {
+    return NextResponse.json({ error: "이메일 형식을 확인해주세요." }, { status: 400 });
+  }
+
+  // 같은 사람이 10분 안에 3건을 넘기면 잠시 막는다.
+  try {
+    const since = new Date(Date.now() - WINDOW_MS).toISOString();
+    const recent = await countRecentInquiries(userId ? { userId } : { email }, since);
+    if (recent >= MAX_PER_WINDOW) {
+      return NextResponse.json(
+        { error: "방금 보낸 문의를 확인하고 있어요. 잠시 후에 다시 보내주세요." },
+        { status: 429 }
+      );
+    }
+  } catch (error) {
+    console.error("문의 도배 확인 실패:", error);
+  }
+
+  const pagePath = typeof body.pagePath === "string" ? body.pagePath.slice(0, 200) : null;
+
+  try {
+    const saved = await createInquiry({
+      userId,
+      email: email || null,
+      category,
+      message,
+      pagePath,
+    });
+    if (!saved) throw new Error("문의를 저장하지 못했습니다.");
+    console.log(`[문의접수] id=${saved.id} userId=${userId ?? "-"} category=${category}`);
+    return NextResponse.json({ inquiryId: saved.id, status: saved.status });
+  } catch (error) {
+    console.error("문의 저장 실패:", error);
+    return NextResponse.json(
+      { error: "문의를 접수하지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 503 }
+    );
+  }
+}

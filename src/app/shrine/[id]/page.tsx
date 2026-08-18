@@ -1,114 +1,68 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import ChatPaymentModal from "@/components/ChatPaymentModal";
-import ShrineAudioToggle from "@/components/ShrineAudioToggle";
+
+import ShrineStage from "@/components/ShrineStage";
+import ShrineTransition from "@/components/ShrineTransition";
 import SignupModal from "@/components/SignupModal";
 import { useTheme } from "@/components/ThemeProvider";
-import { DEFAULT_CHAT_PRODUCT, FREE_CHAT_TURNS } from "@/lib/chat-products";
+import { FREE_CHAT_TURNS } from "@/lib/chat-products";
 import { CHARACTERS, participantCount } from "@/lib/characters";
-import { getUser, saveUser, type User } from "@/lib/user";
+import { GATE_NAVIGATE_MS } from "@/lib/shrine-entrance";
+import { loadShrineMessages, markShrineArrival } from "@/lib/shrine-session";
+import { getUser, type User } from "@/lib/user";
 
-type ShrineMessage = { role: "user" | "assistant"; content: string };
-
-function shrineSessionKey(characterId: string) {
-  return `loverabbit_shrine_session_v1_${characterId}`;
-}
-
-// *별표 지문*(표정·몸짓 묘사)은 대사와 다르게 — 신당 색으로 기울여 보여준다.
-// 지문 블록이 자체 여백을 갖기 때문에, 지문에 붙어 있던 줄바꿈은 빈 줄로 보이지 않게 지운다.
-function renderSpeech(text: string, stageColor: string) {
-  const parts = text.split(/(\*[^*]+\*)/g);
-  const isStage = (part: string) => part.length > 2 && part.startsWith("*") && part.endsWith("*");
-
-  return parts.map((raw, index) => {
-    if (isStage(raw)) {
-      return (
-        <em
-          key={index}
-          style={{
-            display: "block",
-            margin: index === 0 ? "0 0 8px" : "10px 0 8px",
-            color: stageColor,
-            fontStyle: "italic",
-            fontSize: "0.86rem",
-            letterSpacing: "0.01em",
-            opacity: 0.95,
-          }}
-        >
-          {raw.slice(1, -1)}
-        </em>
-      );
-    }
-
-    let line = raw;
-    if (index > 0 && isStage(parts[index - 1])) line = line.replace(/^\s*\n+/, "");
-    if (index < parts.length - 1 && isStage(parts[index + 1])) line = line.replace(/\n+\s*$/, "");
-    if (!line) return null;
-    return <span key={index}>{line}</span>;
-  });
-}
-
-// 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
-export default function ShrinePage() {
+// 신당 입장 화면 — 도령 앞에 서기까지. 대화는 /shrine/[id]/chat 에서 따로 이어진다.
+// 입장 버튼을 누르면 신당마다 다른 관문 연출이 화면을 덮고, 그 연출이 끝나기 전에 대화 화면으로 넘어간다.
+export default function ShrineGatePage() {
   const { showMatureLabels } = useTheme();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const ch = CHARACTERS[id ?? ""];
 
-  const [entered, setEntered] = useState(false);
-  const [msgs, setMsgs] = useState<ShrineMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [sending, setSending] = useState(false);
-  const [limitReached, setLimitReached] = useState(false);
-  const [signupRequired, setSignupRequired] = useState(false);
-  const [showSignup, setShowSignup] = useState(false);
-  const [showPay, setShowPay] = useState(false);
-  const [paymentNotice, setPaymentNotice] = useState("");
-  const [error, setError] = useState("");
-  const [count, setCount] = useState(0);
   const [user, setUser] = useState<User | null>(null);
-  // 남은 무료 대화 수는 서버가 알려준다 (null = 아직 모름)
-  const [freeTurnsLeft, setFreeTurnsLeft] = useState<number | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [count, setCount] = useState(0);
+  const [hasHistory, setHasHistory] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [departing, setDeparting] = useState(false);
+  const departTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (ch) {
-      setCount(participantCount(ch.id));
-      const stored = sessionStorage.getItem(shrineSessionKey(ch.id));
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored) as { entered?: boolean; messages?: ShrineMessage[] };
-          if (Array.isArray(parsed.messages) && parsed.messages.length > 0) {
-            setMsgs(parsed.messages.slice(-21));
-            setEntered(parsed.entered !== false);
-          }
-        } catch {
-          sessionStorage.removeItem(shrineSessionKey(ch.id));
-        }
-      } else if (new URLSearchParams(window.location.search).get("start") === "1") {
-        setEntered(true);
-        setMsgs([{ role: "assistant", content: ch.greeting }]);
-      }
-      if (new URLSearchParams(window.location.search).get("payment") === "approved") {
-        setPaymentNotice("결제가 완료됐어요. 끊긴 대화부터 이어서 말해보세요.");
-      }
-    }
     setUser(getUser());
-  }, [ch]);
+    if (!ch) return;
+    setCount(participantCount(ch.id));
+    setHasHistory(loadShrineMessages(ch.id).length > 0);
+    // 대화 화면을 미리 받아둔다 — 연출이 끝나는 순간 바로 열리도록
+    router.prefetch(`/shrine/${ch.id}/chat`);
+  }, [ch, router]);
 
   useEffect(() => {
-    if (!ch || msgs.length === 0) return;
-    sessionStorage.setItem(
-      shrineSessionKey(ch.id),
-      JSON.stringify({ entered, messages: msgs.slice(-21) })
+    return () => {
+      if (departTimer.current) clearTimeout(departTimer.current);
+    };
+  }, []);
+
+  // 버튼을 누른 그 순간 관문에 불이 붙고, 연출이 아직 움직이는 중에 화면이 바뀐다.
+  const beginDeparture = useCallback(() => {
+    if (!ch || departTimer.current) return;
+    markShrineArrival(ch.id);
+    setDeparting(true);
+    // scroll: false — 화면 전체를 덮는 무대라 라우터가 스크롤을 건드릴 필요가 없다
+    departTimer.current = setTimeout(
+      () => router.push(`/shrine/${ch.id}/chat`, { scroll: false }),
+      GATE_NAVIGATE_MS
     );
-  }, [ch, entered, msgs]);
+  }, [ch, router]);
 
+  // 카드나 광고에서 ?start=1 로 들어온 손님은 버튼을 거치지 않고 곧장 관문을 지난다
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [msgs, sending]);
+    if (!ch || !user) return;
+    if (new URLSearchParams(window.location.search).get("start") !== "1") return;
+    // 주소에서 start를 지워둔다 — 대화 화면에서 뒤로 오면 다시 끌려 들어가지 않게
+    window.history.replaceState({}, "", `/shrine/${ch.id}`);
+    beginDeparture();
+  }, [beginDeparture, ch, user]);
 
   if (!ch) {
     return (
@@ -118,259 +72,89 @@ export default function ShrinePage() {
     );
   }
 
-  const send = async () => {
-    const q = input.trim();
-    if (!q || sending) return;
-    // 대화는 로그인 사용자만 — 요청을 보내기 전에 막는다
+  const enterShrine = () => {
+    if (departing) return;
     if (!user) {
       setShowSignup(true);
       return;
     }
-    setSending(true);
-    setError("");
-    try {
-      const res = await fetch("/api/shrine-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ characterId: ch.id, question: q, history: msgs, userToken: user?.token }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.needSignup) {
-          setSignupRequired(true);
-          setShowSignup(true);
-        }
-        if (data.limitReached) {
-          setLimitReached(true);
-          setFreeTurnsLeft(0);
-        }
-        throw new Error(data.error ?? "대화 실패");
-      }
-      setMsgs((m) => [...m, { role: "user", content: q }, { role: "assistant", content: data.answer }]);
-      if (typeof data.creditsRemaining === "number" && user) {
-        const nextUser = { ...user, chatCredits: data.creditsRemaining };
-        setUser(nextUser);
-        saveUser(nextUser);
-      }
-      setFreeTurnsLeft(typeof data.freeTurnsRemaining === "number" ? data.freeTurnsRemaining : 0);
-      setInput("");
-      setLimitReached(false);
-      setSignupRequired(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const locked = limitReached;
-  const theme = ch.theme;
-
-  const refreshCredits = async () => {
-    setError("");
-    try {
-      const response = await fetch("/api/auth/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      const data = (await response.json().catch(() => ({}))) as User & { error?: string };
-      if (!response.ok || !data.token || !data.email) {
-        throw new Error(data.error ?? "대화권 상태를 확인하지 못했어요.");
-      }
-      saveUser(data);
-      setUser(data);
-      if ((data.chatCredits ?? 0) > 0) {
-        setLimitReached(false);
-        setPaymentNotice(`대화권 ${data.chatCredits}회가 확인됐어요.`);
-      } else {
-        setPaymentNotice("아직 승인 대기 중이에요. 입금 확인 후 다시 눌러주세요.");
-      }
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "대화권 상태를 확인하지 못했어요.");
-    }
+    beginDeparture();
   };
 
   return (
-    <div className="shrine-immersive-shell" style={{ position: "fixed", inset: 0, zIndex: 70, background: "#0a0710", display: "flex", flexDirection: "column" }}>
-      {/* 배경 — 도령 전신. 루프 영상이 있는 신당은 인물이 움직인다 */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute", inset: 0,
-          backgroundImage: `url(${ch.img})`, backgroundSize: "cover", backgroundPosition: "center 10%",
-          filter: entered ? "brightness(0.45)" : "brightness(0.85)",
-          transition: "filter 0.8s",
-        }}
+    <>
+      <ShrineStage
+        character={ch}
+        onBack={() => router.push("/")}
+        dim={false}
+        phase={departing ? "departing" : null}
       >
-        {ch.video && (
-          <video
-            src={ch.video}
-            poster={ch.img}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }}
-          />
-        )}
-      </div>
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: [
-            `radial-gradient(circle at 50% 30%, ${ch.theme.glow}, transparent 55%)`,
-            "linear-gradient(180deg, rgba(10,7,16,0.75) 0%, transparent 25%, transparent 55%, rgba(10,7,16,0.92) 85%)",
-          ].join(", "),
-        }}
-      />
-
-      {/* 상단 바 */}
-      <header style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
-        <button onClick={() => (entered ? setEntered(false) : router.push("/"))} aria-label="뒤로" style={{ background: "rgba(0,0,0,0.4)", border: "none", color: "#fff", fontSize: "1.1rem", width: 36, height: 36, borderRadius: "50%", cursor: "pointer" }}>‹</button>
-        <strong style={{ color: "#fff", letterSpacing: "0.14em" }}>LOVERABBIT</strong>
-        <ShrineAudioToggle src={ch.bgm} shrineName={ch.title} />
-      </header>
-
-      {!entered ? (
-        /* ── 입장 화면 ── */
-        <div style={{ position: "relative", marginTop: "auto", padding: "0 20px calc(24px + env(safe-area-inset-bottom))", textAlign: "center" }}>
+        <div
+          className="shrine-stage-panel"
+          style={{
+            position: "relative",
+            marginTop: "auto",
+            padding: "0 20px calc(24px + env(safe-area-inset-bottom))",
+            textAlign: "center",
+          }}
+        >
           <h1 style={{ color: "#fff", fontSize: "1.7rem", marginBottom: 4 }}>{ch.title}</h1>
-          <p style={{ color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>{ch.name} — {ch.tagline}</p>
-          <p style={{ display: "inline-block", background: "rgba(0,0,0,0.55)", color: ch.theme.stage, border: `1px solid ${ch.theme.line}`, fontSize: "0.85rem", fontWeight: 700, padding: "6px 14px", borderRadius: 999, marginBottom: 14 }}>
+          <p style={{ color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>
+            {ch.name} — {ch.tagline}
+          </p>
+          <p
+            style={{
+              display: "inline-block",
+              background: "rgba(0,0,0,0.55)",
+              color: ch.theme.stage,
+              border: `1px solid ${ch.theme.line}`,
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              padding: "6px 14px",
+              borderRadius: 999,
+              marginBottom: 14,
+            }}
+          >
             🔥 {count.toLocaleString()}명이 참여함
           </p>
           <button
             className="btn"
-            style={{ width: "100%", background: `linear-gradient(135deg, ${ch.theme.accent}, ${ch.theme.accent2})`, boxShadow: `0 6px 24px ${ch.theme.glow}` }}
-            onClick={() => {
-              // 대화는 로그인 사용자만 — 입장 단계에서 먼저 막는다
-              if (!user) {
-                setShowSignup(true);
-                return;
-              }
-              setEntered(true);
-              if (msgs.length === 0) setMsgs([{ role: "assistant", content: ch.greeting }]);
+            disabled={departing}
+            style={{
+              width: "100%",
+              background: `linear-gradient(135deg, ${ch.theme.accent}, ${ch.theme.accent2})`,
+              boxShadow: `0 6px 24px ${ch.theme.glow}`,
             }}
+            onClick={enterShrine}
           >
-            {user ? "지금 신당으로 입장하기" : "로그인하고 신당 입장하기"}
+            {!user
+              ? "로그인하고 신당 입장하기"
+              : hasHistory
+                ? "하던 대화 이어가기"
+                : "지금 신당으로 입장하기"}
           </button>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>
             {showMatureLabels && "만 19세 이상 · "}로그인하면 무료 대화 {FREE_CHAT_TURNS}번
             {user?.chatCredits ? ` · 보상 질문권 ${user.chatCredits}장` : " · 친구 초대 시 질문권 10장"}
           </p>
         </div>
-      ) : (
-        /* ── 대화 화면 ── */
-        <div style={{ position: "relative", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "10px 16px", display: "flex", flexDirection: "column", gap: 10, justifyContent: "flex-end" }}>
-            <div style={{ minHeight: 0, display: "flex", flexDirection: "column", gap: 10, marginTop: "auto" }}>
-              {msgs.map((m, i) =>
-                m.role === "user" ? (
-                  <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: "#fff", borderRadius: "16px 4px 16px 16px", padding: "10px 14px", fontSize: "0.92rem", boxShadow: `0 6px 18px ${theme.glow}` }}>
-                    {m.content}
-                  </div>
-                ) : (
-                  <div key={i} style={{ alignSelf: "flex-start", maxWidth: "85%", background: theme.ink, color: "#f2eaf6", border: `1px solid ${theme.line}`, borderRadius: "4px 16px 16px 16px", padding: "11px 14px", fontSize: "0.92rem", whiteSpace: "pre-wrap", lineHeight: 1.62 }}>
-                    <strong style={{ color: theme.accent, fontSize: "0.78rem", display: "block", marginBottom: 5, letterSpacing: "0.04em" }}>{ch.name}</strong>
-                    {renderSpeech(m.content, theme.stage)}
-                  </div>
-                )
-              )}
-              {sending && (
-                <div className="pulse" style={{ alignSelf: "flex-start", background: theme.ink, border: `1px solid ${theme.line}`, color: theme.stage, borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.9rem", fontStyle: "italic" }}>
-                  {ch.name}이 기운을 읽는 중…
-                </div>
-              )}
-              {error && <p style={{ color: theme.stage, fontSize: "0.85rem" }}>{error}</p>}
-            </div>
-          </div>
+      </ShrineStage>
 
-          <div style={{ padding: "10px 16px calc(14px + env(safe-area-inset-bottom))" }}>
-            {locked ? (
-              <div style={{ textAlign: "center", background: theme.ink, border: `1px solid ${theme.line}`, borderRadius: 16, padding: 16 }}>
-                <span className="badge">무료 대화 {FREE_CHAT_TURNS}/{FREE_CHAT_TURNS} 사용</span>
-                <p style={{ color: "#fff", fontSize: "0.94rem", margin: "10px 0" }}>
-                  여기서 끊지 마세요. {ch.name}의 다음 답장은 {!user || signupRequired ? "로그인" : "대화권 결제"} 후 이어집니다.
-                </p>
-                {!user || signupRequired ? (
-                  <button className="btn" style={{ width: "100%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={() => setShowSignup(true)}>
-                    로그인하고 대화 이어가기 →
-                  </button>
-                ) : (
-                  <>
-                    <div style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.82rem", marginBottom: 10 }}>
-                      {DEFAULT_CHAT_PRODUCT.name} · {DEFAULT_CHAT_PRODUCT.price.toLocaleString()}원
-                    </div>
-                    <button className="btn" style={{ width: "100%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={() => setShowPay(true)}>
-                      대화권 결제하고 계속하기 →
-                    </button>
-                    <button className="btn btn-ghost" style={{ width: "100%", marginTop: 8 }} onClick={() => void refreshCredits()}>
-                      결제·입금 승인 상태 확인
-                    </button>
-                    <button className="btn btn-ghost" style={{ width: "100%", marginTop: 8 }} onClick={() => router.push("/rewards")}>
-                      친구 초대로 질문권 받기
-                    </button>
-                  </>
-                )}
-              </div>
-            ) : (
-              <>
-                {paymentNotice && <p style={{ color: "#ffd28a", fontSize: "0.8rem", textAlign: "center", marginBottom: 8 }}>{paymentNotice}</p>}
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    placeholder={`${ch.name}에게 말 걸기…`}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") send(); }}
-                    maxLength={500}
-                    style={{ background: theme.ink, border: `1px solid ${theme.line}`, color: "#fff" }}
-                  />
-                  <button className="btn" style={{ padding: "12px 20px", whiteSpace: "nowrap", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={send} disabled={sending || !input.trim()}>
-                    전송
-                  </button>
-                </div>
-                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", textAlign: "center", marginTop: 7 }}>
-                  {freeTurnsLeft === null
-                    ? `로그인 계정당 무료 대화 ${FREE_CHAT_TURNS}번 · 이후 대화권 결제`
-                    : freeTurnsLeft > 0
-                      ? `무료 대화 ${freeTurnsLeft}번 남음 · 이후 대화권 결제`
-                      : `무료 대화를 모두 썼어요 · 대화권 ${user?.chatCredits ?? 0}회 보유`}
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      {/* 관문 — 신당마다 다른 소품이 화면을 덮으며 손님을 안으로 밀어 넣는다 */}
+      {departing && <ShrineTransition characterId={ch.id} shrineName={ch.title} phase="depart" />}
 
       {showSignup && (
         <SignupModal
           onDone={(nextUser) => {
             setUser(nextUser);
-            setSignupRequired(false);
             setShowSignup(false);
             // 로그인하고 돌아오면 곧바로 신당 안으로 들여보낸다
-            setEntered(true);
-            if (msgs.length === 0) setMsgs([{ role: "assistant", content: ch.greeting }]);
+            beginDeparture();
           }}
           onClose={() => setShowSignup(false)}
           reason="신당 대화는 로그인 후 이용할 수 있어요. 로그인하면 무료 대화 5번이 열려요"
         />
       )}
-
-      {showPay && user && (
-        <ChatPaymentModal
-          product={DEFAULT_CHAT_PRODUCT}
-          characterId={ch.id}
-          userToken={user.token}
-          customerEmail={user.email}
-          onTransferSubmitted={(orderId) => setPaymentNotice(`입금 확인 요청 #${orderId}이 접수됐어요.`)}
-          onClose={() => setShowPay(false)}
-        />
-      )}
-    </div>
+    </>
   );
 }
