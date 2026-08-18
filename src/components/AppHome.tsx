@@ -211,18 +211,27 @@ export default function AppHome() {
         <section style={{ padding: "16px 0 0" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 12px" }}>
             <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
-            <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령과 직접 대화하기 — 무료 5번</span>
+            <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>그 사람의 속마음, 도령에게 묻기 — 무료 5번</span>
           </div>
           <div className="shrine-scroll">
-            {Object.values(CHARACTERS).map((ch) => (
+            {Object.values(CHARACTERS).map((ch, index) => (
               <Link key={ch.id} href={`/shrine/${ch.id}`} className="hero-card shrine-card">
                 <div aria-hidden className="shrine-card-art">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={ch.img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }} />
+                  <Image
+                    src={ch.img}
+                    alt=""
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 640px) calc(100vw - 40px), 600px"
+                    style={{ objectFit: "cover", objectPosition: "center 10%" }}
+                  />
                 </div>
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,6,16,0.95) 85%)" }} />
                 <div className="shrine-card-copy">
-                  <span className="shrine-card-label">{ch.title}</span>
+                  <span className="shrine-card-label">
+                    {ch.title}
+                    {ch.isNew ? <em>NEW</em> : null}
+                  </span>
                   <strong>{ch.name}</strong>
                   <p>{ch.tagline}</p>
                   <span className="shrine-card-enter">🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</span>

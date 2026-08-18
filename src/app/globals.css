@@ -330,12 +330,25 @@ label {
 }
 
 .shrine-card-label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   margin-bottom: 5px;
   color: rgba(255, 226, 176, 0.76);
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.12em;
+}
+
+.shrine-card-label em {
+  padding: 3px 6px 2px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 999px;
+  background: rgba(255, 76, 133, 0.82);
+  color: #fff;
+  font-size: 0.55rem;
+  font-style: normal;
+  letter-spacing: 0.04em;
 }
 
 .shrine-card-copy strong {
