@@ -13,7 +13,7 @@ import { useTheme } from "@/components/ThemeProvider";
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { PRODUCTS, type Product } from "@/lib/products";
 
-const SITE_URL = "https://loverabbit-ai.vercel.app/";
+const SITE_URL = "https://www.loverebbit.xyz/";
 const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
 type CardTone = "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight" | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";

@@ -22,7 +22,7 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://loverabbit-ai.vercel.app"),
+  metadataBase: new URL("https://www.loverebbit.xyz"),
   title: "러브레빗 LoveRabbit — 속궁합·연애운 AI 사주",
   description:
     "마음과 인연의 흐름을 섬세하게 풀어보는 속궁합·연애운 리딩. 3분이면 확인할 수 있어요.",
