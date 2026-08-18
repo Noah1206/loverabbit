@@ -135,7 +135,7 @@ export default function AppHome() {
 
   return (
     <div className={`theme-${theme}`} style={{ margin: "0 auto" }}>
-      <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div className="app-home-shell" style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── 상단바 ── */}
         <header className="app-header">
           <strong className="app-header-brand">
