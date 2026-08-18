@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import loveRabbitLogo from "../../public/logo.png";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import SignupModal from "@/components/SignupModal";
 import { getUser, logoutUser, type User } from "@/lib/user";
@@ -137,8 +139,15 @@ export default function AppHome() {
         {/* ── 상단바 ── */}
         <header className="app-header">
           <strong className="app-header-brand">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="러브레빗 로고" />
+            <Image
+              className="app-header-logo"
+              src={loveRabbitLogo}
+              alt="하트를 안고 있는 러브레빗 토끼 로고"
+              width={30}
+              height={30}
+              priority
+              sizes="30px"
+            />
             LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
             {showMatureLabels && <span className="app-header-mature-badge">19+</span>}
           </strong>
