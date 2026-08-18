@@ -12,74 +12,13 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { PRODUCTS, type Product } from "@/lib/products";
+import { SITE_URL } from "@/lib/site";
 
-const SITE_URL = "https://www.loverebbit.xyz/";
 const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
-
-type CardTone = "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight" | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";
-
-const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
-  sokgunghap: {
-    copy: "말보다 먼저 닿는 둘의 온도, 가까워질수록 달라지는 주도권과 오래 마음이 머무는 지점까지 섬세하게 펼쳐봅니다.",
-    tone: "ember",
-  },
-  jaehoe: {
-    copy: "끝난 대화 뒤에도 남아 있는 감정의 잔향, 다시 연락이 닿을 가능성과 먼저 움직여야 할 단 한 번의 때를 읽습니다.",
-    tone: "rose",
-  },
-  bamgijil: {
-    copy: "연애할 때 드러나는 감정의 결부터 사랑받고 싶을 때 반복되는 습관까지, 당신만의 관계 기질을 섬세하게 해석합니다.",
-    tone: "velvet",
-  },
-  baramgi: {
-    copy: "설렘을 좇는 기질인지 관계에서 도망치는 습관인지, 흔들리는 순간과 반드시 확인해야 할 위험 신호를 추적합니다.",
-    tone: "warning",
-  },
-  gyeolhon: {
-    copy: "좋아하는 마음을 넘어 함께 살아도 편안한 사람인지, 결혼 뒤의 생활 온도와 현실 궁합까지 오래 들여다봅니다.",
-    tone: "promise",
-  },
-  gwontaegi: {
-    copy: "익숙함에 가려진 애정과 이미 멀어진 마음을 구분하고, 다시 가까워질 수 있는 대화의 순서와 시기를 짚어드립니다.",
-    tone: "rain",
-  },
-  hwanseung: {
-    copy: "지금 사랑에 남을지 새로운 떨림을 따라갈지, 두 갈래 인연이 데려갈 다음 계절과 후회의 크기를 비교합니다.",
-    tone: "midnight",
-  },
-  sseom: {
-    copy: "다정함인지 호감인지 애매했던 신호를 하나씩 해부해, 이 썸을 연애로 바꿀 수 있는 가장 자연스러운 순간을 찾습니다.",
-    tone: "blush",
-  },
-  jjak: {
-    copy: "혼자만 간직한 마음이 상대에게 닿아 있는지, 고백 전 만들어야 할 분위기와 관계를 지키는 다정한 퇴로까지 설계합니다.",
-    tone: "secret",
-  },
-  bimil: {
-    copy: "아무에게도 말하지 못한 관계의 수명과 새어 나가는 틈, 사랑을 지키거나 놓아야 할 마지막 경계선을 조용히 비춥니다.",
-    tone: "midnight",
-  },
-  ibyeol: {
-    copy: "그 연애가 처음 금이 간 순간부터 끝내 말하지 못한 진짜 사인까지, 다음 사랑에서 반복하지 않을 흔적을 남깁니다.",
-    tone: "candle",
-  },
-  dohwasal: {
-    copy: "사람의 시선이 머무는 이유와 당신의 매력이 가장 선명해지는 순간, 원치 않는 인연은 거르고 좋은 인연을 당기는 법을 봅니다.",
-    tone: "peach",
-  },
-  insun: {
-    copy: "다음 인연이 가까워지는 계절과 만나게 될 가능성이 높은 장소, 스쳐 가기 전에 알아볼 수 있는 작은 신호를 알려드립니다.",
-    tone: "timing",
-  },
-  yeonae: {
-    copy: "올해 남은 달의 설렘과 고비를 달력처럼 펼쳐, 고백·시작·정리에 유리한 순간과 놓치지 말아야 할 흐름을 표시합니다.",
-    tone: "starlight",
-  },
-};
 
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 로그인하면 신당 대화 5번 무료" },
-  { text: "🐰 오픈 이벤트 — 오늘 가입 없이 무료 티저 무제한", sub: "풀 리딩은 커피 한 잔 값" },
+  { text: "🐰 오픈 이벤트 — 오늘 가입 없이 무료 티저 무제한", sub: "첫 신점은 990원 · 풀 리딩은 9,900원부터" },
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 
@@ -250,14 +189,12 @@ export default function AppHome() {
           <div className="fortune-grid">
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
-              const detail = PRODUCT_CARD_DETAILS[p.id] ?? { copy: p.desc, tone: "starlight" as const };
-
               return (
                 <Link
                   key={p.id}
                   href={`/product/${p.id}`}
                   className="card fortune-grid-card"
-                  data-tone={detail.tone}
+                  data-tone={p.tone}
                   data-product={p.id}
                 >
                   <CardArt p={p} className="fortune-grid-art" />
@@ -271,7 +208,7 @@ export default function AppHome() {
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
                     <strong>{p.title}</strong>
-                    <p>{detail.copy}</p>
+                    <p>{p.cardCopy}</p>
                     <span className="fortune-grid-cta">
                       <span aria-hidden>{p.emoji}</span>
                       {p.ctaLabel}

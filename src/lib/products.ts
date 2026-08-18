@@ -1,6 +1,10 @@
 // 상품 카탈로그 — 홈 카드와 상세 판매 페이지(/product/[id])가 공유하는 단일 소스.
 // 판매 페이지 구조: 후킹 질문 → ??% 게이지 → 비전(秘傳) 서사 → 리포트 구성 → 대상 → 원리 → 목차 → CTA
 
+export type CardTone =
+  | "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight"
+  | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";
+
 export interface Product {
   id: string;
   badge: string;
@@ -9,6 +13,12 @@ export interface Product {
   desc: string;
   grad: [string, string];
   tags: ("popular" | "new")[];
+  price: number; // 판매가(원) — 단품 티어: 9,900 / 12,900 / 14,900 / 29,900 / 49,900
+  shortLabel: string; // 리딩 폼 선택 칩에 쓰는 짧은 이름
+  needsPartner: boolean; // 상대방 생년월일이 필요한 리딩인지
+  promptLabel: string; // AI에 전달하는 리딩 종류 설명
+  cardCopy: string; // 홈 카드 오버레이 문구
+  tone: CardTone; // 홈 카드 색 톤 (data-tone)
   ctaLabel: string; // 홈 카드와 상세 하단 버튼에 함께 쓰는 상품별 행동 문구
   ctaHook: string; // 상세 하단 버튼 위에 노출하는 짧은 기대효과
   // ── 상세 판매 페이지 ──
@@ -25,7 +35,44 @@ export interface Product {
 
 export const PRODUCTS: Product[] = [
   {
-    id: "sokgunghap", badge: "속궁합", title: "속궁합 사주", emoji: "🔥",
+    // 미끼상품 — 폭스바니 '신점 평생 사주'(990원) 대응. 결제 저항을 먼저 무너뜨리는 입구.
+    // 목차를 5개로 짧게 유지해 990원어치 분량만 생성되게 한다 (본 리포트는 12~15개).
+    id: "pyeongsaeng", price: 990, badge: "평생신점", title: "평생 연애운 신점", emoji: "🌙",
+    shortLabel: "평생 신점 🌙", needsPartner: false, tone: "candle",
+    promptLabel: "평생 연애운 신점 (평생에 걸친 인연의 큰 줄기 — 입문용 짧은 리포트)",
+    cardCopy: "연애 하나를 파고들기 전에, 평생에 걸친 인연의 큰 줄기부터. 만남이 몰리는 시기와 비는 시기를 한 장으로 짚어드립니다.",
+    desc: "태어난 순간에 이미 그려진 연애의 큰 줄기. 언제 트이고, 언제 흔들리고, 언제 자리를 잡는지 한 장으로 본다.",
+    ctaLabel: "990원으로 평생 흐름 열기", ctaHook: "첫 신점은 커피 한 모금 값",
+    grad: ["#2a1020", "#0d0a14"], tags: ["new"],
+    headline: "내 연애는, 태어날 때부터 어떤 모양이었을까?",
+    sub: "지금의 연애 하나를 파고들기 전에, 평생에 걸친 인연의 큰 줄기부터 한 번에 펼쳐봅니다",
+    scoreLabel: "인연 총량",
+    gaugeCaption: "지금 이 연애가 큰 흐름의 어디쯤인지 먼저 확인해보세요",
+    meterLabels: ["늦게 트이는 결", "한 사람에 깊은 결", "굴곡이 잦은 결", "인연이 몰리는 결", "타고난 홍염의 결"],
+    keywords: ["인연 총량", "연애 대운", "만남이 트이는 시기", "반복되는 이별 구조"],
+    audience: [
+      "연애가 잘 풀릴 때와 안 풀릴 때가 유난히 갈리는 사람",
+      "비슷한 이별을 몇 번이나 반복한 사람",
+      "지금 만나는 사람 얘기 전에 내 흐름부터 보고 싶은 사람",
+      "사주가 처음이라 가볍게 한 번 열어보고 싶은 사람",
+    ],
+    principles: [
+      ["일주로 보는 연애 기본형", "일간·일지가 만드는 기질에서 사랑에 빠지는 방식과 식는 방식을 함께 읽습니다."],
+      ["대운으로 보는 인연의 파고", "10년 단위 흐름 위에 만남이 몰리는 구간과 비는 구간을 얹어 큰 줄기를 그립니다."],
+    ],
+    toc: [
+      "01. 네 명식이 그리는 연애의 기본형",
+      "02. 인연 총량 — 많이 만나는 결인가, 깊게 만나는 결인가",
+      "03. 연애가 트이는 시기와 비는 시기",
+      "04. 반복되는 이별에 깔린 구조 한 가지",
+      "05. 지금 구간에서 네가 할 수 있는 선택",
+    ],
+  },
+  {
+    id: "sokgunghap", price: 9900, badge: "속궁합", title: "속궁합 사주", emoji: "🔥",
+    shortLabel: "속궁합 🔥", needsPartner: true, tone: "ember",
+    promptLabel: "속궁합",
+    cardCopy: "말보다 먼저 닿는 둘의 온도, 가까워질수록 달라지는 주도권과 오래 마음이 머무는 지점까지 섬세하게 펼쳐봅니다.",
     desc: "겉궁합만으로는 모르는 두 사람의 온도와 호흡, 가까워질수록 드러나는 속궁합을 일주로 읽는다.",
     ctaLabel: "두 사람의 숨은 온도 확인하기", ctaHook: "말보다 먼저 닿는 둘의 진짜 상성",
     grad: ["#3b0a2a", "#1a0b2e"], tags: ["popular"],
@@ -62,7 +109,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jaehoe", badge: "재회신점", title: "재회 사주", emoji: "🥀",
+    id: "jaehoe", price: 14900, badge: "재회신점", title: "재회 사주", emoji: "🥀",
+    shortLabel: "재회 🥀", needsPartner: true, tone: "rose",
+    promptLabel: "재회운",
+    cardCopy: "끝난 대화 뒤에도 남아 있는 감정의 잔향, 다시 연락이 닿을 가능성과 먼저 움직여야 할 단 한 번의 때를 읽습니다.",
     desc: "아직 남은 정인지 끝난 연인지, 먼저 가려주는 재회 신점.",
     ctaLabel: "그 사람의 남은 마음 확인하기", ctaHook: "남은 감정과 다시 닿을 타이밍",
     grad: ["#1c0f3a", "#0d0a14"], tags: ["popular"],
@@ -103,7 +153,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "bamgijil", badge: "연애기질", title: "연애 기질 사주", emoji: "🐰",
+    id: "bamgijil", price: 9900, badge: "연애기질", title: "연애 기질 사주", emoji: "🐰",
+    shortLabel: "연애 기질 🐰", needsPartner: false, tone: "velvet",
+    promptLabel: "연애 기질 (감정 습관과 반복되는 끌림의 패턴)",
+    cardCopy: "연애할 때 드러나는 감정의 결부터 사랑받고 싶을 때 반복되는 습관까지, 당신만의 관계 기질을 섬세하게 해석합니다.",
     desc: "사주로 보는 연애 속 진짜 나. 감정 습관과 반복되는 끌림의 패턴.",
     ctaLabel: "내 연애 본능 해부하기", ctaHook: "사랑에 빠질 때 드러나는 진짜 나",
     grad: ["#2a0a3b", "#12060f"], tags: ["popular"],
@@ -139,7 +192,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "baramgi", badge: "바람감지", title: "바람기 레이더", emoji: "🚨",
+    id: "baramgi", price: 12900, badge: "바람감지", title: "바람기 레이더", emoji: "🚨",
+    shortLabel: "바람기 🚨", needsPartner: true, tone: "warning",
+    promptLabel: "바람기 분석 (상대 사주의 도화 기운과 바람 조심 시기)",
+    cardCopy: "설렘을 좇는 기질인지 관계에서 도망치는 습관인지, 흔들리는 순간과 반드시 확인해야 할 위험 신호를 추적합니다.",
     desc: "그 사람 사주에 도화가 몇 개인지. 조심해야 할 시기까지 짚어준다.",
     ctaLabel: "그 사람의 위험 신호 추적하기", ctaHook: "의심보다 먼저 확인할 관계 경보",
     grad: ["#3b0a0a", "#1a0b2e"], tags: ["popular"],
@@ -175,7 +231,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gyeolhon", badge: "결혼점", title: "결혼 사주", emoji: "💍",
+    id: "gyeolhon", price: 49900, badge: "결혼점", title: "결혼 사주", emoji: "💍",
+    shortLabel: "결혼 💍", needsPartner: true, tone: "promise",
+    promptLabel: "결혼운 (이 상대와 결혼했을 때의 궁합과 3년 흐름)",
+    cardCopy: "좋아하는 마음을 넘어 함께 살아도 편안한 사람인지, 결혼 뒤의 생활 온도와 현실 궁합까지 오래 들여다봅니다.",
     desc: "이 사람과 결혼하면 어떻게 되나. 3년 후 미래까지 미리 본다.",
     ctaLabel: "우리의 결혼 미래 미리보기", ctaHook: "연애의 합 너머, 함께 살 미래",
     grad: ["#2a1c0f", "#140a2e"], tags: ["new"],
@@ -212,7 +271,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gwontaegi", badge: "권태진단", title: "권태기 사주", emoji: "🌧️",
+    id: "gwontaegi", price: 9900, badge: "권태진단", title: "권태기 사주", emoji: "🌧️",
+    shortLabel: "권태기 🌧️", needsPartner: true, tone: "rain",
+    promptLabel: "권태기 진단 (단순 권태기인지 끝나가는 관계인지 판별)",
+    cardCopy: "익숙함에 가려진 애정과 이미 멀어진 마음을 구분하고, 다시 가까워질 수 있는 대화의 순서와 시기를 짚어드립니다.",
     desc: "우리 단순한 권태기일까, 끝나가는 걸까. 먼저 가려준다.",
     ctaLabel: "식어버린 마음의 온도 재보기", ctaHook: "끝인지 쉼표인지 구분할 시간",
     grad: ["#101828", "#0d0a14"], tags: ["new"],
@@ -248,7 +310,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "hwanseung", badge: "환승연애", title: "환승 사주", emoji: "🚇",
+    id: "hwanseung", price: 12900, badge: "환승연애", title: "환승 사주", emoji: "🚇",
+    shortLabel: "환승 🚇", needsPartner: true, tone: "midnight",
+    promptLabel: "환승운",
+    cardCopy: "지금 사랑에 남을지 새로운 떨림을 따라갈지, 두 갈래 인연이 데려갈 다음 계절과 후회의 크기를 비교합니다.",
     desc: "지금 갈아타면 후회할까? 환승 타이밍과 위약금까지 계산해준다.",
     ctaLabel: "두 인연의 다음 장면 비교하기", ctaHook: "남을지 떠날지, 후회가 적은 선택",
     grad: ["#0f1f3a", "#140a2e"], tags: [],
@@ -282,7 +347,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "sseom", badge: "썸수사", title: "썸 해부 사주", emoji: "💘",
+    id: "sseom", price: 12900, badge: "썸수사", title: "썸 해부 사주", emoji: "💘",
+    shortLabel: "썸 해부 💘", needsPartner: true, tone: "blush",
+    promptLabel: "썸 해부 (진도가 안 나가는 이유와 주도권 분석)",
+    cardCopy: "다정함인지 호감인지 애매했던 신호를 하나씩 해부해, 이 썸을 연애로 바꿀 수 있는 가장 자연스러운 순간을 찾습니다.",
     desc: "3개월째 제자리인 썸, 누가 브레이크를 밟고 있는지 해부한다.",
     ctaLabel: "이 썸의 진짜 속도 확인하기", ctaHook: "호감과 망설임 사이의 결정적 신호",
     grad: ["#3b0a1c", "#1a0b2e"], tags: [],
@@ -317,7 +385,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jjak", badge: "짝사랑", title: "짝사랑 사주", emoji: "🤫",
+    id: "jjak", price: 9900, badge: "짝사랑", title: "짝사랑 사주", emoji: "🤫",
+    shortLabel: "짝사랑 🤫", needsPartner: true, tone: "secret",
+    promptLabel: "짝사랑 (고백 타이밍과 성공 가능성)",
+    cardCopy: "혼자만 간직한 마음이 상대에게 닿아 있는지, 고백 전 만들어야 할 분위기와 관계를 지키는 다정한 퇴로까지 설계합니다.",
     desc: "고백할까, 접을까. 성공 확률과 타이밍을 계산해준다.",
     ctaLabel: "고백의 승산과 타이밍 보기", ctaHook: "관계를 잃지 않고 마음을 전할 때",
     grad: ["#2b1030", "#0d0a14"], tags: ["new"],
@@ -352,7 +423,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "bimil", badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
+    id: "bimil", price: 14900, badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
+    shortLabel: "비밀연애 🤐", needsPartner: true, tone: "midnight",
+    promptLabel: "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
+    cardCopy: "아무에게도 말하지 못한 관계의 수명과 새어 나가는 틈, 사랑을 지키거나 놓아야 할 마지막 경계선을 조용히 비춥니다.",
     desc: "들키면 안 되는 사이. 언제까지 갈 수 있는지, 들킬 고비는 언제인지.",
     ctaLabel: "이 비밀의 끝을 먼저 보기", ctaHook: "관계의 수명과 흔들리는 경계선",
     grad: ["#1c1030", "#060409"], tags: ["new"],
@@ -386,7 +460,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "ibyeol", badge: "연애부검", title: "이별 부검 리포트", emoji: "🕯️",
+    id: "ibyeol", price: 29900, badge: "연애부검", title: "이별 부검 리포트", emoji: "🕯️",
+    shortLabel: "이별 부검 🕯️", needsPartner: true, tone: "candle",
+    promptLabel: "이별 부검 (연애가 어디서부터 무너졌는지 사후 분석)",
+    cardCopy: "그 연애가 처음 금이 간 순간부터 끝내 말하지 못한 진짜 사인까지, 다음 사랑에서 반복하지 않을 흔적을 남깁니다.",
     desc: "그 연애, 어디서부터 죽어 있었나. 사주로 부검해드립니다.",
     ctaLabel: "그 연애의 진짜 사인 밝히기", ctaHook: "반복하지 않기 위해 남기는 마지막 기록",
     grad: ["#14101c", "#060409"], tags: [],
@@ -421,7 +498,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "dohwasal", badge: "도화살", title: "도화살 진단", emoji: "🌸",
+    id: "dohwasal", price: 9900, badge: "도화살", title: "도화살 진단", emoji: "🌸",
+    shortLabel: "도화살 🌸", needsPartner: false, tone: "peach",
+    promptLabel: "도화살 진단 (본인의 매력 기질과 이성운)",
+    cardCopy: "사람의 시선이 머무는 이유와 당신의 매력이 가장 선명해지는 순간, 원치 않는 인연은 거르고 좋은 인연을 당기는 법을 봅니다.",
     desc: "나 도화살 있나? 이성이 꼬이는 사주인지 확인해준다.",
     ctaLabel: "내 도화의 위치와 힘 확인하기", ctaHook: "시선이 머무는 이유와 매력의 사용법",
     grad: ["#301022", "#140a2e"], tags: ["new"],
@@ -455,7 +535,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "insun", badge: "솔로전용", title: "인연 타이밍", emoji: "⏳",
+    id: "insun", price: 14900, badge: "솔로전용", title: "인연 타이밍", emoji: "⏳",
+    shortLabel: "인연 타이밍 ⏳", needsPartner: false, tone: "timing",
+    promptLabel: "인연 타이밍 (다음 인연이 오는 시기와 만나게 되는 경로)",
+    cardCopy: "다음 인연이 가까워지는 계절과 만나게 될 가능성이 높은 장소, 스쳐 가기 전에 알아볼 수 있는 작은 신호를 알려드립니다.",
     desc: "다음 인연은 언제, 어디서. 솔로 탈출 타이밍 전용 리딩.",
     ctaLabel: "다음 인연이 오는 때 확인하기", ctaHook: "스쳐 가기 전에 알아볼 인연의 신호",
     grad: ["#0f2030", "#0d0a14"], tags: ["new"],
@@ -489,7 +572,10 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "yeonae", badge: "연간운세", title: "올해의 연애운", emoji: "✨",
+    id: "yeonae", price: 14900, badge: "연간운세", title: "올해의 연애운", emoji: "✨",
+    shortLabel: "올해 연애운 ✨", needsPartner: false, tone: "starlight",
+    promptLabel: "올해의 연애운 (남은 해의 흐름, 고비의 달과 기회의 달)",
+    cardCopy: "올해 남은 달의 설렘과 고비를 달력처럼 펼쳐, 고백·시작·정리에 유리한 순간과 놓치지 말아야 할 흐름을 표시합니다.",
     desc: "올해 남은 연애운의 흐름. 큰 고비의 달과 기회의 달.",
     ctaLabel: "올해의 설렘 캘린더 펼치기", ctaHook: "움직일 달과 기다릴 달을 한눈에",
     grad: ["#251530", "#0d0a14"], tags: [],

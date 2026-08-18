@@ -11,7 +11,7 @@ import { resolveUserToken } from "@/lib/tokens";
 export const maxDuration = 60;
 
 interface Body {
-  category: string; // sokgunghap | yeonae | jaehoe | hwanseung
+  category: string; // 상품 카탈로그(products.ts)의 id
   me: { year: number; month: number; day: number; hour: number | null; gender: string };
   partner?: { year: number; month: number; day: number; hour: number | null; gender: string } | null;
   question?: string;
@@ -22,23 +22,6 @@ interface PreviewSection {
   title: string;
   excerpt: string;
 }
-
-const CATEGORY_LABEL: Record<string, string> = {
-  sokgunghap: "속궁합",
-  yeonae: "올해의 연애운 (남은 해의 흐름, 고비의 달과 기회의 달)",
-  jaehoe: "재회운",
-  hwanseung: "환승운",
-  bamgijil: "연애 기질 (감정 습관과 반복되는 끌림의 패턴)",
-  sseom: "썸 해부 (진도가 안 나가는 이유와 주도권 분석)",
-  ibyeol: "이별 부검 (연애가 어디서부터 무너졌는지 사후 분석)",
-  baramgi: "바람기 분석 (상대 사주의 도화 기운과 바람 조심 시기)",
-  gyeolhon: "결혼운 (이 상대와 결혼했을 때의 궁합과 3년 흐름)",
-  gwontaegi: "권태기 진단 (단순 권태기인지 끝나가는 관계인지 판별)",
-  jjak: "짝사랑 (고백 타이밍과 성공 가능성)",
-  bimil: "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
-  dohwasal: "도화살 진단 (본인의 매력 기질과 이성운)",
-  insun: "인연 타이밍 (다음 인연이 오는 시기와 만나게 되는 경로)",
-};
 
 // 사주 리딩은 캐릭터 없이 명리 분석에 집중한다 (캐릭터 챗은 /shrine에서 별도 제공)
 const SYSTEM_PROMPT = `당신은 연애와 인연의 흐름을 전문적으로 해석하는 사주 서비스 "러브레빗"의 수석 명리 분석가입니다.
@@ -73,7 +56,7 @@ function scoreFrom(me: string, partner: string | null): number {
 }
 
 function mockReading(category: string): { teaser: string; full: string } {
-  const label = CATEGORY_LABEL[category] ?? "연애운";
+  const label = PRODUCT_MAP[category]?.promptLabel ?? "연애운";
   return {
     teaser: `[데모 모드] 네 일간을 보니까… 겉으론 차가운 척하는데 속은 한번 불붙으면 끝을 보는 타입이네. ${label} 흐름에 지금 큰 변곡점이 하나 보이는데, 문제는 네가 그걸 스스로 걷어차기 직전이라는 거야. 어디서부터 꼬였는지, 풀 리딩에서 다 말해줄게.`,
     full: `[데모 모드 — .env에 API 키를 설정하면 실제 AI 리딩이 생성됩니다]\n\n■ 너의 연애 기질\n네 일주 조합은 은근히 주도권을 쥐고 싶어하는 타입이야. 겉으론 맞춰주는 척, 속으론 상황을 꼼꼼히 살피는 편이지.\n\n■ 그 사람과의 합\n오행 상 너희 둘은 목생화(木生火) 관계 — 한쪽의 관심이 다른 쪽의 마음을 빠르게 키우는 조합이야. 다만 감정 속도도 빠르니 완급이 관건.\n\n■ 주의할 구간\n올해 10~11월, 지지끼리 충(沖)이 걸리는 구간이 있어. 이 시기에 나오는 말들은 진심보다 순간 감정에 가까울 수 있으니 한 번 더 생각해.\n\n■ 지금 움직이는 법\n먼저 연락하기보다 상대의 반응을 조금 더 살펴봐. 네 사주는 기다릴 때 흐름이 유리해지는 구조야. 3주 정도 여유를 둬.`,
@@ -176,7 +159,7 @@ export async function POST(req: NextRequest) {
 
   const myChart = computeSaju(body.me);
   const partnerChart = body.partner ? computeSaju(body.partner) : null;
-  const label = CATEGORY_LABEL[body.category] ?? "연애운";
+  const label = PRODUCT_MAP[body.category]?.promptLabel ?? "연애운";
   const price = priceFor(body.category ?? "");
 
   let teaser: string;

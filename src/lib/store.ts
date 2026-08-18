@@ -5,13 +5,16 @@ import "server-only";
 import { promises as fs } from "fs";
 import path from "path";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
+import { PRODUCT_MAP } from "@/lib/products";
 
 const DIR = path.join(process.cwd(), "data", "readings");
 
-export const READING_PRICE = 7900;
+// 기본가 — 카탈로그에 없는 카테고리로 들어온 리딩의 폴백.
+export const READING_PRICE = 9900;
 
-export function priceFor(_category: string): number {
-  return READING_PRICE;
+// 상품별 판매가는 카탈로그(products.ts)가 단일 소스다.
+export function priceFor(category: string): number {
+  return PRODUCT_MAP[category]?.price ?? READING_PRICE;
 }
 
 export interface StoredReading {

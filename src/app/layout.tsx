@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
@@ -22,7 +23,7 @@ const themeInitScript = `
 `;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.loverebbit.xyz"),
+  metadataBase: new URL(SITE_URL),
   title: "러브레빗 LoveRabbit — 속궁합·연애운 AI 사주",
   description:
     "마음과 인연의 흐름을 섬세하게 풀어보는 속궁합·연애운 리딩. 3분이면 확인할 수 있어요.",

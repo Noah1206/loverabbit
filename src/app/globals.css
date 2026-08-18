@@ -1892,6 +1892,73 @@ label {
   width: 100%;
 }
 
+/* 리딩 전문을 다 읽은 뒤 다음 상품으로 넘기는 크로스셀 */
+.report-crosssell {
+  margin-top: 34px;
+  padding: 22px 20px 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+}
+
+.report-crosssell h2 {
+  margin: 12px 0 14px;
+  font-size: 1.06rem;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.report-crosssell-list {
+  display: grid;
+  gap: 10px;
+}
+
+.report-crosssell-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: inherit;
+  text-decoration: none;
+}
+
+.report-crosssell-item:hover {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+}
+
+.report-crosssell-emoji {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.report-crosssell-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.report-crosssell-copy strong {
+  font-size: 0.94rem;
+}
+
+.report-crosssell-copy small {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+
+.report-crosssell-price {
+  flex-shrink: 0;
+  color: var(--accent);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .report-error {
   margin-top: 16px;
   color: var(--accent);
@@ -2697,23 +2764,9 @@ label {
   border: 1px solid #dadce0;
 }
 
-.social-google-mark {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  color: #4285f4;
-  font: 900 1.05rem/1 Arial, sans-serif;
-}
-
 .social-login-kakao {
   color: #191919;
   background: #fee500;
-}
-
-.social-kakao-mark {
-  width: 22px;
-  font-size: 1rem;
 }
 
 .social-login-x {
@@ -2722,13 +2775,32 @@ label {
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
+/* 공급사 브랜드 마크 — 각 SVG는 원본 비율 그대로 20px 정사각 안에 들어간다 */
+.social-google-mark,
+.social-kakao-mark,
 .social-x-mark {
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+}
+
+.social-google-mark svg,
+.social-kakao-mark svg,
+.social-x-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 카카오 말풍선은 노란 버튼 위 검정, X는 검은 버튼 위 흰색 */
+.social-kakao-mark {
+  color: #191919;
+}
+
+.social-x-mark {
   color: #fff;
-  font: 500 1.05rem/1 Arial, sans-serif;
 }
 
 .social-login-note {
@@ -2756,8 +2828,9 @@ label {
 }
 
 .auth-rabbit {
+  display: flex;
+  justify-content: center;
   margin-bottom: 10px;
-  font-size: 2.2rem;
 }
 
 .auth-card h1 {

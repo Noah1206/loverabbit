@@ -7,10 +7,12 @@ import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, removeFromArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
+import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
 import { downloadShareImage } from "@/lib/share-image";
 import { getUser, saveUser, type User } from "@/lib/user";
+import BrandMark from "@/components/BrandMark";
 
 interface ReferralStatus {
   referralCode: string;
@@ -84,6 +86,26 @@ export default function ReadingReportPage() {
     [entry?.full]
   );
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
+
+  // 다음 리딩 추천 — 방금 본 것보다 비싼 상품 중에서,
+  // 혼자 본 리딩 뒤에는 '그 사람'이 필요한 리딩을 먼저 올린다.
+  const nextReadings = useMemo(() => {
+    const current = PRODUCT_MAP[entry?.category ?? ""];
+    if (!current) return [];
+    // 혼자 본 리딩 뒤에는 상대가 필요한 리딩을 앞세우고,
+    // 이미 상대까지 본 리딩 뒤에는 인기·가격 순서만 따른다.
+    const rank = (p: (typeof PRODUCTS)[number]) => [
+      current.needsPartner || p.needsPartner ? 0 : 1,
+      p.tags.includes("popular") ? 0 : 1,
+      p.price,
+    ];
+    return PRODUCTS.filter((p) => p.id !== current.id && p.price > current.price)
+      .sort((a, b) => {
+        const [ra, rb] = [rank(a), rank(b)];
+        return ra[0] - rb[0] || ra[1] - rb[1] || ra[2] - rb[2];
+      })
+      .slice(0, 3);
+  }, [entry?.category]);
   const previewSections = entry?.previewSections ?? [];
   const lockedTitles = entry?.lockedSectionTitles ?? [];
 
@@ -205,7 +227,7 @@ export default function ReadingReportPage() {
   if (status === "missing" || !entry) {
     return (
       <main className="container report-page" style={{ paddingTop: 60, textAlign: "center" }}>
-        <p style={{ fontSize: "2rem" }}>🐰</p>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><BrandMark size={52} /></div>
         <h1 style={{ marginBottom: 8 }}>이 리딩을 찾지 못했어요</h1>
         <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
           리딩은 받은 기기에 보관돼요. 다른 기기·브라우저에서 받은 리딩은 여기서 열 수 없어요.
@@ -368,6 +390,25 @@ export default function ReadingReportPage() {
             <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
             {shareNotice && <p className="referral-notice">{shareNotice}</p>}
           </div>
+        )}
+
+        {unlocked && nextReadings.length > 0 && (
+          <section className="report-crosssell">
+            <span className="badge">이 리딩 다음에</span>
+            <h2>여기까지 봤다면, 다음은 이거예요</h2>
+            <div className="report-crosssell-list">
+              {nextReadings.map((p) => (
+                <Link key={p.id} href={`/product/${p.id}`} className="report-crosssell-item" data-tone={p.tone}>
+                  <span className="report-crosssell-emoji" aria-hidden>{p.emoji}</span>
+                  <span className="report-crosssell-copy">
+                    <strong>{p.title}</strong>
+                    <small>{p.ctaHook}</small>
+                  </span>
+                  <span className="report-crosssell-price">{p.price.toLocaleString()}원</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         )}
 
         {unlocked && <ChatSection readingId={entry.readingId} blob={entry.blob} />}

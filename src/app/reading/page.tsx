@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { PRODUCTS } from "@/lib/products";
 import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
 import { saveToArchive } from "@/lib/archive";
@@ -10,22 +11,12 @@ import {
   type PendingReferral,
 } from "@/lib/referral";
 
-const CATEGORIES = [
-  { id: "sokgunghap", label: "속궁합 🔥", needsPartner: true },
-  { id: "jaehoe", label: "재회 🥀", needsPartner: true },
-  { id: "bamgijil", label: "연애 기질 🐰", needsPartner: false },
-  { id: "baramgi", label: "바람기 🚨", needsPartner: true },
-  { id: "gyeolhon", label: "결혼 💍", needsPartner: true },
-  { id: "gwontaegi", label: "권태기 🌧️", needsPartner: true },
-  { id: "hwanseung", label: "환승 🚇", needsPartner: true },
-  { id: "sseom", label: "썸 해부 💘", needsPartner: true },
-  { id: "jjak", label: "짝사랑 🤫", needsPartner: true },
-  { id: "bimil", label: "비밀연애 🤐", needsPartner: true },
-  { id: "ibyeol", label: "이별 부검 🕯️", needsPartner: true },
-  { id: "dohwasal", label: "도화살 🌸", needsPartner: false },
-  { id: "insun", label: "인연 타이밍 ⏳", needsPartner: false },
-  { id: "yeonae", label: "올해 연애운 ✨", needsPartner: false },
-];
+// 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
+const CATEGORIES = PRODUCTS.map((p) => ({
+  id: p.id,
+  label: p.shortLabel,
+  needsPartner: p.needsPartner,
+}));
 
 interface PersonForm {
   year: string;

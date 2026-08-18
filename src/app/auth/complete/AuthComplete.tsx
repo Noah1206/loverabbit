@@ -5,6 +5,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { takeAuthReturn } from "@/lib/auth-return";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
+import BrandMark from "@/components/BrandMark";
 
 interface SessionResult extends Partial<User> {
   needsProfile?: boolean;
@@ -77,7 +78,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
   return (
     <main className="auth-shell">
       <section className="card auth-card">
-        <div className="auth-rabbit" aria-hidden>🐰</div>
+        <div className="auth-rabbit" aria-hidden><BrandMark size={44} /></div>
         {!needsProfile ? (
           <>
             <h1>로그인 연결 중</h1>

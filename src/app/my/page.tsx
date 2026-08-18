@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { listArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive";
+import BrandMark from "@/components/BrandMark";
 
 // 보관함은 목록만 담당한다. 리딩 본문·해금·추가 상담은 기사 페이지(/reading/[id])에서 처리한다.
 export default function MyPage() {
@@ -49,7 +50,7 @@ export default function MyPage() {
 
       {entries.length === 0 && (
         <div className="card" style={{ textAlign: "center", padding: 36 }}>
-          <p style={{ fontSize: "2rem" }}>🐰</p>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><BrandMark size={52} /></div>
           <p style={{ marginBottom: 16 }}>아직 받은 리딩이 없어요.</p>
           <Link href="/reading" className="btn">첫 리딩 받으러 가기 →</Link>
         </div>
