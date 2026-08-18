@@ -41,7 +41,9 @@ const targets = (requested.length > 0 ? requested : IDS).filter((id) => {
 // 흔들림(지터)을 줄이려고 원본을 먼저 2배 가까이 확대한다.
 const filter = [
   `scale=${OUT_W * 2}:-2`,
-  `crop=iw:min(ih\\,iw*${OUT_H}/${OUT_W})`,
+  // 원본은 3:4라 9:16으로 만들려면 좌우를 잘라야 한다. 비율을 여기서 맞추지 않으면
+  // zoompan의 s= 가 세로로 늘려버려 인물이 홀쭉해진다.
+  `crop=w='min(iw\\,ih*${OUT_W}/${OUT_H})':h=ih`,
   [
     `zoompan=z='1.015+0.055*on/${FRAMES - 1}'`,
     `x='iw/2-(iw/zoom/2)+10*sin(2*PI*on/${FRAMES - 1})'`,
