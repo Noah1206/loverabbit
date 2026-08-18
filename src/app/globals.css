@@ -717,7 +717,7 @@ label {
   left: 20px;
 }
 
-.product-score-card {
+.product-page .product-score-card {
   position: relative;
   padding: clamp(24px, 7vw, 34px) clamp(20px, 6vw, 30px);
   overflow: hidden;
@@ -834,7 +834,7 @@ label {
   text-shadow: 0 0 12px var(--product-glow, rgba(207, 60, 255, 0.44));
 }
 
-.product-story-card {
+.product-page .product-story-card {
   border-color: color-mix(in srgb, var(--product-c2, #f54c8b) 42%, var(--line));
   background: linear-gradient(150deg, color-mix(in srgb, var(--product-c1, #cf3cff) 8%, var(--bg-card)), var(--bg-card));
 }
