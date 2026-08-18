@@ -90,6 +90,14 @@ body {
   text-align: center;
 }
 
+.app-viewport:has(> .product-page) {
+  padding-bottom: 0;
+}
+
+.app-viewport:has(> .product-page) > .app-footer {
+  display: none;
+}
+
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
 .app-modal-layer,
 .shrine-immersive-shell {
