@@ -842,7 +842,7 @@ label {
 .product-sticky-shell {
   position: fixed;
   z-index: 55;
-  bottom: calc(66px + env(safe-area-inset-bottom));
+  bottom: calc(10px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100% - 18px), 622px);
   padding: 31px 9px 9px;
@@ -956,7 +956,7 @@ label {
 
 @media (max-width: 390px) {
   .product-sticky-shell {
-    bottom: calc(62px + env(safe-area-inset-bottom));
+    bottom: calc(8px + env(safe-area-inset-bottom));
   }
 
   .product-sticky-cta {

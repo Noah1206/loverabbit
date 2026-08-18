@@ -71,6 +71,8 @@ export default function BottomNav() {
 
   useEffect(() => setVisualIndex(routeIndex), [routeIndex]);
 
+  if (path.startsWith("/product/")) return null;
+
   return (
     <nav
       className="tabbar"
