@@ -5,7 +5,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db:login": "npx -y supabase@latest login",
+    "db:link": "npx -y supabase@latest link --project-ref uaaxqqzdfmuzzwgqsdki",
+    "db:status": "npx -y supabase@latest migration list",
+    "db:new": "npx -y supabase@latest migration new",
+    "db:push": "npx -y supabase@latest db push"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
