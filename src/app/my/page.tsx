@@ -3,78 +3,32 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { listArchive, updateArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive";
-import ChatSection from "@/components/ChatSection";
-import PaymentModal from "@/components/PaymentModal";
-import SignupModal from "@/components/SignupModal";
-import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
-import { getUser, type User } from "@/lib/user";
+import { listArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive";
 
+// 보관함은 목록만 담당한다. 리딩 본문·해금·추가 상담은 기사 페이지(/reading/[id])에서 처리한다.
 export default function MyPage() {
   const router = useRouter();
   const [entries, setEntries] = useState<ArchiveEntry[]>([]);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
-  const [showPay, setShowPay] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const [error, setError] = useState("");
   const [paymentApproved, setPaymentApproved] = useState(false);
 
   useEffect(() => {
     const archived = listArchive();
-    const params = new URLSearchParams(window.location.search);
-    const requestedReading = params.get("open");
     setEntries(archived);
-    if (requestedReading && archived.some((entry) => entry.readingId === requestedReading)) {
-      setOpenId(requestedReading);
-    }
-    setPaymentApproved(params.get("payment") === "approved");
-    const stored = getUser();
-    setUser(stored);
-    if (stored) {
-      const pending = takePendingReading();
-      if (pending?.source === "archive") {
-        setOpenId(pending.result.readingId);
-        setShowPay(true);
-      }
-    }
-  }, []);
 
-  const open = entries.find((e) => e.readingId === openId) ?? null;
-  const depositorCode = open ? `레빗-${open.readingId.slice(0, 4).toUpperCase()}` : "";
-
-  // 보관함에서도 계좌이체 확인 요청 후 관리자 승인 대기 페이지로 이동한다.
-  const unlock = async () => {
-    if (!open) return;
-    setPaying(true);
-    setError("");
-    try {
-      const res = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          readingId: open.readingId,
-          blob: open.blob,
-          method: "transfer",
-          depositorCode,
-          userToken: user?.token,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
-      if (!Number.isSafeInteger(Number(data.orderId))) {
-        throw new Error("승인 대기 주문 번호를 받지 못했어요.");
-      }
-      updateArchive(open.readingId, { pendingOrderId: Number(data.orderId) });
-      setEntries(listArchive());
-      setShowPay(false);
-      router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
-    } finally {
-      setPaying(false);
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get("open");
+    const approved = params.get("payment") === "approved";
+    setPaymentApproved(approved);
+    // 결제/승인 화면에서 넘어온 열기 요청은 곧장 그 리딩 기사로 보낸다
+    if (requested && archived.some((entry) => entry.readingId === requested)) {
+      router.replace(`/reading/${requested}${approved ? "?payment=approved" : ""}`);
     }
+  }, [router]);
+
+  const remove = (readingId: string) => {
+    if (!window.confirm("이 리딩을 보관함에서 삭제할까요?")) return;
+    removeFromArchive(readingId);
+    setEntries(listArchive());
   };
 
   return (
@@ -101,133 +55,34 @@ export default function MyPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gap: 12 }}>
-        {entries.map((e) => {
-          const isOpen = openId === e.readingId;
-          return (
-            <div key={e.readingId} className="card" style={{ padding: 0, overflow: "hidden" }}>
-              <button
-                onClick={() => setOpenId(isOpen ? null : e.readingId)}
-                style={{ display: "flex", gap: 12, alignItems: "center", width: "100%", padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left", font: "inherit", color: "var(--text)" }}
-              >
-                <span style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--bg-card2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.3rem", flexShrink: 0 }}>🔮</span>
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <strong style={{ fontSize: "0.95rem" }}>{e.label}</strong>
-                    {e.full ? (
-                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--violet)", padding: "2px 8px", borderRadius: 999 }}>해금됨</span>
-                    ) : e.pendingOrderId ? (
-                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "#9f6b19", padding: "2px 8px", borderRadius: 999 }}>승인 대기</span>
-                    ) : (
-                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--accent)", padding: "2px 8px", borderRadius: 999 }}>티저만</span>
-                    )}
-                  </div>
-                  <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {new Date(e.createdAt).toLocaleDateString("ko-KR")} · {e.teaser}
-                  </p>
-                </div>
-                <span style={{ color: "var(--text-dim)" }}>{isOpen ? "▲" : "▼"}</span>
-              </button>
-
-              {isOpen && (
-                <div style={{ padding: "0 16px 16px" }}>
-                  <div className="card" style={{ background: "var(--bg-card2)", fontSize: "0.82rem", color: "var(--text-dim)", padding: 14, marginBottom: 12 }}>
-                    <strong style={{ color: "var(--gold)" }}>내 사주</strong> {e.chart.me}
-                    {e.chart.partner && (<><br /><strong style={{ color: "var(--gold)" }}>그 사람</strong> {e.chart.partner}</>)}
-                  </div>
-                  <p style={{ whiteSpace: "pre-wrap", fontSize: "0.92rem", marginBottom: 12 }}>{e.teaser}</p>
-
-                  {e.full ? (
-                    <>
-                      <div className="card" style={{ background: "var(--bg-card2)", padding: 16 }}>
-                        <p style={{ whiteSpace: "pre-wrap", fontSize: "0.92rem" }}>{e.full}</p>
-                      </div>
-                      <ChatSection readingId={e.readingId} blob={e.blob} />
-                    </>
+      <div className="archive-list">
+        {entries.map((entry) => (
+          <div key={entry.readingId} className="archive-row">
+            <Link href={`/reading/${entry.readingId}`} className="archive-link">
+              <span className="archive-icon" aria-hidden>🔮</span>
+              <span className="archive-copy">
+                <span className="archive-title">
+                  <strong>{entry.label}</strong>
+                  {entry.full ? (
+                    <em className="on">해금됨</em>
+                  ) : entry.pendingOrderId ? (
+                    <em className="pending">승인 대기</em>
                   ) : (
-                    <div style={{ textAlign: "center", padding: "8px 0" }}>
-                      <p style={{ fontSize: "0.88rem", marginBottom: 10 }}>풀 리딩이 아직 잠겨 있어요.</p>
-                      {e.pendingOrderId ? (
-                        <Link className="btn" href={`/payment/pending?orderId=${e.pendingOrderId}`}>
-                          입금 승인 상태 확인
-                        </Link>
-                      ) : (
-                        <button
-                          className="btn"
-                          onClick={() => {
-                            if (user) {
-                              setShowPay(true);
-                              return;
-                            }
-                            savePendingReading({
-                              source: "archive",
-                              category: e.category,
-                              createdAt: Date.now(),
-                              result: {
-                                readingId: e.readingId,
-                                teaser: e.teaser,
-                                chart: e.chart,
-                                price: e.price,
-                                blob: e.blob,
-                                previewSections: [],
-                                lockedSectionTitles: [],
-                                demo: false,
-                              },
-                            });
-                            setShowSignup(true);
-                          }}
-                          disabled={paying}
-                        >
-                          {user ? "풀 리딩 해금" : "가입하고 풀 리딩 해금"} — {e.price.toLocaleString()}원
-                        </button>
-                      )}
-                    </div>
+                    <em>티저만</em>
                   )}
-
-                  <button
-                    className="btn btn-ghost"
-                    style={{ width: "100%", marginTop: 12, fontSize: "0.85rem" }}
-                    onClick={() => {
-                      if (window.confirm("이 리딩을 보관함에서 삭제할까요?")) {
-                        removeFromArchive(e.readingId);
-                        setEntries(listArchive());
-                        setOpenId(null);
-                      }
-                    }}
-                  >
-                    보관함에서 삭제
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                </span>
+                <span className="archive-excerpt">
+                  {new Date(entry.createdAt).toLocaleDateString("ko-KR")} · {entry.teaser}
+                </span>
+              </span>
+              <span className="archive-arrow" aria-hidden>›</span>
+            </Link>
+            <button type="button" className="archive-remove" onClick={() => remove(entry.readingId)}>
+              삭제
+            </button>
+          </div>
+        ))}
       </div>
-      {error && <p style={{ color: "var(--accent)", marginTop: 12 }}>{error}</p>}
-
-      {showSignup && (
-        <SignupModal
-          onDone={(u) => {
-            setUser(u);
-            setShowSignup(false);
-            setShowPay(true);
-          }}
-          onClose={() => setShowSignup(false)}
-        />
-      )}
-
-      {showPay && open && (
-        <PaymentModal
-          readingId={open.readingId}
-          price={open.price}
-          userToken={user?.token ?? ""}
-          customerEmail={user?.email ?? ""}
-          depositorCode={depositorCode}
-          paying={paying}
-          onTransferSubmitted={unlock}
-          onClose={() => setShowPay(false)}
-        />
-      )}
     </main>
   );
 }

@@ -2,16 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import PaymentModal from "@/components/PaymentModal";
-import ChatSection from "@/components/ChatSection";
 import SignupModal from "@/components/SignupModal";
-import { saveToArchive, updateArchive } from "@/lib/archive";
-import {
-  savePendingReading,
-  takePendingReading,
-  type PendingReadingResult,
-} from "@/lib/pending-reading";
-import { clearUser, getUser, saveUser, type User } from "@/lib/user";
+import { saveToArchive } from "@/lib/archive";
+import { clearUser, getUser, type User } from "@/lib/user";
 import {
   captureReferralFromLocation,
   type PendingReferral,
@@ -93,14 +86,6 @@ function takeReadingDraft(): ReadingDraft | null {
     clearReadingDraft();
     return null;
   }
-}
-
-type ReadingResult = PendingReadingResult;
-
-interface ReferralStatus {
-  referralCode: string;
-  chatCredits: number;
-  readingUnlocked: boolean;
 }
 
 function parsePerson(p: PersonForm) {
@@ -251,25 +236,14 @@ export default function ReadingPage() {
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<ReadingResult | null>(null);
-  const [score, setScore] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
-  const [full, setFull] = useState<string | null>(null);
-  const [showPay, setShowPay] = useState(false);
-  const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
-  const [shareNotice, setShareNotice] = useState("");
 
   const generateReading = useCallback(async (nextUser: User, draft: ReadingDraft) => {
     setLoading(true);
     setError("");
-    setResult(null);
-    setFull(null);
-    setScore(null);
-    setShareNotice("");
     try {
       const res = await fetch("/api/reading", {
         method: "POST",
@@ -292,7 +266,6 @@ export default function ReadingPage() {
         throw new Error(data.error ?? "리딩 생성 실패");
       }
       clearReadingDraft();
-      setResult(data);
       // 내 상담 보관함에 자동 저장 (해금 시 full이 채워진다)
       saveToArchive({
         readingId: data.readingId,
@@ -305,13 +278,19 @@ export default function ReadingPage() {
         chart: data.chart,
         price: data.price,
         createdAt: Date.now(),
+        previewSections: data.previewSections ?? [],
+        lockedSectionTitles: data.lockedSectionTitles ?? [],
+        scoreLabel: data.scoreLabel ?? null,
+        score: null,
+        demo: data.demo === true,
       });
+      // 결과는 폼 아래에 쌓지 않고 읽기 전용 기사 페이지에서 보여준다
+      router.push(`/reading/${data.readingId}`);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "오류가 발생했습니다.");
-    } finally {
       setLoading(false);
     }
-  }, []);
+  }, [router]);
 
   // 홈 상품 카드에서 ?c= 로 진입하면 해당 상품을 확정하고, 로그인 복귀 시 입력값으로 자동 재개한다.
   useEffect(() => {
@@ -334,23 +313,7 @@ export default function ReadingPage() {
         setWithPartner(draft.withPartner);
         setCategorySelectionMode("fixed");
         void generateReading(stored, draft);
-      } else {
-        const pending = takePendingReading();
-        if (pending?.source === "reading") {
-          setResult(pending.result);
-          setCategory(pending.category);
-          setWithPartner(CATEGORIES.find((item) => item.id === pending.category)?.needsPartner ?? false);
-          setCategorySelectionMode("fixed");
-          setShowPay(true);
-        }
       }
-    }
-    if (stored?.referralCode) {
-      setReferralStatus({
-        referralCode: stored.referralCode,
-        chatCredits: stored.chatCredits ?? 0,
-        readingUnlocked: false,
-      });
     }
     setPendingReferral(captureReferralFromLocation());
   }, [generateReading]);
@@ -388,94 +351,6 @@ export default function ReadingPage() {
       return;
     }
     void generateReading(user, draft);
-  };
-
-  const startUnlock = () => {
-    if (!result) return;
-    if (!user) {
-      savePendingReading({ source: "reading", category, result, createdAt: Date.now() });
-      setShowSignup(true);
-      return;
-    }
-    setShowPay(true);
-  };
-
-  // 계좌이체 확인 요청을 만든 뒤 관리자 승인 대기 페이지로 이동한다.
-  // 실제 해금은 관리자가 입금을 확인해 주문을 승인했을 때만 처리된다.
-  const depositorCode = result ? `레빗-${result.readingId.slice(0, 4).toUpperCase()}` : "";
-
-  const confirmTransfer = async () => {
-    if (!result) return;
-    setPaying(true);
-    setError("");
-    try {
-      const res = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          readingId: result.readingId,
-          blob: result.blob,
-          method: "transfer",
-          depositorCode,
-          userToken: user?.token,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
-      if (!Number.isSafeInteger(Number(data.orderId))) {
-        throw new Error("승인 대기 주문 번호를 받지 못했어요.");
-      }
-      updateArchive(result.readingId, { pendingOrderId: Number(data.orderId) });
-      setShowPay(false);
-      router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "결제 처리 중 오류가 발생했습니다.");
-    } finally {
-      setPaying(false);
-    }
-  };
-
-  const refreshReferralStatus = async (): Promise<ReferralStatus | null> => {
-    if (!user) return null;
-    const res = await fetch("/api/referral/status", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userToken: user.token, readingId: result?.readingId }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error ?? "보상 정보를 확인하지 못했어요.");
-    const status = data as ReferralStatus;
-    setReferralStatus(status);
-    const nextUser = {
-      ...user,
-      referralCode: status.referralCode,
-      chatCredits: status.chatCredits,
-    };
-    setUser(nextUser);
-    saveUser(nextUser);
-    return status;
-  };
-
-  const shareReward = async () => {
-    if (!result || !user) return;
-    setShareNotice("");
-    try {
-      const status = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
-      if (!status?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
-      const params = new URLSearchParams({ ref: status.referralCode, reward: "chat_credits" });
-      const url = `${window.location.origin}/reading?${params.toString()}`;
-      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 10문장도 볼 수 있어 🐰";
-      if (navigator.share) {
-        await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
-      } else {
-        await navigator.clipboard.writeText(`${text}\n${url}`);
-        setShareNotice("초대 링크를 복사했어요. 친구가 가입하면 보상이 자동 지급돼요.");
-      }
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-      setShareNotice(e instanceof Error ? e.message : "공유 링크를 만들지 못했어요.");
-    }
   };
 
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
@@ -527,7 +402,7 @@ export default function ReadingPage() {
             <small style={{ display: "block", color: "var(--text-dim)", marginBottom: 4 }}>선택한 리딩</small>
             <strong>{selectedCategory.label}</strong>
           </div>
-          {!loading && !result && (
+          {!loading && (
             <button
               type="button"
               className="btn btn-ghost"
@@ -592,132 +467,12 @@ export default function ReadingPage() {
       )}
       {error && <p style={{ color: "var(--accent)", marginTop: 14 }}>{error}</p>}
 
-      {result && (
-        <section style={{ marginTop: 36 }}>
-          <div className="card" style={{ marginBottom: 16, fontSize: "0.85rem", color: "var(--text-dim)" }}>
-            <strong style={{ color: "var(--gold)" }}>내 사주</strong> {result.chart.me}
-            {result.chart.partner && (
-              <>
-                <br />
-                <strong style={{ color: "var(--gold)" }}>그 사람</strong> {result.chart.partner}
-              </>
-            )}
-          </div>
-
-          <div className="card" style={{ marginBottom: 16, borderColor: "var(--violet)" }}>
-            <span className="badge" style={{ marginBottom: 10 }}>무료 핵심 요약</span>
-            <p style={{ whiteSpace: "pre-wrap", marginTop: 10 }}>{result.teaser}</p>
-            {result.scoreLabel && (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--line)" }}>
-                <span style={{ fontSize: "0.9rem", color: "var(--text-dim)" }}>🔮 {result.scoreLabel}</span>
-                {score !== null ? (
-                  <strong style={{ fontSize: "1.15rem", color: "var(--accent)" }}>상위 {100 - score}%</strong>
-                ) : (
-                  <strong style={{ fontSize: "1.15rem", color: "var(--text-dim)" }}>상위 ??% 🔒</strong>
-                )}
-              </div>
-            )}
-          </div>
-
-          {full ? (
-            <div className="card">
-              <span className="badge" style={{ marginBottom: 10 }}>🔓 풀 리딩</span>
-              <p style={{ whiteSpace: "pre-wrap", marginTop: 12 }}>{full}</p>
-            </div>
-          ) : (
-            <div className="card reading-preview-card">
-              <div className="reading-preview-heading">
-                <div>
-                  <span className="badge">무료 미리보기</span>
-                  <h2>핵심 요약까지 합쳐 약 10문장을 먼저 보여드려요</h2>
-                </div>
-                <span>🔒 전문 잠금</span>
-              </div>
-
-              <div className="reading-preview-sections">
-                {result.previewSections.map((section, index) => (
-                  <article key={`${section.title}-${index}`}>
-                    <small>SECTION {String(index + 1).padStart(2, "0")}</small>
-                    <h3>{section.title}</h3>
-                    <p>{section.excerpt}</p>
-                    <div className="preview-blur-lines" aria-hidden>
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              {result.lockedSectionTitles.length > 0 && (
-                <div className="locked-toc" aria-label="잠긴 추가 목차">
-                  <strong>이어서 나오는 {result.lockedSectionTitles.length}개 분석</strong>
-                  {result.lockedSectionTitles.slice(0, 5).map((title) => <span key={title}>■ {title}</span>)}
-                </div>
-              )}
-
-              <div className="reading-paywall">
-                <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
-                <button className="btn" onClick={startUnlock} disabled={paying}>
-                  {paying
-                    ? "결제 준비 중…"
-                    : user
-                      ? `결제하고 전문 보기 — ${result.price.toLocaleString()}원`
-                      : `로그인 후 전문 보기 — ${result.price.toLocaleString()}원`}
-                </button>
-                <p>점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관</p>
-              </div>
-            </div>
-          )}
-
-          {!full && user && (
-            <div className="referral-reward-card">
-              <span className="badge">친구 초대 보상</span>
-              <h2>친구가 가입하면 추가 상담권을 드려요</h2>
-              <p>전문 리딩은 결제 후 열리고, 친구 초대 보상은 추가 질문에 사용할 수 있어요.</p>
-              <div className="referral-reward-options referral-reward-options-single">
-                <button onClick={() => void shareReward()}>
-                  <strong>캐릭터챗 질문권 10장</strong>
-                  <span>친구 1명 가입 시 바로 적립</span>
-                </button>
-              </div>
-              <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
-              {shareNotice && <p className="referral-notice">{shareNotice}</p>}
-            </div>
-          )}
-
-          {full && (
-            <ChatSection readingId={result.readingId} blob={result.blob} />
-          )}
-
-          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
-            <button
-              className="btn btn-ghost"
-              style={{ width: "100%" }}
-              onClick={() => downloadShareImage(result.teaser)}
-            >
-              📸 공유 이미지 저장
-            </button>
-          </div>
-          {result.demo && (
-            <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", marginTop: 12 }}>
-              ⚙️ 데모 모드로 동작 중 — .env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다.
-            </p>
-          )}
-        </section>
-      )}
-
       {showSignup && (
         <SignupModal
           onDone={(u) => {
             setUser(u);
             setShowSignup(false);
             setPendingReferral(null);
-            setReferralStatus(
-              u.referralCode
-                ? { referralCode: u.referralCode, chatCredits: u.chatCredits ?? 0, readingUnlocked: false }
-                : null
-            );
             const draft = takeReadingDraft();
             if (draft) {
               setCategory(draft.category);
@@ -726,34 +481,17 @@ export default function ReadingPage() {
               setWithPartner(draft.withPartner);
               setCategorySelectionMode("fixed");
               void generateReading(u, draft);
-            } else if (result) {
-              setShowPay(true);
             }
           }}
           reason={
             pendingReferral
               ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : result
-                ? "전문 리딩을 열려면 로그인이 필요해요"
-                : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
+              : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
           }
           onClose={() => {
             clearReadingDraft();
             setShowSignup(false);
           }}
-        />
-      )}
-
-      {showPay && result && user && (
-        <PaymentModal
-          readingId={result.readingId}
-          price={result.price}
-          userToken={user.token}
-          customerEmail={user.email}
-          depositorCode={depositorCode}
-          paying={paying}
-          onTransferSubmitted={confirmTransfer}
-          onClose={() => setShowPay(false)}
         />
       )}
     </main>

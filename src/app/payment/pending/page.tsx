@@ -64,7 +64,7 @@ export default function PaymentPendingPage() {
         throw new Error(data.error ?? "승인된 리딩을 열지 못했어요.");
       }
       updateArchive(status.readingId, { full: data.full, pendingOrderId: undefined });
-      router.replace(`/my?open=${encodeURIComponent(status.readingId)}&payment=approved`);
+      router.replace(`/reading/${encodeURIComponent(status.readingId)}?payment=approved`);
     };
 
     const checkStatus = async () => {

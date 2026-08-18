@@ -16,6 +16,12 @@ export interface ArchiveEntry {
   chart: { me: string; partner: string | null };
   price: number;
   createdAt: number;
+  // 기사형 리포트(/reading/[id])에서 잠금 상태를 그대로 재현하기 위한 정보
+  previewSections?: { title: string; excerpt: string }[];
+  lockedSectionTitles?: string[];
+  scoreLabel?: string | null;
+  score?: number | null;
+  demo?: boolean;
 }
 
 const KEY = "loverabbit_archive_v1";

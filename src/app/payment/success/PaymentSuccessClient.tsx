@@ -70,17 +70,17 @@ export default function PaymentSuccessClient({
             <h1>결제를 확인하고 있어요</h1>
             <p className="payment-result-error" role="alert">{error}</p>
             <p className="payment-order-reference">주문번호 {orderId}</p>
-            <Link className="btn" href={`/my?open=${encodeURIComponent(readingId)}`}>내 상담에서 다시 확인하기</Link>
+            <Link className="btn" href={`/reading/${encodeURIComponent(readingId)}`}>내 리딩에서 다시 확인하기</Link>
           </>
         ) : full ? (
           <>
             <div className="payment-result-icon" aria-hidden>✓</div>
             <span className="badge">결제 완료</span>
             <h1>전문 리딩이 열렸어요</h1>
-            <div className="card payment-full-reading">
-              <p>{full}</p>
-            </div>
-            <Link className="btn" href={`/my?open=${encodeURIComponent(readingId)}&payment=approved`}>내 상담에 보관하기</Link>
+            <p className="payment-full-lead">{full.slice(0, 90)}…</p>
+            <Link className="btn" href={`/reading/${encodeURIComponent(readingId)}?payment=approved`}>
+              전문 리딩 읽으러 가기 →
+            </Link>
           </>
         ) : (
           <>

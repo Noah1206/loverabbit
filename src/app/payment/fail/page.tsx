@@ -9,7 +9,7 @@ export default async function PaymentFailPage({
   const one = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] ?? "" : value ?? "";
   const readingId = one(params.readingId);
   const message = one(params.message) || "결제가 취소되었거나 완료되지 않았어요.";
-  const retryHref = readingId ? `/my?open=${encodeURIComponent(readingId)}` : "/reading";
+  const retryHref = readingId ? `/reading/${encodeURIComponent(readingId)}` : "/reading";
 
   return (
     <main className="payment-result-shell">

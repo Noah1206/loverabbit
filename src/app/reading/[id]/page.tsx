@@ -1,0 +1,425 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import ChatSection from "@/components/ChatSection";
+import PaymentModal from "@/components/PaymentModal";
+import SignupModal from "@/components/SignupModal";
+import { listArchive, removeFromArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
+import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
+import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
+import { downloadShareImage } from "@/lib/share-image";
+import { getUser, saveUser, type User } from "@/lib/user";
+
+interface ReferralStatus {
+  referralCode: string;
+  chatCredits: number;
+  readingUnlocked: boolean;
+}
+
+// 리딩 결과 전용 기사 페이지.
+// 폼(/reading)에서 결과가 나오면 이 주소로 이동해, 카드 안에 눌러 담지 않고
+// 제목 - 한눈에 보기 - 목차 - 본문 순서로 길게 읽히도록 편집한다.
+export default function ReadingReportPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+
+  const [entry, setEntry] = useState<ArchiveEntry | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
+  const [user, setUser] = useState<User | null>(null);
+  const [showPay, setShowPay] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [shareNotice, setShareNotice] = useState("");
+  const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const stored = getUser();
+    setUser(stored);
+    const found = listArchive().find((item) => item.readingId === id) ?? null;
+    setEntry(found);
+    setStatus(found ? "ready" : "missing");
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "approved") {
+      setNotice("결제가 승인됐어요. 아래에서 전문을 확인하세요.");
+    }
+
+    // 결제하려다 로그인으로 빠졌던 경우, 돌아오자마자 결제창을 다시 띄운다
+    const pending = takePendingReading();
+    if (found && stored && !found.full && pending?.result.readingId === id) {
+      setShowPay(true);
+    }
+    if (stored?.referralCode) {
+      setReferralStatus({
+        referralCode: stored.referralCode,
+        chatCredits: stored.chatCredits ?? 0,
+        readingUnlocked: false,
+      });
+    }
+  }, [id]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const scrollable = doc.scrollHeight - window.innerHeight;
+      setProgress(scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [status]);
+
+  const unlocked = Boolean(entry?.full);
+  const sections = useMemo(
+    () => (entry?.full ? parseReportSections(entry.full) : []),
+    [entry?.full]
+  );
+  const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
+  const previewSections = entry?.previewSections ?? [];
+  const lockedTitles = entry?.lockedSectionTitles ?? [];
+
+  // 목차 앵커는 본문 섹션의 실제 순번을 그대로 따라간다(제목 없는 리드 문단이 있어도 어긋나지 않게)
+  const toc = unlocked
+    ? sections
+        .map((section, index) => ({ title: section.title, index, locked: false }))
+        .filter((item) => item.title)
+    : [
+        ...previewSections.map((section, index) => ({ title: section.title, index, locked: false })),
+        ...lockedTitles.map((title) => ({ title, index: -1, locked: true })),
+      ];
+
+  const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";
+
+  const startUnlock = () => {
+    if (!entry) return;
+    if (!user) {
+      savePendingReading({
+        source: "archive",
+        category: entry.category,
+        createdAt: Date.now(),
+        result: {
+          readingId: entry.readingId,
+          teaser: entry.teaser,
+          chart: entry.chart,
+          price: entry.price,
+          blob: entry.blob,
+          previewSections,
+          lockedSectionTitles: lockedTitles,
+          scoreLabel: entry.scoreLabel ?? null,
+          demo: entry.demo === true,
+        },
+      });
+      setShowSignup(true);
+      return;
+    }
+    setShowPay(true);
+  };
+
+  const confirmTransfer = async () => {
+    if (!entry) return;
+    setPaying(true);
+    setError("");
+    try {
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          readingId: entry.readingId,
+          blob: entry.blob,
+          method: "transfer",
+          depositorCode,
+          userToken: user?.token,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
+      if (!Number.isSafeInteger(Number(data.orderId))) {
+        throw new Error("승인 대기 주문 번호를 받지 못했어요.");
+      }
+      updateArchive(entry.readingId, { pendingOrderId: Number(data.orderId) });
+      setShowPay(false);
+      router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "결제 처리 중 오류가 발생했습니다.");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  const refreshReferralStatus = useCallback(async (): Promise<ReferralStatus | null> => {
+    if (!user || !entry) return null;
+    const res = await fetch("/api/referral/status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token, readingId: entry.readingId }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? "보상 정보를 확인하지 못했어요.");
+    const next = data as ReferralStatus;
+    setReferralStatus(next);
+    const nextUser = { ...user, referralCode: next.referralCode, chatCredits: next.chatCredits };
+    setUser(nextUser);
+    saveUser(nextUser);
+    return next;
+  }, [entry, user]);
+
+  const shareReward = async () => {
+    if (!entry || !user) return;
+    setShareNotice("");
+    try {
+      const state = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
+      if (!state?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
+      const params = new URLSearchParams({ ref: state.referralCode, reward: "chat_credits" });
+      const url = `${window.location.origin}/reading?${params.toString()}`;
+      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 10문장도 볼 수 있어 🐰";
+      if (navigator.share) {
+        await navigator.share({ title: "러브레빗 무료 사주", text, url });
+        setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setShareNotice("초대 링크를 복사했어요. 친구가 가입하면 보상이 자동 지급돼요.");
+      }
+    } catch (reason) {
+      if (reason instanceof DOMException && reason.name === "AbortError") return;
+      setShareNotice(reason instanceof Error ? reason.message : "공유 링크를 만들지 못했어요.");
+    }
+  };
+
+  if (status === "loading") {
+    return (
+      <main className="container report-page">
+        <div className="auth-loader" aria-label="리딩 불러오는 중" />
+      </main>
+    );
+  }
+
+  if (status === "missing" || !entry) {
+    return (
+      <main className="container report-page" style={{ paddingTop: 60, textAlign: "center" }}>
+        <p style={{ fontSize: "2rem" }}>🐰</p>
+        <h1 style={{ marginBottom: 8 }}>이 리딩을 찾지 못했어요</h1>
+        <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
+          리딩은 받은 기기에 보관돼요. 다른 기기·브라우저에서 받은 리딩은 여기서 열 수 없어요.
+        </p>
+        <Link className="btn" href="/reading">새 리딩 받기 →</Link>
+      </main>
+    );
+  }
+
+  const minutes = readingMinutes(entry.teaser, entry.full);
+  const createdAt = new Date(entry.createdAt);
+
+  return (
+    <main className="report-page">
+      <div className="report-progress" aria-hidden>
+        <span style={{ transform: `scaleX(${progress})` }} />
+      </div>
+
+      <article className="report-article">
+        <nav className="report-crumbs">
+          <Link href="/my">‹ 내 상담</Link>
+          <span>{unlocked ? "전문 공개" : "무료 미리보기"}</span>
+        </nav>
+
+        <header className="report-head">
+          <span className="report-kicker">{entry.label}</span>
+          <h1>{points[0] ?? entry.label}</h1>
+          <p className="report-dek">
+            {entry.chart.partner
+              ? "두 사람의 명식을 교차로 읽고, 흐름이 갈라지는 지점을 정리했어요."
+              : "당신의 명식에서 반복되는 패턴과 다음 흐름을 정리했어요."}
+          </p>
+          <div className="report-meta">
+            <span>{createdAt.toLocaleDateString("ko-KR")}</span>
+            <span>·</span>
+            <span>약 {minutes}분 분량</span>
+            <span>·</span>
+            <span className={unlocked ? "report-state on" : "report-state"}>
+              {unlocked ? "🔓 전문" : entry.pendingOrderId ? "⏳ 입금 승인 대기" : "🔒 미리보기"}
+            </span>
+          </div>
+          <dl className="report-chart">
+            <div>
+              <dt>내 사주</dt>
+              <dd>{entry.chart.me}</dd>
+            </div>
+            {entry.chart.partner && (
+              <div>
+                <dt>그 사람</dt>
+                <dd>{entry.chart.partner}</dd>
+              </div>
+            )}
+          </dl>
+        </header>
+
+        {notice && <p className="report-notice">{notice}</p>}
+
+        <section className="report-summary" aria-label="한눈에 보기">
+          <h2>한눈에 보기</h2>
+          <ul>
+            {points.map((point, index) => (
+              <li key={index}>{point}</li>
+            ))}
+          </ul>
+          {entry.scoreLabel && (
+            <div className="report-score">
+              <span>🔮 {entry.scoreLabel}</span>
+              {typeof entry.score === "number" ? (
+                <strong>상위 {100 - entry.score}%</strong>
+              ) : (
+                <strong className="locked">상위 ??% 🔒</strong>
+              )}
+            </div>
+          )}
+        </section>
+
+        {toc.length > 0 && (
+          <nav className="report-toc" aria-label="목차">
+            <strong>목차</strong>
+            <ol>
+              {toc.map((item, index) => (
+                <li key={`${item.title}-${index}`} className={item.locked ? "locked" : undefined}>
+                  {item.locked ? (
+                    <span>{item.title} 🔒</span>
+                  ) : (
+                    <a href={`#section-${item.index}`}>{item.title}</a>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        {unlocked ? (
+          <div className="report-body">
+            {sections.map((section, index) => (
+              <section key={`${section.title}-${index}`} id={`section-${index}`}>
+                {section.title && (
+                  <h2>
+                    <small>{String(index + 1).padStart(2, "0")}</small>
+                    {section.title}
+                  </h2>
+                )}
+                {section.paragraphs.map((paragraph, pIndex) => (
+                  <p key={pIndex}>{paragraph}</p>
+                ))}
+              </section>
+            ))}
+          </div>
+        ) : (
+          <div className="report-body report-body-locked">
+            {previewSections.map((section, index) => (
+              <section key={`${section.title}-${index}`} id={`section-${index}`}>
+                <h2>
+                  <small>{String(index + 1).padStart(2, "0")}</small>
+                  {section.title}
+                </h2>
+                <p>{section.excerpt}</p>
+                <div className="preview-blur-lines" aria-hidden>
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </section>
+            ))}
+
+            <div className="report-paywall">
+              <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
+              <p>점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관돼요.</p>
+              {entry.pendingOrderId ? (
+                <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
+                  입금 승인 상태 확인 →
+                </Link>
+              ) : (
+                <button className="btn" onClick={startUnlock} disabled={paying}>
+                  {paying
+                    ? "결제 준비 중…"
+                    : user
+                      ? `결제하고 전문 보기 — ${entry.price.toLocaleString()}원`
+                      : `로그인 후 전문 보기 — ${entry.price.toLocaleString()}원`}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {error && <p className="report-error" role="alert">{error}</p>}
+
+        {!unlocked && user && (
+          <div className="referral-reward-card">
+            <span className="badge">친구 초대 보상</span>
+            <h2>친구가 가입하면 추가 상담권을 드려요</h2>
+            <p>전문 리딩은 결제 후 열리고, 친구 초대 보상은 추가 질문에 사용할 수 있어요.</p>
+            <div className="referral-reward-options referral-reward-options-single">
+              <button onClick={() => void shareReward()}>
+                <strong>캐릭터챗 질문권 10장</strong>
+                <span>친구 1명 가입 시 바로 적립</span>
+              </button>
+            </div>
+            <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
+            {shareNotice && <p className="referral-notice">{shareNotice}</p>}
+          </div>
+        )}
+
+        {unlocked && <ChatSection readingId={entry.readingId} blob={entry.blob} />}
+
+        <footer className="report-footer">
+          <button className="btn btn-ghost" onClick={() => downloadShareImage(entry.teaser)}>
+            📸 공유 이미지 저장
+          </button>
+          <Link className="btn btn-ghost" href="/reading">
+            다른 리딩 받기
+          </Link>
+          <button
+            className="btn btn-ghost report-remove"
+            onClick={() => {
+              if (window.confirm("이 리딩을 보관함에서 삭제할까요?")) {
+                removeFromArchive(entry.readingId);
+                router.push("/my");
+              }
+            }}
+          >
+            보관함에서 삭제
+          </button>
+          {entry.demo && (
+            <p className="report-demo">⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>
+          )}
+        </footer>
+      </article>
+
+      {showSignup && (
+        <SignupModal
+          onDone={(nextUser) => {
+            setUser(nextUser);
+            setShowSignup(false);
+            setShowPay(true);
+          }}
+          onClose={() => setShowSignup(false)}
+          reason="전문 리딩을 열려면 로그인이 필요해요"
+        />
+      )}
+
+      {showPay && user && (
+        <PaymentModal
+          readingId={entry.readingId}
+          price={entry.price}
+          userToken={user.token}
+          customerEmail={user.email}
+          depositorCode={depositorCode}
+          paying={paying}
+          onTransferSubmitted={confirmTransfer}
+          onClose={() => setShowPay(false)}
+        />
+      )}
+    </main>
+  );
+}
