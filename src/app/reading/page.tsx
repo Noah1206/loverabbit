@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { PRODUCTS } from "@/lib/products";
 import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
@@ -180,27 +180,83 @@ function PersonFields({
   onChange: (v: PersonForm) => void;
 }) {
   const set = (k: keyof PersonForm, v: string) => onChange({ ...value, [k]: v });
+
+  const yearRef = useRef<HTMLInputElement>(null);
+  const monthRef = useRef<HTMLInputElement>(null);
+  const dayRef = useRef<HTMLInputElement>(null);
+  const hourRef = useRef<HTMLSelectElement>(null);
+
+  // 숫자만 받고, 자리수가 차면 다음 칸으로 자동으로 넘긴다.
+  // soloJumpFrom: 한 글자만으로 값이 확정되는 경계.
+  //   월은 2~9로 시작하면 두 자리가 될 수 없고(10·11·12는 모두 1로 시작),
+  //   일은 4~9로 시작하면 두 자리가 될 수 없다(10~31은 1·2·3으로 시작).
+  const setDigits = (
+    key: "year" | "month" | "day",
+    raw: string,
+    maxLen: number,
+    next: HTMLInputElement | HTMLSelectElement | null,
+    soloJumpFrom?: number,
+  ) => {
+    const digits = raw.replace(/\D/g, "").slice(0, maxLen);
+    set(key, digits);
+    const filled = digits.length === maxLen;
+    const decided = soloJumpFrom !== undefined && digits.length === 1 && Number(digits) >= soloJumpFrom;
+    if (next && (filled || decided)) next.focus();
+  };
+
+  // 빈 칸에서 백스페이스를 누르면 앞 칸으로 되돌아간다.
+  const backspaceToPrev =
+    (current: string, prev: HTMLInputElement | null) => (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Backspace" && current === "" && prev) prev.focus();
+    };
+
   return (
     <div className="card" style={{ marginBottom: 18 }}>
       <strong style={{ display: "block", marginBottom: 14 }}>{title}</strong>
       <div className="row field">
         <div>
           <label>출생연도</label>
-          <input placeholder="1995" inputMode="numeric" value={value.year} onChange={(e) => set("year", e.target.value)} />
+          <input
+            ref={yearRef}
+            placeholder="1995"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={4}
+            value={value.year}
+            onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
+          />
         </div>
         <div>
           <label>월</label>
-          <input placeholder="7" inputMode="numeric" value={value.month} onChange={(e) => set("month", e.target.value)} />
+          <input
+            ref={monthRef}
+            placeholder="7"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={2}
+            value={value.month}
+            onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
+            onKeyDown={backspaceToPrev(value.month, yearRef.current)}
+          />
         </div>
         <div>
           <label>일</label>
-          <input placeholder="14" inputMode="numeric" value={value.day} onChange={(e) => set("day", e.target.value)} />
+          <input
+            ref={dayRef}
+            placeholder="14"
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={2}
+            value={value.day}
+            onChange={(e) => setDigits("day", e.target.value, 2, hourRef.current, 4)}
+            onKeyDown={backspaceToPrev(value.day, monthRef.current)}
+          />
         </div>
       </div>
       <div className="row field" style={{ marginBottom: 0 }}>
         <div>
           <label>태어난 시간</label>
-          <select value={value.hour} onChange={(e) => set("hour", e.target.value)}>
+          <select ref={hourRef} value={value.hour} onChange={(e) => set("hour", e.target.value)}>
             <option value="unknown">모름</option>
             {Array.from({ length: 24 }, (_, h) => (
               <option key={h} value={h}>{h}시</option>
