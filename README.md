@@ -36,14 +36,8 @@ READING_SECRET=충분히-긴-임의-문자열
 대시보드 SQL Editor에 직접 붙여넣으면 순서가 어긋나거나 한 건이 누락되기 쉽습니다.
 실제로 `20260818031752`가 빠져 대화권 결제가 죽어 있었던 적이 있으므로, 앞으로는 CLI로 일괄 적용합니다.
 
-최초 1회 설정:
-
-```bash
-npm run db:login          # 브라우저 인증
-npm run db:link           # 프로젝트 uaaxqqzdfmuzzwgqsdki 연결 (DB 비밀번호 입력)
-```
-
-이후 사용:
+프로젝트 링크와 이력 정리는 **2026-08-18에 완료**했습니다. 원격 장부는 로컬 파일 15개와 1:1로 맞춰져 있고
+`db:push`는 "up to date"를 반환합니다. 아래만 알면 됩니다.
 
 ```bash
 npm run db:status                 # 로컬 / 원격 적용 상태 비교
@@ -51,17 +45,23 @@ npm run db:new -- add_something   # 새 마이그레이션 파일 생성
 npm run db:push                   # 원격에 미적용분만 순서대로 적용
 ```
 
-> **주의 — 링크 직후 `db:push`를 바로 실행하지 마세요.**
-> 기존 마이그레이션은 대시보드에서 수동 적용돼 CLI 장부(`supabase_migrations.schema_migrations`)에
-> 기록이 없습니다. 이 상태로 push하면 전부 재실행되고, `20260817210211_user_profiles_theme.sql`은
-> `create table`에 `if not exists`가 없어 실패합니다.
-> 먼저 아래로 "이미 적용됨"만 기록한 뒤 사용하세요.
+인증은 둘 중 하나입니다. 새 PC에서 처음 쓸 때만 필요합니다.
 
 ```bash
-npx -y supabase@latest migration repair --status applied \
-  20260817080119 20260817080221 20260817081757 20260817095653 20260817100748 \
-  20260817110917 20260817122209 20260817123037 20260817125108 20260817210211 \
-  20260817235031 20260818023133 20260818023308 20260818031752 20260818081500
+npm run db:login                       # 실제 터미널(TTY)에서만 동작 — 브라우저 인증
+$env:SUPABASE_ACCESS_TOKEN = "sbp_..."  # 또는 PAT를 환경변수로 (비대화형 가능)
+npm run db:link                        # 프로젝트 uaaxqqzdfmuzzwgqsdki 연결
+```
+
+> **이력이 어긋났을 때만 `migration repair`.**
+> 대시보드 SQL Editor나 MCP로 직접 적용하면 장부(`supabase_migrations.schema_migrations`)에
+> 로컬 파일과 다른 버전이 기록되거나 아예 안 남습니다. 그 상태로 push하면 전부 재실행되는데,
+> `20260817210211_user_profiles_theme.sql`은 `create table`에 `if not exists`가 없어 실패합니다.
+> `npm run db:status`로 어긋난 버전을 확인한 뒤 아래로 장부만 맞추세요 (SQL은 실행되지 않습니다).
+
+```bash
+npx -y supabase@latest migration repair --status applied  <로컬에만 있는 버전...>
+npx -y supabase@latest migration repair --status reverted <원격에만 있는 버전...>
 ```
 
 ## 구조
