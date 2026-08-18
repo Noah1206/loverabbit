@@ -687,7 +687,7 @@ label {
   max-width: 640px;
   min-height: 100dvh;
   margin: 0 auto;
-  padding-bottom: 188px;
+  padding-bottom: calc(136px + env(safe-area-inset-bottom));
   overflow: clip;
   background:
     radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--product-c1, #cf3cff) 8%, transparent), transparent 38%),
