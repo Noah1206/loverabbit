@@ -211,7 +211,7 @@ export default function AppHome() {
         <section style={{ padding: "16px 0 0" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 12px" }}>
             <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
-            <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>그 사람의 속마음, 도령에게 묻기 — 무료 5번</span>
+            <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령·신녀와 비밀 상담 — 무료 5번</span>
           </div>
           <div className="shrine-scroll">
             {Object.values(CHARACTERS).map((ch, index) => (
