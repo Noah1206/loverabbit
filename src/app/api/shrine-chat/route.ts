@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
+import { FREE_CHAT_TURNS } from "@/lib/chat-products";
 import { CHARACTERS } from "@/lib/characters";
 import { restoreChatCredit, useChatCredit } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
@@ -16,7 +17,6 @@ interface Body {
   userToken?: string;
 }
 
-const FREE_TURNS = 5;
 const MAX_HISTORY = 20;
 const MAX_LEN = 500;
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
 
   let creditUserId: number | undefined;
   let creditsRemaining: number | undefined;
-  if (userTurns >= FREE_TURNS) {
+  if (userTurns >= FREE_CHAT_TURNS) {
     try {
       const user = await resolveUserToken(body.userToken);
       if (!user?.userId) {
@@ -49,8 +49,9 @@ export async function POST(req: NextRequest) {
       if (creditsRemaining === undefined) {
         return NextResponse.json(
           {
-            error: `무료 대화 ${FREE_TURNS}번을 모두 사용했어요. 친구를 초대하면 질문권 10장을 받을 수 있어요.`,
+            error: `무료 대화 ${FREE_CHAT_TURNS}번을 모두 사용했어요. 로그인 후 대화권을 결제하면 바로 이어갈 수 있어요.`,
             limitReached: true,
+            paymentRequired: true,
           },
           { status: 402 }
         );

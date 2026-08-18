@@ -39,22 +39,25 @@ export interface ReferralStatus {
   readingUnlocked: boolean;
 }
 
-export type OrderKind = "reading";
+export type OrderKind = "reading" | "membership" | "chat_credits";
 export type OrderMethod = "transfer" | "toss-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
 export interface DatabaseOrder {
   userId: number;
   readingId: string | null;
+  kind: OrderKind;
   status: OrderStatus;
   amount: number;
   providerOrderId: string | null;
+  metadata: Record<string, unknown>;
 }
 
 export interface TransferOrderRecord {
   id: number;
   userId: number;
-  readingId: string;
+  readingId: string | null;
+  kind: OrderKind;
   email: string | null;
   category: string | null;
   status: OrderStatus;
@@ -449,7 +452,7 @@ export async function getOrderByProviderOrderId(
 
   const { data, error } = await db
     .from("lr_orders")
-    .select("user_id,reading_id,status,amount,provider_order_id")
+    .select("user_id,reading_id,kind,status,amount,provider_order_id,metadata")
     .eq("provider_order_id", providerOrderId)
     .maybeSingle();
   if (error) throw databaseError("주문 조회", error);
@@ -457,14 +460,19 @@ export async function getOrderByProviderOrderId(
   return {
     userId: Number(data.user_id),
     readingId: data.reading_id ?? null,
+    kind: data.kind as OrderKind,
     status: data.status as OrderStatus,
     amount: Number(data.amount),
     providerOrderId: data.provider_order_id ?? null,
+    metadata:
+      data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
+        ? (data.metadata as Record<string, unknown>)
+        : {},
   };
 }
 
 const TRANSFER_ORDER_COLUMNS =
-  "id,user_id,reading_id,status,amount,depositor_code,metadata,created_at,paid_at";
+  "id,user_id,reading_id,kind,status,amount,depositor_code,metadata,created_at,paid_at";
 
 function mapTransferOrder(
   row: Record<string, unknown>,
@@ -475,7 +483,11 @@ function mapTransferOrder(
   return {
     id: Number(row.id),
     userId: Number(row.user_id),
-    readingId: String(row.reading_id),
+    readingId: typeof row.reading_id === "string" ? row.reading_id : null,
+    kind:
+      row.kind === "chat_credits" || row.kind === "membership"
+        ? row.kind
+        : "reading",
     email,
     category,
     status:
@@ -547,6 +559,81 @@ export async function createPendingTransferOrder(input: {
   return data ? mapTransferOrder(data as Record<string, unknown>) : null;
 }
 
+async function findPendingChatTransferOrder(userId: number) {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_orders")
+    .select(TRANSFER_ORDER_COLUMNS)
+    .eq("user_id", userId)
+    .eq("kind", "chat_credits")
+    .eq("method", "transfer")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw databaseError("대기 중인 캐릭터챗 계좌이체 주문 조회", error);
+  return data ? mapTransferOrder(data as Record<string, unknown>) : null;
+}
+
+export async function createPendingChatTransferOrder(input: {
+  userId: number;
+  productId: string;
+  credits: number;
+  amount: number;
+  depositorCode: string;
+}): Promise<TransferOrderRecord | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const existing = await findPendingChatTransferOrder(input.userId);
+  if (existing) return existing;
+
+  const now = new Date().toISOString();
+  const { data, error } = await db
+    .from("lr_orders")
+    .insert({
+      user_id: input.userId,
+      reading_id: null,
+      kind: "chat_credits",
+      method: "transfer",
+      status: "pending",
+      amount: input.amount,
+      depositor_code: input.depositorCode,
+      metadata: {
+        productId: input.productId,
+        credits: input.credits,
+        requested_at: now,
+      },
+      updated_at: now,
+    })
+    .select(TRANSFER_ORDER_COLUMNS)
+    .maybeSingle();
+
+  if (error?.code === "23505") return findPendingChatTransferOrder(input.userId);
+  if (error) throw databaseError("캐릭터챗 계좌이체 승인 요청 저장", error);
+  return data ? mapTransferOrder(data as Record<string, unknown>) : null;
+}
+
+export async function completeChatCreditOrder(
+  providerOrderId: string,
+  userId: number
+): Promise<{ orderId: number; creditsRemaining: number } | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db.rpc("lr_complete_chat_credit_order", {
+    p_provider_order_id: providerOrderId,
+    p_user_id: userId,
+  });
+  if (error) throw databaseError("캐릭터챗 결제 완료", error);
+  const row = Array.isArray(data) ? data[0] : null;
+  if (!row) return null;
+  return {
+    orderId: Number(row.order_id),
+    creditsRemaining: Number(row.credits_remaining),
+  };
+}
+
 export async function getTransferOrderForUser(
   orderId: number,
   userId: number
@@ -571,7 +658,6 @@ export async function listPendingTransferOrders(): Promise<TransferOrderRecord[]
   const { data, error } = await db
     .from("lr_orders")
     .select(TRANSFER_ORDER_COLUMNS)
-    .eq("kind", "reading")
     .eq("method", "transfer")
     .eq("status", "pending")
     .order("created_at", { ascending: true })
@@ -580,7 +666,13 @@ export async function listPendingTransferOrders(): Promise<TransferOrderRecord[]
 
   const rows = (data ?? []) as Record<string, unknown>[];
   const userIds = [...new Set(rows.map((row) => Number(row.user_id)).filter(Number.isFinite))];
-  const readingIds = [...new Set(rows.map((row) => String(row.reading_id)).filter(Boolean))];
+  const readingIds = [
+    ...new Set(
+      rows
+        .map((row) => (typeof row.reading_id === "string" ? row.reading_id : null))
+        .filter((value): value is string => Boolean(value))
+    ),
+  ];
 
   const usersById = new Map<number, string>();
   if (userIds.length > 0) {
@@ -608,7 +700,9 @@ export async function listPendingTransferOrders(): Promise<TransferOrderRecord[]
     mapTransferOrder(
       row,
       usersById.get(Number(row.user_id)) ?? null,
-      categoriesById.get(String(row.reading_id)) ?? null
+      row.kind === "chat_credits"
+        ? `캐릭터챗 대화권 ${Number((row.metadata as Record<string, unknown> | null)?.credits ?? 0)}회`
+        : categoriesById.get(String(row.reading_id)) ?? null
     )
   );
 }
@@ -617,7 +711,7 @@ export async function reviewTransferOrder(
   orderId: number,
   decision: "paid" | "cancelled",
   note?: string
-): Promise<{ orderId: number; readingId: string; status: "paid" | "cancelled" } | null> {
+): Promise<{ orderId: number; readingId: string | null; status: "paid" | "cancelled" } | null> {
   const db = getSupabaseAdmin();
   if (!db) return null;
   const { data, error } = await db.rpc("lr_review_transfer_order", {
@@ -630,7 +724,7 @@ export async function reviewTransferOrder(
   if (!row) return null;
   return {
     orderId: Number(row.order_id),
-    readingId: String(row.reading_id),
+    readingId: typeof row.reading_id === "string" ? row.reading_id : null,
     status: row.review_status === "cancelled" ? "cancelled" : "paid",
   };
 }

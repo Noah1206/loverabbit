@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
+import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 
@@ -141,14 +141,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       {/* ── 고정 CTA ── */}
       <div className="product-sticky-shell">
         <span className="product-sticky-hook">{p.emoji} {p.ctaHook}</span>
-        <Link href={cta} className="product-sticky-cta">
+        <ProductCtaGate href={cta} className="product-sticky-cta">
           <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>
           <span className="product-sticky-copy">
             <strong>{p.ctaLabel}</strong>
             <small>결과 일부 공개 · 전체 리포트는 확인 후 선택</small>
           </span>
           <span className="product-sticky-arrow" aria-hidden>→</span>
-        </Link>
+        </ProductCtaGate>
       </div>
     </main>
   );

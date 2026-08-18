@@ -18,10 +18,13 @@ const PROVIDER_LABEL: Record<SocialLoginProvider, string> = {
 export default function SignupModal({
   onClose,
   reason = "풀 리딩을 열려면 3초 가입이 필요해요",
+  nextPath,
 }: {
   onDone: (u: User) => void;
   onClose: () => void;
   reason?: string;
+  // 로그인 완료 후 돌아올 경로. 없으면 팝업을 연 현재 화면으로 복귀한다.
+  nextPath?: string;
 }) {
   const { showMatureLabels } = useTheme();
   const [error, setError] = useState("");
@@ -57,7 +60,7 @@ export default function SignupModal({
       setError(`${PROVIDER_LABEL[provider]} 로그인을 준비 중이에요.`);
       return;
     }
-    const next = `${window.location.pathname}${window.location.search}`;
+    const next = nextPath ?? `${window.location.pathname}${window.location.search}`;
     window.location.assign(`/auth/login?provider=${provider}&next=${encodeURIComponent(next)}`);
   };
 
