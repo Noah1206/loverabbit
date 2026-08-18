@@ -88,7 +88,10 @@ export async function POST(req: NextRequest) {
     const result = await chatComplete(
       character.persona,
       [...history, { role: "user", content: body.question.trim() }],
-      600
+      // 지문(표정 묘사)이 붙으면서 답이 길어졌다. 캐릭터 연기에는 추론이 필요 없으므로
+      // 사고 토큰을 끄고(=답이 중간에 잘리지 않게) 한도를 넉넉히 준다.
+      1000,
+      { thinking: false }
     );
     if (!result) {
       if (creditUserId) await restoreChatCredit(creditUserId);

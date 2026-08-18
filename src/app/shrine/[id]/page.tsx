@@ -16,6 +16,30 @@ function shrineSessionKey(characterId: string) {
   return `loverabbit_shrine_session_v1_${characterId}`;
 }
 
+// *별표 지문*(표정·몸짓 묘사)은 대사와 다르게 — 신당 색으로 기울여 보여준다.
+function renderSpeech(text: string, stageColor: string) {
+  return text.split(/(\*[^*]+\*)/g).map((part, index) =>
+    part.length > 2 && part.startsWith("*") && part.endsWith("*") ? (
+      <em
+        key={index}
+        style={{
+          display: "block",
+          margin: "2px 0 7px",
+          color: stageColor,
+          fontStyle: "italic",
+          fontSize: "0.86rem",
+          letterSpacing: "0.01em",
+          opacity: 0.95,
+        }}
+      >
+        {part.slice(1, -1)}
+      </em>
+    ) : (
+      <span key={index}>{part}</span>
+    )
+  );
+}
+
 // 신당 — 도령과의 몰입형 캐릭터 챗. 전체 화면(하단 탭바 위로 덮음), 입장 연출 → 대화.
 export default function ShrinePage() {
   const { showMatureLabels } = useTheme();
@@ -130,6 +154,7 @@ export default function ShrinePage() {
   };
 
   const locked = limitReached;
+  const theme = ch.theme;
 
   const refreshCredits = async () => {
     setError("");
@@ -181,7 +206,17 @@ export default function ShrinePage() {
           />
         )}
       </div>
-      <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,7,16,0.75) 0%, transparent 25%, transparent 55%, rgba(10,7,16,0.92) 85%)" }} />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: [
+            `radial-gradient(circle at 50% 30%, ${ch.theme.glow}, transparent 55%)`,
+            "linear-gradient(180deg, rgba(10,7,16,0.75) 0%, transparent 25%, transparent 55%, rgba(10,7,16,0.92) 85%)",
+          ].join(", "),
+        }}
+      />
 
       {/* 상단 바 */}
       <header style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
@@ -195,12 +230,12 @@ export default function ShrinePage() {
         <div style={{ position: "relative", marginTop: "auto", padding: "0 20px calc(24px + env(safe-area-inset-bottom))", textAlign: "center" }}>
           <h1 style={{ color: "#fff", fontSize: "1.7rem", marginBottom: 4 }}>{ch.title}</h1>
           <p style={{ color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>{ch.name} — {ch.tagline}</p>
-          <p style={{ display: "inline-block", background: "rgba(0,0,0,0.55)", color: "#ffd28a", fontSize: "0.85rem", fontWeight: 700, padding: "6px 14px", borderRadius: 999, marginBottom: 14 }}>
+          <p style={{ display: "inline-block", background: "rgba(0,0,0,0.55)", color: ch.theme.stage, border: `1px solid ${ch.theme.line}`, fontSize: "0.85rem", fontWeight: 700, padding: "6px 14px", borderRadius: 999, marginBottom: 14 }}>
             🔥 {count.toLocaleString()}명이 참여함
           </p>
           <button
             className="btn"
-            style={{ width: "100%", background: "linear-gradient(135deg, #a1131f, #5c0a12)", boxShadow: "0 6px 24px rgba(161,19,31,0.45)" }}
+            style={{ width: "100%", background: `linear-gradient(135deg, ${ch.theme.accent}, ${ch.theme.accent2})`, boxShadow: `0 6px 24px ${ch.theme.glow}` }}
             onClick={() => {
               // 대화는 로그인 사용자만 — 입장 단계에서 먼저 막는다
               if (!user) {
@@ -225,34 +260,34 @@ export default function ShrinePage() {
             <div style={{ minHeight: 0, display: "flex", flexDirection: "column", gap: 10, marginTop: "auto" }}>
               {msgs.map((m, i) =>
                 m.role === "user" ? (
-                  <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", background: "linear-gradient(135deg, #ff5c94, #b99df8)", color: "#fff", borderRadius: "16px 4px 16px 16px", padding: "10px 14px", fontSize: "0.92rem" }}>
+                  <div key={i} style={{ alignSelf: "flex-end", maxWidth: "80%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, color: "#fff", borderRadius: "16px 4px 16px 16px", padding: "10px 14px", fontSize: "0.92rem", boxShadow: `0 6px 18px ${theme.glow}` }}>
                     {m.content}
                   </div>
                 ) : (
-                  <div key={i} style={{ alignSelf: "flex-start", maxWidth: "85%", background: "rgba(16,10,20,0.85)", color: "#f2eaf6", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "4px 16px 16px 16px", padding: "11px 14px", fontSize: "0.92rem", whiteSpace: "pre-wrap" }}>
-                    <strong style={{ color: "#ffd28a", fontSize: "0.78rem", display: "block", marginBottom: 4 }}>{ch.name}</strong>
-                    {m.content}
+                  <div key={i} style={{ alignSelf: "flex-start", maxWidth: "85%", background: theme.ink, color: "#f2eaf6", border: `1px solid ${theme.line}`, borderRadius: "4px 16px 16px 16px", padding: "11px 14px", fontSize: "0.92rem", whiteSpace: "pre-wrap", lineHeight: 1.62 }}>
+                    <strong style={{ color: theme.accent, fontSize: "0.78rem", display: "block", marginBottom: 5, letterSpacing: "0.04em" }}>{ch.name}</strong>
+                    {renderSpeech(m.content, theme.stage)}
                   </div>
                 )
               )}
               {sending && (
-                <div className="pulse" style={{ alignSelf: "flex-start", background: "rgba(16,10,20,0.85)", color: "rgba(255,255,255,0.6)", borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.9rem" }}>
+                <div className="pulse" style={{ alignSelf: "flex-start", background: theme.ink, border: `1px solid ${theme.line}`, color: theme.stage, borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.9rem", fontStyle: "italic" }}>
                   {ch.name}이 기운을 읽는 중…
                 </div>
               )}
-              {error && <p style={{ color: "#ff8ab2", fontSize: "0.85rem" }}>{error}</p>}
+              {error && <p style={{ color: theme.stage, fontSize: "0.85rem" }}>{error}</p>}
             </div>
           </div>
 
           <div style={{ padding: "10px 16px calc(14px + env(safe-area-inset-bottom))" }}>
             {locked ? (
-              <div style={{ textAlign: "center", background: "rgba(16,10,20,0.9)", borderRadius: 16, padding: 16 }}>
+              <div style={{ textAlign: "center", background: theme.ink, border: `1px solid ${theme.line}`, borderRadius: 16, padding: 16 }}>
                 <span className="badge">무료 대화 {FREE_CHAT_TURNS}/{FREE_CHAT_TURNS} 사용</span>
                 <p style={{ color: "#fff", fontSize: "0.94rem", margin: "10px 0" }}>
                   여기서 끊지 마세요. {ch.name}의 다음 답장은 {!user || signupRequired ? "로그인" : "대화권 결제"} 후 이어집니다.
                 </p>
                 {!user || signupRequired ? (
-                  <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>
+                  <button className="btn" style={{ width: "100%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={() => setShowSignup(true)}>
                     로그인하고 대화 이어가기 →
                   </button>
                 ) : (
@@ -260,7 +295,7 @@ export default function ShrinePage() {
                     <div style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.82rem", marginBottom: 10 }}>
                       {DEFAULT_CHAT_PRODUCT.name} · {DEFAULT_CHAT_PRODUCT.price.toLocaleString()}원
                     </div>
-                    <button className="btn" style={{ width: "100%" }} onClick={() => setShowPay(true)}>
+                    <button className="btn" style={{ width: "100%", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={() => setShowPay(true)}>
                       대화권 결제하고 계속하기 →
                     </button>
                     <button className="btn btn-ghost" style={{ width: "100%", marginTop: 8 }} onClick={() => void refreshCredits()}>
@@ -282,9 +317,9 @@ export default function ShrinePage() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") send(); }}
                     maxLength={500}
-                    style={{ background: "rgba(16,10,20,0.85)", border: "1px solid rgba(255,255,255,0.18)", color: "#fff" }}
+                    style={{ background: theme.ink, border: `1px solid ${theme.line}`, color: "#fff" }}
                   />
-                  <button className="btn" style={{ padding: "12px 20px", whiteSpace: "nowrap" }} onClick={send} disabled={sending || !input.trim()}>
+                  <button className="btn" style={{ padding: "12px 20px", whiteSpace: "nowrap", background: `linear-gradient(135deg, ${theme.accent}, ${theme.accent2})`, boxShadow: `0 6px 18px ${theme.glow}` }} onClick={send} disabled={sending || !input.trim()}>
                     전송
                   </button>
                 </div>

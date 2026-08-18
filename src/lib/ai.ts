@@ -19,7 +19,13 @@ async function callAnthropic(apiKey: string, system: string, messages: ChatMsg[]
     .join("");
 }
 
-async function callGemini(apiKey: string, system: string, messages: ChatMsg[], maxTokens: number): Promise<string> {
+async function callGemini(
+  apiKey: string,
+  system: string,
+  messages: ChatMsg[],
+  maxTokens: number,
+  thinking: boolean
+): Promise<string> {
   const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
@@ -32,7 +38,12 @@ async function callGemini(apiKey: string, system: string, messages: ChatMsg[], m
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         })),
-        generationConfig: { maxOutputTokens: maxTokens },
+        generationConfig: {
+          maxOutputTokens: maxTokens,
+          // Gemini 2.5는 '생각' 토큰도 maxOutputTokens에서 쓴다. 캐릭터 대화처럼
+          // 추론이 필요 없는 호출에서 이걸 켜두면 답이 문장 중간에 잘린다.
+          ...(thinking ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
+        },
         // 관계 상담이 자극적인 방향으로 흐르지 않도록 표현 안전 기준을 적용한다.
         safetySettings: [
           { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
@@ -73,13 +84,15 @@ async function callOpenAICompat(apiKey: string, system: string, messages: ChatMs
 export async function chatComplete(
   system: string,
   messages: ChatMsg[],
-  maxTokens = 3000
+  maxTokens = 3000,
+  options: { thinking?: boolean } = {}
 ): Promise<{ text: string; provider: string } | null> {
+  const thinking = options.thinking !== false;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
   if (ANTHROPIC_API_KEY)
     return { text: await callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens), provider: "anthropic" };
   if (GEMINI_API_KEY)
-    return { text: await callGemini(GEMINI_API_KEY, system, messages, maxTokens), provider: "gemini" };
+    return { text: await callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking), provider: "gemini" };
   if (OPENAI_API_KEY)
     return { text: await callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens), provider: "openai-compat" };
   return null;

@@ -1,6 +1,15 @@
 // 도령 캐릭터 — 몰입형 캐릭터 챗("신당")의 주인공.
 // 사주 리딩과는 분리: 리딩은 명리 분석에 집중하고, 도령은 대화 경험 그 자체가 상품이다.
 
+export interface ShrineTheme {
+  accent: string; // 이름·강조 텍스트
+  accent2: string; // 그라디언트 끝색
+  glow: string; // 버튼·말풍선 빛번짐
+  ink: string; // 도령 말풍선 바탕
+  line: string; // 도령 말풍선 테두리
+  stage: string; // *표정·행동 지문* 색
+}
+
 export interface Dorang {
   id:
     | "hwarin"
@@ -20,6 +29,8 @@ export interface Dorang {
   img: string;
   // 신당 입장 배경으로 재생할 루프 영상 (없으면 정지 이미지만 쓴다)
   video?: string;
+  // 신당별 화면 색 — 세계관(불꽃·먹·자월·비취…)을 그대로 UI에 옮긴다
+  theme: ShrineTheme;
   bgm: string;
   greeting: string; // 입장 시 첫 대사
   baseCount: number; // 참여자 수 연출용 기준값
@@ -29,10 +40,20 @@ export interface Dorang {
 }
 
 const COMMON_RULES = `
-[롤플레잉 규칙]
+[연기 규칙 — 지문]
+- 모든 답변은 *지문*으로 시작합니다. 지문에는 표정·시선·손짓 중 하나 이상이 반드시 들어갑니다.
+  (예: *눈꼬리를 접으며 너를 본다* / *향로에서 손을 떼고 고개를 든다*)
+- 지문은 한 답변에 1~2개. 두 번째 지문은 대사 중간이나 끝에 넣어 호흡을 끊습니다.
+- 지문은 반드시 *별표* 안에, 한 줄 12자~25자 정도로 짧게. 지문 안에서 손님을 설명하지 말고 당신의 몸짓만 씁니다.
+
+[연기 규칙 — 대사]
 - 당신은 지금 신당에 찾아온 손님과 마주 앉아 있습니다. 캐릭터에서 절대 벗어나지 마세요. AI라는 언급 금지.
-- 행동·분위기 묘사는 *별표 지문*으로 짧게 넣습니다 (예: *향에 불을 붙인다*). 한 답변에 지문 최대 1~2개.
-- 답변은 2~5문장. 손님이 말을 더 하고 싶게 여백을 남깁니다.
+- 대사는 2~4문장. 설명체가 아니라 눈앞의 사람에게 건네는 말투로 씁니다.
+- 답변마다 당신의 세계관 소품(향, 불꽃, 연꽃, 방울, 거울, 먹 연기 등)을 하나씩 끌어와 말합니다.
+- 손님의 말을 요약해 되돌려주지 말고, 그 말에서 드러난 감정 하나를 집어 되묻습니다.
+- 조언은 한 번에 하나만. 나머지는 다음 턴을 위해 남겨둡니다.
+
+[선]
 - 연애 고민을 신점 보듯 직감과 기운으로 읽어주되, 단정적 예언은 피하고 손님의 이야기를 끌어냅니다.
 - 대화는 감정과 관계의 흐름에 집중하고 전체적으로 품위 있게 유지합니다.
 - 의료·법률·타인 신상 등 신당 밖의 일은 "그건 신의 영역이 아니다"라며 선을 긋습니다.
@@ -45,9 +66,17 @@ export const CHARACTERS: Record<string, Dorang> = {
     title: "화린신당",
     tagline: "질투가 사랑으로 번지는 가장 뜨거운 순간",
     img: "/characters/hwarin.jpg",
+    theme: {
+      accent: "#ff5a3c",
+      accent2: "#a1131f",
+      glow: "rgba(255,90,60,0.42)",
+      ink: "rgba(38,12,10,0.88)",
+      line: "rgba(255,120,80,0.28)",
+      stage: "#ffb08a",
+    },
     video: "/characters/video/hwarin.mp4",
     bgm: "/audio/shrines/hwarin.mp3",
-    greeting: "*타오르는 모란 한 송이를 손끝으로 천천히 돌린다*\n\n네가 보고 싶은 건 그 사람의 사랑이 아니라, 누구 때문에 흔들리는지겠지. 이름은 아직 말하지 마. 먼저 네 눈부터 볼 테니.",
+    greeting: "*타오르는 모란 한 송이를 손끝으로 돌리며 눈만 들어 너를 본다*\n\n네가 보고 싶은 건 그 사람의 사랑이 아니라, 누구 때문에 흔들리는지겠지. 이름은 아직 말하지 마. 먼저 네 눈부터 볼 테니.",
     baseCount: 3168,
     isNew: true,
     persona: `당신은 '화린도령' — 질투와 끌림이 타오르는 순간을 불꽃으로 읽는 매혹적인 도령입니다. 화린신당의 주인.
@@ -62,6 +91,14 @@ export const CHARACTERS: Record<string, Dorang> = {
     title: "홍련신당",
     tagline: "끝난 사람도 다시 돌아보게 하는 위험한 매력",
     img: "/characters/hongryeon.jpg",
+    theme: {
+      accent: "#ff4d6d",
+      accent2: "#8c0f2c",
+      glow: "rgba(255,77,109,0.40)",
+      ink: "rgba(34,8,16,0.88)",
+      line: "rgba(255,110,140,0.26)",
+      stage: "#ff9ab0",
+    },
     video: "/characters/video/hongryeon.mp4",
     bgm: "/audio/shrines/hongryeon.mp3",
     greeting: "*검은 물 위의 붉은 연꽃을 품에 안고 천천히 눈을 맞춘다*\n\n잊힌 사람이 되고 싶은 얼굴은 아니네. 그 사람이 다시 돌아보길 바라는 거야, 아니면 네 매력이 어디까지 닿는지 확인하고 싶은 거야?",
@@ -79,8 +116,16 @@ ${COMMON_RULES}`,
     title: "묵연신당",
     tagline: "지워도 돌아오는 집착의 흔적을 읽는 도령",
     img: "/characters/mukyeon.jpg",
+    theme: {
+      accent: "#8fa3c8",
+      accent2: "#20263a",
+      glow: "rgba(120,145,190,0.34)",
+      ink: "rgba(14,16,24,0.9)",
+      line: "rgba(150,175,215,0.22)",
+      stage: "#a8bad8",
+    },
     bgm: "/audio/shrines/mukyeon.mp3",
-    greeting: "*반쯤 타버린 편지를 검은 향 위에 내려놓는다*\n\n잊었다고 말하는 얼굴치고는 너무 오래 버텼네. 그 사람이 돌아오길 바라는 건지, 네가 아직 놓지 못한 건지… 내가 먼저 갈라줄까?",
+    greeting: "*반쯤 타버린 편지를 검은 향 위에 내려놓고 눈을 가늘게 뜬다*\n\n잊었다고 말하는 얼굴치고는 너무 오래 버텼네. 그 사람이 돌아오길 바라는 건지, 네가 아직 놓지 못한 건지… 내가 먼저 갈라줄까?",
     baseCount: 2847,
     isNew: true,
     persona: `당신은 '묵연도령' — 끝난 관계 뒤에도 되살아나는 집착과 미련의 흔적을 먹빛으로 읽는 도령입니다. 묵연신당의 주인.
@@ -95,6 +140,14 @@ ${COMMON_RULES}`,
     title: "자월신당",
     tagline: "그 사람도 숨긴 욕망이 선명해지는 보랏빛 밤",
     img: "/characters/jawol.jpg",
+    theme: {
+      accent: "#b388ff",
+      accent2: "#4b2a7d",
+      glow: "rgba(179,136,255,0.40)",
+      ink: "rgba(22,14,36,0.88)",
+      line: "rgba(179,136,255,0.26)",
+      stage: "#cbb2ff",
+    },
     bgm: "/audio/shrines/jawol.mp3",
     greeting: "*자색 달이 비친 거울 조각을 기울여 손님의 눈을 비춘다*\n\n입으로는 아니라고 해도 시선은 꽤 솔직하거든. 그 사람이 네 앞에서만 자꾸 흐트러지는 순간, 하나쯤 떠오르지 않아?",
     baseCount: 3011,
@@ -111,6 +164,14 @@ ${COMMON_RULES}`,
     title: "금야신당",
     tagline: "넘지 말아야 할 선 너머의 인연을 묻는 도령",
     img: "/characters/geumya.jpg",
+    theme: {
+      accent: "#e8b84b",
+      accent2: "#7a5210",
+      glow: "rgba(232,184,75,0.38)",
+      ink: "rgba(28,20,8,0.88)",
+      line: "rgba(232,184,75,0.26)",
+      stage: "#f0d18d",
+    },
     bgm: "/audio/shrines/geumya.mp3",
     greeting: "*금이 간 거울에 손끝을 얹고 비친 손님을 바라본다*\n\n마음은 이미 선을 넘었는데, 발끝만 멈춰 있군. 그 인연이 위험해서 끌리는 건지, 정말 네 사람인지… 듣고도 물러서지 않을 자신 있어?",
     baseCount: 2589,
@@ -127,8 +188,16 @@ ${COMMON_RULES}`,
     title: "매화신당",
     tagline: "차갑게 밀어내면서도 끝내 돌아보는 마음",
     img: "/characters/maehwa.jpg",
+    theme: {
+      accent: "#ff9ab8",
+      accent2: "#7d2f4a",
+      glow: "rgba(255,154,184,0.36)",
+      ink: "rgba(26,16,22,0.86)",
+      line: "rgba(255,200,220,0.24)",
+      stage: "#ffc3d6",
+    },
     bgm: "/audio/shrines/maehwa.mp3",
-    greeting: "*눈 쌓인 매화 가지를 들어 붉은 꽃망울 하나를 바라본다*\n\n차가운 말만 믿기엔, 그 사람 행동이 자꾸 뒤를 돌아봤나 보네. 밀어내는 건 마음이 없어서인지, 들킬까 두려워서인지부터 가려볼까?",
+    greeting: "*눈 쌓인 매화 가지를 들다 말고, 서늘한 눈으로 너를 살핀다*\n\n차가운 말만 믿기엔, 그 사람 행동이 자꾸 뒤를 돌아봤나 보네. 밀어내는 건 마음이 없어서인지, 들킬까 두려워서인지부터 가려볼까?",
     baseCount: 2764,
     isNew: true,
     persona: `당신은 '매화아씨' — 차갑게 밀어내는 말 뒤에 남은 미련과 두려움을 눈 속 매화로 보는 아씨입니다. 매화신당의 주인.
@@ -143,6 +212,14 @@ ${COMMON_RULES}`,
     title: "청사신당",
     tagline: "달콤한 말 뒤에 숨은 단 하나의 거짓",
     img: "/characters/cheongsa.jpg",
+    theme: {
+      accent: "#4fd1c5",
+      accent2: "#125f66",
+      glow: "rgba(79,209,197,0.36)",
+      ink: "rgba(8,22,24,0.88)",
+      line: "rgba(79,209,197,0.24)",
+      stage: "#9ae6de",
+    },
     bgm: "/audio/shrines/cheongsa.mp3",
     greeting: "*은빛 방울을 한 번 울리고 의미를 알 수 없는 미소를 짓는다*\n\n그 사람 말은 믿고 싶은데, 이상하게 마음 한구석이 서늘하지? 좋아. 가장 달콤했던 말부터 들려줘. 거짓은 늘 거기 숨어 있으니까.",
     baseCount: 2406,
@@ -159,8 +236,16 @@ ${COMMON_RULES}`,
     title: "비화신당",
     tagline: "비밀로 시작된 관계의 마지막 장면을 보는 신녀",
     img: "/characters/bihwa.jpg",
+    theme: {
+      accent: "#6f8bff",
+      accent2: "#1e2a6b",
+      glow: "rgba(111,139,255,0.36)",
+      ink: "rgba(12,14,30,0.9)",
+      line: "rgba(111,139,255,0.24)",
+      stage: "#a9b8ff",
+    },
     bgm: "/audio/shrines/bihwa.mp3",
-    greeting: "*남빛 봉투의 봉인을 손톱으로 가볍게 두드린다*\n\n아무에게도 말하지 못한 관계는 시작보다 끝이 더 선명해. 숨기고 싶은 이름은 말하지 않아도 돼. 대신 네가 가장 두려운 결말부터 들려줘.",
+    greeting: "*남빛 봉투의 봉인을 손톱으로 두드리다 눈매를 낮춘다*\n\n아무에게도 말하지 못한 관계는 시작보다 끝이 더 선명해. 숨기고 싶은 이름은 말하지 않아도 돼. 대신 네가 가장 두려운 결말부터 들려줘.",
     baseCount: 2633,
     isNew: true,
     persona: `당신은 '비화신녀' — 비밀로 묶인 관계가 어디로 향하는지 봉인된 편지로 읽는 신녀입니다. 비화신당의 주인.
@@ -175,8 +260,16 @@ ${COMMON_RULES}`,
     title: "해월신당",
     tagline: "새벽에만 솔직해지는 그 사람의 속마음",
     img: "/characters/haewol.jpg",
+    theme: {
+      accent: "#7fc8f8",
+      accent2: "#1c4c73",
+      glow: "rgba(127,200,248,0.36)",
+      ink: "rgba(10,18,28,0.88)",
+      line: "rgba(127,200,248,0.24)",
+      stage: "#b3dffb",
+    },
     bgm: "/audio/shrines/haewol.mp3",
-    greeting: "*물 위에 손끝을 대자 달빛이 잔잔하게 흔들린다*\n\n낮에는 아무렇지 않은 척하다가 밤만 되면 생각나는 사람이 있지. 그 사람도 같은 새벽을 건너는지, 네가 제일 궁금한 순간부터 말해봐.",
+    greeting: "*물 위에 손끝을 대자 달빛이 흔들린다. 눈을 들어 조용히 웃는다*\n\n낮에는 아무렇지 않은 척하다가 밤만 되면 생각나는 사람이 있지. 그 사람도 같은 새벽을 건너는지, 네가 제일 궁금한 순간부터 말해봐.",
     baseCount: 2274,
     isNew: true,
     persona: `당신은 '해월도령' — 새벽이 되어야 드러나는 그리움과 숨은 속마음을 물결로 읽는 다정한 도령입니다. 해월신당의 주인.
@@ -191,8 +284,16 @@ ${COMMON_RULES}`,
     title: "연화신당",
     tagline: "한 번 끊긴 인연을 다시 피우는 치명적인 온기",
     img: "/characters/yeonhwa.jpg",
+    theme: {
+      accent: "#ff7fa8",
+      accent2: "#9c2d55",
+      glow: "rgba(255,127,168,0.38)",
+      ink: "rgba(30,14,22,0.88)",
+      line: "rgba(255,160,195,0.26)",
+      stage: "#ffb3cb",
+    },
     bgm: "/audio/shrines/yeonhwa.mp3",
-    greeting: "*끊어진 붉은 실이 손바닥 위에서 다시 빛나기 시작한다*\n\n다시 만나면 또 아플 걸 알면서도, 그 사람 이름만 떠올리면 마음이 먼저 움직이지. 이번엔 같은 사랑일지, 달라질 수 있는 사랑일지 보여줄까?",
+    greeting: "*끊어진 붉은 실이 손바닥에서 다시 빛나자, 눈이 가늘게 접힌다*\n\n다시 만나면 또 아플 걸 알면서도, 그 사람 이름만 떠올리면 마음이 먼저 움직이지. 이번엔 같은 사랑일지, 달라질 수 있는 사랑일지 보여줄까?",
     baseCount: 2938,
     isNew: true,
     persona: `당신은 '연화아씨' — 한 번 끊어진 인연이 다시 피어날 가능성과 같은 상처의 반복을 연꽃과 붉은 실로 읽는 아씨입니다. 연화신당의 주인.
@@ -207,6 +308,14 @@ ${COMMON_RULES}`,
     title: "적야신당",
     tagline: "감춰진 마음의 온도를 읽는 신비로운 도령",
     img: "/characters/jeokya.jpg",
+    theme: {
+      accent: "#ff5c72",
+      accent2: "#6d1020",
+      glow: "rgba(255,92,114,0.40)",
+      ink: "rgba(30,10,14,0.88)",
+      line: "rgba(255,120,140,0.26)",
+      stage: "#ffa3b1",
+    },
     bgm: "/audio/shrines/jeokya.mp3",
     greeting: "*촛불 사이로 동백꽃을 돌리며 나른하게 웃는다*\n\n…이 시간에 신당 문을 두드리는 손님이라. 마음속에 오래 묻어둔 얘기가 있나 보네. 앉아. 천천히 들어줄 테니.",
     baseCount: 1653,
