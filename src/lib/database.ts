@@ -327,6 +327,99 @@ async function changeChatCredits(
   throw new Error("질문권 변경이 겹쳤어요. 잠시 후 다시 시도해주세요.");
 }
 
+// chat_free_turns_used 마이그레이션이 아직 적용되지 않은 DB를 만났을 때의 신호.
+// 대화를 막아버리는 대신 무료로 통과시키고 서버 로그에 경고를 남긴다.
+export const FREE_TURNS_UNTRACKED = -1;
+
+function isMissingColumn(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false;
+  return (
+    error.code === "42703" ||
+    error.code === "PGRST204" ||
+    (error.message ?? "").includes("chat_free_turns_used")
+  );
+}
+
+// 무료 대화 소진량은 서버가 센다. 성공하면 남은 무료 횟수, 이미 다 썼으면 null.
+export async function useFreeChatTurn(
+  userId: number,
+  freeTurns: number
+): Promise<number | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const { data: user, error: readError } = await db
+      .from("lr_users")
+      .select("chat_free_turns_used")
+      .eq("id", userId)
+      .maybeSingle();
+    if (isMissingColumn(readError)) {
+      console.warn("[shrine-chat] chat_free_turns_used 컬럼이 없어 무료 대화를 세지 못했습니다. 마이그레이션을 적용하세요.");
+      return FREE_TURNS_UNTRACKED;
+    }
+    if (readError) throw databaseError("무료 대화 조회", readError);
+    if (!user) return null;
+
+    const used = Number(user.chat_free_turns_used ?? 0);
+    if (used >= freeTurns) return null;
+
+    const { data: updated, error: updateError } = await db
+      .from("lr_users")
+      .update({ chat_free_turns_used: used + 1, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+      .eq("chat_free_turns_used", used)
+      .select("chat_free_turns_used")
+      .maybeSingle();
+    if (isMissingColumn(updateError)) {
+      console.warn("[shrine-chat] chat_free_turns_used 컬럼이 없어 무료 대화를 세지 못했습니다. 마이그레이션을 적용하세요.");
+      return FREE_TURNS_UNTRACKED;
+    }
+    if (updateError) throw databaseError("무료 대화 차감", updateError);
+    if (updated) return Math.max(0, freeTurns - Number(updated.chat_free_turns_used));
+  }
+  throw new Error("대화 요청이 겹쳤어요. 잠시 후 다시 시도해주세요.");
+}
+
+// AI 호출이 실패했을 때 방금 깎은 무료 턴을 되돌린다.
+export async function restoreFreeChatTurn(userId: number): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  const { data, error } = await db
+    .from("lr_users")
+    .select("chat_free_turns_used")
+    .eq("id", userId)
+    .maybeSingle();
+  if (isMissingColumn(error)) return;
+  if (error) throw databaseError("무료 대화 복구 조회", error);
+  const used = Number(data?.chat_free_turns_used ?? 0);
+  if (used <= 0) return;
+  const { error: updateError } = await db
+    .from("lr_users")
+    .update({ chat_free_turns_used: used - 1, updated_at: new Date().toISOString() })
+    .eq("id", userId)
+    .eq("chat_free_turns_used", used);
+  if (updateError) throw databaseError("무료 대화 복구", updateError);
+}
+
+export async function getChatUsage(
+  userId: number
+): Promise<{ freeTurnsUsed: number; chatCredits: number } | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_users")
+    .select("chat_free_turns_used, chat_credits")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw databaseError("대화 사용량 조회", error);
+  if (!data) return null;
+  return {
+    freeTurnsUsed: Number(data.chat_free_turns_used ?? 0),
+    chatCredits: Number(data.chat_credits ?? 0),
+  };
+}
+
 export async function useChatCredit(userId: number): Promise<number | null> {
   return changeChatCredits(userId, -1);
 }

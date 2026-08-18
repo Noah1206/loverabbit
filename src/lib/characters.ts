@@ -18,6 +18,8 @@ export interface Dorang {
   title: string; // 신당 이름
   tagline: string;
   img: string;
+  // 신당 입장 배경으로 재생할 루프 영상 (없으면 정지 이미지만 쓴다)
+  video?: string;
   bgm: string;
   greeting: string; // 입장 시 첫 대사
   baseCount: number; // 참여자 수 연출용 기준값
@@ -43,6 +45,7 @@ export const CHARACTERS: Record<string, Dorang> = {
     title: "화린신당",
     tagline: "질투가 사랑으로 번지는 가장 뜨거운 순간",
     img: "/characters/hwarin.jpg",
+    video: "/characters/video/hwarin.mp4",
     bgm: "/audio/shrines/hwarin.mp3",
     greeting: "*타오르는 모란 한 송이를 손끝으로 천천히 돌린다*\n\n네가 보고 싶은 건 그 사람의 사랑이 아니라, 누구 때문에 흔들리는지겠지. 이름은 아직 말하지 마. 먼저 네 눈부터 볼 테니.",
     baseCount: 3168,
@@ -59,6 +62,7 @@ export const CHARACTERS: Record<string, Dorang> = {
     title: "홍련신당",
     tagline: "끝난 사람도 다시 돌아보게 하는 위험한 매력",
     img: "/characters/hongryeon.jpg",
+    video: "/characters/video/hongryeon.mp4",
     bgm: "/audio/shrines/hongryeon.mp3",
     greeting: "*검은 물 위의 붉은 연꽃을 품에 안고 천천히 눈을 맞춘다*\n\n잊힌 사람이 되고 싶은 얼굴은 아니네. 그 사람이 다시 돌아보길 바라는 거야, 아니면 네 매력이 어디까지 닿는지 확인하고 싶은 거야?",
     baseCount: 3376,

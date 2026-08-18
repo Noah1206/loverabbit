@@ -35,6 +35,8 @@ export default function ShrinePage() {
   const [error, setError] = useState("");
   const [count, setCount] = useState(0);
   const [user, setUser] = useState<User | null>(null);
+  // 남은 무료 대화 수는 서버가 알려준다 (null = 아직 모름)
+  const [freeTurnsLeft, setFreeTurnsLeft] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -85,6 +87,11 @@ export default function ShrinePage() {
   const send = async () => {
     const q = input.trim();
     if (!q || sending) return;
+    // 대화는 로그인 사용자만 — 요청을 보내기 전에 막는다
+    if (!user) {
+      setShowSignup(true);
+      return;
+    }
     setSending(true);
     setError("");
     try {
@@ -95,9 +102,13 @@ export default function ShrinePage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.needSignup) {
+          setSignupRequired(true);
+          setShowSignup(true);
+        }
         if (data.limitReached) {
           setLimitReached(true);
-          setSignupRequired(data.needSignup === true);
+          setFreeTurnsLeft(0);
         }
         throw new Error(data.error ?? "대화 실패");
       }
@@ -107,6 +118,7 @@ export default function ShrinePage() {
         setUser(nextUser);
         saveUser(nextUser);
       }
+      setFreeTurnsLeft(typeof data.freeTurnsRemaining === "number" ? data.freeTurnsRemaining : 0);
       setInput("");
       setLimitReached(false);
       setSignupRequired(false);
@@ -118,7 +130,6 @@ export default function ShrinePage() {
   };
 
   const locked = limitReached;
-  const usedFreeTurns = msgs.filter((message) => message.role === "user").length;
 
   const refreshCredits = async () => {
     setError("");
@@ -147,7 +158,7 @@ export default function ShrinePage() {
 
   return (
     <div className="shrine-immersive-shell" style={{ position: "fixed", inset: 0, zIndex: 70, background: "#0a0710", display: "flex", flexDirection: "column" }}>
-      {/* 배경 — 도령 전신 */}
+      {/* 배경 — 도령 전신. 루프 영상이 있는 신당은 인물이 움직인다 */}
       <div
         aria-hidden
         style={{
@@ -156,7 +167,20 @@ export default function ShrinePage() {
           filter: entered ? "brightness(0.45)" : "brightness(0.85)",
           transition: "filter 0.8s",
         }}
-      />
+      >
+        {ch.video && (
+          <video
+            src={ch.video}
+            poster={ch.img}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }}
+          />
+        )}
+      </div>
       <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,7,16,0.75) 0%, transparent 25%, transparent 55%, rgba(10,7,16,0.92) 85%)" }} />
 
       {/* 상단 바 */}
@@ -178,14 +202,19 @@ export default function ShrinePage() {
             className="btn"
             style={{ width: "100%", background: "linear-gradient(135deg, #a1131f, #5c0a12)", boxShadow: "0 6px 24px rgba(161,19,31,0.45)" }}
             onClick={() => {
+              // 대화는 로그인 사용자만 — 입장 단계에서 먼저 막는다
+              if (!user) {
+                setShowSignup(true);
+                return;
+              }
               setEntered(true);
               if (msgs.length === 0) setMsgs([{ role: "assistant", content: ch.greeting }]);
             }}
           >
-            지금 신당으로 입장하기
+            {user ? "지금 신당으로 입장하기" : "로그인하고 신당 입장하기"}
           </button>
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginTop: 10 }}>
-            {showMatureLabels && "만 19세 이상 · "}무료 대화 {FREE_CHAT_TURNS}번
+            {showMatureLabels && "만 19세 이상 · "}로그인하면 무료 대화 {FREE_CHAT_TURNS}번
             {user?.chatCredits ? ` · 보상 질문권 ${user.chatCredits}장` : " · 친구 초대 시 질문권 10장"}
           </p>
         </div>
@@ -220,7 +249,7 @@ export default function ShrinePage() {
               <div style={{ textAlign: "center", background: "rgba(16,10,20,0.9)", borderRadius: 16, padding: 16 }}>
                 <span className="badge">무료 대화 {FREE_CHAT_TURNS}/{FREE_CHAT_TURNS} 사용</span>
                 <p style={{ color: "#fff", fontSize: "0.94rem", margin: "10px 0" }}>
-                  여기서 끊지 마세요. {ch.name}의 다음 답장은 로그인 후 이어집니다.
+                  여기서 끊지 마세요. {ch.name}의 다음 답장은 {!user || signupRequired ? "로그인" : "대화권 결제"} 후 이어집니다.
                 </p>
                 {!user || signupRequired ? (
                   <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>
@@ -259,11 +288,13 @@ export default function ShrinePage() {
                     전송
                   </button>
                 </div>
-                {usedFreeTurns < FREE_CHAT_TURNS && (
-                  <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", textAlign: "center", marginTop: 7 }}>
-                    무료 대화 {FREE_CHAT_TURNS - usedFreeTurns}번 남음 · 이후 로그인 및 결제
-                  </p>
-                )}
+                <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.72rem", textAlign: "center", marginTop: 7 }}>
+                  {freeTurnsLeft === null
+                    ? `로그인 계정당 무료 대화 ${FREE_CHAT_TURNS}번 · 이후 대화권 결제`
+                    : freeTurnsLeft > 0
+                      ? `무료 대화 ${freeTurnsLeft}번 남음 · 이후 대화권 결제`
+                      : `무료 대화를 모두 썼어요 · 대화권 ${user?.chatCredits ?? 0}회 보유`}
+                </p>
               </>
             )}
           </div>
@@ -276,9 +307,12 @@ export default function ShrinePage() {
             setUser(nextUser);
             setSignupRequired(false);
             setShowSignup(false);
+            // 로그인하고 돌아오면 곧바로 신당 안으로 들여보낸다
+            setEntered(true);
+            if (msgs.length === 0) setMsgs([{ role: "assistant", content: ch.greeting }]);
           }}
           onClose={() => setShowSignup(false)}
-          reason="무료 대화 이후 같은 캐릭터와 계속 이야기하려면 로그인이 필요해요"
+          reason="신당 대화는 로그인 후 이용할 수 있어요. 로그인하면 무료 대화 5번이 열려요"
         />
       )}
 
