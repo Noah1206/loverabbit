@@ -4,8 +4,15 @@ import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "re
 import { PRODUCTS } from "@/lib/products";
 import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
-import { saveToArchive } from "@/lib/archive";
-import { clearUser, getUser, type User } from "@/lib/user";
+import {
+  clearReadingDraft,
+  emptyPerson,
+  peekReadingDraft,
+  saveReadingDraft,
+  type PersonForm,
+  type ReadingDraft,
+} from "@/lib/reading-draft";
+import { getUser, type User } from "@/lib/user";
 import {
   captureReferralFromLocation,
   type PendingReferral,
@@ -18,76 +25,7 @@ const CATEGORIES = PRODUCTS.map((p) => ({
   needsPartner: p.needsPartner,
 }));
 
-interface PersonForm {
-  year: string;
-  month: string;
-  day: string;
-  hour: string;
-  gender: string;
-}
-
-const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "unknown", gender: "F" };
-
-interface ReadingDraft {
-  category: string;
-  me: PersonForm;
-  partner: PersonForm;
-  withPartner: boolean;
-  createdAt: number;
-}
-
 type CategorySelectionMode = "loading" | "fixed" | "picker";
-
-const READING_DRAFT_KEY = "loverabbit_reading_draft_v1";
-const READING_DRAFT_MAX_AGE_MS = 2 * 60 * 60 * 1000;
-
-function saveReadingDraft(draft: ReadingDraft): void {
-  try {
-    sessionStorage.setItem(READING_DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    // 저장이 막힌 브라우저에서도 로그인 창 자체는 정상적으로 열리게 둔다.
-  }
-}
-
-function clearReadingDraft(): void {
-  try {
-    sessionStorage.removeItem(READING_DRAFT_KEY);
-  } catch {
-    // 이미 제거됐거나 스토리지를 사용할 수 없으면 무시한다.
-  }
-}
-
-function takeReadingDraft(): ReadingDraft | null {
-  try {
-    const raw = sessionStorage.getItem(READING_DRAFT_KEY);
-    if (!raw) return null;
-    sessionStorage.removeItem(READING_DRAFT_KEY);
-    const draft = JSON.parse(raw) as ReadingDraft;
-    if (
-      !CATEGORIES.some((item) => item.id === draft?.category) ||
-      !draft.me ||
-      !draft.partner ||
-      !Number.isFinite(draft.createdAt) ||
-      Date.now() - draft.createdAt > READING_DRAFT_MAX_AGE_MS
-    ) {
-      return null;
-    }
-    return draft;
-  } catch {
-    clearReadingDraft();
-    return null;
-  }
-}
-
-function parsePerson(p: PersonForm) {
-  return {
-    year: parseInt(p.year, 10),
-    month: parseInt(p.month, 10),
-    day: parseInt(p.day, 10),
-    hour: p.hour === "unknown" ? null : parseInt(p.hour, 10),
-    gender: p.gender,
-  };
-}
 
 // 생년월일 유효성 검사 — 서버에서도 한 번 더 검증하지만, 여기서 먼저 친절하게 막는다
 function birthError(p: PersonForm, who: string): string | null {
@@ -288,56 +226,17 @@ export default function ReadingPage() {
   const [showSignup, setShowSignup] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
 
-  const generateReading = useCallback(async (nextUser: User, draft: ReadingDraft) => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/reading", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category: draft.category,
-          me: parsePerson(draft.me),
-          partner: draft.withPartner && draft.partner.year ? parsePerson(draft.partner) : null,
-          userToken: nextUser.token,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.needSignup) {
-          saveReadingDraft(draft);
-          clearUser();
-          setUser(null);
-          setShowSignup(true);
-        }
-        throw new Error(data.error ?? "리딩 생성 실패");
-      }
-      clearReadingDraft();
-      // 내 상담 보관함에 자동 저장 (해금 시 full이 채워진다)
-      saveToArchive({
-        readingId: data.readingId,
-        blob: data.blob,
-        category: draft.category,
-        label: CATEGORIES.find((item) => item.id === draft.category)?.label ?? draft.category,
-        characterId: "",
-        teaser: data.teaser,
-        full: null,
-        chart: data.chart,
-        price: data.price,
-        createdAt: Date.now(),
-        previewSections: data.previewSections ?? [],
-        lockedSectionTitles: data.lockedSectionTitles ?? [],
-        scoreLabel: data.scoreLabel ?? null,
-        score: null,
-        demo: data.demo === true,
-      });
-      // 결과는 폼 아래에 쌓지 않고 읽기 전용 기사 페이지에서 보여준다
-      router.push(`/reading/${data.readingId}`);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "오류가 발생했습니다.");
-      setLoading(false);
-    }
-  }, [router]);
+  // 생성은 이 화면에서 하지 않는다. 초안만 남기고 대기 화면으로 넘겨, 18초의 기다림이
+  // 폼이 아니라 결과 쪽에서 일어나게 한다.
+  const startGeneration = useCallback(
+    (draft: ReadingDraft) => {
+      setLoading(true);
+      setError("");
+      saveReadingDraft(draft);
+      router.push("/reading/generating");
+    },
+    [router],
+  );
 
   // 홈 상품 카드에서 ?c= 로 진입하면 해당 상품을 확정하고, 로그인 복귀 시 입력값으로 자동 재개한다.
   useEffect(() => {
@@ -351,19 +250,18 @@ export default function ReadingPage() {
 
     const stored = getUser();
     setUser(stored);
-    if (stored) {
-      const draft = takeReadingDraft();
-      if (draft) {
-        setCategory(draft.category);
-        setMe(draft.me);
-        setPartner(draft.partner);
-        setWithPartner(draft.withPartner);
-        setCategorySelectionMode("fixed");
-        void generateReading(stored, draft);
-      }
+    // 초안은 대기 화면이 소비한다. 여기서는 값만 복원하고 그대로 넘긴다.
+    const draft = peekReadingDraft();
+    if (draft) {
+      setCategory(draft.category);
+      setMe(draft.me);
+      setPartner(draft.partner);
+      setWithPartner(draft.withPartner);
+      setCategorySelectionMode("fixed");
+      if (stored) startGeneration(draft);
     }
     setPendingReferral(captureReferralFromLocation());
-  }, [generateReading]);
+  }, [startGeneration]);
 
   const validateForm = (): string | null => {
     if (!me.year || !me.month || !me.day) {
@@ -397,7 +295,7 @@ export default function ReadingPage() {
       setShowSignup(true);
       return;
     }
-    void generateReading(user, draft);
+    startGeneration(draft);
   };
 
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
@@ -520,14 +418,14 @@ export default function ReadingPage() {
             setUser(u);
             setShowSignup(false);
             setPendingReferral(null);
-            const draft = takeReadingDraft();
+            const draft = peekReadingDraft();
             if (draft) {
               setCategory(draft.category);
               setMe(draft.me);
               setPartner(draft.partner);
               setWithPartner(draft.withPartner);
               setCategorySelectionMode("fixed");
-              void generateReading(u, draft);
+              startGeneration(draft);
             }
           }}
           reason={

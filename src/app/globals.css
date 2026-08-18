@@ -100,6 +100,7 @@ body {
 
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
 .app-modal-layer,
+.shrine-gate,
 .shrine-immersive-shell {
   left: 50% !important;
   right: auto !important;
@@ -113,7 +114,7 @@ body {
   animation: shrine-shell-awaken 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.shrine-immersive-shell > div[aria-hidden]:first-of-type {
+.shrine-stage-bg {
   transform-origin: 50% 38%;
   will-change: transform, opacity;
   animation:
@@ -121,11 +122,11 @@ body {
     shrine-presence-breathe 10s 1.35s ease-in-out infinite alternate;
 }
 
-.shrine-immersive-shell > div[aria-hidden]:nth-of-type(2) {
+.shrine-stage-veil {
   animation: shrine-veil-arrive 1.05s 100ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.shrine-immersive-shell > div[aria-hidden]:nth-of-type(2)::before {
+.shrine-stage-veil::before {
   content: "";
   position: absolute;
   inset: -18%;
@@ -143,7 +144,7 @@ body {
   animation: shrine-ui-descend 520ms 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.shrine-immersive-shell > div:nth-of-type(3) {
+.shrine-stage-panel {
   will-change: transform, opacity;
   animation: shrine-ui-rise 620ms 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -221,11 +222,11 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .shrine-immersive-shell,
-  .shrine-immersive-shell > div[aria-hidden]:first-of-type,
-  .shrine-immersive-shell > div[aria-hidden]:nth-of-type(2),
-  .shrine-immersive-shell > div[aria-hidden]:nth-of-type(2)::before,
+  .shrine-stage-bg,
+  .shrine-stage-veil,
+  .shrine-stage-veil::before,
   .shrine-immersive-shell > header,
-  .shrine-immersive-shell > div:nth-of-type(3) {
+  .shrine-stage-panel {
     animation: none;
   }
 }
@@ -2912,4 +2913,22 @@ label {
   .auth-loader {
     animation-duration: 1.8s;
   }
+}
+
+/* 사주 생성 대기 화면 — 폼이 아니라 여기서 기다리게 한다 */
+.reading-generating-bar {
+  overflow: hidden;
+  width: min(320px, 100%);
+  height: 8px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-card));
+}
+
+.reading-generating-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 45%, #8b5cf6));
+  transition: width 380ms ease;
 }
