@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PaymentModal from "@/components/PaymentModal";
 import ChatSection from "@/components/ChatSection";
@@ -11,7 +11,7 @@ import {
   takePendingReading,
   type PendingReadingResult,
 } from "@/lib/pending-reading";
-import { getUser, saveUser, type User } from "@/lib/user";
+import { clearUser, getUser, saveUser, type User } from "@/lib/user";
 import {
   captureReferralFromLocation,
   type PendingReferral,
@@ -43,6 +43,57 @@ interface PersonForm {
 }
 
 const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "unknown", gender: "F" };
+
+interface ReadingDraft {
+  category: string;
+  me: PersonForm;
+  partner: PersonForm;
+  withPartner: boolean;
+  createdAt: number;
+}
+
+type CategorySelectionMode = "loading" | "fixed" | "picker";
+
+const READING_DRAFT_KEY = "loverabbit_reading_draft_v1";
+const READING_DRAFT_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+function saveReadingDraft(draft: ReadingDraft): void {
+  try {
+    sessionStorage.setItem(READING_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    // 저장이 막힌 브라우저에서도 로그인 창 자체는 정상적으로 열리게 둔다.
+  }
+}
+
+function clearReadingDraft(): void {
+  try {
+    sessionStorage.removeItem(READING_DRAFT_KEY);
+  } catch {
+    // 이미 제거됐거나 스토리지를 사용할 수 없으면 무시한다.
+  }
+}
+
+function takeReadingDraft(): ReadingDraft | null {
+  try {
+    const raw = sessionStorage.getItem(READING_DRAFT_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(READING_DRAFT_KEY);
+    const draft = JSON.parse(raw) as ReadingDraft;
+    if (
+      !CATEGORIES.some((item) => item.id === draft?.category) ||
+      !draft.me ||
+      !draft.partner ||
+      !Number.isFinite(draft.createdAt) ||
+      Date.now() - draft.createdAt > READING_DRAFT_MAX_AGE_MS
+    ) {
+      return null;
+    }
+    return draft;
+  } catch {
+    clearReadingDraft();
+    return null;
+  }
+}
 
 type ReadingResult = PendingReadingResult;
 
@@ -195,6 +246,7 @@ function PersonFields({
 export default function ReadingPage() {
   const router = useRouter();
   const [category, setCategory] = useState("sokgunghap");
+  const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
@@ -211,7 +263,57 @@ export default function ReadingPage() {
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
   const [shareNotice, setShareNotice] = useState("");
 
-  // 홈 상품 카드에서 ?c= 로 진입하면 해당 카테고리를 자동 선택한다.
+  const generateReading = useCallback(async (nextUser: User, draft: ReadingDraft) => {
+    setLoading(true);
+    setError("");
+    setResult(null);
+    setFull(null);
+    setScore(null);
+    setShareNotice("");
+    try {
+      const res = await fetch("/api/reading", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category: draft.category,
+          me: parsePerson(draft.me),
+          partner: draft.withPartner && draft.partner.year ? parsePerson(draft.partner) : null,
+          userToken: nextUser.token,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.needSignup) {
+          saveReadingDraft(draft);
+          clearUser();
+          setUser(null);
+          setShowSignup(true);
+        }
+        throw new Error(data.error ?? "리딩 생성 실패");
+      }
+      clearReadingDraft();
+      setResult(data);
+      // 내 상담 보관함에 자동 저장 (해금 시 full이 채워진다)
+      saveToArchive({
+        readingId: data.readingId,
+        blob: data.blob,
+        category: draft.category,
+        label: CATEGORIES.find((item) => item.id === draft.category)?.label ?? draft.category,
+        characterId: "",
+        teaser: data.teaser,
+        full: null,
+        chart: data.chart,
+        price: data.price,
+        createdAt: Date.now(),
+      });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 홈 상품 카드에서 ?c= 로 진입하면 해당 상품을 확정하고, 로그인 복귀 시 입력값으로 자동 재개한다.
   useEffect(() => {
     const c = new URLSearchParams(window.location.search).get("c");
     const found = CATEGORIES.find((x) => x.id === c);
@@ -219,15 +321,28 @@ export default function ReadingPage() {
       setCategory(found.id);
       setWithPartner(found.needsPartner);
     }
+    setCategorySelectionMode(found ? "fixed" : "picker");
+
     const stored = getUser();
     setUser(stored);
     if (stored) {
-      const pending = takePendingReading();
-      if (pending?.source === "reading") {
-        setResult(pending.result);
-        setCategory(pending.category);
-        setWithPartner(CATEGORIES.find((item) => item.id === pending.category)?.needsPartner ?? false);
-        setShowPay(true);
+      const draft = takeReadingDraft();
+      if (draft) {
+        setCategory(draft.category);
+        setMe(draft.me);
+        setPartner(draft.partner);
+        setWithPartner(draft.withPartner);
+        setCategorySelectionMode("fixed");
+        void generateReading(stored, draft);
+      } else {
+        const pending = takePendingReading();
+        if (pending?.source === "reading") {
+          setResult(pending.result);
+          setCategory(pending.category);
+          setWithPartner(CATEGORIES.find((item) => item.id === pending.category)?.needsPartner ?? false);
+          setCategorySelectionMode("fixed");
+          setShowPay(true);
+        }
       }
     }
     if (stored?.referralCode) {
@@ -238,7 +353,7 @@ export default function ReadingPage() {
       });
     }
     setPendingReferral(captureReferralFromLocation());
-  }, []);
+  }, [generateReading]);
 
   const validateForm = (): string | null => {
     if (!me.year || !me.month || !me.day) {
@@ -253,50 +368,6 @@ export default function ReadingPage() {
     return null;
   };
 
-  const generateReading = async (nextUser?: User | null) => {
-    setLoading(true);
-    setError("");
-    setResult(null);
-    setFull(null);
-    setScore(null);
-    setShareNotice("");
-    try {
-      const res = await fetch("/api/reading", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          category,
-          me: parsePerson(me),
-          partner: withPartner && partner.year ? parsePerson(partner) : null,
-          userToken: nextUser?.token,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.needSignup) setShowSignup(true);
-        throw new Error(data.error ?? "리딩 생성 실패");
-      }
-      setResult(data);
-      // 내 상담 보관함에 자동 저장 (해금 시 full이 채워진다)
-      saveToArchive({
-        readingId: data.readingId,
-        blob: data.blob,
-        category,
-        label: CATEGORIES.find((c) => c.id === category)?.label ?? category,
-        characterId: "",
-        teaser: data.teaser,
-        full: null,
-        chart: data.chart,
-        price: data.price,
-        createdAt: Date.now(),
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const submit = () => {
     setError("");
     const validationError = validateForm();
@@ -304,7 +375,19 @@ export default function ReadingPage() {
       setError(validationError);
       return;
     }
-    void generateReading(user);
+    const draft: ReadingDraft = {
+      category,
+      me,
+      partner,
+      withPartner,
+      createdAt: Date.now(),
+    };
+    if (!user) {
+      saveReadingDraft(draft);
+      setShowSignup(true);
+      return;
+    }
+    void generateReading(user, draft);
   };
 
   const startUnlock = () => {
@@ -395,17 +478,25 @@ export default function ReadingPage() {
     }
   };
 
+  const selectedCategory = CATEGORIES.find((item) => item.id === category);
+
   return (
     <main className="container" style={{ paddingTop: 48 }}>
-      <h1 style={{ marginBottom: 6 }}>🐰 마음 리딩</h1>
+      <h1 style={{ marginBottom: 6 }}>
+        {categorySelectionMode === "fixed" && selectedCategory
+          ? `${selectedCategory.label} 리딩`
+          : "🐰 마음 리딩"}
+      </h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 28 }}>
-        혼자 고민하던 연애 질문을 사주 흐름으로 풀어보세요.
+        {categorySelectionMode === "fixed" && selectedCategory
+          ? "이미 선택한 리딩이에요. 사주 정보만 입력하면 바로 이어집니다."
+          : "혼자 고민하던 연애 질문을 사주 흐름으로 풀어보세요."}
       </p>
 
       <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
         <li><strong>1</strong><span>사주 입력</span></li>
-        <li><strong>2</strong><span>약 10문장 무료</span></li>
-        <li><strong>3</strong><span>로그인</span></li>
+        <li><strong>2</strong><span>로그인</span></li>
+        <li><strong>3</strong><span>약 10문장 무료</span></li>
         <li><strong>4</strong><span>결제 후 전문</span></li>
       </ol>
 
@@ -420,21 +511,58 @@ export default function ReadingPage() {
         </aside>
       )}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.id}
-            className={category === c.id ? "btn" : "btn btn-ghost"}
-            style={{ padding: "10px 18px", fontSize: "0.92rem" }}
-            onClick={() => {
-              setCategory(c.id);
-              setWithPartner(c.needsPartner);
-            }}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      {categorySelectionMode === "fixed" && selectedCategory && (
+        <div
+          className="card"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            marginBottom: 22,
+            padding: "14px 16px",
+          }}
+        >
+          <div>
+            <small style={{ display: "block", color: "var(--text-dim)", marginBottom: 4 }}>선택한 리딩</small>
+            <strong>{selectedCategory.label}</strong>
+          </div>
+          {!loading && !result && (
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ padding: "8px 12px", fontSize: "0.82rem" }}
+              onClick={() => {
+                const params = new URLSearchParams(window.location.search);
+                params.delete("c");
+                setCategorySelectionMode("picker");
+                router.replace(`/reading${params.size ? `?${params.toString()}` : ""}`, { scroll: false });
+              }}
+            >
+              다른 리딩 선택
+            </button>
+          )}
+        </div>
+      )}
+
+      {categorySelectionMode === "picker" && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
+          {CATEGORIES.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={category === item.id ? "btn" : "btn btn-ghost"}
+              style={{ padding: "10px 18px", fontSize: "0.92rem" }}
+              onClick={() => {
+                setCategory(item.id);
+                setWithPartner(item.needsPartner);
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <PersonFields title="👤 내 정보" value={me} onChange={setMe} />
 
@@ -445,13 +573,17 @@ export default function ReadingPage() {
           onChange={(e) => setWithPartner(e.target.checked)}
           style={{ width: 18, height: 18 }}
         />
-        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (속궁합 정확도 ↑)</span>
+        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (관계 분석 정확도 ↑)</span>
       </label>
 
       {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}
 
       <button className="btn" style={{ width: "100%" }} onClick={submit} disabled={loading}>
-        {loading ? "사주 푸는 중… 🔮" : "가입 없이 무료 10문장 보기 →"}
+        {loading
+          ? "사주 푸는 중… 🔮"
+          : user
+            ? "무료 10문장 보기 →"
+            : "로그인하고 무료 10문장 보기 →"}
       </button>
       {loading && (
         <p className="pulse" style={{ textAlign: "center", color: "var(--text-dim)", marginTop: 14 }}>
@@ -586,14 +718,29 @@ export default function ReadingPage() {
                 ? { referralCode: u.referralCode, chatCredits: u.chatCredits ?? 0, readingUnlocked: false }
                 : null
             );
-            setShowPay(true);
+            const draft = takeReadingDraft();
+            if (draft) {
+              setCategory(draft.category);
+              setMe(draft.me);
+              setPartner(draft.partner);
+              setWithPartner(draft.withPartner);
+              setCategorySelectionMode("fixed");
+              void generateReading(u, draft);
+            } else if (result) {
+              setShowPay(true);
+            }
           }}
           reason={
             pendingReferral
               ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : "무료 10문장은 공개됐어요. 전문을 열려면 로그인이 필요해요"
+              : result
+                ? "전문 리딩을 열려면 로그인이 필요해요"
+                : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
           }
-          onClose={() => setShowSignup(false)}
+          onClose={() => {
+            clearReadingDraft();
+            setShowSignup(false);
+          }}
         />
       )}
 

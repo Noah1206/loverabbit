@@ -137,14 +137,25 @@ function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
 
-  let user = null;
-  if (body.userToken) {
-    try {
-      user = await resolveUserToken(body.userToken);
-    } catch (error) {
-      console.error("무료 미리보기 회원 확인 실패:", error);
-      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
+  if (!body.userToken) {
+    return NextResponse.json(
+      { error: "무료 사주를 보려면 먼저 로그인해주세요.", needSignup: true },
+      { status: 401 }
+    );
+  }
+
+  let user: Awaited<ReturnType<typeof resolveUserToken>>;
+  try {
+    user = await resolveUserToken(body.userToken);
+  } catch (error) {
+    console.error("무료 미리보기 회원 확인 실패:", error);
+    return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+  }
+  if (!user) {
+    return NextResponse.json(
+      { error: "로그인 정보가 만료됐어요. 다시 로그인해주세요.", needSignup: true },
+      { status: 401 }
+    );
   }
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
@@ -235,8 +246,8 @@ export async function POST(req: NextRequest) {
   try {
     await saveReading({
       id,
-      // 무료 미리보기는 가입 전에도 만든다. 결제 승인 시 로그인한 사용자에게 귀속된다.
-      userId: user?.userId,
+      // 무료 리딩부터 로그인한 사용자에게 귀속한다.
+      userId: user.userId,
       createdAt: new Date().toISOString(),
       category: body.category,
       teaser,
