@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import PaymentModal from "@/components/PaymentModal";
 import ChatSection from "@/components/ChatSection";
 import SignupModal from "@/components/SignupModal";
 import { saveToArchive, updateArchive } from "@/lib/archive";
+import {
+  savePendingReading,
+  takePendingReading,
+  type PendingReadingResult,
+} from "@/lib/pending-reading";
 import { getUser, saveUser, type User } from "@/lib/user";
 import {
   captureReferralFromLocation,
   type PendingReferral,
-  type ReferralRewardChoice,
 } from "@/lib/referral";
 
 const CATEGORIES = [
@@ -39,17 +44,7 @@ interface PersonForm {
 
 const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "unknown", gender: "F" };
 
-interface ReadingResult {
-  readingId: string;
-  teaser: string;
-  chart: { me: string; partner: string | null };
-  price: number;
-  blob: string;
-  previewSections: { title: string; excerpt: string }[];
-  lockedSectionTitles: string[];
-  scoreLabel?: string | null;
-  demo: boolean;
-}
+type ReadingResult = PendingReadingResult;
 
 interface ReferralStatus {
   referralCode: string;
@@ -198,6 +193,7 @@ function PersonFields({
 }
 
 export default function ReadingPage() {
+  const router = useRouter();
   const [category, setCategory] = useState("sokgunghap");
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
@@ -214,7 +210,6 @@ export default function ReadingPage() {
   const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
   const [shareNotice, setShareNotice] = useState("");
-  const [checkingReward, setCheckingReward] = useState(false);
 
   // 홈 상품 카드에서 ?c= 로 진입하면 해당 카테고리를 자동 선택한다.
   useEffect(() => {
@@ -226,6 +221,15 @@ export default function ReadingPage() {
     }
     const stored = getUser();
     setUser(stored);
+    if (stored) {
+      const pending = takePendingReading();
+      if (pending?.source === "reading") {
+        setResult(pending.result);
+        setCategory(pending.category);
+        setWithPartner(CATEGORIES.find((item) => item.id === pending.category)?.needsPartner ?? false);
+        setShowPay(true);
+      }
+    }
     if (stored?.referralCode) {
       setReferralStatus({
         referralCode: stored.referralCode,
@@ -249,7 +253,7 @@ export default function ReadingPage() {
     return null;
   };
 
-  const generateReading = async (nextUser: User) => {
+  const generateReading = async (nextUser?: User | null) => {
     setLoading(true);
     setError("");
     setResult(null);
@@ -264,7 +268,7 @@ export default function ReadingPage() {
           category,
           me: parsePerson(me),
           partner: withPartner && partner.year ? parsePerson(partner) : null,
-          userToken: nextUser.token,
+          userToken: nextUser?.token,
         }),
       });
       const data = await res.json();
@@ -300,15 +304,21 @@ export default function ReadingPage() {
       setError(validationError);
       return;
     }
-    if (!user) {
-      setShowSignup(true);
-      return;
-    }
     void generateReading(user);
   };
 
-  // 결제: 지금은 계좌이체(토스 송금 딥링크) 방식.
-  // PG 가맹 완료 후에는 토스페이먼츠 결제위젯으로 교체 — /api/unlock의 toss-pg 경로가 이미 준비돼 있다.
+  const startUnlock = () => {
+    if (!result) return;
+    if (!user) {
+      savePendingReading({ source: "reading", category, result, createdAt: Date.now() });
+      setShowSignup(true);
+      return;
+    }
+    setShowPay(true);
+  };
+
+  // 계좌이체 확인 요청을 만든 뒤 관리자 승인 대기 페이지로 이동한다.
+  // 실제 해금은 관리자가 입금을 확인해 주문을 승인했을 때만 처리된다.
   const depositorCode = result ? `레빗-${result.readingId.slice(0, 4).toUpperCase()}` : "";
 
   const confirmTransfer = async () => {
@@ -327,12 +337,14 @@ export default function ReadingPage() {
           userToken: user?.token,
         }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "해금 실패");
       const data = await res.json();
-      setFull(data.full);
-      setScore(data.score ?? null);
-      updateArchive(result.readingId, { full: data.full });
+      if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
+      if (!Number.isSafeInteger(Number(data.orderId))) {
+        throw new Error("승인 대기 주문 번호를 받지 못했어요.");
+      }
+      updateArchive(result.readingId, { pendingOrderId: Number(data.orderId) });
       setShowPay(false);
+      router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "결제 처리 중 오류가 발생했습니다.");
     } finally {
@@ -361,19 +373,15 @@ export default function ReadingPage() {
     return status;
   };
 
-  const shareReward = async (reward: ReferralRewardChoice) => {
+  const shareReward = async () => {
     if (!result || !user) return;
     setShareNotice("");
     try {
       const status = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
       if (!status?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
-      const params = new URLSearchParams({ ref: status.referralCode, reward });
-      if (reward === "reading_unlock") params.set("rid", result.readingId);
+      const params = new URLSearchParams({ ref: status.referralCode, reward: "chat_credits" });
       const url = `${window.location.origin}/reading?${params.toString()}`;
-      const text =
-        reward === "reading_unlock"
-          ? "내 연애 사주 미리보기, 생각보다 소름이었어. 너도 무료로 봐봐 🐰"
-          : "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 미리보기도 볼 수 있어 🐰";
+      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 10문장도 볼 수 있어 🐰";
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
         setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
@@ -387,35 +395,6 @@ export default function ReadingPage() {
     }
   };
 
-  const checkReferralUnlock = async () => {
-    if (!result || !user) return;
-    setCheckingReward(true);
-    setShareNotice("");
-    try {
-      const res = await fetch("/api/unlock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          readingId: result.readingId,
-          blob: result.blob,
-          method: "referral",
-          userToken: user.token,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "보상을 확인하지 못했어요.");
-      setFull(data.full);
-      setScore(data.score ?? null);
-      updateArchive(result.readingId, { full: data.full });
-      setShareNotice("친구 가입이 확인되어 이 리딩을 무료로 열었어요 🎉");
-      await refreshReferralStatus();
-    } catch (e) {
-      setShareNotice(e instanceof Error ? e.message : "보상을 확인하지 못했어요.");
-    } finally {
-      setCheckingReward(false);
-    }
-  };
-
   return (
     <main className="container" style={{ paddingTop: 48 }}>
       <h1 style={{ marginBottom: 6 }}>🐰 마음 리딩</h1>
@@ -425,9 +404,9 @@ export default function ReadingPage() {
 
       <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
         <li><strong>1</strong><span>사주 입력</span></li>
-        <li><strong>2</strong><span>3초 가입</span></li>
-        <li><strong>3</strong><span>약 10문장 무료</span></li>
-        <li><strong>4</strong><span>결제·친구 초대</span></li>
+        <li><strong>2</strong><span>약 10문장 무료</span></li>
+        <li><strong>3</strong><span>로그인</span></li>
+        <li><strong>4</strong><span>결제 후 전문</span></li>
       </ol>
 
       {!user && pendingReferral && (
@@ -435,11 +414,7 @@ export default function ReadingPage() {
           <div className="friend-invite-icon" aria-hidden>💌</div>
           <div>
             <span>친구 초대로 왔어요</span>
-            <h2>
-              {pendingReferral.referralReward === "reading_unlock"
-                ? "내 가입으로 친구의 리딩이 무료로 열려요"
-                : "내 가입으로 친구에게 질문권 10장이 적립돼요"}
-            </h2>
+            <h2>내 가입으로 친구에게 질문권 10장이 적립돼요</h2>
             <p>나는 아래에서 사주 미리보기를 무료로 볼 수 있어요. 보상은 신규 회원 가입 완료 후 자동 지급됩니다.</p>
           </div>
         </aside>
@@ -476,7 +451,7 @@ export default function ReadingPage() {
       {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}
 
       <button className="btn" style={{ width: "100%" }} onClick={submit} disabled={loading}>
-        {loading ? "사주 푸는 중… 🔮" : user ? "무료 미리보기 보기 →" : "3초 가입하고 무료 미리보기 보기 →"}
+        {loading ? "사주 푸는 중… 🔮" : "가입 없이 무료 10문장 보기 →"}
       </button>
       {loading && (
         <p className="pulse" style={{ textAlign: "center", color: "var(--text-dim)", marginTop: 14 }}>
@@ -522,7 +497,7 @@ export default function ReadingPage() {
               <div className="reading-preview-heading">
                 <div>
                   <span className="badge">무료 미리보기</span>
-                  <h2>목차별 핵심 약 10문장을 먼저 보여드려요</h2>
+                  <h2>핵심 요약까지 합쳐 약 10문장을 먼저 보여드려요</h2>
                 </div>
                 <span>🔒 전문 잠금</span>
               </div>
@@ -551,32 +526,29 @@ export default function ReadingPage() {
 
               <div className="reading-paywall">
                 <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
-                <button className="btn" onClick={() => setShowPay(true)} disabled={paying}>
-                  {paying ? "해금 중…" : `전문 보기 — ${result.price.toLocaleString()}원`}
+                <button className="btn" onClick={startUnlock} disabled={paying}>
+                  {paying
+                    ? "결제 준비 중…"
+                    : user
+                      ? `결제하고 전문 보기 — ${result.price.toLocaleString()}원`
+                      : `로그인 후 전문 보기 — ${result.price.toLocaleString()}원`}
                 </button>
                 <p>점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관</p>
               </div>
             </div>
           )}
 
-          {!full && (
+          {!full && user && (
             <div className="referral-reward-card">
               <span className="badge">친구 초대 보상</span>
-              <h2>친구가 가입하면, 결제 대신 보상으로 열 수 있어요</h2>
-              <p>친구 한 명이 내 링크로 가입하면 원하는 보상 하나가 자동 지급됩니다.</p>
-              <div className="referral-reward-options">
-                <button onClick={() => void shareReward("reading_unlock")}>
-                  <strong>이 리딩 0원으로 열기</strong>
-                  <span>친구 1명 가입 시 전문 무료</span>
-                </button>
-                <button onClick={() => void shareReward("chat_credits")}>
+              <h2>친구가 가입하면 추가 상담권을 드려요</h2>
+              <p>전문 리딩은 결제 후 열리고, 친구 초대 보상은 추가 질문에 사용할 수 있어요.</p>
+              <div className="referral-reward-options referral-reward-options-single">
+                <button onClick={() => void shareReward()}>
                   <strong>캐릭터챗 질문권 10장</strong>
                   <span>친구 1명 가입 시 바로 적립</span>
                 </button>
               </div>
-              <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={checkReferralUnlock} disabled={checkingReward}>
-                {checkingReward ? "친구 가입 확인 중…" : "공유했다면 보상 확인하기"}
-              </button>
               <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
               {shareNotice && <p className="referral-notice">{shareNotice}</p>}
             </div>
@@ -614,23 +586,26 @@ export default function ReadingPage() {
                 ? { referralCode: u.referralCode, chatCredits: u.chatCredits ?? 0, readingUnlocked: false }
                 : null
             );
-            void generateReading(u);
+            setShowPay(true);
           }}
           reason={
             pendingReferral
               ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : "무료 사주 미리보기를 저장하려면 3초 가입이 필요해요"
+              : "무료 10문장은 공개됐어요. 전문을 열려면 로그인이 필요해요"
           }
           onClose={() => setShowSignup(false)}
         />
       )}
 
-      {showPay && result && (
+      {showPay && result && user && (
         <PaymentModal
+          readingId={result.readingId}
           price={result.price}
+          userToken={user.token}
+          customerEmail={user.email}
           depositorCode={depositorCode}
           paying={paying}
-          onDone={confirmTransfer}
+          onTransferSubmitted={confirmTransfer}
           onClose={() => setShowPay(false)}
         />
       )}

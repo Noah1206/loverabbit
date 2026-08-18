@@ -16,7 +16,7 @@ const NAV_ITEMS = [
   {
     href: "/reading",
     label: "내 사주",
-    matches: (path: string) => path.startsWith("/reading") || path.startsWith("/product"),
+    matches: (path: string) => path.startsWith("/reading") || path.startsWith("/product") || path.startsWith("/payment"),
     icon: (
       <>
         <circle cx="12" cy="10" r="6.5" />

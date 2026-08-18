@@ -85,12 +85,12 @@ function previewOf(full: string, fallbackTitles: string[]): {
   lockedTitles: string[];
 } {
   const parsed = full
-    .split(/\n(?=■\s)/)
+    .split(/(?:^|\n)\s*■\s*/)
     .map((part) => part.trim())
     .filter(Boolean)
     .map((part) => {
       const lines = part.split("\n");
-      const title = lines[0].replace(/^■\s*/, "").trim();
+      const title = lines[0].trim();
       const body = lines.slice(1).join(" ").replace(/\s+/g, " ").trim();
       const sentences = body.match(/[^.!?。]+[.!?。]?/g) ?? [body];
       return {
@@ -100,19 +100,23 @@ function previewOf(full: string, fallbackTitles: string[]): {
     })
     .filter((section) => section.title && section.excerpt);
 
-  const source = parsed.length
+  const plainSentences = full
+    .replace(/(?:^|\n)\s*■\s*[^\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .match(/[^.!?。]+[.!?。]?/g) ?? [];
+  const source = parsed.length >= 3
     ? parsed
-    : fallbackTitles.map((title, index) => ({
+    : fallbackTitles.slice(0, 3).map((title, index) => ({
         title,
-        excerpt:
-          index === 0
-            ? full.replace(/\s+/g, " ").trim().slice(0, 260)
-            : "명식의 핵심 근거와 시기별 흐름을 분석하고 있어요.",
-      }));
-  const sections = source.slice(0, 6);
+        excerpt: plainSentences.slice(index * 2, index * 2 + 2).join(" ").trim().slice(0, 360),
+      })).filter((section) => section.excerpt);
+  // 위의 3~4문장 티저와 합쳐 무료 공개 분량이 약 10문장이 되도록
+  // 목차별 미리보기는 최대 3개 섹션, 각 2문장까지만 내려보낸다.
+  const sections = source.slice(0, 3);
   return {
     sections,
-    lockedTitles: source.slice(6).map((section) => section.title),
+    lockedTitles: source.slice(3).map((section) => section.title),
   };
 }
 
@@ -133,18 +137,14 @@ function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
 
-  let user;
-  try {
-    user = await resolveUserToken(body.userToken);
-  } catch (error) {
-    console.error("무료 미리보기 회원 확인 실패:", error);
-    return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-  }
-  if (!user?.userId) {
-    return NextResponse.json(
-      { error: "무료 미리보기를 보려면 먼저 가입해주세요.", needSignup: true },
-      { status: 401 }
-    );
+  let user = null;
+  if (body.userToken) {
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("무료 미리보기 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
   }
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
@@ -235,7 +235,8 @@ export async function POST(req: NextRequest) {
   try {
     await saveReading({
       id,
-      userId: user.userId,
+      // 무료 미리보기는 가입 전에도 만든다. 결제 승인 시 로그인한 사용자에게 귀속된다.
+      userId: user?.userId,
       createdAt: new Date().toISOString(),
       category: body.category,
       teaser,

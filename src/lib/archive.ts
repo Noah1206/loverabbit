@@ -12,6 +12,7 @@ export interface ArchiveEntry {
   characterId: string;
   teaser: string;
   full: string | null; // 해금 후 채워짐
+  pendingOrderId?: number; // 계좌이체 승인 대기 중인 주문
   chart: { me: string; partner: string | null };
   price: number;
   createdAt: number;

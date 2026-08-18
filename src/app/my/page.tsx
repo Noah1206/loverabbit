@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { listArchive, updateArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import SignupModal from "@/components/SignupModal";
+import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { getUser, type User } from "@/lib/user";
 
 export default function MyPage() {
+  const router = useRouter();
   const [entries, setEntries] = useState<ArchiveEntry[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -16,16 +19,32 @@ export default function MyPage() {
   const [showPay, setShowPay] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  const [paymentApproved, setPaymentApproved] = useState(false);
 
   useEffect(() => {
-    setEntries(listArchive());
-    setUser(getUser());
+    const archived = listArchive();
+    const params = new URLSearchParams(window.location.search);
+    const requestedReading = params.get("open");
+    setEntries(archived);
+    if (requestedReading && archived.some((entry) => entry.readingId === requestedReading)) {
+      setOpenId(requestedReading);
+    }
+    setPaymentApproved(params.get("payment") === "approved");
+    const stored = getUser();
+    setUser(stored);
+    if (stored) {
+      const pending = takePendingReading();
+      if (pending?.source === "archive") {
+        setOpenId(pending.result.readingId);
+        setShowPay(true);
+      }
+    }
   }, []);
 
   const open = entries.find((e) => e.readingId === openId) ?? null;
   const depositorCode = open ? `레빗-${open.readingId.slice(0, 4).toUpperCase()}` : "";
 
-  // 보관함에서 해금 — 리딩 페이지와 동일한 /api/unlock 경로 사용
+  // 보관함에서도 계좌이체 확인 요청 후 관리자 승인 대기 페이지로 이동한다.
   const unlock = async () => {
     if (!open) return;
     setPaying(true);
@@ -42,11 +61,15 @@ export default function MyPage() {
           userToken: user?.token,
         }),
       });
-      if (!res.ok) throw new Error((await res.json()).error ?? "해금 실패");
-      const full = (await res.json()).full as string;
-      updateArchive(open.readingId, { full });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
+      if (!Number.isSafeInteger(Number(data.orderId))) {
+        throw new Error("승인 대기 주문 번호를 받지 못했어요.");
+      }
+      updateArchive(open.readingId, { pendingOrderId: Number(data.orderId) });
       setEntries(listArchive());
       setShowPay(false);
+      router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "오류가 발생했습니다.");
     } finally {
@@ -60,6 +83,15 @@ export default function MyPage() {
       <p style={{ color: "var(--text-dim)", marginBottom: 24 }}>
         이 기기에서 받은 리딩이 자동으로 보관됩니다.
       </p>
+
+      {paymentApproved && (
+        <div className="card" style={{ marginBottom: 16, borderColor: "var(--accent)", background: "var(--bg-card2)" }}>
+          <strong style={{ color: "var(--accent-soft)" }}>✓ 입금 확인이 완료됐어요</strong>
+          <p style={{ marginTop: 4, fontSize: "0.84rem", color: "var(--text-dim)" }}>
+            승인된 풀 리딩을 바로 열어두었습니다.
+          </p>
+        </div>
+      )}
 
       {entries.length === 0 && (
         <div className="card" style={{ textAlign: "center", padding: 36 }}>
@@ -82,9 +114,13 @@ export default function MyPage() {
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <strong style={{ fontSize: "0.95rem" }}>{e.label}</strong>
-                    {e.full
-                      ? <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--violet)", padding: "2px 8px", borderRadius: 999 }}>해금됨</span>
-                      : <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--accent)", padding: "2px 8px", borderRadius: 999 }}>티저만</span>}
+                    {e.full ? (
+                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--violet)", padding: "2px 8px", borderRadius: 999 }}>해금됨</span>
+                    ) : e.pendingOrderId ? (
+                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "#9f6b19", padding: "2px 8px", borderRadius: 999 }}>승인 대기</span>
+                    ) : (
+                      <span style={{ fontSize: "0.68rem", fontWeight: 800, color: "#fff", background: "var(--accent)", padding: "2px 8px", borderRadius: 999 }}>티저만</span>
+                    )}
                   </div>
                   <p style={{ fontSize: "0.78rem", color: "var(--text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {new Date(e.createdAt).toLocaleDateString("ko-KR")} · {e.teaser}
@@ -111,9 +147,40 @@ export default function MyPage() {
                   ) : (
                     <div style={{ textAlign: "center", padding: "8px 0" }}>
                       <p style={{ fontSize: "0.88rem", marginBottom: 10 }}>풀 리딩이 아직 잠겨 있어요.</p>
-                      <button className="btn" onClick={() => (user ? setShowPay(true) : setShowSignup(true))} disabled={paying}>
-                        {user ? "풀 리딩 해금" : "가입하고 풀 리딩 해금"} — {e.price.toLocaleString()}원
-                      </button>
+                      {e.pendingOrderId ? (
+                        <Link className="btn" href={`/payment/pending?orderId=${e.pendingOrderId}`}>
+                          입금 승인 상태 확인
+                        </Link>
+                      ) : (
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            if (user) {
+                              setShowPay(true);
+                              return;
+                            }
+                            savePendingReading({
+                              source: "archive",
+                              category: e.category,
+                              createdAt: Date.now(),
+                              result: {
+                                readingId: e.readingId,
+                                teaser: e.teaser,
+                                chart: e.chart,
+                                price: e.price,
+                                blob: e.blob,
+                                previewSections: [],
+                                lockedSectionTitles: [],
+                                demo: false,
+                              },
+                            });
+                            setShowSignup(true);
+                          }}
+                          disabled={paying}
+                        >
+                          {user ? "풀 리딩 해금" : "가입하고 풀 리딩 해금"} — {e.price.toLocaleString()}원
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -151,10 +218,13 @@ export default function MyPage() {
 
       {showPay && open && (
         <PaymentModal
+          readingId={open.readingId}
           price={open.price}
+          userToken={user?.token ?? ""}
+          customerEmail={user?.email ?? ""}
           depositorCode={depositorCode}
           paying={paying}
-          onDone={unlock}
+          onTransferSubmitted={unlock}
           onClose={() => setShowPay(false)}
         />
       )}

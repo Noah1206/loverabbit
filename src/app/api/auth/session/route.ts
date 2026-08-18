@@ -37,7 +37,7 @@ function normalizeProvider(value: unknown): DatabaseAuthProvider | null {
 }
 
 function normalizeReward(value: unknown): ReferralRewardType | undefined {
-  return value === "reading_unlock" || value === "chat_credits" ? value : undefined;
+  return value === "chat_credits" ? value : undefined;
 }
 
 function sessionResponse(

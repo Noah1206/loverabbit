@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
       marketingConsent: body.marketingOk === true,
       adultVerifiedAt: now,
       referralCode: body.referralCode,
-      referralReadingId: body.referralReadingId,
-      referralReward: body.referralReward,
+      referralReadingId: undefined,
+      referralReward: body.referralReward === "chat_credits" ? "chat_credits" : undefined,
     });
     userId = user?.id;
     referralCode = user?.referralCode;

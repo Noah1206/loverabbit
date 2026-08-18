@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReading, markUnlocked } from "@/lib/store";
 import { open } from "@/lib/crypto";
-import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import {
+  createOrder,
+  createPendingTransferOrder,
+  getOrderByProviderOrderId,
+  isDatabaseConfigured,
+} from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 풀 리딩 해금 — 결제 방식 2가지:
-// 1) transfer: 계좌이체. 입금코드를 기록해 두고 즉시 해금 → 운영자가 통장 내역과 사후 대조.
-//    (초기 소액 운영용 신뢰 기반. 미입금이 늘면 오픈뱅킹 입금확인 API나 PG로 전환할 것.)
+// 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
 // 2) toss-pg: TOSS_SECRET_KEY가 있으면 토스페이먼츠 결제 승인 API로 실결제 검증.
 // 3) mock: 키·방식 지정 없을 때 개발용 모의결제.
 //
@@ -60,27 +64,24 @@ export async function POST(req: NextRequest) {
   }
 
   if (body.method === "referral") {
-    let user;
-    try {
-      user = await resolveUserToken(body.userToken);
-    } catch (error) {
-      console.error("추천 보상 회원 확인 실패:", error);
-      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
-    }
-    if (!user?.userId || stored?.userId !== user.userId) {
-      return NextResponse.json({ error: "이 리딩의 보상 권한을 확인할 수 없어요." }, { status: 403 });
-    }
-    if (!stored.unlocked || stored.payment?.method !== "referral") {
-      return NextResponse.json(
-        { error: "아직 친구 가입이 확인되지 않았어요. 친구가 가입한 뒤 다시 눌러주세요." },
-        { status: 409 }
-      );
-    }
-    return NextResponse.json({ full, score, scoreLabel, method: "referral" });
+    return NextResponse.json(
+      { error: "전문 무료 해금 이벤트는 종료됐어요. 결제 후 전문을 볼 수 있습니다." },
+      { status: 410 }
+    );
   }
 
   // 이미 해금된 리딩은 재결제 없이 반환 (새로고침 대응)
   if (stored?.unlocked) {
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("해금 리딩 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
+    }
+    if (!user?.userId || stored.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩을 볼 권한이 없어요." }, { status: 403 });
+    }
     return NextResponse.json({ full, score, scoreLabel });
   }
 
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
       console.error("결제 회원 확인 실패:", error);
       return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
     }
-    if (!user) {
+    if (!user?.userId) {
       return NextResponse.json({ error: "풀 리딩을 열려면 회원가입이 필요해요.", needSignup: true }, { status: 401 });
     }
     const expectedCode = `레빗-${body.readingId.slice(0, 4).toUpperCase()}`;
@@ -105,30 +106,35 @@ export async function POST(req: NextRequest) {
     if (isDatabaseConfigured() && !user.userId) {
       return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 다시 가입해주세요." }, { status: 503 });
     }
-    try {
-      if (user.userId) {
-        await createOrder({
-          userId: user.userId,
-          readingId: body.readingId,
-          kind: "reading",
-          method: "transfer",
-          status: "pending",
-          amount: price,
-          depositorCode: body.depositorCode,
-        });
-      }
-      const unlocked = await markUnlocked(
-        body.readingId,
-        { method: "transfer", depositorCode: body.depositorCode, at: now },
-        user.userId
-      );
-      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
-    } catch (error) {
-      console.error("계좌이체 주문 저장 실패:", error);
-      return NextResponse.json({ error: "결제 정보를 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    if (stored?.userId && stored.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
     }
-    console.log(`[결제:계좌이체] userId=${user.userId ?? "local"} reading=${body.readingId} amount=${price}`);
-    return NextResponse.json({ full, score, scoreLabel, method: "transfer" });
+    try {
+      const order = user.userId
+        ? await createPendingTransferOrder({
+            userId: user.userId,
+            readingId: body.readingId,
+            amount: price,
+            depositorCode: body.depositorCode,
+          })
+        : null;
+      if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
+      console.log(
+        `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${price}`
+      );
+      return NextResponse.json({
+        orderId: order.id,
+        readingId: order.readingId,
+        status: order.status,
+        method: "transfer",
+      });
+    } catch (error) {
+      console.error("계좌이체 승인 요청 저장 실패:", error);
+      return NextResponse.json(
+        { error: "입금 확인 요청을 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 503 }
+      );
+    }
   }
 
   // ── 토스페이먼츠 PG ──
@@ -144,15 +150,33 @@ export async function POST(req: NextRequest) {
       console.error("PG 결제 회원 확인 실패:", error);
       return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
     }
-    if (!user) {
+    if (!user?.userId) {
       return NextResponse.json({ error: "풀 리딩을 열려면 회원가입이 필요해요.", needSignup: true }, { status: 401 });
     }
     if (!body.paymentKey || !body.orderId || body.amount !== price) {
       return NextResponse.json({ error: "결제 정보가 올바르지 않습니다." }, { status: 400 });
     }
-    if (isDatabaseConfigured() && !user.userId) {
-      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 다시 가입해주세요." }, { status: 503 });
+    if (stored?.userId && stored.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
     }
+
+    try {
+      const order = await getOrderByProviderOrderId(body.orderId);
+      if (
+        isDatabaseConfigured() &&
+        (!order ||
+          order.userId !== user.userId ||
+          order.readingId !== body.readingId ||
+          order.amount !== price ||
+          order.status !== "pending")
+      ) {
+        return NextResponse.json({ error: "서버에 기록된 결제 주문과 일치하지 않아요." }, { status: 400 });
+      }
+    } catch (error) {
+      console.error("PG 결제 주문 검증 실패:", error);
+      return NextResponse.json({ error: "결제 주문을 확인하지 못했어요." }, { status: 503 });
+    }
+
     const res = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
       method: "POST",
       headers: {
