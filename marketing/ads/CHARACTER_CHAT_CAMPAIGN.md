@@ -3,9 +3,9 @@
 ## 소재와 도착 URL
 
 - 세로 9:16: `character-chat-ad-9x16.jpg`
-  - `https://loverabbit-ai.vercel.app/shrine/hwarin?start=1&utm_source=paid-social&utm_medium=display&utm_campaign=hwarin-free-chat&utm_content=portrait`
+  - `https://loverebbit.xyz/shrine/hwarin?start=1&utm_source=paid-social&utm_medium=display&utm_campaign=hwarin-free-chat&utm_content=portrait`
 - 가로 16:9: `character-chat-ad-16x9.jpg`
-  - `https://loverabbit-ai.vercel.app/shrine/hwarin?start=1&utm_source=paid-social&utm_medium=display&utm_campaign=hwarin-free-chat&utm_content=landscape`
+  - `https://loverebbit.xyz/shrine/hwarin?start=1&utm_source=paid-social&utm_medium=display&utm_campaign=hwarin-free-chat&utm_content=landscape`
 
 방문자는 광고 클릭 즉시 화린도령의 첫 인사부터 시작한다. 실제 캐릭터챗 5회는 가입 없이 무료이며, 6번째 메시지부터 소셜 로그인 후 대화권 결제 화면으로 이어진다. 대화 내역은 로그인 왕복 동안 세션에 유지된다.
 

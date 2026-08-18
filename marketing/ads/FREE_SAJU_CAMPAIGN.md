@@ -3,9 +3,9 @@
 ## 광고 소재와 클릭 URL
 
 - 세로 9:16: `free-saju-ad-9x16.jpg`
-  - `https://loverabbit-ai.vercel.app/reading?c=sokgunghap&utm_source=paid-social&utm_medium=display&utm_campaign=free-saju-10lines&utm_content=portrait`
+  - `https://loverebbit.xyz/reading?c=sokgunghap&utm_source=paid-social&utm_medium=display&utm_campaign=free-saju-10lines&utm_content=portrait`
 - 가로 16:9: `free-saju-ad-16x9.jpg`
-  - `https://loverabbit-ai.vercel.app/reading?c=sokgunghap&utm_source=paid-social&utm_medium=display&utm_campaign=free-saju-10lines&utm_content=landscape`
+  - `https://loverebbit.xyz/reading?c=sokgunghap&utm_source=paid-social&utm_medium=display&utm_campaign=free-saju-10lines&utm_content=landscape`
 
 광고 매체에 이미지를 올릴 때 위 URL을 각각 최종 도착 URL로 설정한다. 방문자는 생년월일 입력 후 가입 없이 약 10문장을 보고, 전문 열기에서 로그인한 다음 결제한다.
 

@@ -91,7 +91,7 @@ node marketing/instagram/compose-profile.mjs
 ## 5. 링크
 
 ```
-https://loverabbit-ai.vercel.app/?utm_source=instagram&utm_medium=bio
+https://loverebbit.xyz/?utm_source=instagram&utm_medium=bio
 ```
 
 링크 여러 개를 걸 수 있으니(최대 5개) 이렇게 나눠두면 유입 경로가 보입니다.
