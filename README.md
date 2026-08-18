@@ -24,7 +24,7 @@ Supabase 프로젝트 `project1`에 아래 서버 전용 테이블과 RLS 정책
 Supabase 대시보드의 **Project Settings → API Keys**에서 Secret key를 확인한 뒤 `.env.local`에 설정하세요. 이 키는 브라우저에 노출하면 안 되므로 `NEXT_PUBLIC_` 접두사를 붙이지 않습니다.
 
 ```dotenv
-SUPABASE_URL=https://qvkxhhicnadgcnbycbyf.supabase.co
+SUPABASE_URL=https://uaaxqqzdfmuzzwgqsdki.supabase.co
 SUPABASE_SECRET_KEY=sb_secret_...
 READING_SECRET=충분히-긴-임의-문자열
 ```
