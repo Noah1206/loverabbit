@@ -16,8 +16,6 @@ import { PRODUCTS, type Product } from "@/lib/products";
 const SITE_URL = "https://loverabbit-ai.vercel.app/";
 const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
-const HERO_IDS = ["sokgunghap", "jaehoe", "bamgijil"];
-
 type CardTone = "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight" | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";
 
 const PRODUCT_CARD_DETAILS: Record<string, { copy: string; tone: CardTone }> = {
@@ -130,7 +128,6 @@ export default function AppHome() {
   }, []);
 
   const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
-  const heroes = HERO_IDS.map((id) => PRODUCTS.find((p) => p.id === id)!);
   const list = PRODUCTS.filter((p) => filter === "all" || p.tags.includes(filter));
 
   return (
@@ -235,25 +232,6 @@ export default function AppHome() {
                   <strong>{ch.name}</strong>
                   <p>{ch.tagline}</p>
                   <span className="shrine-card-enter">🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        {/* ── 히어로 상품 캐러셀 ── */}
-        <section style={{ marginTop: 22, position: "relative" }}>
-          <div className="home-product-scroll">
-            {heroes.map((p) => (
-              <Link key={p.id} href={`/product/${p.id}`} className="hero-card home-product-card">
-                <CardArt p={p} className="home-product-art" />
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 35%, rgba(10,6,16,0.95) 82%)" }} />
-                {/* 히어로 텍스트는 어두운 오버레이 위라 테마와 무관하게 밝은 색 고정 */}
-                <div style={{ position: "absolute", left: 18, right: 18, bottom: 16 }}>
-                  <span className="badge" style={{ marginBottom: 8 }}>{p.badge}</span>
-                  <h2 style={{ fontSize: "1.5rem", lineHeight: 1.3, margin: "6px 0 6px", color: "#fff" }}>{p.title}</h2>
-                  <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.78)", marginBottom: 10 }}>{p.desc}</p>
-                  <span style={{ color: "var(--accent-soft)", fontWeight: 800, fontSize: "0.92rem" }}>무료로 시작하기 →</span>
                 </div>
               </Link>
             ))}
