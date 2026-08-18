@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import { takeAuthReturn } from "@/lib/auth-return";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 
@@ -33,7 +34,8 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     };
     saveUser(user);
     if (getPendingReferral()) clearPendingReferral();
-    window.location.replace(nextPath);
+    // 팝업을 열었던 화면(쿼리 포함)이 있으면 그리로, 없으면 next 쿼리로 돌아간다.
+    window.location.replace(takeAuthReturn() ?? nextPath);
   };
 
   const connectSession = async (profile?: { birthdate: string; marketingOk: boolean }) => {

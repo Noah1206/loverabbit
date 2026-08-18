@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "@/components/ThemeProvider";
+import { rememberAuthReturn } from "@/lib/auth-return";
 import type { User } from "@/lib/user";
 
 type SocialLoginProvider = "google" | "kakao" | "x";
@@ -61,7 +62,10 @@ export default function SignupModal({
       return;
     }
     const next = nextPath ?? `${window.location.pathname}${window.location.search}`;
-    window.location.assign(`/auth/login?provider=${provider}&next=${encodeURIComponent(next)}`);
+    // 정확한 복귀 경로(쿼리 포함)는 탭에 저장하고, OAuth에는 쿼리 없는 경로만 넘긴다.
+    rememberAuthReturn(next);
+    const fallbackNext = next.split("?")[0].split("#")[0];
+    window.location.assign(`/auth/login?provider=${provider}&next=${encodeURIComponent(fallbackNext)}`);
   };
 
   return (

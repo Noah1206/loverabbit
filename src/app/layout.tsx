@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 import AppFooter from "@/components/AppFooter";
+import AuthCodeRescue from "@/components/AuthCodeRescue";
 import BottomNav from "@/components/BottomNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -40,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {themeInitScript}
         </Script>
         <ThemeProvider>
+          <AuthCodeRescue />
           <div className="app-viewport">
             {children}
             <AppFooter />
