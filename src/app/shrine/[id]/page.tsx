@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import ShrineAudioToggle from "@/components/ShrineAudioToggle";
 import { useTheme } from "@/components/ThemeProvider";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import { getUser, saveUser, type User } from "@/lib/user";
@@ -90,7 +91,7 @@ export default function ShrinePage() {
       <header style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px" }}>
         <button onClick={() => (entered ? setEntered(false) : router.push("/"))} aria-label="뒤로" style={{ background: "rgba(0,0,0,0.4)", border: "none", color: "#fff", fontSize: "1.1rem", width: 36, height: 36, borderRadius: "50%", cursor: "pointer" }}>‹</button>
         <strong style={{ color: "#fff", letterSpacing: "0.14em" }}>LOVERABBIT</strong>
-        <span style={{ width: 36 }} />
+        <ShrineAudioToggle src={ch.bgm} shrineName={ch.title} />
       </header>
 
       {!entered ? (
