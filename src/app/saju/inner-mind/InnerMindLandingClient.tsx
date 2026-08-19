@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
+import AuthReadyTransition from "@/components/AuthReadyTransition";
 import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 
@@ -29,11 +29,11 @@ export function LandingTracker() {
 }
 
 export default function InnerMindFlow() {
-  const router = useRouter();
   // 연출을 본 사람과 건너뛴 사람이 같은 설문·미리보기에 도달한다.
   const [stage, setStage] = useState<"intro" | "situation">("intro");
   const [picked, setPicked] = useState<string | null>(null);
   const [showSignup, setShowSignup] = useState(false);
+  const [showReady, setShowReady] = useState(false);
 
   const go = () => {
     trackPreviewStarted(LANDING);
@@ -48,7 +48,7 @@ export default function InnerMindFlow() {
       setShowSignup(true);
       return;
     }
-    router.push(FORM_PATH);
+    setShowReady(true);
   };
 
   return (
@@ -114,11 +114,12 @@ export default function InnerMindFlow() {
           reason="로그인 후 속마음 사주 입력 화면으로 바로 이어져요."
           onDone={() => {
             setShowSignup(false);
-            router.push(FORM_PATH);
+            setShowReady(true);
           }}
           onClose={() => setShowSignup(false)}
         />
       ) : null}
+      {showReady ? <AuthReadyTransition href={FORM_PATH} /> : null}
     </div>
   );
 }

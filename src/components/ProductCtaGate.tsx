@@ -3,8 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
+import AuthReadyTransition from "@/components/AuthReadyTransition";
 import { getUser } from "@/lib/user";
 
 // 상품 상세 고정 CTA — 비로그인 사용자는 리딩 폼으로 넘어가기 전에 로그인 팝업부터 만난다.
@@ -24,8 +24,8 @@ export default function ProductCtaGate({
   signupTitle?: string;
   signupReason?: string;
 }) {
-  const router = useRouter();
   const [showSignup, setShowSignup] = useState(false);
+  const [showReady, setShowReady] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -37,7 +37,11 @@ export default function ProductCtaGate({
         className={className}
         onClick={(e) => {
           onClick?.();
-          if (getUser()) return;
+          if (getUser()) {
+            e.preventDefault();
+            if (!showReady) setShowReady(true);
+            return;
+          }
           e.preventDefault();
           setShowSignup(true);
         }}
@@ -54,13 +58,14 @@ export default function ProductCtaGate({
               reason={signupReason ?? "로그인 후 선택한 사주 입력 화면으로 바로 이어져요."}
               onDone={() => {
                 setShowSignup(false);
-                router.push(href);
+                setShowReady(true);
               }}
               onClose={() => setShowSignup(false)}
             />,
             document.body
           )
         : null}
+      {showReady ? <AuthReadyTransition href={href} /> : null}
     </>
   );
 }

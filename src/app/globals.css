@@ -3629,6 +3629,22 @@ label {
   to { transform: rotate(360deg); }
 }
 
+.auth-ready-layer {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px 20px;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 61, 127, 0.16), transparent 36%),
+    var(--bg);
+}
+
+.auth-ready-card {
+  pointer-events: none;
+}
+
 .auth-success {
   animation: auth-success-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
+import AuthReadyTransition from "@/components/AuthReadyTransition";
 import { useState } from "react";
 import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
@@ -23,8 +23,8 @@ export function LandingTracker() {
 
 // CTA는 로그인 팝업을 먼저 띄우되, 로그인 후 같은 설문 단계로 정확히 복귀시킨다.
 function CtaButton({ className, children }: { className: string; children: React.ReactNode }) {
-  const router = useRouter();
   const [showSignup, setShowSignup] = useState(false);
+  const [showReady, setShowReady] = useState(false);
 
   return (
     <>
@@ -33,7 +33,11 @@ function CtaButton({ className, children }: { className: string; children: React
         className={className}
         onClick={(event) => {
           trackPreviewStarted(LANDING);
-          if (getUser()) return;
+          if (getUser()) {
+            event.preventDefault();
+            if (!showReady) setShowReady(true);
+            return;
+          }
           event.preventDefault();
           setShowSignup(true);
         }}
@@ -47,11 +51,12 @@ function CtaButton({ className, children }: { className: string; children: React
           reason={OFFER.loginReason}
           onDone={() => {
             setShowSignup(false);
-            router.push(FORM_PATH);
+            setShowReady(true);
           }}
           onClose={() => setShowSignup(false)}
         />
       ) : null}
+      {showReady ? <AuthReadyTransition href={FORM_PATH} /> : null}
     </>
   );
 }
