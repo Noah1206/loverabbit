@@ -266,6 +266,7 @@ export default function ReadingPage() {
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
+  const [animatedProgress, setAnimatedProgress] = useState(0);
 
   // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
   const formStartedRef = useRef(false);
@@ -435,10 +436,15 @@ export default function ReadingPage() {
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
 
+  useEffect(() => {
+    if (categorySelectionMode === "loading") return;
+    const frame = window.requestAnimationFrame(() => setAnimatedProgress(progress));
+    return () => window.cancelAnimationFrame(frame);
+  }, [categorySelectionMode, progress]);
+
   return (
     <main className="container reading-flow-page">
       <header className="reading-flow-header">
-        <span className="badge">무료 운명 미리보기</span>
         <h1>
           {categorySelectionMode === "fixed" && selectedCategory
             ? `${selectedCategory.label} 리딩`
@@ -461,7 +467,7 @@ export default function ReadingPage() {
               <strong>{workflowStepIndex + 1} / {workflowSteps.length}</strong>
             </div>
             <div className="reading-flow-progress-track" aria-hidden="true">
-              <span style={{ transform: `scaleX(${progress / 100})` }} />
+              <span style={{ transform: `scaleX(${animatedProgress / 100})` }} />
             </div>
           </div>
 
