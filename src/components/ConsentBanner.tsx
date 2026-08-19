@@ -18,7 +18,8 @@ const AD_SAJU_PATHS = new Set([
 export default function ConsentBanner() {
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
-  const isAdSajuLanding = AD_SAJU_PATHS.has(pathname);
+  const normalizedPathname = pathname.replace(/\/+$/, "") || "/";
+  const isAdSajuLanding = AD_SAJU_PATHS.has(normalizedPathname);
   const isReadingFlow = pathname === "/reading";
 
   useEffect(() => {

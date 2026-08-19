@@ -1,5 +1,10 @@
 import type { ReactNode } from "react";
 
 export default function Template({ children }: { children: ReactNode }) {
-  return <div className="route-transition-content">{children}</div>;
+  return (
+    <>
+      {children}
+      <div className="route-transition-veil" aria-hidden="true" />
+    </>
+  );
 }
