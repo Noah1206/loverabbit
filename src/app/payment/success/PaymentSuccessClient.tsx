@@ -46,12 +46,21 @@ export default function PaymentSuccessClient({
         });
         const data = (await response.json().catch(() => ({}))) as {
           full?: string;
+          score?: number;
+          scoreBand?: string | null;
+          scoreFactors?: { label: string; delta: number; basis: string }[];
           error?: string;
         };
         if (!response.ok || !data.full) {
           throw new Error(data.error ?? "결제 승인을 완료하지 못했어요.");
         }
-        updateArchive(readingId, { full: data.full });
+        // 전문만 받아 적고 지수를 버리면 해금 뒤에도 게이지가 "??%"로 남는다
+        updateArchive(readingId, {
+          full: data.full,
+          score: data.score ?? null,
+          scoreBand: data.scoreBand ?? null,
+          scoreFactors: data.scoreFactors ?? [],
+        });
         // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.
         const archiveEntry = listArchive().find((entry) => entry.readingId === readingId);
         void trackPurchase({

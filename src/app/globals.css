@@ -5800,3 +5800,68 @@ body:has(.product-page[data-landing]) .consent-banner {
   font-size: 0.74rem;
   text-align: right;
 }
+
+/* ── 지수 근거 (리딩 표지) ── */
+.rv-score {
+  margin-top: 18px;
+  padding: 16px 17px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.rv-score h2 {
+  margin-bottom: 12px;
+  font-size: 0.92rem;
+  font-weight: 800;
+  word-break: keep-all;
+}
+
+.rv-score ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rv-score li {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+}
+
+.rv-score b {
+  flex: 0 0 42px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rv-score li[data-sign="up"] b {
+  color: var(--rv-ink);
+}
+
+.rv-score li[data-sign="down"] b {
+  color: var(--text-dim);
+}
+
+.rv-score li span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rv-score strong {
+  font-size: 0.87rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.rv-score small {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  word-break: keep-all;
+}

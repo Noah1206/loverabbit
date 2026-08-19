@@ -118,15 +118,23 @@ export function ChapterBody({ chapter }: { chapter: ReadingChapter }) {
   );
 }
 
+export interface ScoreFactorView {
+  label: string;
+  delta: number;
+  basis: string;
+}
+
 /** 명식 카드 — 스크린샷의 "약한 부위 / 주의 시기" 판때기에 해당하는 자리 */
 export function ChartPanel({
   chart,
   scoreLabel,
   score,
+  scoreBand,
 }: {
   chart: { me: string; partner: string | null };
   scoreLabel?: string | null;
   score?: number | null;
+  scoreBand?: string | null;
 }) {
   return (
     <dl className="rv-chart">
@@ -143,10 +151,55 @@ export function ChartPanel({
       {scoreLabel && (
         <div>
           <dt>{scoreLabel}</dt>
-          <dd>{typeof score === "number" ? `상위 ${100 - score}%` : "상위 ??% 🔒"}</dd>
+          <dd>
+            {typeof score === "number" ? (
+              <>
+                상위 {100 - score}%{scoreBand ? ` · ${scoreBand}` : ""}
+              </>
+            ) : (
+              "상위 ??% 🔒"
+            )}
+          </dd>
         </div>
       )}
     </dl>
+  );
+}
+
+/**
+ * 지수가 어디서 나왔는지. 숫자만 던지고 끝내면 근거 없는 점괘와 다르지 않으므로,
+ * 해금한 사람에게는 명식의 어느 글자가 그 점수를 만들었는지 그대로 보여준다.
+ */
+export function ScoreBreakdown({
+  scoreLabel,
+  score,
+  factors,
+}: {
+  scoreLabel?: string | null;
+  score?: number | null;
+  factors: ScoreFactorView[];
+}) {
+  if (typeof score !== "number" || factors.length === 0) return null;
+  return (
+    <section className="rv-score">
+      <h2>
+        {scoreLabel ?? "지수"} {score}점은 어디서 나왔나
+      </h2>
+      <ul>
+        {factors.map((factor, index) => (
+          <li key={`${factor.label}-${index}`} data-sign={factor.delta > 0 ? "up" : "down"}>
+            <b>
+              {factor.delta > 0 ? "+" : ""}
+              {factor.delta}
+            </b>
+            <span>
+              <strong>{factor.label}</strong>
+              <small>{factor.basis}</small>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

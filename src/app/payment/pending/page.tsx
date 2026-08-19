@@ -63,7 +63,13 @@ export default function PaymentPendingPage() {
         finishingRef.current = false;
         throw new Error(data.error ?? "승인된 리딩을 열지 못했어요.");
       }
-      updateArchive(status.readingId, { full: data.full, pendingOrderId: undefined });
+      updateArchive(status.readingId, {
+        full: data.full,
+        score: data.score ?? null,
+        scoreBand: data.scoreBand ?? null,
+        scoreFactors: data.scoreFactors ?? [],
+        pendingOrderId: undefined,
+      });
       router.replace(`/reading/${encodeURIComponent(status.readingId)}?payment=approved`);
     };
 

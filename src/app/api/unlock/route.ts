@@ -33,6 +33,10 @@ interface SealedReading {
   price: number;
   score?: number;
   scoreLabel?: string | null;
+  /** 지수가 어느 구간인지 (상품의 meterLabels 문구) */
+  scoreBand?: string | null;
+  /** 그 지수가 어디서 나왔는지 — 해금 후 화면에 근거로 보여준다 */
+  scoreFactors?: { label: string; delta: number; basis: string }[];
 }
 
 export async function POST(req: NextRequest) {
@@ -58,6 +62,9 @@ export async function POST(req: NextRequest) {
   const price = stored?.price ?? fromBlob?.price;
   const score = stored?.score ?? fromBlob?.score;
   const scoreLabel = stored?.scoreLabel ?? fromBlob?.scoreLabel ?? null;
+  // 구간과 근거는 DB에 두지 않고 봉인된 blob에만 있다
+  const scoreBand = fromBlob?.scoreBand ?? null;
+  const scoreFactors = fromBlob?.scoreFactors ?? [];
 
   if (!full || !price) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
@@ -82,7 +89,7 @@ export async function POST(req: NextRequest) {
     if (!user?.userId || stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩을 볼 권한이 없어요." }, { status: 403 });
     }
-    return NextResponse.json({ full, score, scoreLabel });
+    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors });
   }
 
   const now = new Date().toISOString();
@@ -218,7 +225,7 @@ export async function POST(req: NextRequest) {
       );
     }
     console.log(`[결제:토스PG] userId=${user.userId ?? "local"} reading=${body.readingId} orderId=${body.orderId}`);
-    return NextResponse.json({ full, score, scoreLabel, method: "toss-pg" });
+    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, method: "toss-pg" });
   }
 
   // ── 개발용 모의결제 ──
@@ -226,5 +233,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "결제 방식을 확인할 수 없습니다." }, { status: 400 });
   }
   await markUnlocked(body.readingId, { method: "mock", at: now });
-  return NextResponse.json({ full, score, scoreLabel, method: "mock", mock: true });
+  return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, method: "mock", mock: true });
 }

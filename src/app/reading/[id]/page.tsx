@@ -26,6 +26,7 @@ import {
   ChapterTopBar,
   ChartPanel,
   IndexDrawer,
+  ScoreBreakdown,
   Seal,
   type IndexItem,
 } from "@/components/ReadingChapters";
@@ -359,7 +360,18 @@ export default function ReadingReportPage() {
               </div>
             </section>
 
-            <ChartPanel chart={entry.chart} scoreLabel={entry.scoreLabel} score={entry.score} />
+            <ChartPanel
+              chart={entry.chart}
+              scoreLabel={entry.scoreLabel}
+              score={entry.score}
+              scoreBand={entry.scoreBand}
+            />
+
+            <ScoreBreakdown
+              scoreLabel={entry.scoreLabel}
+              score={entry.score}
+              factors={entry.scoreFactors ?? []}
+            />
 
             {summaryCards.length > 0 && (
               <section className="rv-summary">

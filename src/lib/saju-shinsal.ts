@@ -52,7 +52,7 @@ const HONGYEOM: number[] = [6, 6, 2, 7, 4, 4, 10, 9, 0, 8];
 const YANGIN: number[] = [3, -1, 6, -1, 6, -1, 9, -1, 0, -1];
 
 // 원진 쌍 — 자미, 축오, 인유, 묘신, 진해, 사술
-const WONJIN: [number, number][] = [
+export const WONJIN: [number, number][] = [
   [0, 7], [1, 6], [2, 9], [3, 8], [4, 11], [5, 10],
 ];
 

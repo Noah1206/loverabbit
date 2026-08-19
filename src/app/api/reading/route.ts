@@ -18,6 +18,7 @@ import { resolveAdOffer } from "@/lib/ad-offers";
 import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
+import { computeSajuScore } from "@/lib/saju-score";
 
 export const maxDuration = 60;
 
@@ -45,13 +46,6 @@ interface Body {
 interface PreviewSection {
   title: string;
   excerpt: string;
-}
-
-// 지수(게이지) — 명식에서 결정적으로 산출 (같은 사주면 항상 같은 값, 55~95)
-function scoreFrom(me: string, partner: string | null): number {
-  let h = 0;
-  for (const ch of me + (partner ?? "")) h = (h * 31 + ch.charCodeAt(0)) % 100000;
-  return 55 + (h % 41);
 }
 
 function mockReading(category: string): { teaser: string; full: string } {
@@ -315,7 +309,10 @@ export async function POST(req: NextRequest) {
     me: chartSummary(myChart),
     partner: partnerChart ? chartSummary(partnerChart) : null,
   };
-  const score = scoreFrom(chart.me, chart.partner);
+  // 지수는 명식에서 뽑는다 — 인자와 근거가 함께 나오고, 그대로 봉인해 해금 후 보여준다.
+  const scoreResult = computeSajuScore(body.category, myFacts, partnerFacts);
+  const score = scoreResult.value;
+  const scoreBand = product?.meterLabels?.[scoreResult.bandIndex] ?? null;
   const scoreLabel = product?.scoreLabel ?? null;
   const id = randomUUID();
   // 운영에서는 반드시 Supabase에 저장하고, 로컬 무설정 환경만 파일 저장소를 쓴다.
@@ -374,7 +371,17 @@ export async function POST(req: NextRequest) {
     confidenceNote: report?.meta.confidenceNote ?? "",
     // 봉인된 풀 리딩 — 서버 키 없이는 열 수 없고, /api/unlock에서 결제 확인 후 복호화된다.
     // label·chart는 추가 상담(/api/chat)의 컨텍스트로 재사용된다.
-    blob: seal({ id, full, price, label, chart, score, scoreLabel }),
+    blob: seal({
+      id,
+      full,
+      price,
+      label,
+      chart,
+      score,
+      scoreLabel,
+      scoreBand,
+      scoreFactors: scoreResult.factors,
+    }),
     demo: providerName === "demo",
     provider: providerName,
   });

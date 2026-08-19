@@ -84,9 +84,9 @@ export interface SajuFacts {
 const ELEMENTS: Ohaeng[] = ["목", "화", "토", "금", "수"];
 
 // 오행 상생: 목->화->토->금->수->목
-const GENERATES: Record<Ohaeng, Ohaeng> = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
+export const GENERATES: Record<Ohaeng, Ohaeng> = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 // 오행 상극: 목->토->수->화->금->목
-const CONTROLS: Record<Ohaeng, Ohaeng> = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
+export const CONTROLS: Record<Ohaeng, Ohaeng> = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
 
 function isYangStem(ganIdx: number): boolean {
   return ganIdx % 2 === 0;
@@ -174,7 +174,7 @@ function judgeStrength(chart: SajuChart, balance: ElementBalance): StrengthFact 
   return { label, score: clamped, reasonCodes };
 }
 
-const HEAVENLY_COMBOS: [number, number, string][] = [
+export const HEAVENLY_COMBOS: [number, number, string][] = [
   [0, 5, "갑기합토"],
   [1, 6, "을경합금"],
   [2, 7, "병신합수"],
@@ -182,15 +182,15 @@ const HEAVENLY_COMBOS: [number, number, string][] = [
   [4, 9, "무계합화"],
 ];
 
-const BRANCH_CLASHES: [number, number][] = [
+export const BRANCH_CLASHES: [number, number][] = [
   [0, 6], [1, 7], [2, 8], [3, 9], [4, 10], [5, 11],
 ];
 
-const BRANCH_SIX_COMBOS: [number, number][] = [
+export const BRANCH_SIX_COMBOS: [number, number][] = [
   [0, 1], [2, 11], [3, 10], [4, 9], [5, 8], [6, 7],
 ];
 
-const BRANCH_TRIPLES: [number[], string][] = [
+export const BRANCH_TRIPLES: [number[], string][] = [
   [[8, 0, 4], "신자진 수국"],
   [[11, 3, 7], "해묘미 목국"],
   [[2, 6, 10], "인오술 화국"],

@@ -22,6 +22,10 @@ export interface ArchiveEntry {
   lockedSectionTitles?: string[];
   scoreLabel?: string | null;
   score?: number | null;
+  /** 지수가 어느 구간인지 — 상품 meterLabels의 문구 */
+  scoreBand?: string | null;
+  /** 그 지수가 어디서 나왔는지. 해금 후에만 채워진다. */
+  scoreFactors?: { label: string; delta: number; basis: string }[];
   demo?: boolean;
   // 리포트 상단 요약 카드 — 결제 전에도 보여주는 무료 구조 정보
   summaryCards?: { label: string; value: string; detail: string }[];
