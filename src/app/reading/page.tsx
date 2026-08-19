@@ -445,6 +445,10 @@ export default function ReadingPage() {
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
   const showIntroHeader = categorySelectionMode === "loading" || step === "category";
+  const isDataEntryStep = step === "meBirth"
+    || step === "meDetails"
+    || step === "partnerBirth"
+    || step === "partnerDetails";
 
   useEffect(() => {
     if (categorySelectionMode === "loading") return;
@@ -490,7 +494,11 @@ export default function ReadingPage() {
             </aside>
           )}
 
-          <section key={step} className="card reading-step-card" aria-labelledby="reading-step-title">
+          <section
+            key={step}
+            className={`reading-step-card${isDataEntryStep ? " reading-step-card--plain" : " card"}`}
+            aria-labelledby="reading-step-title"
+          >
             {step === "category" && (
               <>
                 <p className="reading-step-kicker">STEP 1</p>
