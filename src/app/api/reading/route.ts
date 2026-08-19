@@ -19,6 +19,7 @@ import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore } from "@/lib/saju-score";
+import { checkReport, guardRetryPrompt, type GuardViolation } from "@/lib/reading-guard";
 
 export const maxDuration = 60;
 
@@ -265,6 +266,8 @@ export async function POST(req: NextRequest) {
   let full: string;
   let report: StructuredReport | null = null;
   let providerName = "demo";
+  // 출고 검사 결과 — 고치지 못한 위반은 blob에 남겨 나중에 되짚을 수 있게 한다
+  let guardViolations: GuardViolation[] = [];
 
   try {
     const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], 8000);
@@ -289,6 +292,36 @@ export async function POST(req: NextRequest) {
           8000
         );
         report = retry ? parseStructuredReport(retry.text) : null;
+      }
+
+      // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고, 막아야 할 위반이면 한 번만 다시 시킨다.
+      if (report) {
+        const guard = checkReport(report, { expectedSections: outline.length });
+        guardViolations = guard.violations;
+        if (guard.mustRetry) {
+          console.warn(
+            "리포트 출고 검사 위반:",
+            guard.violations.filter((v) => v.blocking).map((v) => `${v.where} ${v.detail}`).join(" / ")
+          );
+          const fixed = await chatComplete(
+            READING_SYSTEM_PROMPT,
+            [
+              { role: "user", content: userPrompt },
+              { role: "assistant", content: JSON.stringify({ report_meta: report.meta }).slice(0, 1200) },
+              { role: "user", content: guardRetryPrompt(guard.violations) },
+            ],
+            8000
+          );
+          const reparsed = fixed ? parseStructuredReport(fixed.text) : null;
+          if (reparsed) {
+            const recheck = checkReport(reparsed, { expectedSections: outline.length });
+            // 고쳐서 나아졌을 때만 바꿔 끼운다 — 재요청이 더 나쁠 수도 있다
+            if (!recheck.mustRetry || recheck.violations.length < guard.violations.length) {
+              report = reparsed;
+              guardViolations = recheck.violations;
+            }
+          }
+        }
       }
 
       if (report) {
@@ -384,6 +417,8 @@ export async function POST(req: NextRequest) {
       // 구조화 리포트를 통째로 봉인한다. 텍스트로 눌러 담으면 facts_used와
       // watch_out이 사라져, 나중에 "이 문장이 어디서 나왔나"를 되짚을 수 없다.
       report,
+      // 고치지 못하고 내보낸 위반 — 사용자에게는 안 보이지만 감사할 수 있어야 한다
+      guardViolations,
     }),
     demo: providerName === "demo",
     provider: providerName,
