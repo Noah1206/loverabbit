@@ -141,6 +141,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       {/* ── 고정 CTA ── */}
       <div className="product-sticky-shell">
         <span className="product-sticky-hook">{p.emoji} {p.ctaHook}</span>
+        <span className="product-participant-badge" aria-label="354명이 참여함">
+          <span aria-hidden="true">🔥</span> 354명이 참여함
+        </span>
         <ProductCtaGate href={cta} className="product-sticky-cta">
           <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>
           <span className="product-sticky-copy">

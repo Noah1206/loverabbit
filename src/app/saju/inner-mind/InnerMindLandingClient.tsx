@@ -100,9 +100,14 @@ export default function InnerMindFlow() {
               </li>
             ))}
           </ul>
-          <button type="button" className="btn lp-cta" onClick={go} disabled={!picked}>
-            미리보기로 이동
-          </button>
+          <div className="lp-cta-wrap">
+            <span className="lp-participant-badge" aria-label="354명이 참여함">
+              <span aria-hidden="true">🔥</span> 354명이 참여함
+            </span>
+            <button type="button" className="btn lp-cta" onClick={go} disabled={!picked}>
+              미리보기로 이동
+            </button>
+          </div>
           <p className="lp-note">고른 항목은 해석에만 쓰이고, 주소창이나 광고 기록에는 남지 않아요.</p>
         </div>
       )}

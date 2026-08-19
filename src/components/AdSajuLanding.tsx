@@ -140,6 +140,9 @@ export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
       </div>
 
       <div className="product-sticky-shell ad-saju-sticky-shell">
+        <span className="ad-saju-participant-badge" aria-label="354명이 참여함">
+          <span aria-hidden="true">🔥</span> 354명이 참여함
+        </span>
         <div className="ad-saju-cta-flames" aria-hidden="true">
           <span>🔥</span>
           <span>🔥</span>
