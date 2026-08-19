@@ -48,59 +48,70 @@ export const BUSINESS = {
   },
 } as const;
 
+const telHref = (value: string) => (value ? `tel:${value.replace(/[^0-9+]/g, "")}` : undefined);
+const mailHref = (value: string) => (value ? `mailto:${value}` : undefined);
+
+/** 값이 들어온 항목만 남긴다 — 안 채운 줄이 화면에 남지 않게. */
+const filled = (fields: LegalField[]) => fields.filter((field) => field.value);
+
+// 통신판매업은 신고번호와 신고기관이 한 줄로 붙는다. 둘 중 하나만 있을 수도
+// 있으므로 있는 쪽에 맞춰 이름과 값을 정한다.
+function mailOrderField(): LegalField {
+  const { mailOrderNo: no, mailOrderAuthority: authority } = BUSINESS;
+  if (no && authority) {
+    return { label: "통신판매업 신고번호", value: `${no} (신고기관: ${authority})`, required: true };
+  }
+  if (no) return { label: "통신판매업 신고번호", value: no, required: true };
+  return { label: "통신판매업 신고기관", value: authority, required: true };
+}
+
 /** 전자상거래법 제10조가 요구하는 사업자 신원 항목 */
 export function businessFields(): LegalField[] {
-  const mailOrder = BUSINESS.mailOrderAuthority
-    ? `${BUSINESS.mailOrderNo} (신고기관: ${BUSINESS.mailOrderAuthority})`
-    : BUSINESS.mailOrderNo;
-
-  return [
+  return filled([
     { label: "상호", value: BUSINESS.name, required: true },
     { label: "대표자", value: BUSINESS.representative, required: true },
     { label: "사업자등록번호", value: BUSINESS.registrationNo, required: true },
-    { label: "통신판매업 신고번호", value: BUSINESS.mailOrderNo ? mailOrder : "", required: true },
+    mailOrderField(),
     { label: "영업소 소재지", value: BUSINESS.address, required: true },
-    {
-      label: "전화번호",
-      value: BUSINESS.phone,
-      href: BUSINESS.phone ? `tel:${BUSINESS.phone.replace(/[^0-9+]/g, "")}` : undefined,
-      required: true,
-    },
-    {
-      label: "전자우편주소",
-      value: BUSINESS.email,
-      href: BUSINESS.email ? `mailto:${BUSINESS.email}` : undefined,
-      required: true,
-    },
+    { label: "전화번호", value: BUSINESS.phone, href: telHref(BUSINESS.phone), required: true },
+    { label: "전자우편주소", value: BUSINESS.email, href: mailHref(BUSINESS.email), required: true },
     { label: "호스팅 제공자", value: BUSINESS.hosting, required: false },
-  ];
+  ]);
 }
 
 /** 개인정보보호법 제30조가 요구하는 보호책임자 항목 */
 export function privacyOfficerFields(): LegalField[] {
   const officer = BUSINESS.privacyOfficer;
-  return [
+  // 이름도 연락처도 없으면 직책만 덩그러니 남으므로 통째로 접는다.
+  if (!officer.name && !officer.email && !officer.phone) return [];
+
+  return filled([
     { label: "성명", value: officer.name, required: true },
     { label: "직책", value: officer.title, required: true },
-    {
-      label: "전자우편주소",
-      value: officer.email,
-      href: officer.email ? `mailto:${officer.email}` : undefined,
-      required: true,
-    },
-    {
-      label: "전화번호",
-      value: officer.phone,
-      href: officer.phone ? `tel:${officer.phone.replace(/[^0-9+]/g, "")}` : undefined,
-      required: true,
-    },
-  ];
+    { label: "전자우편주소", value: officer.email, href: mailHref(officer.email), required: true },
+    { label: "전화번호", value: officer.phone, href: telHref(officer.phone), required: true },
+  ]);
 }
 
-/** 아직 안 채워진 필수 항목. 비어 있어야 정상 배포다. */
+/**
+ * 아직 안 채워진 필수 항목. 화면에는 안 나오지만 개발 빌드에서 목록으로 보여준다.
+ * 유료 결제를 받는 이상 이 배열은 비어 있어야 한다.
+ */
 export function missingLegalFields(): string[] {
-  const pick = (group: string, fields: LegalField[]) =>
-    fields.filter((field) => field.required && !field.value).map((field) => `${group} ${field.label}`);
-
-  return [...pick("사업자", businessFields()), ...pick("보호책임자", privacyOfficerFields())];
+  const present = new Set([
+    ...businessFields().map((field) => field.label),
+    ...privacyOfficerFields().map((field) => `보호책임자 ${field.label}`),
+  ]);
+  const wanted = [
+    "상호",
+    "대표자",
+    "사업자등록번호",
+    "통신판매업 신고번호",
+    "영업소 소재지",
+    "전화번호",
+    "전자우편주소",
+    "보호책임자 성명",
+    "보호책임자 전자우편주소",
+  ];
+  return wanted.filter((label) => !present.has(label));
 }
