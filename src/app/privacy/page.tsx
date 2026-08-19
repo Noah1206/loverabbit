@@ -18,6 +18,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   const missing = missingLegalFields();
+  const officer = privacyOfficerFields();
+  const business = businessFields();
 
   return (
     <main className="lp lp-doc">
@@ -72,28 +74,34 @@ export default function PrivacyPage() {
         <h2 className="lp-h2">4. 이용자의 권리</h2>
         <p>
           이용자는 언제든지 자신의 정보 열람·정정·삭제·처리정지를 요청할 수 있습니다. 요청은 앱 안의
-          문의하기 또는 아래 개인정보 보호책임자 연락처로 받으며, 접수일로부터 10일 이내에
-          처리 결과를 알려드립니다.
+          문의하기{officer.length > 0 ? " 또는 아래 개인정보 보호책임자 연락처" : ""}로 받으며,
+          접수일로부터 10일 이내에 처리 결과를 알려드립니다.
         </p>
       </section>
 
-      <section className="lp-doc-section">
-        <h2 className="lp-h2">5. 개인정보 보호책임자</h2>
-        <p>
-          개인정보 처리에 관한 업무를 총괄하고, 이용자의 문의·불만·피해구제를 아래 책임자가
-          처리합니다.
-        </p>
-        <LegalFieldList fields={privacyOfficerFields()} />
-      </section>
+      {officer.length > 0 ? (
+        <section className="lp-doc-section">
+          <h2 className="lp-h2">5. 개인정보 보호책임자</h2>
+          <p>
+            개인정보 처리에 관한 업무를 총괄하고, 이용자의 문의·불만·피해구제를 아래 책임자가
+            처리합니다.
+          </p>
+          <LegalFieldList fields={officer} />
+        </section>
+      ) : null}
+
+      {business.length > 0 ? (
+        <section className="lp-doc-section">
+          <h2 className="lp-h2">{officer.length > 0 ? "6" : "5"}. 사업자 정보</h2>
+          <p>{BUSINESS.serviceName} 서비스를 운영하는 사업자의 신원 정보입니다.</p>
+          <LegalFieldList fields={business} />
+        </section>
+      ) : null}
 
       <section className="lp-doc-section">
-        <h2 className="lp-h2">6. 사업자 정보</h2>
-        <p>{BUSINESS.serviceName} 서비스를 운영하는 사업자의 신원 정보입니다.</p>
-        <LegalFieldList fields={businessFields()} />
-      </section>
-
-      <section className="lp-doc-section">
-        <h2 className="lp-h2">7. 권익침해 구제방법</h2>
+        <h2 className="lp-h2">
+          {5 + (officer.length > 0 ? 1 : 0) + (business.length > 0 ? 1 : 0)}. 권익침해 구제방법
+        </h2>
         <p>
           개인정보 침해로 상담·피해구제가 필요하면 아래 기관에 문의할 수 있습니다. 위 연락처로
           받은 처리 결과에 만족하지 못한 경우에도 같습니다.
