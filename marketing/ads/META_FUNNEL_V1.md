@@ -93,6 +93,23 @@ Events Manager에서 `loverabbit-web` 등으로 바꾸면 관리가 쉽다(기�
 - `SajuFormStarted` → `{landing_type: "breakup_decision"}` 만 발화, 생년월일 값 없음 확인
 - 생년월일 3칸 연속 입력에도 1회만 발화 (ref 가드 정상)
 
+
+### 프로덕션 검증 (2026-08-19, 배포 후)
+
+PR #3 rebase 머지 → `main` 배포 완료. `https://www.loverebbit.xyz` 실측:
+
+| 확인 | 결과 |
+|---|---|
+| `/saju/breakup-decision`, `/saju/inner-mind`, `/privacy` | 200 |
+| 동의 전 Pixel 스크립트 | 미주입 |
+| 동의 후 | `fbevents.js` 로드, `fbq.loaded=true`, 스크립트에 픽셀 ID·autoConfig 포함 |
+| 실제 전송 | `facebook.com/tr/?id=4571197313203496&ev=PageView`, `&ev=PreviewStarted` |
+| `PreviewStarted` 파라미터 | `cd[landing_type]=breakup_decision` 만 |
+| `SajuFormStarted` (생년월일 입력 후) | `cd[landing_type]` 만. 입력값 `1995` 미포함 |
+| 자동 고급 매칭 상태 | `aems=0;0` (꺼짐) — `ud[...]` 파라미터 0건 |
+
+생년월일을 실제로 입력한 상태에서도 광고 요청에 값이 실리지 않는 것을 확인했다.
+`autoConfig=false` 코드 차단이 프로덕션에서 의도대로 동작한다.
 ### 아직 막힌 것 — 전환 API 토큰
 `설정 → 전환 API → 액세스 토큰 만들기`가
 **"필수 조건 누락 — 액세스 토큰을 만들려면 이 비즈니스 포트폴리오의 관리자여야 합니다"**
@@ -177,10 +194,10 @@ Ads Manager 접근은 확인했다(`act=1501156981218798`, 활성 캠페인 2개
 
 | # | 항목 | 이유 |
 |---|---|---|
-| 1 | Vercel 환경변수 `NEXT_PUBLIC_META_PIXEL_ID`·`META_PIXEL_ID` = `4571197313203496` | 로컬 `.env.local`에만 넣었음. 운영 반영 필요 |
+| 1 | ~~Vercel 환경변수~~ | 완료 — 프로덕션에서 픽셀 로드 확인 |
 | 2 | CAPI 토큰 발급 (비즈니스 포트폴리오 관리자 권한) | 서버 전환 전송이 꺼져 있음 |
-| 3 | 활성 캠페인 2개 점검 | 전환 이벤트 없이 구매 목표로 집행 중 |
+| 3 | 활성 캠페인 2개 점검 | 이제 전환 신호가 들어오므로 학습 재시작 여부 판단 |
 | 4 | 크리에이티브 4종 제작 | 자산 라이브러리에 없음 |
 | 5 | 예산 승인 (₩35,000 / ₩15,000) | 초안값일 뿐, 목표 CAC 기준 재산정 필요 |
 | 6 | `inner_mind` 상품 매핑 확정 | `sseom`이 맞는지 확인 |
-| 7 | 프로덕션 배포 | 이 브랜치는 미배포 상태 |
+| 7 | ~~프로덕션 배포~~ | 완료 — PR #3 머지·배포·실측 검증 끝 |
