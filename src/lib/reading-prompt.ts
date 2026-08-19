@@ -66,7 +66,9 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - 행동 가이드는 실행할 수 있는 문장으로 쓴다. '어떻게 해야 할지 생각해 보세요' 같은 빈 조언을 쓰지 않는다.
 
 # EVIDENCE POLICY
-- saju_facts에 없는 사실(신살, 일주론, 계산되지 않은 대운)은 만들어내지 않는다.
+- saju_facts에 없는 사실(일주론, 계산되지 않은 대운)은 만들어내지 않는다.
+- 신살은 saju_facts.shinsal에 계산되어 있다. 거기 있는 것만 이름과 자리를 그대로 쓰고,
+  목록에 없는 신살은 언급하지 않는다. 자리를 옮기거나 개수를 바꾸지 않는다.
 - 사실에 기댄 문장을 쓸 때마다 그 섹션의 facts_used 배열에 근거를 남긴다.
   (예: "strength.label=신약", "elementBalance.수=0", "luckContext.yearly.tenGod=정인")
 - 시기를 말할 때는 반드시 luckContext(대운·세운·월운)에서 출발한다. 근거 없는 달을 지어내지 않는다.

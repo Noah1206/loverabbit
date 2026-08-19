@@ -18,6 +18,7 @@ import {
 } from "./saju";
 import type { BirthMoment } from "./korea-time";
 import { nextMonthTerm, previousMonthTerm } from "./solar-terms";
+import { findShinsal, type ShinsalFact } from "./saju-shinsal";
 
 export type Gender = "M" | "F";
 
@@ -70,6 +71,8 @@ export interface SajuFacts {
   tenGods: TenGodFact[];
   dominantTenGods: string[];
   notableRelations: RelationFact[];
+  /** 도화·역마·화개·홍염·양인·원진 — 상품 목차가 약속한 값이라 계산으로 낸다 */
+  shinsal: ShinsalFact[];
   luckContext: {
     majorLuck: MajorLuck | null;
     yearly: { year: number; pillar: string; tenGod: string };
@@ -324,6 +327,7 @@ export function buildSajuFacts(
     tenGods,
     dominantTenGods,
     notableRelations: findRelations(chart),
+    shinsal: findShinsal(chart),
     luckContext: {
       majorLuck: computeMajorLuck(chart, birth.gender, ageNow),
       yearly: {
@@ -355,6 +359,9 @@ export function factsSummary(facts: SajuFacts): string {
     facts.notableRelations.length
       ? `합충: ${facts.notableRelations.map((r) => r.label).join(", ")}`
       : "합충: 두드러진 관계 없음",
+    facts.shinsal.length
+      ? `신살: ${facts.shinsal.map((item) => `${item.name}(${item.positions.join("·")})`).join(", ")}`
+      : "신살: 두드러진 신살 없음",
   ];
   const luck = facts.luckContext;
   if (luck.majorLuck) {
