@@ -71,7 +71,8 @@ export default function BottomNav() {
 
   useEffect(() => setVisualIndex(routeIndex), [routeIndex]);
 
-  if (path === "/reading" || path.startsWith("/product/") || path.startsWith("/shrine/") || path.startsWith("/saju/")) return null;
+  // 생성 대기 화면은 몰입을 유지하도록 하단 네비게이션을 숨긴다.
+  if (path === "/reading" || path === "/reading/generating" || path.startsWith("/product/") || path.startsWith("/shrine/") || path.startsWith("/saju/")) return null;
 
   return (
     <nav
