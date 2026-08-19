@@ -20,6 +20,7 @@ import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore } from "@/lib/saju-score";
 import { checkReport, guardRetryPrompt, type GuardViolation } from "@/lib/reading-guard";
+import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
 
 export const maxDuration = 60;
 
@@ -247,11 +248,16 @@ export async function POST(req: NextRequest) {
   if (meSolar.note) myFacts.calculationNotes.unshift(meSolar.note);
   if (partnerNote && partnerFacts) partnerFacts.calculationNotes.unshift(partnerNote);
 
+  // 계산값에서 켜지는 검수 규칙. 이 목록이 리포트가 말해도 되는 것의 경계가 된다.
+  const matchedRules = matchRules(myFacts, partnerFacts, body.category);
+  const forbiddenClaims = forbiddenFromRules(matchedRules);
+
   const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
   const userPrompt = buildReadingUserPrompt(
     buildReadingInput({
       facts: myFacts,
       partnerFacts,
+      matchedRules,
       productLabel: label,
       outline,
       focus: partnerFacts ? "relationship" : "self",
@@ -296,7 +302,7 @@ export async function POST(req: NextRequest) {
 
       // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고, 막아야 할 위반이면 한 번만 다시 시킨다.
       if (report) {
-        const guard = checkReport(report, { expectedSections: outline.length });
+        const guard = checkReport(report, { expectedSections: outline.length, forbiddenClaims });
         guardViolations = guard.violations;
         if (guard.mustRetry) {
           console.warn(
@@ -314,7 +320,7 @@ export async function POST(req: NextRequest) {
           );
           const reparsed = fixed ? parseStructuredReport(fixed.text) : null;
           if (reparsed) {
-            const recheck = checkReport(reparsed, { expectedSections: outline.length });
+            const recheck = checkReport(reparsed, { expectedSections: outline.length, forbiddenClaims });
             // 고쳐서 나아졌을 때만 바꿔 끼운다 — 재요청이 더 나쁠 수도 있다
             if (!recheck.mustRetry || recheck.violations.length < guard.violations.length) {
               report = reparsed;
@@ -419,6 +425,8 @@ export async function POST(req: NextRequest) {
       report,
       // 고치지 못하고 내보낸 위반 — 사용자에게는 안 보이지만 감사할 수 있어야 한다
       guardViolations,
+      // 어떤 규칙으로 읽었는지. 나중에 규칙을 고칠 때 영향 범위를 찾을 수 있다.
+      ruleIds: matchedRules.map((rule) => rule.id),
     }),
     demo: providerName === "demo",
     provider: providerName,

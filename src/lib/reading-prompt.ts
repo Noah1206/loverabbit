@@ -5,6 +5,7 @@
 // AI는 saju_facts에 있는 값만 근거로 쓰고, 명리 사실을 새로 만들지 않는다.
 
 import type { SajuFacts } from "@/lib/saju-facts";
+import { rulesForPrompt, type ReadingRule } from "@/lib/reading-rules";
 
 export interface ReportSectionOut {
   id: string; // core | relationship | work | timing
@@ -66,6 +67,11 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - 행동 가이드는 실행할 수 있는 문장으로 쓴다. '어떻게 해야 할지 생각해 보세요' 같은 빈 조언을 쓰지 않는다.
 
 # EVIDENCE POLICY
+- matched_rules는 이 명식에서 검수를 통과한 해석 목록이다. 해석의 뼈대는 여기서만 가져온다.
+  각 규칙의 narrative_claim을 관계 장면으로 번역하고, safe_phrasing의 어법으로 감싼다.
+  forbidden_claims에 적힌 말은 어떤 방식으로도 쓰지 않는다.
+- matched_rules에 없는 명리 판단을 새로 세우지 않는다. 다만 계산값(시기, 글자, 개수)을
+  그대로 인용하는 것은 언제나 허용된다.
 - saju_facts에 없는 사실(일주론, 계산되지 않은 대운)은 만들어내지 않는다.
 - 신살은 saju_facts.shinsal에 계산되어 있다. 거기 있는 것만 이름과 자리를 그대로 쓰고,
   목록에 없는 신살은 언급하지 않는다. 자리를 옮기거나 개수를 바꾸지 않는다.
@@ -87,6 +93,8 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 export interface ReadingInput {
   facts: SajuFacts;
   partnerFacts: SajuFacts | null;
+  /** 이 명식에서 켜진 검수 규칙 — 해석의 뼈대가 된다 */
+  matchedRules: ReadingRule[];
   productLabel: string;
   outline: string[];
   focus: string;
@@ -106,6 +114,7 @@ export function buildReadingInput(input: ReadingInput): string {
     },
     saju_facts: input.facts,
     partner_saju_facts: input.partnerFacts,
+    matched_rules: rulesForPrompt(input.matchedRules),
     user_context: {
       focus: input.focus,
       current_scene: input.currentScene || null,
@@ -127,6 +136,7 @@ export function buildReadingUserPrompt(inputJson: string): string {
   return `입력 JSON을 사용해 report_type에 맞는 러브레빗 사주 리포트를 작성해.
 
 우선순위는 다음과 같아.
+0. matched_rules 안에서만 해석하기 — 뼈대는 규칙, 살은 계산값
 1. 계산 데이터와 facts_used의 정합성
 2. 사용자의 current_scene에 대한 구체적인 답 — 시기와 결론을 분명히 짚는다
 3. delivery.outline의 순서와 개수를 그대로 따른 sections 구성
