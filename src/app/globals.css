@@ -1804,11 +1804,6 @@ label {
   border-bottom-color: var(--accent);
 }
 
-.report-toc li.locked {
-  color: var(--text-dim);
-  opacity: 0.7;
-}
-
 .report-body {
   margin-top: 34px;
 }
@@ -1852,6 +1847,39 @@ label {
 
 .report-body-locked section p {
   color: var(--text-dim);
+}
+
+/* 미리보기의 끝 — 첫 대목까지만 읽히고, 그 아래는 흐려지며 사라진다.
+   섹션마다 가리는 대신 한 번에 끊어서 "여기서부터 전문"이라는 경계를 만든다. */
+.report-cutoff {
+  position: relative;
+  max-height: 240px;
+  margin-top: 30px;
+  overflow: hidden;
+  opacity: 0.55;
+  filter: blur(3.6px);
+  user-select: none;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 46%, transparent 92%);
+  mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 46%, transparent 92%);
+}
+
+/* 꼬리 안에서는 섹션 사이 구분선을 그리지 않는다 — 흐려지는 흐름이 끊긴다 */
+.report-cutoff section + section {
+  margin-top: 26px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* 바깥에서 이미 흐려지므로 여기서 한 번 더 흐릴 필요가 없다 */
+.report-cutoff .preview-blur-lines {
+  filter: none;
+  opacity: 0.6;
+}
+
+/* 글이 사라진 자리 바로 아래에서 결제 카드를 받는다 */
+.report-body-locked .report-paywall {
+  margin-top: 16px;
 }
 
 .report-paywall {
@@ -1958,6 +1986,55 @@ label {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1px solid var(--line);
+}
+
+/* 한눈에 보기 — 계산 결과를 한 줄로 접은 카드 세 장 */
+.report-cards {
+  display: grid;
+  gap: 10px;
+}
+
+.report-card {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--accent) 5%, var(--bg-card));
+}
+
+.report-card small {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.report-card strong {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+
+.report-card p {
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.report-note {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.7;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.report-note + .report-note {
+  margin-top: 6px;
 }
 
 .report-demo {

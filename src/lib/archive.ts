@@ -22,6 +22,11 @@ export interface ArchiveEntry {
   scoreLabel?: string | null;
   score?: number | null;
   demo?: boolean;
+  // 리포트 상단 요약 카드 — 결제 전에도 보여주는 무료 구조 정보
+  summaryCards?: { label: string; value: string; detail: string }[];
+  // 리포트 하단 고지 — 결과가 어떤 성격의 해석인지, 계산의 한계가 무엇인지
+  disclaimer?: string;
+  confidenceNote?: string;
 }
 
 const KEY = "loverabbit_archive_v1";

@@ -78,6 +78,9 @@ export default function ReadingGeneratingPage() {
           scoreLabel: data.scoreLabel ?? null,
           score: null,
           demo: data.demo === true,
+          summaryCards: data.summaryCards ?? [],
+          disclaimer: data.disclaimer ?? "",
+          confidenceNote: data.confidenceNote ?? "",
         });
         clearReadingDraft();
         setProgress(100);
