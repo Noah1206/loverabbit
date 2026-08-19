@@ -62,15 +62,30 @@ async function callGemini(
 }
 
 // OpenAI 호환 chat/completions — OPENAI_BASE_URL만 바꾸면 OpenRouter, Groq, 로컬 Ollama도 동작
+/**
+ * gpt-5 계열과 o 시리즈는 추론 모델이라 채팅 API의 규약이 다르다.
+ *   - max_tokens 를 받지 않는다 (max_completion_tokens 를 써야 한다)
+ *   - temperature 는 기본값(1)만 허용한다
+ * 둘 다 400으로 즉시 거절되므로, 모델 이름만 바꾸면 리딩이 전부 데모로 떨어진다.
+ * 실제 API에 물어 확인한 제약이다 (2026-08 기준).
+ */
+function isReasoningModel(model: string): boolean {
+  return /^(gpt-5|o[1-9])/.test(model);
+}
+
 async function callOpenAICompat(apiKey: string, system: string, messages: ChatMsg[], maxTokens: number): Promise<string> {
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const budget = isReasoningModel(model)
+    ? // 추론 토큰도 이 예산에서 빠져나가므로 여유를 둔다
+      { max_completion_tokens: maxTokens + 2000 }
+    : { max_tokens: maxTokens, temperature: 0.9 };
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
-      max_tokens: maxTokens,
-      temperature: 0.9,
+      model,
+      ...budget,
       messages: [{ role: "system", content: system }, ...messages],
     }),
   });
