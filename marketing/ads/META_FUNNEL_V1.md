@@ -27,14 +27,14 @@
 | `ViewContent` | 두 랜딩 진입 | `content_name` |
 | `PreviewStarted` | 랜딩 CTA 클릭 | `landing_type` |
 | `CompleteRegistration` | `auth/complete` 로그인 완료 | `method` (제공자명만) |
+| `SajuFormStarted` | `/reading` 생년월일 첫 입력 | `landing_type` |
 | `SajuFormCompleted` | `/reading` 제출 → 생성 시작 | `landing_type` |
 | `PreviewGenerated` | `/reading/generating` 생성 완료 | `landing_type` |
 | `ResultUnlockClicked` | `/reading/[id]` 잠금 해제 CTA | `landing_type` |
 | `InitiateCheckout` | 결제 모달 진입 | `value`, `currency`, `landing_type` |
 | `Purchase` | 결제 승인 성공 | `value`, `currency`, `transaction_id`, `event_id` |
 
-`SajuFormStarted`는 헬퍼에 함수만 두고 아직 호출부를 붙이지 않았다. 첫 입력 시점을 어디로
-볼지(카테고리 선택 / 첫 글자 입력) 정해지면 `/reading` 폼에 한 줄 추가하면 된다.
+`SajuFormStarted`는 생년월일 칸에 첫 값이 들어간 순간 ref 가드로 한 번만 발화한다.
 
 `landing_type`은 광고 랜딩과 연결된 상품(`ibyeol`, `sseom`)일 때만 붙는다. 자연 유입 리딩은
 커스텀 이벤트를 발송하지 않아 광고 데이터가 오염되지 않는다.
@@ -54,7 +54,7 @@
 - `/saju/breakup-decision` — 지시문 카피 그대로. 히어로 CTA + 하단 고정 CTA + 결과물 카드 4종.
 - `/saju/inner-mind` — 도입 연출 → 상황 선택 → 미리보기. 자동재생 오디오 없음, 스킵 버튼이
   같은 설문에 도달. 접근성용 `h1` 유지.
-- `/privacy` — 개인정보처리방침. **사업자 정보·연락처는 운영자가 채워야 한다.**
+- `/privacy` — 개인정보처리방침. 사업자 정보·연락처는 운영자가 채워 넣었다(20cb2e9, a70181f).
 
 ### 검증 완료
 - `npx tsc --noEmit` 통과, `npm run build` 통과.
@@ -143,8 +143,7 @@ Ads Manager 접근은 확인했다(`act=1501156981218798`, 활성 캠페인 2개
 |---|---|---|
 | 1 | Pixel 생성 + 환경변수 3개 입력 | 광고 초안 생성의 전제. 현재 전환 추적이 전무 |
 | 2 | 활성 캠페인 2개 점검 | 전환 이벤트 없이 구매 목표로 집행 중 |
-| 3 | `/privacy` 사업자 정보·연락처 | 법정 기재사항이 비어 있음 |
-| 4 | 크리에이티브 4종 제작 | 자산 라이브러리에 없음 |
-| 5 | 예산 승인 (₩35,000 / ₩15,000) | 초안값일 뿐, 목표 CAC 기준 재산정 필요 |
-| 6 | `inner_mind` 상품 매핑 확정 | `sseom`이 맞는지 확인 |
-| 7 | 프로덕션 배포 | 이 브랜치는 미배포 상태 |
+| 3 | 크리에이티브 4종 제작 | 자산 라이브러리에 없음 |
+| 4 | 예산 승인 (₩35,000 / ₩15,000) | 초안값일 뿐, 목표 CAC 기준 재산정 필요 |
+| 5 | `inner_mind` 상품 매핑 확정 | `sseom`이 맞는지 확인 |
+| 6 | 프로덕션 배포 | 이 브랜치는 미배포 상태 |
