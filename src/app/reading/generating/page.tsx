@@ -56,6 +56,7 @@ export default function ReadingGeneratingPage() {
             offerId: job.offerId,
             me: parsePerson(job.me),
             partner: job.withPartner && job.partner.year ? parsePerson(job.partner) : null,
+            question: job.question ?? "",
             userToken: user.token,
           }),
         });

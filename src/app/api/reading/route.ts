@@ -17,14 +17,27 @@ import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
+import { lunarToSolar } from "@/lib/lunar";
 
 export const maxDuration = 60;
+
+interface PersonBody {
+  year: number;
+  month: number;
+  day: number;
+  hour: number | null;
+  gender: string;
+  /** 입력한 날짜가 음력인지. 생략하면 양력으로 본다. */
+  calendar?: "solar" | "lunar";
+  /** 음력일 때만 의미가 있다 */
+  leapMonth?: boolean;
+}
 
 interface Body {
   category: string; // 상품 카탈로그(products.ts)의 id
   offerId?: string; // 광고 전용 공개 오퍼. 서버에서 카테고리와 함께 검증한다.
-  me: { year: number; month: number; day: number; hour: number | null; gender: string };
-  partner?: { year: number; month: number; day: number; hour: number | null; gender: string } | null;
+  me: PersonBody;
+  partner?: PersonBody | null;
   question?: string;
   userToken?: string;
 }
@@ -89,6 +102,20 @@ function previewOf(full: string, fallbackTitles: string[]): {
   };
 }
 
+// 음력 입력을 양력으로 바꾼다. 사주 계산은 태양 위치 기반이라 양력이 아니면 성립하지 않는다.
+// 변환은 반드시 서버에서 한다 — 클라이언트가 보낸 양력 값을 그대로 믿으면 검증을 우회할 수 있다.
+function toSolar(person: PersonBody): { person: PersonBody; note: string | null } | null {
+  if (person.calendar !== "lunar") return { person, note: null };
+  const converted = lunarToSolar({
+    year: person.year,
+    month: person.month,
+    day: person.day,
+    leapMonth: person.leapMonth === true,
+  });
+  if (!converted) return null;
+  return { person: { ...person, ...converted.solar, calendar: "solar" }, note: converted.note };
+}
+
 // 생년월일 유효성 — JS Date의 자동 환산(예: 22월 → 이듬해 10월)으로 엉터리 사주가 나가는 것을 차단
 function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
   const { year, month, day, hour, gender } = p;
@@ -136,6 +163,29 @@ export async function POST(req: NextRequest) {
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
     return NextResponse.json({ error: "생년월일을 입력해주세요." }, { status: 400 });
+  }
+
+  // 음력이면 여기서 양력으로 바꾸고, 아래 검증부터는 전부 양력 값으로만 진행한다.
+  const meSolar = toSolar(body.me);
+  if (!meSolar) {
+    return NextResponse.json(
+      { error: "입력한 음력 날짜가 존재하지 않아요. 날짜와 윤달 여부를 확인해주세요." },
+      { status: 400 }
+    );
+  }
+  body.me = meSolar.person;
+
+  let partnerNote: string | null = null;
+  if (body.partner) {
+    const partnerSolar = toSolar(body.partner);
+    if (!partnerSolar) {
+      return NextResponse.json(
+        { error: "그 사람의 음력 날짜가 존재하지 않아요. 날짜와 윤달 여부를 확인해주세요." },
+        { status: 400 }
+      );
+    }
+    body.partner = partnerSolar.person;
+    partnerNote = partnerSolar.note;
   }
   if (!isValidBirth(body.me)) {
     return NextResponse.json(
@@ -197,6 +247,10 @@ export async function POST(req: NextRequest) {
   const partnerFacts: SajuFacts | null = body.partner
     ? buildSajuFacts({ ...body.partner, gender: body.partner.gender === "F" ? "F" : "M" }, now)
     : null;
+
+  // 음력으로 받은 날짜는 무엇을 무엇으로 바꿨는지 계산 노트에 남긴다.
+  if (meSolar.note) myFacts.calculationNotes.unshift(meSolar.note);
+  if (partnerNote && partnerFacts) partnerFacts.calculationNotes.unshift(partnerNote);
 
   const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
   const userPrompt = buildReadingUserPrompt(

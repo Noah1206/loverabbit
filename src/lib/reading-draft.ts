@@ -11,6 +11,10 @@ export interface PersonForm {
   day: string;
   hour: string;
   gender: string;
+  /** 입력한 날짜가 양력인지 음력인지. 비어 있으면 양력으로 본다. */
+  calendar?: "solar" | "lunar";
+  /** 음력일 때만 쓴다 */
+  leapMonth?: boolean;
 }
 
 export interface ReadingDraft {
@@ -19,10 +23,20 @@ export interface ReadingDraft {
   me: PersonForm;
   partner: PersonForm;
   withPartner: boolean;
+  /** 지금 가장 답답한 것 한 줄 — 리포트가 이 장면에 답하도록 프롬프트로 넘어간다 */
+  question: string;
   createdAt: number;
 }
 
-export const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "", gender: "" };
+export const emptyPerson: PersonForm = {
+  year: "",
+  month: "",
+  day: "",
+  hour: "",
+  gender: "",
+  calendar: "solar",
+  leapMonth: false,
+};
 
 const KEY = "loverabbit_reading_draft_v1";
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
@@ -34,6 +48,9 @@ export function parsePerson(p: PersonForm) {
     day: parseInt(p.day, 10),
     hour: !p.hour || p.hour === "unknown" ? null : parseInt(p.hour, 10),
     gender: p.gender === "M" ? "M" : "F",
+    // 음력이면 서버가 양력으로 바꾼다. 클라이언트가 바꿔 보내면 검증을 우회할 수 있다.
+    calendar: p.calendar === "lunar" ? ("lunar" as const) : ("solar" as const),
+    leapMonth: p.leapMonth === true,
   };
 }
 

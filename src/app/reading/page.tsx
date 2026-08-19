@@ -14,6 +14,7 @@ import {
   type ReadingDraft,
 } from "@/lib/reading-draft";
 import { getUser, type User } from "@/lib/user";
+import { hasLeapMonth, lunarToSolar } from "@/lib/lunar";
 import {
   captureReferralFromLocation,
   type PendingReferral,
@@ -38,6 +39,7 @@ type ReadingStep =
   | "meDetails"
   | "partnerBirth"
   | "partnerDetails"
+  | "concern"
   | "ready";
 
 const READING_STEP_LABELS: Record<ReadingStep, string> = {
@@ -46,20 +48,43 @@ const READING_STEP_LABELS: Record<ReadingStep, string> = {
   meDetails: "내 출생 정보",
   partnerBirth: "그 사람 생년월일",
   partnerDetails: "그 사람 출생 정보",
+  concern: "지금의 고민",
   ready: "무료 운명보기",
 };
 
 // 생년월일 유효성 검사 — 서버에서도 한 번 더 검증하지만, 여기서 먼저 친절하게 막는다
+/** 음력으로 입력했으면 양력으로 바꾼 날짜. 양력이면 그대로. 없는 날짜면 null. */
+function solarOf(p: PersonForm): { year: number; month: number; day: number } | null {
+  const year = parseInt(p.year, 10);
+  const month = parseInt(p.month, 10);
+  const day = parseInt(p.day, 10);
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+  if (p.calendar !== "lunar") return { year, month, day };
+  return lunarToSolar({ year, month, day, leapMonth: p.leapMonth === true })?.solar ?? null;
+}
+
 function birthError(p: PersonForm, who: string, requireAdult = false): string | null {
   const year = parseInt(p.year, 10);
   const month = parseInt(p.month, 10);
   const day = parseInt(p.day, 10);
+  const lunar = p.calendar === "lunar";
   const nowYear = new Date().getFullYear();
   if (isNaN(year) || year < 1900 || year > nowYear) return `${who} 출생연도를 확인해주세요 (1900~${nowYear}).`;
   if (isNaN(month) || month < 1 || month > 12) return `${who} 월은 1~12 사이여야 해요.`;
-  if (isNaN(day) || day < 1 || day > 31) return `${who} 일은 1~31 사이여야 해요.`;
-  const d = new Date(year, month - 1, day);
-  if (d.getMonth() !== month - 1 || d.getDate() !== day) return `${who} ${month}월 ${day}일은 없는 날짜예요.`;
+  if (isNaN(day) || day < 1 || day > (lunar ? 30 : 31)) {
+    return `${who} 일은 1~${lunar ? 30 : 31} 사이여야 해요.`;
+  }
+  // 음력은 양력 달력으로 검사하면 안 된다. 변환이 되는지로 존재 여부를 판단한다.
+  const solar = solarOf(p);
+  if (!solar) {
+    return lunar
+      ? `${who} 음력 ${month}월 ${day}일은 없는 날짜예요. 윤달 여부를 확인해주세요.`
+      : `${who} ${month}월 ${day}일은 없는 날짜예요.`;
+  }
+  const d = new Date(solar.year, solar.month - 1, solar.day);
+  if (!lunar && (d.getMonth() !== month - 1 || d.getDate() !== day)) {
+    return `${who} ${month}월 ${day}일은 없는 날짜예요.`;
+  }
   if (d.getTime() > Date.now()) return `${who} 생일이 미래일 수는 없어요.`;
   if (requireAdult) {
     const today = new Date();
@@ -72,7 +97,16 @@ function birthError(p: PersonForm, who: string, requireAdult = false): string | 
 function personSummary(person: PersonForm): string {
   const birthTime = !person.hour || person.hour === "unknown" ? "태어난 시간 모름" : `${person.hour}시 출생`;
   const gender = person.gender === "M" ? "남성" : person.gender === "F" ? "여성" : "성별 미선택";
-  return `${person.year}.${person.month}.${person.day} · ${birthTime} · ${gender}`;
+  let date = `${person.year}.${person.month}.${person.day}`;
+  if (person.calendar === "lunar") {
+    // 음력으로 받았으면 실제로 무엇으로 계산되는지 함께 보여준다
+    const solar = solarOf(person);
+    const leap = person.leapMonth ? " 윤달" : "";
+    date = solar
+      ? `음력 ${date}${leap} (양력 ${solar.year}.${solar.month}.${solar.day})`
+      : `음력 ${date}${leap}`;
+  }
+  return `${date} · ${birthTime} · ${gender}`;
 }
 
 function hasValidBirth(person: PersonForm, requireAdult = false): boolean {
@@ -149,6 +183,59 @@ function downloadShareImage(teaser: string) {
   a.href = canvas.toDataURL("image/png");
   a.download = "loverabbit-reading.png";
   a.click();
+}
+
+// 양력·음력 선택. 음력이면 그 달에 윤달이 실제로 있을 때만 체크박스를 열고,
+// 어떤 양력 날짜로 계산되는지 그 자리에서 보여준다.
+function CalendarToggle({
+  value,
+  onChange,
+}: {
+  value: PersonForm;
+  onChange: (v: PersonForm) => void;
+}) {
+  const lunar = value.calendar === "lunar";
+  const year = parseInt(value.year, 10);
+  const month = parseInt(value.month, 10);
+  const monthKnown = !isNaN(year) && !isNaN(month) && month >= 1 && month <= 12;
+  const leapAvailable = lunar && monthKnown && hasLeapMonth(year, month);
+  const converted = lunar ? solarOf(value) : null;
+
+  const pick = (next: "solar" | "lunar") =>
+    onChange({ ...value, calendar: next, leapMonth: next === "lunar" && value.leapMonth === true });
+
+  return (
+    <div className="reading-calendar">
+      <div className="reading-calendar-toggle" role="group" aria-label="달력 종류">
+        <button type="button" className={lunar ? "" : "on"} onClick={() => pick("solar")}>
+          양력
+        </button>
+        <button type="button" className={lunar ? "on" : ""} onClick={() => pick("lunar")}>
+          음력
+        </button>
+      </div>
+
+      {lunar && (
+        <div className="reading-calendar-lunar">
+          <label className={leapAvailable ? "" : "off"}>
+            <input
+              type="checkbox"
+              checked={leapAvailable && value.leapMonth === true}
+              disabled={!leapAvailable}
+              onChange={(e) => onChange({ ...value, leapMonth: e.target.checked })}
+            />
+            윤달이에요
+          </label>
+          {monthKnown && !leapAvailable && <small>{month}월에는 윤달이 없어요</small>}
+          {converted && (
+            <small className="on">
+              양력 {converted.year}.{converted.month}.{converted.day}로 계산돼요
+            </small>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function BirthDateFields({
@@ -287,6 +374,8 @@ export default function ReadingPage() {
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
+  // 지금 가장 답답한 것 한 줄 — 선택 입력이지만, 있으면 리포트가 이 장면에 답한다
+  const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState<User | null>(null);
@@ -346,6 +435,7 @@ export default function ReadingPage() {
       setMe(draft.me);
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
+      setQuestion(draft.question ?? "");
       setCategorySelectionMode("fixed");
       setHasChosenCategory(true);
       if (stored) {
@@ -386,6 +476,7 @@ export default function ReadingPage() {
       me,
       partner,
       withPartner,
+      question: question.trim(),
       createdAt: Date.now(),
     };
     if (!user) {
@@ -441,7 +532,7 @@ export default function ReadingPage() {
       return;
     }
     if (step === "meDetails") {
-      moveTo(withPartner ? "partnerBirth" : "ready");
+      moveTo(withPartner ? "partnerBirth" : "concern");
       return;
     }
     if (step === "partnerBirth") {
@@ -449,6 +540,10 @@ export default function ReadingPage() {
       return;
     }
     if (step === "partnerDetails") {
+      moveTo("concern");
+      return;
+    }
+    if (step === "concern") {
       moveTo("ready");
       return;
     }
@@ -456,8 +551,8 @@ export default function ReadingPage() {
   };
 
   const workflowSteps: readonly ReadingStep[] = withPartner
-    ? ["category", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "ready"]
-    : ["category", "meBirth", "meDetails", "ready"];
+    ? ["category", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
+    : ["category", "meBirth", "meDetails", "concern", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
@@ -465,7 +560,8 @@ export default function ReadingPage() {
   const isDataEntryStep = step === "meBirth"
     || step === "meDetails"
     || step === "partnerBirth"
-    || step === "partnerDetails";
+    || step === "partnerDetails"
+    || step === "concern";
   const isStepComplete = step === "category"
     ? hasChosenCategory
     : step === "meBirth"
@@ -476,7 +572,9 @@ export default function ReadingPage() {
           ? hasValidBirth(partner)
           : step === "partnerDetails"
             ? hasValidDetails(partner)
-            : validateForm() === null;
+            : step === "concern"
+              ? true
+              : validateForm() === null;
   const visibleMeBirthError = step === "meBirth" && me.year && me.month && me.day
     ? birthError(me, "내", true)
     : null;
@@ -561,7 +659,10 @@ export default function ReadingPage() {
               <>
                 <p className="reading-step-kicker">내 정보</p>
                 <h2 id="reading-step-title">내 생년월일을 입력해주세요</h2>
-                <p className="reading-step-description">양력 기준으로 입력해주세요.</p>
+                <p className="reading-step-description">
+                  양력이 기본이에요. 음력 생일만 안다면 위에서 음력으로 바꿔 입력하세요.
+                </p>
+                <CalendarToggle value={me} onChange={setMe} />
                 <BirthDateFields value={me} onChange={setMe} />
                 {visibleMeBirthError && (
                   <p className="reading-step-error" role="alert">{visibleMeBirthError}</p>
@@ -594,6 +695,7 @@ export default function ReadingPage() {
                 <p className="reading-step-kicker">그 사람 정보</p>
                 <h2 id="reading-step-title">그 사람의 생년월일을 입력해주세요</h2>
                 <p className="reading-step-description">정확히 모르는 정보는 확인한 뒤 입력하는 것이 좋아요.</p>
+                <CalendarToggle value={partner} onChange={setPartner} />
                 <BirthDateFields value={partner} onChange={setPartner} />
               </>
             )}
@@ -604,6 +706,25 @@ export default function ReadingPage() {
                 <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
                 <p className="reading-step-description">그 사람의 태어난 시간을 모르면 ‘모름’을 선택해주세요.</p>
                 <PersonDetailsFields value={partner} onChange={setPartner} />
+              </>
+            )}
+
+            {step === "concern" && (
+              <>
+                <p className="reading-step-kicker">마지막 한 가지</p>
+                <h2 id="reading-step-title">지금 가장 답답한 게 뭔가요?</h2>
+                <p className="reading-step-description">
+                  한 줄만 적어두면 그 장면을 중심으로 풀어드려요. 건너뛰어도 괜찮아요.
+                </p>
+                <textarea
+                  className="reading-concern-input"
+                  value={question}
+                  onChange={(event) => setQuestion(event.target.value.slice(0, 80))}
+                  placeholder="예: 답장이 자꾸 늦어지는데 마음이 식은 건지 모르겠어요"
+                  rows={3}
+                  maxLength={80}
+                />
+                <p className="reading-concern-count">{question.length} / 80</p>
               </>
             )}
 
@@ -625,6 +746,12 @@ export default function ReadingPage() {
                     <div>
                       <dt>그 사람 정보</dt>
                       <dd>{personSummary(partner)}</dd>
+                    </div>
+                  )}
+                  {question.trim() && (
+                    <div>
+                      <dt>고민</dt>
+                      <dd>{question.trim()}</dd>
                     </div>
                   )}
                 </dl>
@@ -661,6 +788,7 @@ export default function ReadingPage() {
               setMe(draft.me);
               setPartner(draft.partner);
               setWithPartner(draft.withPartner);
+              setQuestion(draft.question ?? "");
               setCategorySelectionMode("fixed");
               startGeneration(draft);
             }
