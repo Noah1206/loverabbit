@@ -6,7 +6,7 @@ import { upsertDatabaseUser } from "@/lib/database";
 export interface UserToken {
   type: "user";
   email: string;
-  birthdate: string;
+  birthdate: string | null;
   iat: number;
   userId?: number;
 }
@@ -16,7 +16,6 @@ export function openUserToken(raw?: string): UserToken | null {
   if (
     token?.type !== "user" ||
     !token.email ||
-    !token.birthdate ||
     !Number.isFinite(token.iat)
   ) {
     return null;
@@ -28,6 +27,7 @@ export async function resolveUserToken(raw?: string): Promise<UserToken | null> 
   const token = openUserToken(raw);
   if (!token) return null;
   if (token.userId) return token;
+  if (!token.birthdate) return token;
 
   const user = await upsertDatabaseUser({
     email: token.email,

@@ -14,22 +14,6 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { UserToken } from "@/lib/tokens";
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-
-function validAdultBirthdate(value: string) {
-  if (!DATE_RE.test(value)) return false;
-  const [year, month, day] = value.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-  return (
-    year >= 1900 &&
-    new Date().getFullYear() - year >= 19 &&
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day &&
-    date.getTime() <= Date.now()
-  );
-}
-
 function normalizeProvider(value: unknown): DatabaseAuthProvider | null {
   if (value === "google" || value === "kakao" || value === "x") return value;
   // Older GoTrue metadata can still use the historical provider name.
@@ -90,7 +74,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = (await request.json().catch(() => ({}))) as {
-    birthdate?: string;
+    termsAccepted?: boolean;
     marketingOk?: boolean;
     referralCode?: string;
     referralReadingId?: string;
@@ -119,22 +103,14 @@ export async function POST(request: NextRequest) {
       return sessionResponse(connected, provider);
     }
 
-    const birthdate = body.birthdate?.trim() ?? "";
-    if (!birthdate) {
+    if (body.termsAccepted !== true) {
       return NextResponse.json({ needsProfile: true, email, authProvider: provider });
-    }
-    if (!validAdultBirthdate(birthdate)) {
-      return NextResponse.json(
-        { error: "가입 가능한 연령 기준을 충족하지 않습니다." },
-        { status: 403 }
-      );
     }
 
     const signup = await signupDatabaseUser({
       email,
-      birthdate,
+      birthdate: null,
       marketingConsent: body.marketingOk === true,
-      adultVerifiedAt: new Date().toISOString(),
       referralCode: body.referralCode,
       referralReadingId: body.referralReadingId,
       referralReward: normalizeReward(body.referralReward),

@@ -50,7 +50,7 @@ const READING_STEP_LABELS: Record<ReadingStep, string> = {
 };
 
 // 생년월일 유효성 검사 — 서버에서도 한 번 더 검증하지만, 여기서 먼저 친절하게 막는다
-function birthError(p: PersonForm, who: string): string | null {
+function birthError(p: PersonForm, who: string, requireAdult = false): string | null {
   const year = parseInt(p.year, 10);
   const month = parseInt(p.month, 10);
   const day = parseInt(p.day, 10);
@@ -61,13 +61,28 @@ function birthError(p: PersonForm, who: string): string | null {
   const d = new Date(year, month - 1, day);
   if (d.getMonth() !== month - 1 || d.getDate() !== day) return `${who} ${month}월 ${day}일은 없는 날짜예요.`;
   if (d.getTime() > Date.now()) return `${who} 생일이 미래일 수는 없어요.`;
+  if (requireAdult) {
+    const today = new Date();
+    const cutoff = new Date(today.getFullYear() - 19, today.getMonth(), today.getDate());
+    if (d.getTime() > cutoff.getTime()) return "만 19세 이상만 이용할 수 있어요.";
+  }
   return null;
 }
 
 function personSummary(person: PersonForm): string {
-  const birthTime = person.hour === "unknown" ? "태어난 시간 모름" : `${person.hour}시 출생`;
-  const gender = person.gender === "M" ? "남성" : "여성";
+  const birthTime = !person.hour || person.hour === "unknown" ? "태어난 시간 모름" : `${person.hour}시 출생`;
+  const gender = person.gender === "M" ? "남성" : person.gender === "F" ? "여성" : "성별 미선택";
   return `${person.year}.${person.month}.${person.day} · ${birthTime} · ${gender}`;
+}
+
+function hasValidBirth(person: PersonForm, requireAdult = false): boolean {
+  return Boolean(person.year && person.month && person.day && !birthError(person, "", requireAdult));
+}
+
+function hasValidDetails(person: PersonForm): boolean {
+  const hour = person.hour === "unknown"
+    || (/^\d{1,2}$/.test(person.hour) && Number(person.hour) >= 0 && Number(person.hour) <= 23);
+  return hour && (person.gender === "F" || person.gender === "M");
 }
 
 // 공유 이미지 생성 — 인스타 스토리·릴스 캡처용 (ROADMAP Week 2 바이럴 루프의 엔진)
@@ -243,6 +258,7 @@ function PersonDetailsFields({
       <div>
         <label htmlFor="reading-birth-hour">태어난 시간</label>
         <select id="reading-birth-hour" value={value.hour} onChange={(e) => set("hour", e.target.value)}>
+          <option value="" disabled>선택해주세요</option>
           <option value="unknown">모름</option>
           {Array.from({ length: 24 }, (_, hour) => (
             <option key={hour} value={hour}>{hour}시</option>
@@ -252,6 +268,7 @@ function PersonDetailsFields({
       <div>
         <label htmlFor="reading-gender">성별</label>
         <select id="reading-gender" value={value.gender} onChange={(e) => set("gender", e.target.value)}>
+          <option value="" disabled>선택해주세요</option>
           <option value="F">여성</option>
           <option value="M">남성</option>
         </select>
@@ -344,7 +361,7 @@ export default function ReadingPage() {
     if (!me.year || !me.month || !me.day) {
       return "본인 생년월일을 입력해주세요.";
     }
-    const myErr = birthError(me, "내");
+    const myErr = birthError(me, "내", true);
     if (myErr) return myErr;
     if (withPartner && (!partner.year || !partner.month || !partner.day)) {
       return "그 사람의 생년월일을 입력해주세요.";
@@ -387,12 +404,12 @@ export default function ReadingPage() {
     setStep(nextStep);
   };
 
-  const showBirthError = (person: PersonForm, who: string): boolean => {
+  const showBirthError = (person: PersonForm, who: string, requireAdult = false): boolean => {
     if (!person.year || !person.month || !person.day) {
       setError(`${who} 생년월일을 입력해주세요.`);
       return true;
     }
-    const nextError = birthError(person, who);
+    const nextError = birthError(person, who, requireAdult);
     if (nextError) {
       setError(nextError);
       return true;
@@ -420,7 +437,7 @@ export default function ReadingPage() {
       return;
     }
     if (step === "meBirth") {
-      if (!showBirthError(me, "내")) moveTo("meDetails");
+      if (!showBirthError(me, "내", true)) moveTo("meDetails");
       return;
     }
     if (step === "meDetails") {
@@ -449,6 +466,20 @@ export default function ReadingPage() {
     || step === "meDetails"
     || step === "partnerBirth"
     || step === "partnerDetails";
+  const isStepComplete = step === "category"
+    ? hasChosenCategory
+    : step === "meBirth"
+      ? hasValidBirth(me, true)
+      : step === "meDetails"
+        ? hasValidDetails(me)
+        : step === "partnerBirth"
+          ? hasValidBirth(partner)
+          : step === "partnerDetails"
+            ? hasValidDetails(partner)
+            : validateForm() === null;
+  const visibleMeBirthError = step === "meBirth" && me.year && me.month && me.day
+    ? birthError(me, "내", true)
+    : null;
 
   useEffect(() => {
     if (categorySelectionMode === "loading") return;
@@ -532,6 +563,9 @@ export default function ReadingPage() {
                 <h2 id="reading-step-title">내 생년월일을 입력해주세요</h2>
                 <p className="reading-step-description">양력 기준으로 입력해주세요.</p>
                 <BirthDateFields value={me} onChange={setMe} />
+                {visibleMeBirthError && (
+                  <p className="reading-step-error" role="alert">{visibleMeBirthError}</p>
+                )}
               </>
             )}
 
@@ -607,7 +641,7 @@ export default function ReadingPage() {
 
       {showFixedAction && (
         <div key={step} className="reading-fixed-action">
-          <button type="button" className="btn" onClick={advanceStep} disabled={loading}>
+          <button type="button" className="btn" onClick={advanceStep} disabled={loading || !isStepComplete}>
             {loading ? "사주 푸는 중… 🔮" : step === "ready" ? "무료로 운명 보기" : "다음으로"}
           </button>
         </div>

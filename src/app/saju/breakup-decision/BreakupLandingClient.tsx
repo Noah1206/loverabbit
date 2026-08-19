@@ -9,7 +9,7 @@ import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 
 const LANDING = "breakup_decision" as const;
-const FORM_PATH = "/reading?c=ibyeol";
+const FORM_PATH = "/reading?c=ibyeol&offer=breakup_decision_990";
 
 // 랜딩 조회 1회 기록. 동의 전에는 헬퍼 내부에서 아무것도 보내지 않는다.
 export function LandingTracker() {
@@ -40,8 +40,9 @@ function CtaButton({ className, children }: { className: string; children: React
       </Link>
       {showSignup ? (
         <SignupModal
+          title="로그인하고 무료로 시작하기"
           nextPath={FORM_PATH}
-          reason="리딩 결과를 안전하게 받아보려면 로그인이 필요해요"
+          reason="로그인 후 이별 사주 입력 화면으로 바로 이어져요."
           onDone={() => {
             setShowSignup(false);
             router.push(FORM_PATH);

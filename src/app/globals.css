@@ -1953,6 +1953,18 @@ label {
   filter: saturate(1.12) brightness(0.96);
 }
 
+.reading-fixed-action .btn:disabled {
+  opacity: 1;
+  border-color: #201c26;
+  background-color: #121016;
+  background-image: none;
+  box-shadow: none;
+  color: #655e6d;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
 @keyframes reading-step-enter {
   from {
     opacity: 0;

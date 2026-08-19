@@ -109,8 +109,9 @@ export default function InnerMindFlow() {
 
       {showSignup ? (
         <SignupModal
+          title="로그인하고 무료로 시작하기"
           nextPath={FORM_PATH}
-          reason="미리보기 결과를 저장하려면 로그인이 필요해요"
+          reason="로그인 후 속마음 사주 입력 화면으로 바로 이어져요."
           onDone={() => {
             setShowSignup(false);
             router.push(FORM_PATH);

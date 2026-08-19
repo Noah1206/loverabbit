@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTheme } from "@/components/ThemeProvider";
 import { takeAuthReturn } from "@/lib/auth-return";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
@@ -14,11 +13,9 @@ interface SessionResult extends Partial<User> {
 }
 
 export default function AuthComplete({ nextPath }: { nextPath: string }) {
-  const { showMatureLabels } = useTheme();
   const started = useRef(false);
   const [needsProfile, setNeedsProfile] = useState(false);
   const [email, setEmail] = useState("");
-  const [birthdate, setBirthdate] = useState("");
   const [agree, setAgree] = useState(false);
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(true);
@@ -42,7 +39,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     window.location.replace(takeAuthReturn() ?? nextPath);
   };
 
-  const connectSession = async (profile?: { birthdate: string; marketingOk: boolean }) => {
+  const connectSession = async (profile?: { termsAccepted: boolean; marketingOk: boolean }) => {
     setSubmitting(true);
     setError("");
     try {
@@ -75,9 +72,6 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const birthYear = Number.parseInt(birthdate.slice(0, 4), 10);
-  const meetsAgeRequirement = Number.isFinite(birthYear) && new Date().getFullYear() - birthYear >= 19;
-
   return (
     <main className="auth-shell">
       <section className="card auth-card">
@@ -99,26 +93,11 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
         ) : (
           <>
             <span className="badge">마지막 한 단계</span>
-            <h1>{showMatureLabels ? "성인 확인" : "가입 정보 확인"}</h1>
-            <p>{email} 계정으로 시작해요. 최초 한 번만 입력하면 됩니다.</p>
-            <div className="field auth-profile-field">
-              <label>
-                생년월일 {showMatureLabels && <span>— 만 19세 이상</span>}
-              </label>
-              <input
-                type="date"
-                value={birthdate}
-                max={new Date().toISOString().slice(0, 10)}
-                onChange={(event) => setBirthdate(event.target.value)}
-              />
-            </div>
+            <h1>약관 확인 후 바로 시작해요</h1>
+            <p>{email} 계정으로 로그인됐어요. 사주 정보는 다음 입력 화면에서 받습니다.</p>
             <label className="auth-check-row">
               <input type="checkbox" checked={agree} onChange={(event) => setAgree(event.target.checked)} />
-              <span>
-                {showMatureLabels
-                  ? "(필수) 성인 콘텐츠 열람 및 이용약관·개인정보 수집에 동의합니다."
-                  : "(필수) 이용약관 및 개인정보 수집에 동의합니다."}
-              </span>
+              <span>(필수) 이용약관 및 개인정보 수집에 동의합니다.</span>
             </label>
             <label className="auth-check-row auth-check-optional">
               <input type="checkbox" checked={marketingOk} onChange={(event) => setMarketingOk(event.target.checked)} />
@@ -127,8 +106,8 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             <button
               className="btn"
               type="button"
-              disabled={!agree || !meetsAgeRequirement || submitting}
-              onClick={() => void connectSession({ birthdate, marketingOk })}
+              disabled={!agree || submitting}
+              onClick={() => void connectSession({ termsAccepted: agree, marketingOk })}
             >
               {submitting ? "가입 중…" : "가입하고 계속하기 →"}
             </button>

@@ -13,10 +13,16 @@ export default function ProductCtaGate({
   href,
   className,
   children,
+  onClick,
+  signupTitle,
+  signupReason,
 }: {
   href: string;
   className?: string;
   children: ReactNode;
+  onClick?: () => void;
+  signupTitle?: string;
+  signupReason?: string;
 }) {
   const router = useRouter();
   const [showSignup, setShowSignup] = useState(false);
@@ -30,6 +36,7 @@ export default function ProductCtaGate({
         href={href}
         className={className}
         onClick={(e) => {
+          onClick?.();
           if (getUser()) return;
           e.preventDefault();
           setShowSignup(true);
@@ -42,8 +49,9 @@ export default function ProductCtaGate({
       {showSignup && mounted
         ? createPortal(
             <SignupModal
+              title={signupTitle}
               nextPath={href}
-              reason="리딩 결과를 안전하게 받아보려면 로그인이 필요해요"
+              reason={signupReason ?? "로그인 후 선택한 사주 입력 화면으로 바로 이어져요."}
               onDone={() => {
                 setShowSignup(false);
                 router.push(href);

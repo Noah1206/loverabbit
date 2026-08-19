@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import ProductCtaGate from "@/components/ProductCtaGate";
 import type { LandingType } from "@/lib/landing-types";
 import {
   trackPageView,
@@ -31,12 +31,14 @@ export function AdLandingCta({
   children: ReactNode;
 }) {
   return (
-    <Link
+    <ProductCtaGate
       href={href}
       className={className}
       onClick={() => trackPreviewStarted(landingType)}
+      signupTitle="로그인하고 무료로 시작하기"
+      signupReason="로그인 후 선택한 사주 입력 화면으로 바로 이어져요."
     >
       {children}
-    </Link>
+    </ProductCtaGate>
   );
 }

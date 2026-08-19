@@ -22,7 +22,7 @@ export interface ReadingDraft {
   createdAt: number;
 }
 
-export const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "unknown", gender: "F" };
+export const emptyPerson: PersonForm = { year: "", month: "", day: "", hour: "", gender: "" };
 
 const KEY = "loverabbit_reading_draft_v1";
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
@@ -32,8 +32,8 @@ export function parsePerson(p: PersonForm) {
     year: parseInt(p.year, 10),
     month: parseInt(p.month, 10),
     day: parseInt(p.day, 10),
-    hour: p.hour === "unknown" ? null : parseInt(p.hour, 10),
-    gender: p.gender,
+    hour: !p.hour || p.hour === "unknown" ? null : parseInt(p.hour, 10),
+    gender: p.gender === "M" ? "M" : "F",
   };
 }
 

@@ -15,7 +15,7 @@ import { seal } from "@/lib/crypto";
 import { chatComplete } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
-import { isDatabaseConfigured } from "@/lib/database";
+import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
@@ -91,7 +91,7 @@ function previewOf(full: string, fallbackTitles: string[]): {
 
 // 생년월일 유효성 — JS Date의 자동 환산(예: 22월 → 이듬해 10월)으로 엉터리 사주가 나가는 것을 차단
 function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
-  const { year, month, day, hour } = p;
+  const { year, month, day, hour, gender } = p;
   const nowYear = new Date().getFullYear();
   if (!Number.isInteger(year) || year < 1900 || year > nowYear) return false;
   if (!Number.isInteger(month) || month < 1 || month > 12) return false;
@@ -100,7 +100,14 @@ function isValidBirth(p: Body["me"] | NonNullable<Body["partner"]>): boolean {
   if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return false; // 2월 30일 등
   if (d.getTime() > Date.now()) return false; // 미래 날짜
   if (hour !== null && (!Number.isInteger(hour) || hour < 0 || hour > 23)) return false;
+  if (gender !== "F" && gender !== "M") return false;
   return true;
+}
+
+function isAdultBirth(p: Body["me"]): boolean {
+  const today = new Date();
+  const cutoff = new Date(today.getFullYear() - 19, today.getMonth(), today.getDate());
+  return new Date(p.year, p.month - 1, p.day).getTime() <= cutoff.getTime();
 }
 
 export async function POST(req: NextRequest) {
@@ -136,6 +143,9 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+  if (!isAdultBirth(body.me)) {
+    return NextResponse.json({ error: "만 19세 이상만 이용할 수 있어요." }, { status: 403 });
+  }
   if (body.partner && !isValidBirth(body.partner)) {
     return NextResponse.json(
       { error: "그 사람 생년월일이 올바르지 않아요. 연도(1900~)·월(1~12)·일(1~31)을 확인해주세요." },
@@ -143,12 +153,40 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const myChart = computeSaju(body.me);
-  const partnerChart = body.partner ? computeSaju(body.partner) : null;
   const offer = body.offerId ? resolveAdOffer(body.category, body.offerId) : null;
   if (body.offerId && !offer) {
     return NextResponse.json({ error: "유효하지 않은 광고 오퍼입니다." }, { status: 400 });
   }
+
+  if (!user.userId) {
+    return NextResponse.json(
+      { error: "회원 정보를 연결하지 못했어요. 다시 로그인해주세요.", needSignup: true },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const birthdate = [
+      String(body.me.year).padStart(4, "0"),
+      String(body.me.month).padStart(2, "0"),
+      String(body.me.day).padStart(2, "0"),
+    ].join("-");
+    await saveUserSajuProfile(user.userId, {
+      birthdate,
+      birthHour: body.me.hour,
+      birthTimeUnknown: body.me.hour === null,
+      gender: body.me.gender as "F" | "M",
+    });
+  } catch (error) {
+    console.error("사주 기본 정보 저장 실패:", error);
+    return NextResponse.json(
+      { error: "입력한 사주 정보를 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 503 }
+    );
+  }
+
+  const myChart = computeSaju(body.me);
+  const partnerChart = body.partner ? computeSaju(body.partner) : null;
   const label = PRODUCT_MAP[body.category]?.promptLabel ?? "연애운";
   const price = priceFor(body.category ?? "", offer?.id);
   const product = PRODUCT_MAP[body.category];

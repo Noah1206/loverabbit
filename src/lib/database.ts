@@ -5,7 +5,7 @@ import { databaseError, getSupabaseAdmin, isDatabaseConfigured } from "@/lib/sup
 export interface DatabaseUser {
   id: number;
   email: string;
-  birthdate: string;
+  birthdate: string | null;
   marketingConsent: boolean;
   referralCode: string;
   chatCredits: number;
@@ -76,7 +76,7 @@ function mapSocialUser(data: Record<string, unknown>): DatabaseSocialUser {
   return {
     id: Number(data.id),
     email: String(data.email),
-    birthdate: String(data.birthdate),
+    birthdate: typeof data.birthdate === "string" ? data.birthdate : null,
     marketingConsent: Boolean(data.marketing_consent),
     referralCode: String(data.referral_code),
     chatCredits: Number(data.chat_credits ?? 0),
@@ -226,7 +226,7 @@ export async function upsertDatabaseUser(input: {
 
 export async function signupDatabaseUser(input: {
   email: string;
-  birthdate: string;
+  birthdate: string | null;
   marketingConsent?: boolean;
   adultVerifiedAt?: string;
   referralCode?: string;
@@ -240,7 +240,7 @@ export async function signupDatabaseUser(input: {
     p_email: input.email.trim().toLowerCase(),
     p_birthdate: input.birthdate,
     p_marketing_consent: input.marketingConsent ?? false,
-    p_adult_verified_at: input.adultVerifiedAt ?? new Date().toISOString(),
+    p_adult_verified_at: input.adultVerifiedAt ?? null,
     p_referral_code: input.referralCode?.trim().toUpperCase() || null,
     p_reward_type: input.referralReward ?? null,
     p_reward_reading_id: input.referralReadingId ?? null,
@@ -252,13 +252,35 @@ export async function signupDatabaseUser(input: {
   return {
     id: Number(result.id),
     email: String(result.email),
-    birthdate: String(result.birthdate),
+    birthdate: typeof result.birthdate === "string" ? result.birthdate : null,
     marketingConsent: Boolean(result.marketingConsent),
     referralCode: String(result.referralCode),
     chatCredits: Number(result.chatCredits ?? 0),
     isNew: Boolean(result.isNew),
     referralClaimed: Boolean(result.referralClaimed),
   };
+}
+
+export async function saveUserSajuProfile(
+  userId: number,
+  input: {
+    birthdate: string;
+    birthHour: number | null;
+    birthTimeUnknown: boolean;
+    gender: "F" | "M";
+  }
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) throw new Error("회원 DB가 연결되지 않았어요.");
+
+  const { error } = await db.rpc("lr_save_saju_profile", {
+    p_user_id: userId,
+    p_birthdate: input.birthdate,
+    p_birth_hour: input.birthHour,
+    p_birth_time_unknown: input.birthTimeUnknown,
+    p_gender: input.gender,
+  });
+  if (error) throw databaseError("사주 기본 정보 저장", error);
 }
 
 export async function getReferralStatus(

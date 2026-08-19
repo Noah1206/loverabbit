@@ -149,8 +149,8 @@ export default function SignupModal({
 
         <p className="social-login-note">
           {showMatureLabels
-            ? "🔞 성인용 리딩은 신규 가입 시 한 번만 성인 확인해요."
-            : "신규 가입 시 정보 확인은 한 번만 진행해요."}
+            ? "성인 확인과 사주 정보 입력은 로그인 후 바로 이어져요."
+            : "사주 정보 입력은 로그인 후 바로 이어져요."}
         </p>
         <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={onClose}>나중에 볼게요</button>
         {error && <p role="alert" style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 8, textAlign: "center" }}>{error}</p>}
