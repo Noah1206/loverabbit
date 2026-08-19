@@ -5,6 +5,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { takeAuthReturn } from "@/lib/auth-return";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
+import { trackCompleteRegistration } from "@/lib/meta-events";
 import BrandMark from "@/components/BrandMark";
 
 interface SessionResult extends Partial<User> {
@@ -34,6 +35,8 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       referralClaimed: data.referralClaimed === true,
     };
     saveUser(user);
+    // 가입/로그인 완료 — 로그인 수단 이름만 보낸다. 이메일 원문은 전송하지 않는다.
+    trackCompleteRegistration(data.authProvider ?? "unknown");
     if (getPendingReferral()) clearPendingReferral();
     // 팝업을 열었던 화면(쿼리 포함)이 있으면 그리로, 없으면 next 쿼리로 돌아간다.
     window.location.replace(takeAuthReturn() ?? nextPath);

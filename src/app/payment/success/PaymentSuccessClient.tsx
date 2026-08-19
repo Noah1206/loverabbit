@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { updateArchive } from "@/lib/archive";
+import { listArchive, updateArchive } from "@/lib/archive";
+import { landingTypeForProduct, trackPurchase } from "@/lib/meta-events";
 import { getUser } from "@/lib/user";
 
 export default function PaymentSuccessClient({
@@ -51,6 +52,14 @@ export default function PaymentSuccessClient({
           throw new Error(data.error ?? "결제 승인을 완료하지 못했어요.");
         }
         updateArchive(readingId, { full: data.full });
+        // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.
+        const category = listArchive().find((entry) => entry.readingId === readingId)?.category;
+        void trackPurchase({
+          value: amount,
+          currency: "KRW",
+          transactionId: orderId,
+          landingType: landingTypeForProduct(category) ?? undefined,
+        });
         setFull(data.full);
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : "결제 승인을 완료하지 못했어요.");

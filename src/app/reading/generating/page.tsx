@@ -14,6 +14,7 @@ import {
   takeReadingDraft,
   type ReadingDraft,
 } from "@/lib/reading-draft";
+import { landingTypeForProduct, trackPreviewGenerated } from "@/lib/meta-events";
 import { getUser } from "@/lib/user";
 
 // 사주 생성 대기 화면.
@@ -83,6 +84,8 @@ export default function ReadingGeneratingPage() {
           confidenceNote: data.confidenceNote ?? "",
         });
         clearReadingDraft();
+        const landing = landingTypeForProduct(job.category);
+        if (landing) trackPreviewGenerated(landing);
         setProgress(100);
         router.replace(`/reading/${data.readingId}`);
       } catch (reason) {

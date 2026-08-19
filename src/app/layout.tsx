@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import AuthCodeRescue from "@/components/AuthCodeRescue";
 import BottomNav from "@/components/BottomNav";
+import ConsentBanner from "@/components/ConsentBanner";
+import MetaPixel from "@/components/MetaPixel";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const themeInitScript = `
@@ -46,6 +48,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="app-viewport">{children}</div>
           <BottomNav />
         </ThemeProvider>
+        <ConsentBanner />
+        <MetaPixel />
         <Analytics />
       </body>
     </html>
