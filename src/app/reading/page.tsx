@@ -175,46 +175,55 @@ function BirthDateFields({
 
   return (
     <div className="reading-birth-grid">
-      <div>
-        <label htmlFor="reading-birth-year">출생연도</label>
-        <input
-          id="reading-birth-year"
-          ref={yearRef}
-          placeholder="1995"
-          inputMode="numeric"
-          autoComplete="bday-year"
-          maxLength={4}
-          value={value.year}
-          onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
-        />
+      <div className="reading-birth-field">
+        <label htmlFor="reading-birth-year">연도</label>
+        <div className="reading-birth-control">
+          <input
+            id="reading-birth-year"
+            ref={yearRef}
+            placeholder="1995"
+            inputMode="numeric"
+            autoComplete="bday-year"
+            maxLength={4}
+            value={value.year}
+            onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
+          />
+          <span aria-hidden="true">년</span>
+        </div>
       </div>
-      <div>
+      <div className="reading-birth-field">
         <label htmlFor="reading-birth-month">월</label>
-        <input
-          id="reading-birth-month"
-          ref={monthRef}
-          placeholder="7"
-          inputMode="numeric"
-          autoComplete="bday-month"
-          maxLength={2}
-          value={value.month}
-          onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
-          onKeyDown={backspaceToPrev(value.month, yearRef.current)}
-        />
+        <div className="reading-birth-control">
+          <input
+            id="reading-birth-month"
+            ref={monthRef}
+            placeholder="07"
+            inputMode="numeric"
+            autoComplete="bday-month"
+            maxLength={2}
+            value={value.month}
+            onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
+            onKeyDown={backspaceToPrev(value.month, yearRef.current)}
+          />
+          <span aria-hidden="true">월</span>
+        </div>
       </div>
-      <div>
+      <div className="reading-birth-field">
         <label htmlFor="reading-birth-day">일</label>
-        <input
-          id="reading-birth-day"
-          ref={dayRef}
-          placeholder="14"
-          inputMode="numeric"
-          autoComplete="bday-day"
-          maxLength={2}
-          value={value.day}
-          onChange={(e) => setDigits("day", e.target.value, 2, null, 4)}
-          onKeyDown={backspaceToPrev(value.day, monthRef.current)}
-        />
+        <div className="reading-birth-control">
+          <input
+            id="reading-birth-day"
+            ref={dayRef}
+            placeholder="14"
+            inputMode="numeric"
+            autoComplete="bday-day"
+            maxLength={2}
+            value={value.day}
+            onChange={(e) => setDigits("day", e.target.value, 2, null, 4)}
+            onKeyDown={backspaceToPrev(value.day, monthRef.current)}
+          />
+          <span aria-hidden="true">일</span>
+        </div>
       </div>
     </div>
   );
@@ -435,6 +444,7 @@ export default function ReadingPage() {
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
+  const showIntroHeader = categorySelectionMode === "loading" || step === "category";
 
   useEffect(() => {
     if (categorySelectionMode === "loading") return;
@@ -444,18 +454,16 @@ export default function ReadingPage() {
 
   return (
     <main className="container reading-flow-page">
-      <header className="reading-flow-header">
-        <h1>
-          {categorySelectionMode === "fixed" && selectedCategory
-            ? `${selectedCategory.label} 리딩`
-            : "어떤 운명을 읽어볼까요?"}
-        </h1>
-        <p>
-          {activeOffer
-            ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
-            : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
-        </p>
-      </header>
+      {showIntroHeader && (
+        <header className="reading-flow-header">
+          <h1>어떤 운명을 읽어볼까요?</h1>
+          <p>
+            {activeOffer
+              ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
+              : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
+          </p>
+        </header>
+      )}
 
       {categorySelectionMode === "loading" ? (
         <div className="card reading-step-card" aria-live="polite">리딩 정보를 불러오고 있어요…</div>
@@ -480,28 +488,6 @@ export default function ReadingPage() {
                 <p>나는 아래에서 사주 미리보기를 무료로 볼 수 있어요. 보상은 신규 회원 가입 완료 후 자동 지급됩니다.</p>
               </div>
             </aside>
-          )}
-
-          {step !== "category" && selectedCategory && (
-            <div className="reading-selected-strip">
-              <div>
-                <small>선택한 리딩</small>
-                <strong>{selectedCategory.label}</strong>
-              </div>
-              {!loading && (
-                <button
-                  type="button"
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setCategorySelectionMode("picker");
-                    setHasChosenCategory(false);
-                    moveTo("category");
-                  }}
-                >
-                  리딩 바꾸기
-                </button>
-              )}
-            </div>
           )}
 
           <section key={step} className="card reading-step-card" aria-labelledby="reading-step-title">
@@ -535,7 +521,7 @@ export default function ReadingPage() {
             {step === "meBirth" && (
               <>
                 <p className="reading-step-kicker">내 정보</p>
-                <h2 id="reading-step-title">내 생년월일을 알려주세요</h2>
+                <h2 id="reading-step-title">내 생년월일을 입력해주세요</h2>
                 <p className="reading-step-description">양력 기준으로 입력해주세요.</p>
                 <BirthDateFields value={me} onChange={setMe} />
               </>
@@ -564,7 +550,7 @@ export default function ReadingPage() {
             {step === "partnerBirth" && (
               <>
                 <p className="reading-step-kicker">그 사람 정보</p>
-                <h2 id="reading-step-title">그 사람의 생년월일을 알려주세요</h2>
+                <h2 id="reading-step-title">그 사람의 생년월일을 입력해주세요</h2>
                 <p className="reading-step-description">정확히 모르는 정보는 확인한 뒤 입력하는 것이 좋아요.</p>
                 <BirthDateFields value={partner} onChange={setPartner} />
               </>

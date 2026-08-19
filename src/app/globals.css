@@ -1639,37 +1639,7 @@ label {
   will-change: transform;
 }
 
-.reading-selected-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--bg-card) 88%, transparent);
-}
-
-.reading-selected-strip small,
-.reading-selected-strip strong {
-  display: block;
-}
-
-.reading-selected-strip small {
-  margin-bottom: 3px;
-  color: var(--text-dim);
-  font-size: 0.7rem;
-}
-
-.reading-selected-strip .btn {
-  flex: 0 0 auto;
-  padding: 8px 11px;
-  font-size: 0.76rem;
-}
-
 .reading-step-card {
-  min-height: 390px;
   padding: clamp(20px, 5vw, 28px);
   transform-origin: 50% 20%;
   animation: reading-step-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -1752,8 +1722,55 @@ label {
 
 .reading-birth-grid {
   display: grid;
-  grid-template-columns: 1.45fr 0.8fr 0.8fr;
-  gap: 10px;
+  grid-template-columns: 1.35fr 0.82fr 0.82fr;
+  gap: 8px;
+}
+
+.reading-birth-field {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.reading-birth-control {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card2);
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.reading-birth-control:focus-within {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-card2));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.reading-birth-control input {
+  width: 100%;
+  min-width: 0;
+  padding: 16px 0;
+  border: 0;
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-size: clamp(1rem, 4.8vw, 1.2rem);
+  font-weight: 850;
+  line-height: 1;
+  text-align: center;
+}
+
+.reading-birth-control span {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 750;
 }
 
 .reading-details-grid {
@@ -1919,7 +1936,6 @@ label {
   }
 
   .reading-step-card {
-    min-height: 360px;
     padding: 20px 17px;
   }
 
@@ -1932,7 +1948,6 @@ label {
     gap: 7px;
   }
 
-  .reading-birth-grid input,
   .reading-details-grid select {
     padding-inline: 11px;
   }
