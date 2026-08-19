@@ -7,9 +7,11 @@ import SignupModal from "@/components/SignupModal";
 import { useState } from "react";
 import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
+import { AD_OFFERS } from "@/lib/ad-offers";
 
-const LANDING = "breakup_decision" as const;
-const FORM_PATH = "/reading?c=ibyeol&offer=breakup_decision_990";
+const OFFER = AD_OFFERS.breakup_decision_990;
+const LANDING = OFFER.landingType;
+const FORM_PATH = `/reading?c=${OFFER.category}&offer=${OFFER.id}`;
 
 // 랜딩 조회 1회 기록. 동의 전에는 헬퍼 내부에서 아무것도 보내지 않는다.
 export function LandingTracker() {
@@ -40,9 +42,9 @@ function CtaButton({ className, children }: { className: string; children: React
       </Link>
       {showSignup ? (
         <SignupModal
-          title="로그인하고 무료로 시작하기"
+          title={OFFER.loginTitle}
           nextPath={FORM_PATH}
-          reason="로그인 후 이별 사주 입력 화면으로 바로 이어져요."
+          reason={OFFER.loginReason}
           onDone={() => {
             setShowSignup(false);
             router.push(FORM_PATH);
