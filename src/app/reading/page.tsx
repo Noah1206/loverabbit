@@ -292,7 +292,9 @@ export default function ReadingPage() {
     [router],
   );
 
-  // 홈 상품 카드에서 ?c= 로 진입하면 해당 상품을 확정하고, 로그인 복귀 시 입력값으로 자동 재개한다.
+  // 홈 상품 카드나 광고에서 ?c= 로 진입해도 리딩 선택 화면을 먼저 보여준다.
+  // 해당 상품은 미리 선택만 해두고, 사용자가 '다음으로'를 눌러야 생년월일 입력으로 이동한다.
+  // 로그인 복귀 시 저장된 입력값이 있으면 기존 흐름을 자동 재개한다.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const c = params.get("c");
@@ -303,8 +305,8 @@ export default function ReadingPage() {
       setWithPartner(found.needsPartner);
     }
     setOfferId(offer?.id);
-    setCategorySelectionMode(found ? "fixed" : "picker");
-    setStep(found ? "meBirth" : "category");
+    setCategorySelectionMode("picker");
+    setStep("category");
     setHasChosenCategory(Boolean(found));
 
     const stored = getUser();
