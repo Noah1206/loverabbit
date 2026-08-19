@@ -32,6 +32,22 @@ const CATEGORIES = PRODUCTS.map((p) => ({
 }));
 
 type CategorySelectionMode = "loading" | "fixed" | "picker";
+type ReadingStep =
+  | "category"
+  | "meBirth"
+  | "meDetails"
+  | "partnerBirth"
+  | "partnerDetails"
+  | "ready";
+
+const READING_STEP_LABELS: Record<ReadingStep, string> = {
+  category: "리딩 선택",
+  meBirth: "내 생년월일",
+  meDetails: "내 출생 정보",
+  partnerBirth: "그 사람 생년월일",
+  partnerDetails: "그 사람 출생 정보",
+  ready: "무료 운명보기",
+};
 
 // 생년월일 유효성 검사 — 서버에서도 한 번 더 검증하지만, 여기서 먼저 친절하게 막는다
 function birthError(p: PersonForm, who: string): string | null {
@@ -46,6 +62,12 @@ function birthError(p: PersonForm, who: string): string | null {
   if (d.getMonth() !== month - 1 || d.getDate() !== day) return `${who} ${month}월 ${day}일은 없는 날짜예요.`;
   if (d.getTime() > Date.now()) return `${who} 생일이 미래일 수는 없어요.`;
   return null;
+}
+
+function personSummary(person: PersonForm): string {
+  const birthTime = person.hour === "unknown" ? "태어난 시간 모름" : `${person.hour}시 출생`;
+  const gender = person.gender === "M" ? "남성" : "여성";
+  return `${person.year}.${person.month}.${person.day} · ${birthTime} · ${gender}`;
 }
 
 // 공유 이미지 생성 — 인스타 스토리·릴스 캡처용 (ROADMAP Week 2 바이럴 루프의 엔진)
@@ -114,12 +136,10 @@ function downloadShareImage(teaser: string) {
   a.click();
 }
 
-function PersonFields({
-  title,
+function BirthDateFields({
   value,
   onChange,
 }: {
-  title: string;
   value: PersonForm;
   onChange: (v: PersonForm) => void;
 }) {
@@ -128,7 +148,6 @@ function PersonFields({
   const yearRef = useRef<HTMLInputElement>(null);
   const monthRef = useRef<HTMLInputElement>(null);
   const dayRef = useRef<HTMLInputElement>(null);
-  const hourRef = useRef<HTMLSelectElement>(null);
 
   // 숫자만 받고, 자리수가 차면 다음 칸으로 자동으로 넘긴다.
   // soloJumpFrom: 한 글자만으로 값이 확정되는 경계.
@@ -155,66 +174,106 @@ function PersonFields({
     };
 
   return (
-    <div className="card" style={{ marginBottom: 18 }}>
-      <strong style={{ display: "block", marginBottom: 14 }}>{title}</strong>
-      <div className="row field">
-        <div>
-          <label>출생연도</label>
-          <input
-            ref={yearRef}
-            placeholder="1995"
-            inputMode="numeric"
-            autoComplete="off"
-            maxLength={4}
-            value={value.year}
-            onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
-          />
-        </div>
-        <div>
-          <label>월</label>
-          <input
-            ref={monthRef}
-            placeholder="7"
-            inputMode="numeric"
-            autoComplete="off"
-            maxLength={2}
-            value={value.month}
-            onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
-            onKeyDown={backspaceToPrev(value.month, yearRef.current)}
-          />
-        </div>
-        <div>
-          <label>일</label>
-          <input
-            ref={dayRef}
-            placeholder="14"
-            inputMode="numeric"
-            autoComplete="off"
-            maxLength={2}
-            value={value.day}
-            onChange={(e) => setDigits("day", e.target.value, 2, hourRef.current, 4)}
-            onKeyDown={backspaceToPrev(value.day, monthRef.current)}
-          />
-        </div>
+    <div className="reading-birth-grid">
+      <div>
+        <label htmlFor="reading-birth-year">출생연도</label>
+        <input
+          id="reading-birth-year"
+          ref={yearRef}
+          placeholder="1995"
+          inputMode="numeric"
+          autoComplete="bday-year"
+          maxLength={4}
+          value={value.year}
+          onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
+        />
       </div>
-      <div className="row field" style={{ marginBottom: 0 }}>
-        <div>
-          <label>태어난 시간</label>
-          <select ref={hourRef} value={value.hour} onChange={(e) => set("hour", e.target.value)}>
-            <option value="unknown">모름</option>
-            {Array.from({ length: 24 }, (_, h) => (
-              <option key={h} value={h}>{h}시</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label>성별</label>
-          <select value={value.gender} onChange={(e) => set("gender", e.target.value)}>
-            <option value="F">여성</option>
-            <option value="M">남성</option>
-          </select>
-        </div>
+      <div>
+        <label htmlFor="reading-birth-month">월</label>
+        <input
+          id="reading-birth-month"
+          ref={monthRef}
+          placeholder="7"
+          inputMode="numeric"
+          autoComplete="bday-month"
+          maxLength={2}
+          value={value.month}
+          onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
+          onKeyDown={backspaceToPrev(value.month, yearRef.current)}
+        />
       </div>
+      <div>
+        <label htmlFor="reading-birth-day">일</label>
+        <input
+          id="reading-birth-day"
+          ref={dayRef}
+          placeholder="14"
+          inputMode="numeric"
+          autoComplete="bday-day"
+          maxLength={2}
+          value={value.day}
+          onChange={(e) => setDigits("day", e.target.value, 2, null, 4)}
+          onKeyDown={backspaceToPrev(value.day, monthRef.current)}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PersonDetailsFields({
+  value,
+  onChange,
+}: {
+  value: PersonForm;
+  onChange: (v: PersonForm) => void;
+}) {
+  const set = (key: "hour" | "gender", nextValue: string) => onChange({ ...value, [key]: nextValue });
+
+  return (
+    <div className="reading-details-grid">
+      <div>
+        <label htmlFor="reading-birth-hour">태어난 시간</label>
+        <select id="reading-birth-hour" value={value.hour} onChange={(e) => set("hour", e.target.value)}>
+          <option value="unknown">모름</option>
+          {Array.from({ length: 24 }, (_, hour) => (
+            <option key={hour} value={hour}>{hour}시</option>
+          ))}
+        </select>
+      </div>
+      <div>
+        <label htmlFor="reading-gender">성별</label>
+        <select id="reading-gender" value={value.gender} onChange={(e) => set("gender", e.target.value)}>
+          <option value="F">여성</option>
+          <option value="M">남성</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+
+function ReadingStepActions({
+  backLabel = "이전",
+  nextLabel = "다음으로",
+  onBack,
+  onNext,
+  disabled = false,
+}: {
+  backLabel?: string;
+  nextLabel?: string;
+  onBack?: () => void;
+  onNext: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="reading-step-actions">
+      {onBack && (
+        <button type="button" className="btn btn-ghost" onClick={onBack} disabled={disabled}>
+          {backLabel}
+        </button>
+      )}
+      <button type="button" className="btn" onClick={onNext} disabled={disabled}>
+        {nextLabel}
+      </button>
     </div>
   );
 }
@@ -224,6 +283,7 @@ export default function ReadingPage() {
   const [category, setCategory] = useState("sokgunghap");
   const [offerId, setOfferId] = useState<string | undefined>();
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
+  const [step, setStep] = useState<ReadingStep>("category");
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
@@ -270,6 +330,7 @@ export default function ReadingPage() {
     }
     setOfferId(offer?.id);
     setCategorySelectionMode(found ? "fixed" : "picker");
+    setStep(found ? "meBirth" : "category");
 
     const stored = getUser();
     setUser(stored);
@@ -282,7 +343,11 @@ export default function ReadingPage() {
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
       setCategorySelectionMode("fixed");
-      if (stored) startGeneration(draft);
+      if (stored) {
+        startGeneration(draft);
+      } else {
+        setStep("ready");
+      }
     }
     setPendingReferral(captureReferralFromLocation());
   }, [startGeneration]);
@@ -293,7 +358,10 @@ export default function ReadingPage() {
     }
     const myErr = birthError(me, "내");
     if (myErr) return myErr;
-    if (withPartner && partner.year) {
+    if (withPartner && (!partner.year || !partner.month || !partner.day)) {
+      return "그 사람의 생년월일을 입력해주세요.";
+    }
+    if (withPartner) {
       const pErr = birthError(partner, "그 사람");
       if (pErr) return pErr;
     }
@@ -326,124 +394,247 @@ export default function ReadingPage() {
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
   const activeOffer = resolveAdOffer(category, offerId);
 
+  const moveTo = (nextStep: ReadingStep) => {
+    setError("");
+    setStep(nextStep);
+  };
+
+  const showBirthError = (person: PersonForm, who: string): boolean => {
+    if (!person.year || !person.month || !person.day) {
+      setError(`${who} 생년월일을 입력해주세요.`);
+      return true;
+    }
+    const nextError = birthError(person, who);
+    if (nextError) {
+      setError(nextError);
+      return true;
+    }
+    return false;
+  };
+
+  const confirmCategory = () => {
+    setCategorySelectionMode("fixed");
+    moveTo("meBirth");
+    const params = new URLSearchParams(window.location.search);
+    params.set("c", category);
+    if (activeOffer) {
+      params.set("offer", activeOffer.id);
+    } else {
+      params.delete("offer");
+    }
+    router.replace(`/reading?${params.toString()}`, { scroll: false });
+  };
+
+  const workflowSteps: readonly ReadingStep[] = withPartner
+    ? ["category", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "ready"]
+    : ["category", "meBirth", "meDetails", "ready"];
+  const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
+  const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
+
   return (
-    <main className="container" style={{ paddingTop: 48 }}>
-      <h1 style={{ marginBottom: 6 }}>
-        {categorySelectionMode === "fixed" && selectedCategory
-          ? `${selectedCategory.label} 리딩`
-          : "🐰 마음 리딩"}
-      </h1>
-      <p style={{ color: "var(--text-dim)", marginBottom: 28 }}>
-        {categorySelectionMode === "fixed" && selectedCategory
-          ? "이미 선택한 리딩이에요. 사주 정보만 입력하면 바로 이어집니다."
-          : "혼자 고민하던 연애 질문을 사주 흐름으로 풀어보세요."}
-      </p>
-
-      <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
-        <li><strong>1</strong><span>사주 입력</span></li>
-        <li><strong>2</strong><span>로그인</span></li>
-        <li><strong>3</strong><span>{activeOffer ? "무료 운명보기" : "약 10문장 무료"}</span></li>
-        <li><strong>4</strong><span>{activeOffer ? "원할 때 990원" : "결제 후 전문"}</span></li>
-      </ol>
-
-      {!user && pendingReferral && (
-        <aside className="friend-invite-banner" aria-label="친구 초대 안내">
-          <div className="friend-invite-icon" aria-hidden>💌</div>
-          <div>
-            <span>친구 초대로 왔어요</span>
-            <h2>내 가입으로 친구에게 질문권 10장이 적립돼요</h2>
-            <p>나는 아래에서 사주 미리보기를 무료로 볼 수 있어요. 보상은 신규 회원 가입 완료 후 자동 지급됩니다.</p>
-          </div>
-        </aside>
-      )}
-
-      {categorySelectionMode === "fixed" && selectedCategory && (
-        <div
-          className="card"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            marginBottom: 22,
-            padding: "14px 16px",
-          }}
-        >
-          <div>
-            <small style={{ display: "block", color: "var(--text-dim)", marginBottom: 4 }}>선택한 리딩</small>
-            <strong>{selectedCategory.label}</strong>
-          </div>
-          {!loading && (
-            <button
-              type="button"
-              className="btn btn-ghost"
-              style={{ padding: "8px 12px", fontSize: "0.82rem" }}
-              onClick={() => {
-                const params = new URLSearchParams(window.location.search);
-                params.delete("c");
-                params.delete("offer");
-                setOfferId(undefined);
-                setCategorySelectionMode("picker");
-                router.replace(`/reading${params.size ? `?${params.toString()}` : ""}`, { scroll: false });
-              }}
-            >
-              다른 리딩 선택
-            </button>
-          )}
-        </div>
-      )}
-
-      {categorySelectionMode === "picker" && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 22 }}>
-          {CATEGORIES.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className={category === item.id ? "btn" : "btn btn-ghost"}
-              style={{ padding: "10px 18px", fontSize: "0.92rem" }}
-              onClick={() => {
-                setCategory(item.id);
-                setOfferId(undefined);
-                setWithPartner(item.needsPartner);
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <PersonFields title="👤 내 정보" value={me} onChange={setMe} />
-
-      <label style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 14, cursor: "pointer" }}>
-        <input
-          type="checkbox"
-          checked={withPartner}
-          onChange={(e) => setWithPartner(e.target.checked)}
-          style={{ width: 18, height: 18 }}
-        />
-        <span style={{ color: "var(--text)" }}>그 사람 정보도 넣기 (관계 분석 정확도 ↑)</span>
-      </label>
-
-      {withPartner && <PersonFields title="💕 그 사람 정보" value={partner} onChange={setPartner} />}
-
-      <button className="btn" style={{ width: "100%" }} onClick={submit} disabled={loading}>
-        {loading
-          ? "사주 푸는 중… 🔮"
-          : activeOffer
-            ? user
-              ? "무료로 운명보기 →"
-              : "로그인하고 무료로 운명보기 →"
-            : user
-              ? "무료 10문장 보기 →"
-              : "로그인하고 무료 10문장 보기 →"}
-      </button>
-      {loading && (
-        <p className="pulse" style={{ textAlign: "center", color: "var(--text-dim)", marginTop: 14 }}>
-          일주와 오행을 교차 분석하고 있어요…
+    <main className="container reading-flow-page">
+      <header className="reading-flow-header">
+        <span className="badge">무료 운명 미리보기</span>
+        <h1>
+          {categorySelectionMode === "fixed" && selectedCategory
+            ? `${selectedCategory.label} 리딩`
+            : "어떤 운명을 읽어볼까요?"}
+        </h1>
+        <p>
+          {activeOffer
+            ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
+            : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
         </p>
+      </header>
+
+      {categorySelectionMode === "loading" ? (
+        <div className="card reading-step-card" aria-live="polite">리딩 정보를 불러오고 있어요…</div>
+      ) : (
+        <>
+          <div className="reading-flow-progress" aria-label={`입력 진행 단계 ${workflowStepIndex + 1}/${workflowSteps.length}`}>
+            <div className="reading-flow-progress-copy">
+              <span>{READING_STEP_LABELS[step]}</span>
+              <strong>{workflowStepIndex + 1} / {workflowSteps.length}</strong>
+            </div>
+            <div className="reading-flow-progress-track" aria-hidden="true">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+
+          {!user && pendingReferral && (
+            <aside className="friend-invite-banner" aria-label="친구 초대 안내">
+              <div className="friend-invite-icon" aria-hidden>💌</div>
+              <div>
+                <span>친구 초대로 왔어요</span>
+                <h2>내 가입으로 친구에게 질문권 10장이 적립돼요</h2>
+                <p>나는 아래에서 사주 미리보기를 무료로 볼 수 있어요. 보상은 신규 회원 가입 완료 후 자동 지급됩니다.</p>
+              </div>
+            </aside>
+          )}
+
+          {step !== "category" && selectedCategory && (
+            <div className="reading-selected-strip">
+              <div>
+                <small>선택한 리딩</small>
+                <strong>{selectedCategory.label}</strong>
+              </div>
+              {!loading && (
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setCategorySelectionMode("picker");
+                    moveTo("category");
+                  }}
+                >
+                  리딩 바꾸기
+                </button>
+              )}
+            </div>
+          )}
+
+          <section className="card reading-step-card" aria-labelledby="reading-step-title">
+            {step === "category" && (
+              <>
+                <p className="reading-step-kicker">STEP 1</p>
+                <h2 id="reading-step-title">어떤 걸 리딩할까요?</h2>
+                <p className="reading-step-description">지금 가장 궁금한 운명을 하나 선택해주세요.</p>
+                <div className="reading-category-grid">
+                  {CATEGORIES.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={`reading-category-option${category === item.id ? " is-selected" : ""}`}
+                      aria-pressed={category === item.id}
+                      onClick={() => {
+                        if (item.id !== category) setOfferId(undefined);
+                        setCategory(item.id);
+                        setWithPartner(item.needsPartner);
+                      }}
+                    >
+                      <strong>{item.label}</strong>
+                      <span>{item.needsPartner ? "두 사람의 흐름 리딩" : "나의 운명 흐름 리딩"}</span>
+                    </button>
+                  ))}
+                </div>
+                <ReadingStepActions nextLabel="이 리딩으로 시작하기" onNext={confirmCategory} />
+              </>
+            )}
+
+            {step === "meBirth" && (
+              <>
+                <p className="reading-step-kicker">내 정보</p>
+                <h2 id="reading-step-title">내 생년월일을 알려주세요</h2>
+                <p className="reading-step-description">양력 기준으로 입력해주세요.</p>
+                <BirthDateFields value={me} onChange={setMe} />
+                <ReadingStepActions
+                  onBack={() => {
+                    setCategorySelectionMode("picker");
+                    moveTo("category");
+                  }}
+                  onNext={() => {
+                    if (!showBirthError(me, "내")) moveTo("meDetails");
+                  }}
+                />
+              </>
+            )}
+
+            {step === "meDetails" && (
+              <>
+                <p className="reading-step-kicker">내 정보</p>
+                <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
+                <p className="reading-step-description">태어난 시간을 모르면 ‘모름’을 선택해도 괜찮아요.</p>
+                <PersonDetailsFields value={me} onChange={setMe} />
+                <label className="reading-partner-toggle">
+                  <input
+                    type="checkbox"
+                    checked={withPartner}
+                    onChange={(event) => setWithPartner(event.target.checked)}
+                  />
+                  <span>
+                    <strong>그 사람 정보도 넣기</strong>
+                    <small>체크하면 같은 순서로 그 사람의 정보를 입력해요.</small>
+                  </span>
+                </label>
+                <ReadingStepActions
+                  onBack={() => moveTo("meBirth")}
+                  onNext={() => moveTo(withPartner ? "partnerBirth" : "ready")}
+                />
+              </>
+            )}
+
+            {step === "partnerBirth" && (
+              <>
+                <p className="reading-step-kicker">그 사람 정보</p>
+                <h2 id="reading-step-title">그 사람의 생년월일을 알려주세요</h2>
+                <p className="reading-step-description">정확히 모르는 정보는 확인한 뒤 입력하는 것이 좋아요.</p>
+                <BirthDateFields value={partner} onChange={setPartner} />
+                <ReadingStepActions
+                  onBack={() => moveTo("meDetails")}
+                  onNext={() => {
+                    if (!showBirthError(partner, "그 사람")) moveTo("partnerDetails");
+                  }}
+                />
+              </>
+            )}
+
+            {step === "partnerDetails" && (
+              <>
+                <p className="reading-step-kicker">그 사람 정보</p>
+                <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
+                <p className="reading-step-description">그 사람의 태어난 시간을 모르면 ‘모름’을 선택해주세요.</p>
+                <PersonDetailsFields value={partner} onChange={setPartner} />
+                <ReadingStepActions
+                  onBack={() => moveTo("partnerBirth")}
+                  onNext={() => moveTo("ready")}
+                />
+              </>
+            )}
+
+            {step === "ready" && selectedCategory && (
+              <>
+                <p className="reading-step-kicker">입력 완료</p>
+                <h2 id="reading-step-title">무료 운명 미리보기를 준비했어요</h2>
+                <p className="reading-step-description">입력한 정보를 확인하고 무료로 결과를 열어보세요.</p>
+                <dl className="reading-summary">
+                  <div>
+                    <dt>리딩</dt>
+                    <dd>{selectedCategory.label}</dd>
+                  </div>
+                  <div>
+                    <dt>내 정보</dt>
+                    <dd>{personSummary(me)}</dd>
+                  </div>
+                  {withPartner && (
+                    <div>
+                      <dt>그 사람 정보</dt>
+                      <dd>{personSummary(partner)}</dd>
+                    </div>
+                  )}
+                </dl>
+                <div className="reading-step-actions">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => moveTo(withPartner ? "partnerDetails" : "meDetails")}
+                    disabled={loading}
+                  >
+                    이전
+                  </button>
+                  <button type="button" className="btn" onClick={submit} disabled={loading}>
+                    {loading ? "사주 푸는 중… 🔮" : "무료로 운명 보기"}
+                  </button>
+                </div>
+                {loading && (
+                  <p className="pulse reading-loading-copy">일주와 오행을 교차 분석하고 있어요…</p>
+                )}
+              </>
+            )}
+          </section>
+
+          {error && <p className="reading-step-error" role="alert">{error}</p>}
+        </>
       )}
-      {error && <p style={{ color: "var(--accent)", marginTop: 14 }}>{error}</p>}
 
       {showSignup && (
         <SignupModal
@@ -465,9 +656,7 @@ export default function ReadingPage() {
           reason={
             pendingReferral
               ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : activeOffer
-                ? "무료 운명 미리보기를 저장하려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
-                : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
+              : "무료 운명 미리보기를 저장하려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
           }
           onClose={() => {
             clearReadingDraft();
