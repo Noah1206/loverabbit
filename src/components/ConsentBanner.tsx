@@ -19,6 +19,7 @@ export default function ConsentBanner() {
   const [visible, setVisible] = useState(false);
   const pathname = usePathname();
   const isAdSajuLanding = AD_SAJU_PATHS.has(pathname);
+  const isReadingFlow = pathname === "/reading";
 
   useEffect(() => {
     setVisible(readConsent() === "unset");
@@ -33,7 +34,7 @@ export default function ConsentBanner() {
 
   return (
     <div
-      className={`consent-banner${isAdSajuLanding ? " consent-banner--ad-saju" : ""}`}
+      className={`consent-banner${isAdSajuLanding ? " consent-banner--ad-saju" : ""}${isReadingFlow ? " consent-banner--reading-flow" : ""}`}
       role="dialog"
       aria-live="polite"
       aria-label="쿠키 사용 동의"

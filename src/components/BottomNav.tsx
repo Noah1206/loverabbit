@@ -71,7 +71,7 @@ export default function BottomNav() {
 
   useEffect(() => setVisualIndex(routeIndex), [routeIndex]);
 
-  if (path.startsWith("/product/") || path.startsWith("/shrine/") || path.startsWith("/saju/")) return null;
+  if (path === "/reading" || path.startsWith("/product/") || path.startsWith("/shrine/") || path.startsWith("/saju/")) return null;
 
   return (
     <nav

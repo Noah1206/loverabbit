@@ -251,39 +251,13 @@ function PersonDetailsFields({
   );
 }
 
-function ReadingStepActions({
-  backLabel = "이전",
-  nextLabel = "다음으로",
-  onBack,
-  onNext,
-  disabled = false,
-}: {
-  backLabel?: string;
-  nextLabel?: string;
-  onBack?: () => void;
-  onNext: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="reading-step-actions">
-      {onBack && (
-        <button type="button" className="btn btn-ghost" onClick={onBack} disabled={disabled}>
-          {backLabel}
-        </button>
-      )}
-      <button type="button" className="btn" onClick={onNext} disabled={disabled}>
-        {nextLabel}
-      </button>
-    </div>
-  );
-}
-
 export default function ReadingPage() {
   const router = useRouter();
   const [category, setCategory] = useState("sokgunghap");
   const [offerId, setOfferId] = useState<string | undefined>();
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [step, setStep] = useState<ReadingStep>("category");
+  const [hasChosenCategory, setHasChosenCategory] = useState(false);
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
@@ -331,6 +305,7 @@ export default function ReadingPage() {
     setOfferId(offer?.id);
     setCategorySelectionMode(found ? "fixed" : "picker");
     setStep(found ? "meBirth" : "category");
+    setHasChosenCategory(Boolean(found));
 
     const stored = getUser();
     setUser(stored);
@@ -343,6 +318,7 @@ export default function ReadingPage() {
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
       setCategorySelectionMode("fixed");
+      setHasChosenCategory(true);
       if (stored) {
         startGeneration(draft);
       } else {
@@ -413,6 +389,7 @@ export default function ReadingPage() {
   };
 
   const confirmCategory = () => {
+    if (!hasChosenCategory) return;
     setCategorySelectionMode("fixed");
     moveTo("meBirth");
     const params = new URLSearchParams(window.location.search);
@@ -425,11 +402,36 @@ export default function ReadingPage() {
     router.replace(`/reading?${params.toString()}`, { scroll: false });
   };
 
+  const advanceStep = () => {
+    if (step === "category") {
+      confirmCategory();
+      return;
+    }
+    if (step === "meBirth") {
+      if (!showBirthError(me, "내")) moveTo("meDetails");
+      return;
+    }
+    if (step === "meDetails") {
+      moveTo(withPartner ? "partnerBirth" : "ready");
+      return;
+    }
+    if (step === "partnerBirth") {
+      if (!showBirthError(partner, "그 사람")) moveTo("partnerDetails");
+      return;
+    }
+    if (step === "partnerDetails") {
+      moveTo("ready");
+      return;
+    }
+    submit();
+  };
+
   const workflowSteps: readonly ReadingStep[] = withPartner
     ? ["category", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "ready"]
     : ["category", "meBirth", "meDetails", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
+  const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
 
   return (
     <main className="container reading-flow-page">
@@ -457,7 +459,7 @@ export default function ReadingPage() {
               <strong>{workflowStepIndex + 1} / {workflowSteps.length}</strong>
             </div>
             <div className="reading-flow-progress-track" aria-hidden="true">
-              <span style={{ width: `${progress}%` }} />
+              <span style={{ transform: `scaleX(${progress / 100})` }} />
             </div>
           </div>
 
@@ -484,6 +486,7 @@ export default function ReadingPage() {
                   className="btn btn-ghost"
                   onClick={() => {
                     setCategorySelectionMode("picker");
+                    setHasChosenCategory(false);
                     moveTo("category");
                   }}
                 >
@@ -493,7 +496,7 @@ export default function ReadingPage() {
             </div>
           )}
 
-          <section className="card reading-step-card" aria-labelledby="reading-step-title">
+          <section key={step} className="card reading-step-card" aria-labelledby="reading-step-title">
             {step === "category" && (
               <>
                 <p className="reading-step-kicker">STEP 1</p>
@@ -504,12 +507,13 @@ export default function ReadingPage() {
                     <button
                       key={item.id}
                       type="button"
-                      className={`reading-category-option${category === item.id ? " is-selected" : ""}`}
-                      aria-pressed={category === item.id}
+                      className={`reading-category-option${hasChosenCategory && category === item.id ? " is-selected" : ""}`}
+                      aria-pressed={hasChosenCategory && category === item.id}
                       onClick={() => {
                         if (item.id !== category) setOfferId(undefined);
                         setCategory(item.id);
                         setWithPartner(item.needsPartner);
+                        setHasChosenCategory(true);
                       }}
                     >
                       <strong>{item.label}</strong>
@@ -517,7 +521,6 @@ export default function ReadingPage() {
                     </button>
                   ))}
                 </div>
-                <ReadingStepActions nextLabel="이 리딩으로 시작하기" onNext={confirmCategory} />
               </>
             )}
 
@@ -527,15 +530,6 @@ export default function ReadingPage() {
                 <h2 id="reading-step-title">내 생년월일을 알려주세요</h2>
                 <p className="reading-step-description">양력 기준으로 입력해주세요.</p>
                 <BirthDateFields value={me} onChange={setMe} />
-                <ReadingStepActions
-                  onBack={() => {
-                    setCategorySelectionMode("picker");
-                    moveTo("category");
-                  }}
-                  onNext={() => {
-                    if (!showBirthError(me, "내")) moveTo("meDetails");
-                  }}
-                />
               </>
             )}
 
@@ -556,10 +550,6 @@ export default function ReadingPage() {
                     <small>체크하면 같은 순서로 그 사람의 정보를 입력해요.</small>
                   </span>
                 </label>
-                <ReadingStepActions
-                  onBack={() => moveTo("meBirth")}
-                  onNext={() => moveTo(withPartner ? "partnerBirth" : "ready")}
-                />
               </>
             )}
 
@@ -569,12 +559,6 @@ export default function ReadingPage() {
                 <h2 id="reading-step-title">그 사람의 생년월일을 알려주세요</h2>
                 <p className="reading-step-description">정확히 모르는 정보는 확인한 뒤 입력하는 것이 좋아요.</p>
                 <BirthDateFields value={partner} onChange={setPartner} />
-                <ReadingStepActions
-                  onBack={() => moveTo("meDetails")}
-                  onNext={() => {
-                    if (!showBirthError(partner, "그 사람")) moveTo("partnerDetails");
-                  }}
-                />
               </>
             )}
 
@@ -584,10 +568,6 @@ export default function ReadingPage() {
                 <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
                 <p className="reading-step-description">그 사람의 태어난 시간을 모르면 ‘모름’을 선택해주세요.</p>
                 <PersonDetailsFields value={partner} onChange={setPartner} />
-                <ReadingStepActions
-                  onBack={() => moveTo("partnerBirth")}
-                  onNext={() => moveTo("ready")}
-                />
               </>
             )}
 
@@ -612,19 +592,6 @@ export default function ReadingPage() {
                     </div>
                   )}
                 </dl>
-                <div className="reading-step-actions">
-                  <button
-                    type="button"
-                    className="btn btn-ghost"
-                    onClick={() => moveTo(withPartner ? "partnerDetails" : "meDetails")}
-                    disabled={loading}
-                  >
-                    이전
-                  </button>
-                  <button type="button" className="btn" onClick={submit} disabled={loading}>
-                    {loading ? "사주 푸는 중… 🔮" : "무료로 운명 보기"}
-                  </button>
-                </div>
                 {loading && (
                   <p className="pulse reading-loading-copy">일주와 오행을 교차 분석하고 있어요…</p>
                 )}
@@ -634,6 +601,14 @@ export default function ReadingPage() {
 
           {error && <p className="reading-step-error" role="alert">{error}</p>}
         </>
+      )}
+
+      {showFixedAction && (
+        <div key={step} className="reading-fixed-action">
+          <button type="button" className="btn" onClick={advanceStep} disabled={loading}>
+            {loading ? "사주 푸는 중… 🔮" : step === "ready" ? "무료로 운명 보기" : "다음으로"}
+          </button>
+        </div>
       )}
 
       {showSignup && (
