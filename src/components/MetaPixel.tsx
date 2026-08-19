@@ -34,6 +34,11 @@ export default function MetaPixel() {
         t=b.createElement(e);t.async=!0;t.src=v;
         s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
         (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+        // autoConfig=false — Meta의 '자동 고급 매칭'과 자동 이벤트 감지를 끈다.
+        // 이게 켜져 있으면 Pixel이 페이지의 폼 필드를 긁어가는데, /reading 폼에는
+        // 생년월일·성별 입력이 있어 그대로 두면 광고 플랫폼으로 넘어간다.
+        // 이벤트는 전부 meta-events.ts에서 명시적으로만 보낸다.
+        fbq('set', 'autoConfig', false, '${META_PIXEL_ID}');
         fbq('init', '${META_PIXEL_ID}');
       `}
     </Script>
