@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
+import LegalFieldList from "@/components/LegalFieldList";
+import {
+  BUSINESS,
+  businessFields,
+  missingLegalFields,
+  privacyOfficerFields,
+} from "@/lib/business-info";
 
 // 개인정보처리방침 — 쿠키 동의 배너와 광고 심사에서 함께 요구되는 문서.
-// 실제 사업자 정보·연락처는 운영자가 확인해 채워야 한다.
+// 사업자 신원(전자상거래법 제10조)과 개인정보 보호책임자(개인정보보호법 제30조)는
+// src/lib/business-info.ts 한 곳에서 읽는다. 값은 배포 환경변수로 채운다.
 
 export const metadata: Metadata = {
   title: "개인정보처리방침 — 러브레빗",
@@ -9,10 +17,20 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
+  const missing = missingLegalFields();
+
   return (
     <main className="lp lp-doc">
       <h1 className="lp-h1">개인정보처리방침</h1>
       <p className="lp-note">최종 개정일: 2026-08-19</p>
+
+      {process.env.NODE_ENV !== "production" && missing.length > 0 ? (
+        // 운영자에게만 보이는 체크리스트. 배포 빌드에는 들어가지 않는다.
+        <p className="legal-todo">
+          아직 안 채운 법정 기재사항 {missing.length}건 — {missing.join(", ")}. 배포 환경변수의
+          NEXT_PUBLIC_BUSINESS_* / NEXT_PUBLIC_PRIVACY_OFFICER_* 를 채우세요.
+        </p>
+      ) : null}
 
       <section className="lp-doc-section">
         <h2 className="lp-h2">1. 수집하는 정보</h2>
@@ -53,14 +71,49 @@ export default function PrivacyPage() {
       <section className="lp-doc-section">
         <h2 className="lp-h2">4. 이용자의 권리</h2>
         <p>
-          이용자는 언제든지 자신의 정보 열람·정정·삭제·처리정지를 요청할 수 있습니다. 요청은 아래
-          연락처로 받습니다.
+          이용자는 언제든지 자신의 정보 열람·정정·삭제·처리정지를 요청할 수 있습니다. 요청은 앱 안의
+          문의하기 또는 아래 개인정보 보호책임자 연락처로 받으며, 접수일로부터 10일 이내에
+          처리 결과를 알려드립니다.
         </p>
       </section>
 
       <section className="lp-doc-section">
-        <h2 className="lp-h2">5. 문의</h2>
-        <p>개인정보 보호책임자 및 문의처는 서비스 내 문의하기를 통해 확인할 수 있습니다.</p>
+        <h2 className="lp-h2">5. 개인정보 보호책임자</h2>
+        <p>
+          개인정보 처리에 관한 업무를 총괄하고, 이용자의 문의·불만·피해구제를 아래 책임자가
+          처리합니다.
+        </p>
+        <LegalFieldList fields={privacyOfficerFields()} />
+      </section>
+
+      <section className="lp-doc-section">
+        <h2 className="lp-h2">6. 사업자 정보</h2>
+        <p>{BUSINESS.serviceName} 서비스를 운영하는 사업자의 신원 정보입니다.</p>
+        <LegalFieldList fields={businessFields()} />
+      </section>
+
+      <section className="lp-doc-section">
+        <h2 className="lp-h2">7. 권익침해 구제방법</h2>
+        <p>
+          개인정보 침해로 상담·피해구제가 필요하면 아래 기관에 문의할 수 있습니다. 위 연락처로
+          받은 처리 결과에 만족하지 못한 경우에도 같습니다.
+        </p>
+        <ul className="lp-doc-list">
+          <li>
+            개인정보 분쟁조정위원회 — 1833-6972 /{" "}
+            <a href="https://www.kopico.go.kr" target="_blank" rel="noreferrer noopener">
+              kopico.go.kr
+            </a>
+          </li>
+          <li>
+            개인정보침해 신고센터 — 118 /{" "}
+            <a href="https://privacy.kisa.or.kr" target="_blank" rel="noreferrer noopener">
+              privacy.kisa.or.kr
+            </a>
+          </li>
+          <li>대검찰청 사이버수사과 — 1301</li>
+          <li>경찰청 사이버범죄 신고상담 — 182</li>
+        </ul>
       </section>
     </main>
   );
