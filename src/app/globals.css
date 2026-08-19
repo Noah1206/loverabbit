@@ -1682,28 +1682,45 @@ label {
 }
 
 .reading-category-option {
+  appearance: none;
+  -webkit-appearance: none;
   min-width: 0;
   padding: 13px 12px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: var(--bg-card2);
+  background-color: var(--bg-card2);
   color: var(--text);
   text-align: left;
   cursor: pointer;
-  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 440ms ease,
+    background-color 440ms ease,
+    box-shadow 440ms ease;
 }
 
 .reading-category-option:hover,
 .reading-category-option:focus-visible {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
+  background-color: rgba(255, 61, 127, 0.14);
+  background-color: color-mix(in srgb, var(--accent) 14%, var(--bg-card2));
   outline: none;
+}
+
+.reading-category-option:active {
+  transform: translateY(0) scale(0.98);
+  border-color: var(--accent);
+  background-color: rgba(255, 61, 127, 0.24);
+  background-color: color-mix(in srgb, var(--accent) 24%, var(--bg-card2));
 }
 
 .reading-category-option.is-selected {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card2));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+  background-color: rgba(255, 61, 127, 0.22);
+  background-color: color-mix(in srgb, var(--accent) 22%, var(--bg-card2));
+  box-shadow: 0 0 0 2px rgba(255, 61, 127, 0.18);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .reading-category-option strong,
@@ -1744,14 +1761,26 @@ label {
   padding: 0 11px;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: var(--bg-card2);
-  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  background-color: var(--bg-card2);
+  transition:
+    border-color 440ms ease,
+    box-shadow 440ms ease,
+    background-color 440ms ease,
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reading-birth-control:has(input:not(:placeholder-shown)) {
+  background-color: rgba(255, 61, 127, 0.1);
+  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
 }
 
 .reading-birth-control:focus-within {
   border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 7%, var(--bg-card2));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
+  background-color: rgba(255, 61, 127, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 20%, var(--bg-card2));
+  box-shadow: 0 0 0 3px rgba(255, 61, 127, 0.18);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
 }
 
 .reading-birth-control input {
@@ -1794,6 +1823,26 @@ label {
   min-width: 0;
 }
 
+.reading-details-grid select {
+  border-color: var(--line);
+  background-color: var(--bg-card2);
+  transition:
+    border-color 440ms ease,
+    box-shadow 440ms ease,
+    background-color 440ms ease,
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reading-details-grid select:focus {
+  border-color: var(--accent);
+  outline: none;
+  background-color: rgba(255, 61, 127, 0.2);
+  background-color: color-mix(in srgb, var(--accent) 20%, var(--bg-card2));
+  box-shadow: 0 0 0 3px rgba(255, 61, 127, 0.18);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  transform: translateY(-1px);
+}
+
 .reading-partner-toggle {
   display: flex;
   align-items: flex-start;
@@ -1802,9 +1851,26 @@ label {
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background: var(--bg-card2);
+  background-color: var(--bg-card2);
   color: var(--text);
   cursor: pointer;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 440ms ease,
+    background-color 440ms ease,
+    box-shadow 440ms ease;
+}
+
+.reading-partner-toggle:active {
+  transform: scale(0.985);
+}
+
+.reading-partner-toggle:has(input:checked) {
+  border-color: var(--accent);
+  background-color: rgba(255, 61, 127, 0.16);
+  background-color: color-mix(in srgb, var(--accent) 16%, var(--bg-card2));
+  box-shadow: 0 0 0 2px rgba(255, 61, 127, 0.14);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .reading-partner-toggle input {
@@ -1851,16 +1917,40 @@ label {
 }
 
 .reading-fixed-action .btn {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
   height: 100%;
   border-radius: 19px;
+  background-color: #ff3d7f;
+  background-image: linear-gradient(135deg, rgba(255, 92, 148, 0.92), rgba(139, 92, 246, 0.88));
   font-size: 1rem;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 26%, transparent);
-  transition: transform 160ms ease, filter 160ms ease;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 440ms ease,
+    background-color 440ms ease,
+    box-shadow 440ms ease;
+}
+
+.reading-fixed-action .btn:hover,
+.reading-fixed-action .btn:focus-visible {
+  background-color: #ff3d7f;
+  background-image: linear-gradient(135deg, rgba(255, 92, 148, 0.96), rgba(139, 92, 246, 0.94));
+  box-shadow: 0 12px 30px rgba(255, 61, 127, 0.34);
+}
+
+.reading-fixed-action .btn:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.78);
+  outline-offset: 2px;
 }
 
 .reading-fixed-action .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.975);
+  background-color: #d92868;
+  background-image: linear-gradient(135deg, rgba(255, 61, 127, 0.98), rgba(124, 58, 237, 0.96));
+  box-shadow: 0 5px 16px rgba(255, 61, 127, 0.32);
+  filter: saturate(1.12) brightness(0.96);
 }
 
 @keyframes reading-step-enter {
@@ -1959,7 +2049,11 @@ label {
 
 @media (prefers-reduced-motion: reduce) {
   .reading-flow-progress-track span,
-  .reading-category-option {
+  .reading-category-option,
+  .reading-birth-control,
+  .reading-details-grid select,
+  .reading-partner-toggle,
+  .reading-fixed-action .btn {
     transition: none;
   }
 
