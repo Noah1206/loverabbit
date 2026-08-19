@@ -615,6 +615,7 @@ export default function ReadingPage() {
 
       {showSignup && (
         <SignupModal
+          title="운명의 답, 지금 열어보세요"
           onDone={(u) => {
             setUser(u);
             setShowSignup(false);
@@ -632,8 +633,8 @@ export default function ReadingPage() {
           }}
           reason={
             pendingReferral
-              ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : "무료 운명 미리보기를 저장하려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
+              ? "로그인하면 무료 미리보기와 친구 보상이 함께 연결돼요."
+              : "로그인하면 입력한 내용 그대로 무료 미리보기로 이어져요."
           }
           onClose={() => {
             clearReadingDraft();

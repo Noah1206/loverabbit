@@ -19,11 +19,13 @@ const PROVIDER_LABEL: Record<SocialLoginProvider, string> = {
 // 신규 사용자의 가입 정보와 약관 동의는 OAuth 완료 화면에서 한 번만 받는다.
 export default function SignupModal({
   onClose,
+  title = "로그인하고 계속하기",
   reason = "풀 리딩을 열려면 3초 가입이 필요해요",
   nextPath,
 }: {
   onDone: (u: User) => void;
   onClose: () => void;
+  title?: string;
   reason?: string;
   // 로그인 완료 후 돌아올 경로. 없으면 팝업을 연 현재 화면으로 복귀한다.
   nextPath?: string;
@@ -83,9 +85,9 @@ export default function SignupModal({
     >
       <div className="card" style={{ maxWidth: 380, width: "100%" }} onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", justifyContent: "center" }}><BrandMark size={52} /></div>
-        <h3 id="social-login-title" style={{ textAlign: "center", margin: "8px 0 4px" }}>소셜 계정으로 시작하기</h3>
+        <h3 id="social-login-title" style={{ textAlign: "center", margin: "8px 0 4px" }}>{title}</h3>
         <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", textAlign: "center", marginBottom: 16 }}>
-          {reason}. 자주 쓰는 계정 하나만 선택하세요.
+          {reason}
         </p>
 
         <div className="social-login-stack">
@@ -147,10 +149,10 @@ export default function SignupModal({
 
         <p className="social-login-note">
           {showMatureLabels
-            ? "🔞 신규 가입은 로그인 후 최초 한 번만 성인 확인을 진행해요."
-            : "신규 가입은 로그인 후 최초 한 번만 정보를 확인해요."}
+            ? "🔞 성인용 리딩은 신규 가입 시 한 번만 성인 확인해요."
+            : "신규 가입 시 정보 확인은 한 번만 진행해요."}
         </p>
-        <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={onClose}>다음에 할게요</button>
+        <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={onClose}>나중에 볼게요</button>
         {error && <p role="alert" style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 8, textAlign: "center" }}>{error}</p>}
       </div>
     </div>
