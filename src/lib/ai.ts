@@ -96,6 +96,16 @@ async function callOpenAICompat(apiKey: string, system: string, messages: ChatMs
   return text;
 }
 
+/**
+ * 생성기가 하나라도 붙어 있는가.
+ * 키가 아예 없으면 데모 리딩이 정상 동작(로컬 개발)이지만, 키가 있는데 실패한 것은
+ * 장애다. 그 둘을 호출부가 구분할 수 있어야 데모 글을 팔지 않는다.
+ */
+export function isAiConfigured(): boolean {
+  const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
+  return Boolean(ANTHROPIC_API_KEY || GEMINI_API_KEY || OPENAI_API_KEY);
+}
+
 export async function chatComplete(
   system: string,
   messages: ChatMsg[],

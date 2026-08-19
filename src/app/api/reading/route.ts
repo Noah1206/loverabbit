@@ -12,7 +12,7 @@ import {
 } from "@/lib/reading-prompt";
 import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
-import { chatComplete } from "@/lib/ai";
+import { chatComplete, isAiConfigured } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
@@ -279,6 +279,8 @@ export async function POST(req: NextRequest) {
   let providerName = "demo";
   // 출고 검사 결과 — 고치지 못한 위반은 blob에 남겨 나중에 되짚을 수 있게 한다
   let guardViolations: GuardViolation[] = [];
+  // 생성기가 붙어 있는데도 리포트를 못 만든 경우. 데모 글로 때우면 안 되는 상황이다.
+  let generationFailed = false;
 
   try {
     const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], maxOutputTokens);
@@ -338,14 +340,26 @@ export async function POST(req: NextRequest) {
       if (report) {
         ({ teaser, full } = reportToText(report));
       } else {
-        console.error("리포트 JSON 파싱 실패 — 데모로 폴백");
+        console.error("리포트 JSON 파싱 실패");
+        generationFailed = true;
         ({ teaser, full } = mockReading(body.category));
         providerName = "demo";
       }
     }
   } catch (e) {
-    console.error("AI 호출 실패, 데모로 폴백:", e);
+    console.error("AI 호출 실패:", e);
+    generationFailed = true;
     ({ teaser, full } = mockReading(body.category));
+  }
+
+  // 키가 없는 로컬 환경에서는 데모 리딩이 정상이다. 그러나 키가 붙어 있는데 실패한 것은
+  // 장애이고, 이때 데모 글을 저장하면 "[데모 모드]"로 시작하는 글이 결제 화면까지 간다.
+  // 크레딧 소진·정전·모델 오류가 조용히 매출로 이어지지 않도록 여기서 끊는다.
+  if (generationFailed && isAiConfigured()) {
+    return NextResponse.json(
+      { error: "지금은 사주를 풀지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 503 }
+    );
   }
 
   // 풀 리딩은 서버에만 저장 — 결제 확인(/api/unlock) 후에만 내려간다.
