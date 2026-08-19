@@ -4,6 +4,8 @@
 // blob(봉인 리딩)을 함께 보관하므로, 미해금 리딩은 보관함에서 나중에 해금할 수 있고
 // 해금된 리딩은 추가 상담도 이어서 할 수 있다.
 
+import type { StructuredReport } from "@/lib/reading-prompt";
+
 export interface ArchiveEntry {
   readingId: string;
   blob: string;
@@ -26,6 +28,8 @@ export interface ArchiveEntry {
   scoreBand?: string | null;
   /** 그 지수가 어디서 나왔는지. 해금 후에만 채워진다. */
   scoreFactors?: { label: string; delta: number; basis: string }[];
+  /** 구조화 리포트 원본 — 근거와 주의점이 여기에 남는다. 해금 후에만 채워진다. */
+  report?: StructuredReport | null;
   demo?: boolean;
   // 리포트 상단 요약 카드 — 결제 전에도 보여주는 무료 구조 정보
   summaryCards?: { label: string; value: string; detail: string }[];

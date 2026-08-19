@@ -110,6 +110,22 @@ export function ChapterBody({ chapter }: { chapter: ReadingChapter }) {
               {section.paragraphs.map((paragraph, pIndex) => (
                 <p key={pIndex}>{paragraph}</p>
               ))}
+
+              {section.watchOut && (
+                <p className="rv-watch">
+                  <b>살펴볼 점</b>
+                  {section.watchOut}
+                </p>
+              )}
+
+              {section.factsUsed.length > 0 && (
+                // 이 절이 명식의 어느 값에 기대고 있는지. 지어낸 문장과 구분되는 자리다.
+                <ul className="rv-facts" aria-label="이 절이 쓴 명식 근거">
+                  {section.factsUsed.map((fact, fIndex) => (
+                    <li key={fIndex}>{fact}</li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
         </section>

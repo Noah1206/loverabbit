@@ -381,6 +381,9 @@ export async function POST(req: NextRequest) {
       scoreLabel,
       scoreBand,
       scoreFactors: scoreResult.factors,
+      // 구조화 리포트를 통째로 봉인한다. 텍스트로 눌러 담으면 facts_used와
+      // watch_out이 사라져, 나중에 "이 문장이 어디서 나왔나"를 되짚을 수 없다.
+      report,
     }),
     demo: providerName === "demo",
     provider: providerName,

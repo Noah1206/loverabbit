@@ -11,6 +11,10 @@
 export interface ChapterPiece {
   title: string;
   paragraphs: string[];
+  /** 이 절에서 짚어둘 주의점 (구조화 리포트에만 있다) */
+  watchOut?: string;
+  /** 이 절이 근거로 삼은 계산값 — "strength.label=신약" 같은 문자열 */
+  factsUsed?: string[];
 }
 
 export interface ChapterSection {
@@ -18,6 +22,8 @@ export interface ChapterSection {
   order: number;
   title: string;
   paragraphs: string[];
+  watchOut?: string;
+  factsUsed: string[];
   /** 결제 전이라 본문이 비어 있는 절 */
   locked: boolean;
 }
@@ -117,6 +123,8 @@ export function buildChapters(
         order: orderIn(piece.title, order + 1),
         title: cleanTitle(piece.title),
         paragraphs: piece.paragraphs,
+        watchOut: piece.watchOut,
+        factsUsed: piece.factsUsed ?? [],
         locked: piece.paragraphs.length === 0,
       }));
       return {
@@ -143,6 +151,8 @@ export function buildChapters(
         order: order + 1,
         title: cleanTitle(piece.title),
         paragraphs: piece.paragraphs,
+        watchOut: piece.watchOut,
+        factsUsed: piece.factsUsed ?? [],
         locked: piece.paragraphs.length === 0,
       })),
       kind: "epilogue",
@@ -151,6 +161,39 @@ export function buildChapters(
   }
 
   return chapters;
+}
+
+/**
+ * 구조화 리포트에서 바로 장 조각을 만든다. 텍스트를 다시 파싱하는 것보다 정확하고,
+ * 근거(facts_used)와 주의점(watch_out)이 살아 있다.
+ */
+export function reportPieces(report: {
+  sections: { title: string; summary: string; paragraphs: string[]; watchOut?: string; factsUsed: string[] }[];
+  actionQuestions: { question: string; whyItMatters: string }[];
+  characterNote: { name: string; message: string } | null;
+}): ChapterPiece[] {
+  const pieces: ChapterPiece[] = report.sections.map((section) => ({
+    title: section.title,
+    paragraphs: [section.summary, ...section.paragraphs].filter(Boolean),
+    watchOut: section.watchOut,
+    factsUsed: section.factsUsed,
+  }));
+
+  if (report.actionQuestions.length > 0) {
+    pieces.push({
+      title: "스스로 확인할 세 가지",
+      paragraphs: report.actionQuestions.map(
+        (item, index) => `${index + 1}. ${item.question} — ${item.whyItMatters}`
+      ),
+    });
+  }
+  if (report.characterNote) {
+    pieces.push({
+      title: `${report.characterNote.name}의 한마디`,
+      paragraphs: [report.characterNote.message],
+    });
+  }
+  return pieces;
 }
 
 /** 결제 전 화면용 — 미리보기 발췌와 제목만 남은 잠긴 절을 한 줄기로 세운다 */

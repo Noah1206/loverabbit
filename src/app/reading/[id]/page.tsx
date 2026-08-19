@@ -15,7 +15,7 @@ import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
-import { buildChapters, previewPieces, type ReadingChapter } from "@/lib/reading-chapters";
+import { buildChapters, previewPieces, reportPieces, type ReadingChapter } from "@/lib/reading-chapters";
 import { conceptFor } from "@/lib/reading-concepts";
 import {
   ChapterBody,
@@ -97,12 +97,16 @@ export default function ReadingReportPage() {
 
   const chapters: ReadingChapter[] = useMemo(() => {
     if (!entry) return [];
-    const pieces = entry.full
-      ? parseReportSections(entry.full).map((section) => ({
-          title: section.title,
-          paragraphs: section.paragraphs,
-        }))
-      : previewPieces(entry.previewSections ?? [], entry.lockedSectionTitles ?? []);
+    // 구조화 리포트가 남아 있으면 그쪽이 정확하다 — 근거와 주의점이 함께 온다.
+    // 없으면(예전에 받은 리딩) 저장된 텍스트를 파싱해 같은 모양으로 세운다.
+    const pieces = entry.report
+      ? reportPieces(entry.report)
+      : entry.full
+        ? parseReportSections(entry.full).map((section) => ({
+            title: section.title,
+            paragraphs: section.paragraphs,
+          }))
+        : previewPieces(entry.previewSections ?? [], entry.lockedSectionTitles ?? []);
     return buildChapters(pieces, {
       toc: product?.toc ?? [],
       chapterTitles: concept.chapters,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getReading, markUnlocked } from "@/lib/store";
 import { open } from "@/lib/crypto";
+import type { StructuredReport } from "@/lib/reading-prompt";
 import {
   createOrder,
   createPendingTransferOrder,
@@ -37,6 +38,8 @@ interface SealedReading {
   scoreBand?: string | null;
   /** 그 지수가 어디서 나왔는지 — 해금 후 화면에 근거로 보여준다 */
   scoreFactors?: { label: string; delta: number; basis: string }[];
+  /** 구조화 리포트 원본. 근거(facts_used)와 주의점이 여기에만 남아 있다. */
+  report?: StructuredReport | null;
 }
 
 export async function POST(req: NextRequest) {
@@ -65,6 +68,7 @@ export async function POST(req: NextRequest) {
   // 구간과 근거는 DB에 두지 않고 봉인된 blob에만 있다
   const scoreBand = fromBlob?.scoreBand ?? null;
   const scoreFactors = fromBlob?.scoreFactors ?? [];
+  const report = fromBlob?.report ?? null;
 
   if (!full || !price) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
@@ -89,7 +93,7 @@ export async function POST(req: NextRequest) {
     if (!user?.userId || stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩을 볼 권한이 없어요." }, { status: 403 });
     }
-    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors });
+    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report });
   }
 
   const now = new Date().toISOString();
@@ -225,7 +229,7 @@ export async function POST(req: NextRequest) {
       );
     }
     console.log(`[결제:토스PG] userId=${user.userId ?? "local"} reading=${body.readingId} orderId=${body.orderId}`);
-    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, method: "toss-pg" });
+    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report, method: "toss-pg" });
   }
 
   // ── 개발용 모의결제 ──
@@ -233,5 +237,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "결제 방식을 확인할 수 없습니다." }, { status: 400 });
   }
   await markUnlocked(body.readingId, { method: "mock", at: now });
-  return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, method: "mock", mock: true });
+  return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report, method: "mock", mock: true });
 }
