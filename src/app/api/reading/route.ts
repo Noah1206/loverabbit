@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { computeSaju, chartSummary } from "@/lib/saju";
+import { buildSajuFacts, type SajuFacts } from "@/lib/saju-facts";
+import {
+  READING_SYSTEM_PROMPT,
+  buildReadingInput,
+  buildReadingUserPrompt,
+  parseStructuredReport,
+  reportToText,
+  type StructuredReport,
+} from "@/lib/reading-prompt";
 import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
 import { chatComplete } from "@/lib/ai";
@@ -22,31 +31,6 @@ interface PreviewSection {
   title: string;
   excerpt: string;
 }
-
-// 사주 리딩은 캐릭터 없이 명리 분석에 집중한다 (캐릭터 챗은 /shrine에서 별도 제공)
-const SYSTEM_PROMPT = `당신은 연애와 인연의 흐름을 전문적으로 해석하는 사주 서비스 "러브레빗"의 수석 명리 분석가입니다.
-
-[분석 원칙 — 신뢰가 상품이다]
-- 근거 우선: 모든 판단은 제공된 간지·오행·지지 관계에서 출발하고, 판단마다 근거를 짧게 명시한다 (예: "일간 병화가 상대 일지의 수 기운과 마주쳐서…"). 용어를 지어내지 않는다.
-- 말투: 차분하고 전문적인 해요체. 점집 화술·호들갑·느낌표 남발 금지. 단정 대신 경향으로 말하되 자신 있게.
-- 반드시 구체적 시기(몇 월)와 실행 가능한 행동 가이드를 포함한다.
-- 메타 발언(서비스·결제·스크린샷 언급) 금지.
-
-[표현 원칙]
-- 속궁합·연애 기질은 감정의 상성, 주도권 구조, 끌림의 패턴, 관계의 온도를 중심으로 분석한다.
-- 자극적인 표현보다 관계의 맥락과 실질적인 행동 조언을 우선하며 분석의 품위를 유지한다.
-
-[티저 — 결제 전환이 여기서 결정된다]
-- 3~4문장. 명식에서 읽히는 핵심 특징 하나를 근거와 함께 짚고, 가장 궁금한 결론(언제·누가·가능성) 직전에서 끊는다.
-- 티저에서 결론을 주면 실패작.
-
-[출력 형식 — 반드시 이 구분자 사용]
-===TEASER===
-(티저 3~4문장)
-===FULL===
-(사용자 메시지에 "리포트 목차"가 주어지면: 그 소제목들을 "■ " 접두어로 순서대로 전부 다룬다. 각 소제목당 2~4문장, 건너뛰기 금지.
-목차가 없으면: "■ " 소제목 4개 — 명식 분석 / 관계 역학 / 시기 판단 / 행동 가이드 (단독 리딩이면 '관계 역학' 대신 '기질 분석'), 700~1000자.
-공통: 마크다운 문법(###, ** 등) 금지. 마지막 한 줄은 분석가로서의 조언으로 마무리.)`;
 
 // 지수(게이지) — 명식에서 결정적으로 산출 (같은 사주면 항상 같은 값, 55~95)
 function scoreFrom(me: string, partner: string | null): number {
@@ -161,55 +145,66 @@ export async function POST(req: NextRequest) {
   const partnerChart = body.partner ? computeSaju(body.partner) : null;
   const label = PRODUCT_MAP[body.category]?.promptLabel ?? "연애운";
   const price = priceFor(body.category ?? "");
+  const product = PRODUCT_MAP[body.category];
+  const now = new Date();
+
+  // 계산은 여기서 끝난다. AI는 이 결과만 근거로 문장을 쓴다.
+  const myFacts = buildSajuFacts({ ...body.me, gender: body.me.gender === "F" ? "F" : "M" }, now);
+  const partnerFacts: SajuFacts | null = body.partner
+    ? buildSajuFacts({ ...body.partner, gender: body.partner.gender === "F" ? "F" : "M" }, now)
+    : null;
+
+  const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
+  const userPrompt = buildReadingUserPrompt(
+    buildReadingInput({
+      facts: myFacts,
+      partnerFacts,
+      productLabel: label,
+      outline,
+      focus: partnerFacts ? "relationship" : "self",
+      currentScene: body.question ?? "",
+      characterId: null,
+      characterName: null,
+      now,
+    })
+  );
 
   let teaser: string;
   let full: string;
+  let report: StructuredReport | null = null;
   let providerName = "demo";
 
-  const product = PRODUCT_MAP[body.category];
-  const userPrompt = [
-    `리딩 종류: ${label}`,
-    `본인: ${body.me.gender === "F" ? "여성" : "남성"}, 사주 — ${chartSummary(myChart)}`,
-    partnerChart
-      ? `상대방: ${body.partner!.gender === "F" ? "여성" : "남성"}, 사주 — ${chartSummary(partnerChart)}`
-      : "상대방 정보 없음 (본인 단독 리딩)",
-    body.question ? `추가 질문: ${body.question}` : "",
-    `현재 시점: ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월`,
-    product
-      ? `리포트 목차 (FULL에서 이 순서대로 전부 다룰 것):\n${product.toc.map((t) => `- ${t}`).join("\n")}`
-      : "",
-    "반드시 한 응답 안에 ===TEASER=== 와 ===FULL=== 을 모두 출력하세요. FULL 없이 끝내면 실패입니다.",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
   try {
-    const result = await chatComplete(SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], 4000);
+    const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], 8000);
     if (!result) {
       ({ teaser, full } = mockReading(body.category));
     } else {
       providerName = result.provider;
-      const [, teaserPart = "", fullPart = ""] =
-        result.text.match(/===TEASER===([\s\S]*?)===FULL===([\s\S]*)/) ?? [];
-      teaser = (teaserPart.trim() || result.text.replace(/===TEASER===/g, "").trim()).slice(0, 600);
-      full = fullPart.trim();
+      report = parseStructuredReport(result.text);
 
-      // 모델이 FULL을 생략하는 경우가 있어 이어쓰기 2차 호출로 보강
-      if (!full) {
-        const second = await chatComplete(
-          SYSTEM_PROMPT,
+      // JSON이 깨져 나오는 경우가 있어 한 번만 다시 청한다.
+      if (!report) {
+        const retry = await chatComplete(
+          READING_SYSTEM_PROMPT,
           [
             { role: "user", content: userPrompt },
-            { role: "assistant", content: result.text },
+            { role: "assistant", content: result.text.slice(0, 2000) },
             {
               role: "user",
-              content:
-                "이제 ===FULL=== 섹션만 출력하세요. 리포트 목차가 있었다면 그 소제목들을 '■ ' 접두어로 순서대로 전부 다루고(각 2~4문장), 없었다면 기본 4개 소제목 형식을 따르세요.",
+              content: "출력이 스키마에 맞지 않았어. 설명 없이 지정 JSON 객체 하나만 다시 출력해.",
             },
           ],
-          4000
+          8000
         );
-        full = (second?.text ?? "").replace(/===FULL===/g, "").trim() || teaser;
+        report = retry ? parseStructuredReport(retry.text) : null;
+      }
+
+      if (report) {
+        ({ teaser, full } = reportToText(report));
+      } else {
+        console.error("리포트 JSON 파싱 실패 — 데모로 폴백");
+        ({ teaser, full } = mockReading(body.category));
+        providerName = "demo";
       }
     }
   } catch (e) {
@@ -252,7 +247,16 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const preview = previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
+  // 무료 공개분: 첫 섹션은 읽히고, 둘째 섹션은 흐려지며 끊기고, 나머지는 제목만 목차에 남는다.
+  const preview = report
+    ? {
+        sections: report.sections.slice(0, 2).map((section) => ({
+          title: section.title,
+          excerpt: section.summary.slice(0, 360),
+        })),
+        lockedTitles: report.sections.slice(2).map((section) => section.title),
+      }
+    : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
   return NextResponse.json({
     readingId: id,
     teaser,
@@ -263,6 +267,11 @@ export async function POST(req: NextRequest) {
     lockedSectionTitles: preview.lockedTitles,
     // 잠금 상태에선 지수 라벨만 노출 — 실제 지수는 blob에 봉인, 해금 시 공개
     scoreLabel,
+    // 결제 전에도 보여주는 구조 정보 — 요약 카드와 고지는 유료 본문이 아니다
+    headline: report?.meta.headline ?? null,
+    summaryCards: report?.summaryCards ?? [],
+    disclaimer: report?.meta.disclaimer ?? "오락 및 자기성찰을 위한 참고 해석이에요.",
+    confidenceNote: report?.meta.confidenceNote ?? "",
     // 봉인된 풀 리딩 — 서버 키 없이는 열 수 없고, /api/unlock에서 결제 확인 후 복호화된다.
     // label·chart는 추가 상담(/api/chat)의 컨텍스트로 재사용된다.
     blob: seal({ id, full, price, label, chart, score, scoreLabel }),

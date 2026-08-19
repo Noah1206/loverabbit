@@ -105,8 +105,17 @@ export default function ReadingReportPage() {
       })
       .slice(0, 3);
   }, [entry?.category]);
+  const summaryCards = entry?.summaryCards ?? [];
   const previewSections = entry?.previewSections ?? [];
   const lockedTitles = entry?.lockedSectionTitles ?? [];
+
+  // 미리보기는 첫 대목만 읽히고, 그 아래는 흐려지며 끊긴다.
+  // 섹션별로 군데군데 가리는 것보다, 한 번에 잘리는 쪽이 "여기서부터 전문"이라는 경계가 분명하다.
+  const [openSection, ...tailSections] = previewSections;
+  const cutoffSections = [
+    ...tailSections.map((section) => ({ title: section.title, excerpt: section.excerpt })),
+    ...lockedTitles.map((title) => ({ title, excerpt: "" })),
+  ];
 
   // 목차 앵커는 본문 섹션의 실제 순번을 그대로 따라간다(제목 없는 리드 문단이 있어도 어긋나지 않게)
   const toc = unlocked
@@ -286,11 +295,23 @@ export default function ReadingReportPage() {
 
         <section className="report-summary" aria-label="한눈에 보기">
           <h2>한눈에 보기</h2>
-          <ul>
-            {points.map((point, index) => (
-              <li key={index}>{point}</li>
-            ))}
-          </ul>
+          {summaryCards.length > 0 ? (
+            <div className="report-cards">
+              {summaryCards.map((card, index) => (
+                <div key={index} className="report-card">
+                  <small>{card.label}</small>
+                  <strong>{card.value}</strong>
+                  {card.detail && <p>{card.detail}</p>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <ul>
+              {points.map((point, index) => (
+                <li key={index}>{point}</li>
+              ))}
+            </ul>
+          )}
           {entry.scoreLabel && (
             <div className="report-score">
               <span>🔮 {entry.scoreLabel}</span>
@@ -308,11 +329,11 @@ export default function ReadingReportPage() {
             <strong>목차</strong>
             <ol>
               {toc.map((item, index) => (
-                <li key={`${item.title}-${index}`} className={item.locked ? "locked" : undefined}>
-                  {item.locked ? (
-                    <span>{item.title} 🔒</span>
-                  ) : (
+                <li key={`${item.title}-${index}`}>
+                  {unlocked ? (
                     <a href={`#section-${item.index}`}>{item.title}</a>
+                  ) : (
+                    <span>{item.title}</span>
                   )}
                 </li>
               ))}
@@ -338,20 +359,38 @@ export default function ReadingReportPage() {
           </div>
         ) : (
           <div className="report-body report-body-locked">
-            {previewSections.map((section, index) => (
-              <section key={`${section.title}-${index}`} id={`section-${index}`}>
+            {openSection && (
+              <section id="section-0">
                 <h2>
-                  <small>{String(index + 1).padStart(2, "0")}</small>
-                  {section.title}
+                  <small>01</small>
+                  {openSection.title}
                 </h2>
-                <p>{section.excerpt}</p>
-                <div className="preview-blur-lines" aria-hidden>
-                  <span />
-                  <span />
-                  <span />
-                </div>
+                <p>{openSection.excerpt}</p>
               </section>
-            ))}
+            )}
+
+            {/* 여기서부터 끊긴다 — 읽히지 않게 흐려지고, 아래로 갈수록 사라진다 */}
+            {cutoffSections.length > 0 && (
+              <div className="report-cutoff" aria-hidden>
+                {cutoffSections.map((section, index) => (
+                  <section key={`${section.title}-${index}`}>
+                    <h2>
+                      <small>{String(index + 2).padStart(2, "0")}</small>
+                      {section.title}
+                    </h2>
+                    {section.excerpt ? (
+                      <p>{section.excerpt}</p>
+                    ) : (
+                      <div className="preview-blur-lines">
+                        <span />
+                        <span />
+                        <span />
+                      </div>
+                    )}
+                  </section>
+                ))}
+              </div>
+            )}
 
             <div className="report-paywall">
               <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
@@ -412,9 +451,13 @@ export default function ReadingReportPage() {
 
         {unlocked && <ChatSection readingId={entry.readingId} blob={entry.blob} />}
 
-        {entry.demo && (
+        {(entry.disclaimer || entry.confidenceNote || entry.demo) && (
           <footer className="report-footer">
-            <p className="report-demo">⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>
+            {entry.confidenceNote && <p className="report-note">{entry.confidenceNote}</p>}
+            {entry.disclaimer && <p className="report-note">{entry.disclaimer}</p>}
+            {entry.demo && (
+              <p className="report-demo">⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>
+            )}
           </footer>
         )}
       </article>
