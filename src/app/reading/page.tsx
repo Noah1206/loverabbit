@@ -17,7 +17,11 @@ import {
   captureReferralFromLocation,
   type PendingReferral,
 } from "@/lib/referral";
-import { landingTypeForProduct, trackSajuFormCompleted } from "@/lib/meta-events";
+import {
+  landingTypeForProduct,
+  trackSajuFormCompleted,
+  trackSajuFormStarted,
+} from "@/lib/meta-events";
 
 // 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
 const CATEGORIES = PRODUCTS.map((p) => ({
@@ -226,6 +230,17 @@ export default function ReadingPage() {
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
+
+  // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
+  const formStartedRef = useRef(false);
+  useEffect(() => {
+    if (formStartedRef.current) return;
+    if (!me.year && !me.month && !me.day) return;
+    const landing = landingTypeForProduct(category);
+    if (!landing) return;
+    formStartedRef.current = true;
+    trackSajuFormStarted(landing);
+  }, [me, category]);
 
   // 생성은 이 화면에서 하지 않는다. 초안만 남기고 대기 화면으로 넘겨, 18초의 기다림이
   // 폼이 아니라 결과 쪽에서 일어나게 한다.
