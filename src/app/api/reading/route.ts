@@ -3,10 +3,6 @@ import { randomUUID } from "crypto";
 import { computeSaju, chartSummary } from "@/lib/saju";
 import { buildSajuFacts, type SajuFacts } from "@/lib/saju-facts";
 import {
-  READING_SYSTEM_PROMPT,
-  buildReadingInput,
-  buildReadingUserPrompt,
-  parseStructuredReport,
   reportToText,
   type StructuredReport,
 } from "@/lib/reading-prompt";
@@ -21,8 +17,11 @@ import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore } from "@/lib/saju-score";
 import { checkReport, guardRetryPrompt, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
+import { composeReport } from "@/lib/reading-compose";
 
-export const maxDuration = 60;
+// 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
+// 여유가 없어, 재시도가 한 번 붙으면 함수가 먼저 끊긴다.
+export const maxDuration = 300;
 
 interface PersonBody {
   year: number;
@@ -255,23 +254,18 @@ export async function POST(req: NextRequest) {
   const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
   // 목차가 길수록 출력이 길어진다. 8000으로 고정하면 12~15장짜리 리포트가 중간에 잘린다.
   // 한글은 토큰을 많이 먹으므로 항목당 넉넉히 잡고 모델 상한(16k)에서 멈춘다.
-  const maxOutputTokens = Math.min(16000, 3000 + outline.length * 1100);
-
-  const userPrompt = buildReadingUserPrompt(
-    buildReadingInput({
-      facts: myFacts,
-      partnerFacts,
-      matchedRules,
-      productLabel: label,
-      outline,
-      focus: partnerFacts ? "relationship" : "self",
-      currentScene: body.question ?? "",
-      characterId: null,
-      characterName: null,
-      now,
-    }),
-    outline.length
-  );
+  const readingInput = {
+    facts: myFacts,
+    partnerFacts,
+    matchedRules,
+    productLabel: label,
+    outline,
+    focus: partnerFacts ? "relationship" : "self",
+    currentScene: body.question ?? "",
+    characterId: null,
+    characterName: null,
+    now,
+  };
 
   let teaser: string;
   let full: string;
@@ -283,68 +277,37 @@ export async function POST(req: NextRequest) {
   let generationFailed = false;
 
   try {
-    const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], maxOutputTokens);
-    if (!result) {
+    // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
+    // 한 번에 다 시키면 목차 10개짜리가 gpt-5.6에서 128초 걸린다 — 토큰이 순서대로
+    // 나오기 때문이고, 그건 요청을 나눠 동시에 던지는 것 말고는 줄일 방법이 없다.
+    const composed = await composeReport(readingInput, (system, user, budget) =>
+      chatComplete(system, [{ role: "user", content: user }], budget)
+    );
+
+    if (!composed.report) {
+      // 키가 아예 없으면 데모가 정상(로컬 개발), 키가 있는데 못 만들었으면 장애다.
+      if (isAiConfigured()) generationFailed = true;
       ({ teaser, full } = mockReading(body.category));
     } else {
-      providerName = result.provider;
-      report = parseStructuredReport(result.text);
+      report = composed.report;
+      providerName = composed.provider || "demo";
+      if (composed.failedParts.length > 0) {
+        console.error("리포트 조각이 비어 있음:", composed.failedParts.join(", "));
+      }
 
-      // JSON이 깨져 나오는 경우가 있어 한 번만 다시 청한다.
-      if (!report) {
-        const retry = await chatComplete(
-          READING_SYSTEM_PROMPT,
-          [
-            { role: "user", content: userPrompt },
-            { role: "assistant", content: result.text.slice(0, 2000) },
-            {
-              role: "user",
-              content: "출력이 스키마에 맞지 않았어. 설명 없이 지정 JSON 객체 하나만 다시 출력해.",
-            },
-          ],
-          maxOutputTokens
+      // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고 결과를 남긴다.
+      const guard = checkReport(report, { expectedSections: outline.length, forbiddenClaims });
+      guardViolations = guard.violations;
+      if (guard.mustRetry) {
+        const blocking = guard.violations.filter((v) => v.blocking);
+        console.warn(
+          "리포트 출고 검사 위반:",
+          blocking.map((v) => `${v.where} ${v.detail}`).join(" / ")
         );
-        report = retry ? parseStructuredReport(retry.text) : null;
+        // 섹션이 통째로 비었다면 팔 수 없는 리포트다. 표현 문제는 기록만 남기고 내보낸다.
+        if (report.sections.length < outline.length && isAiConfigured()) generationFailed = true;
       }
-
-      // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고, 막아야 할 위반이면 한 번만 다시 시킨다.
-      if (report) {
-        const guard = checkReport(report, { expectedSections: outline.length, forbiddenClaims });
-        guardViolations = guard.violations;
-        if (guard.mustRetry) {
-          console.warn(
-            "리포트 출고 검사 위반:",
-            guard.violations.filter((v) => v.blocking).map((v) => `${v.where} ${v.detail}`).join(" / ")
-          );
-          const fixed = await chatComplete(
-            READING_SYSTEM_PROMPT,
-            [
-              { role: "user", content: userPrompt },
-              { role: "assistant", content: JSON.stringify({ report_meta: report.meta }).slice(0, 1200) },
-              { role: "user", content: guardRetryPrompt(guard.violations) },
-            ],
-            maxOutputTokens
-          );
-          const reparsed = fixed ? parseStructuredReport(fixed.text) : null;
-          if (reparsed) {
-            const recheck = checkReport(reparsed, { expectedSections: outline.length, forbiddenClaims });
-            // 고쳐서 나아졌을 때만 바꿔 끼운다 — 재요청이 더 나쁠 수도 있다
-            if (!recheck.mustRetry || recheck.violations.length < guard.violations.length) {
-              report = reparsed;
-              guardViolations = recheck.violations;
-            }
-          }
-        }
-      }
-
-      if (report) {
-        ({ teaser, full } = reportToText(report));
-      } else {
-        console.error("리포트 JSON 파싱 실패");
-        generationFailed = true;
-        ({ teaser, full } = mockReading(body.category));
-        providerName = "demo";
-      }
+      ({ teaser, full } = reportToText(report));
     }
   } catch (e) {
     console.error("AI 호출 실패:", e);
@@ -379,7 +342,7 @@ export async function POST(req: NextRequest) {
       id,
       // 무료 리딩부터 로그인한 사용자에게 귀속한다.
       userId: user.userId,
-      createdAt: new Date().toISOString(),
+      createdAt,
       category: body.category,
       teaser,
       full,
@@ -393,6 +356,7 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("리딩 저장 실패:", e);
     if (isDatabaseConfigured() || process.env.NODE_ENV === "production") {
+      scoreSeal,
       return NextResponse.json(
         { error: "리딩을 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 503 }

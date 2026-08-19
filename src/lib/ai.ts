@@ -77,8 +77,13 @@ async function callOpenAICompat(apiKey: string, system: string, messages: ChatMs
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
   const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
   const budget = isReasoningModel(model)
-    ? // 추론 토큰도 이 예산에서 빠져나가므로 여유를 둔다
-      { max_completion_tokens: maxTokens + 2000 }
+    ? {
+        // 추론 토큰도 이 예산에서 빠져나가므로 여유를 둔다
+        max_completion_tokens: maxTokens + 2000,
+        // 리딩은 계산이 이미 끝난 상태에서 문장만 쓰는 일이라 깊은 추론이 필요 없다.
+        // 기본값으로 두면 대기 시간만 늘어난다. OPENAI_REASONING_EFFORT로 조정할 수 있다.
+        reasoning_effort: process.env.OPENAI_REASONING_EFFORT ?? "low",
+      }
     : { max_tokens: maxTokens, temperature: 0.9 };
   const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
