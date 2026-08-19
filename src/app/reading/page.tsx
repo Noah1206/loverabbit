@@ -17,6 +17,7 @@ import {
   captureReferralFromLocation,
   type PendingReferral,
 } from "@/lib/referral";
+import { landingTypeForProduct, trackSajuFormCompleted } from "@/lib/meta-events";
 
 // 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
 const CATEGORIES = PRODUCTS.map((p) => ({
@@ -233,6 +234,8 @@ export default function ReadingPage() {
       setLoading(true);
       setError("");
       saveReadingDraft(draft);
+      const landing = landingTypeForProduct(draft.category);
+      if (landing) trackSajuFormCompleted(landing);
       router.push("/reading/generating");
     },
     [router],

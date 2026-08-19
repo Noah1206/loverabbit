@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
+import {
+  landingTypeForProduct,
+  trackInitiateCheckout,
+  trackResultUnlockClicked,
+} from "@/lib/meta-events";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
@@ -131,6 +136,9 @@ export default function ReadingReportPage() {
 
   const startUnlock = () => {
     if (!entry) return;
+    // 잠금 해제 CTA 클릭 — 광고 랜딩에서 온 상품일 때만 landing_type을 붙인다.
+    const unlockLanding = landingTypeForProduct(entry.category);
+    if (unlockLanding) trackResultUnlockClicked(unlockLanding);
     if (!user) {
       savePendingReading({
         source: "archive",
@@ -150,6 +158,10 @@ export default function ReadingReportPage() {
       });
       setShowSignup(true);
       return;
+    }
+    const checkoutLanding = landingTypeForProduct(entry.category);
+    if (checkoutLanding) {
+      trackInitiateCheckout({ value: entry.price, landingType: checkoutLanding });
     }
     setShowPay(true);
   };
