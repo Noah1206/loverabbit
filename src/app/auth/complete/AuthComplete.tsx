@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { takeAuthReturn } from "@/lib/auth-return";
+import { peekAuthReturn, takeAuthReturn } from "@/lib/auth-return";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 import { trackCompleteRegistration } from "@/lib/meta-events";
@@ -14,7 +14,9 @@ interface SessionResult extends Partial<User> {
 
 export default function AuthComplete({ nextPath }: { nextPath: string }) {
   const started = useRef(false);
+  const redirectTimer = useRef<number | null>(null);
   const [needsProfile, setNeedsProfile] = useState(false);
+  const [completed, setCompleted] = useState(false);
   const [email, setEmail] = useState("");
   const [agree, setAgree] = useState(false);
   const [marketingOk, setMarketingOk] = useState(true);
@@ -36,7 +38,13 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     trackCompleteRegistration(data.authProvider ?? "unknown");
     if (getPendingReferral()) clearPendingReferral();
     // 팝업을 열었던 화면(쿼리 포함)이 있으면 그리로, 없으면 next 쿼리로 돌아간다.
-    window.location.replace(takeAuthReturn() ?? nextPath);
+    const destination = peekAuthReturn() ?? nextPath;
+    setNeedsProfile(false);
+    setCompleted(true);
+    redirectTimer.current = window.setTimeout(() => {
+      takeAuthReturn();
+      window.location.replace(destination);
+    }, 800);
   };
 
   const connectSession = async (profile?: { termsAccepted: boolean; marketingOk: boolean }) => {
@@ -69,6 +77,9 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     started.current = true;
     void connectSession();
     // connectSession intentionally runs only after the OAuth callback.
+    return () => {
+      if (redirectTimer.current) window.clearTimeout(redirectTimer.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,7 +87,13 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     <main className="auth-shell">
       <section className="card auth-card">
         <div className="auth-rabbit" aria-hidden><BrandMark size={44} /></div>
-        {!needsProfile ? (
+        {completed ? (
+          <div className="auth-success" role="status" aria-live="polite">
+            <span className="auth-success-check" aria-hidden="true">✓</span>
+            <h1>준비 완료!</h1>
+            <p>선택한 운명을 보러 이동하고 있어요.</p>
+          </div>
+        ) : !needsProfile ? (
           <>
             <h1>로그인 연결 중</h1>
             <p>계정과 러브레빗 기록을 안전하게 연결하고 있어요.</p>
