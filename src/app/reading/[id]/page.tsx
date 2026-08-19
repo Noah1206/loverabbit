@@ -15,8 +15,21 @@ import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
+import { buildChapters, previewPieces, type ReadingChapter } from "@/lib/reading-chapters";
+import { conceptFor } from "@/lib/reading-concepts";
+import {
+  ChapterBody,
+  ChapterIndex,
+  ChapterNavBar,
+  ChapterPanel,
+  ChapterShell,
+  ChapterTopBar,
+  ChartPanel,
+  IndexDrawer,
+  Seal,
+  type IndexItem,
+} from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
-import BrandMark from "@/components/BrandMark";
 
 interface ReferralStatus {
   referralCode: string;
@@ -24,9 +37,12 @@ interface ReferralStatus {
   readingUnlocked: boolean;
 }
 
-// 리딩 결과 전용 기사 페이지.
-// 폼(/reading)에서 결과가 나오면 이 주소로 이동해, 카드 안에 눌러 담지 않고
-// 제목 - 한눈에 보기 - 목차 - 본문 순서로 길게 읽히도록 편집한다.
+// 리딩 결과 뷰어 — 웹툰처럼 장(章)마다 한 페이지씩 넘겨 읽는다.
+//   0쪽: 표지 + 명식 + 한눈에 보기 + 목차
+//   1..N쪽: 각 장 (화자 컷 -> 절별 본문)
+//   마지막 쪽: 화자의 마지막 편지 + 다음 리딩 + 추가 상담
+// 분야별로 달라지는 것은 화자·인장·색·장 제목뿐이고(reading-concepts.ts),
+// 구조와 잠금 규칙은 모든 리딩이 똑같이 쓴다.
 export default function ReadingReportPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -36,12 +52,13 @@ export default function ReadingReportPage() {
   const [user, setUser] = useState<User | null>(null);
   const [showPay, setShowPay] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  const [showIndex, setShowIndex] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [shareNotice, setShareNotice] = useState("");
   const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [page, setPage] = useState(0);
 
   useEffect(() => {
     const stored = getUser();
@@ -52,8 +69,11 @@ export default function ReadingReportPage() {
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "approved") {
-      setNotice("결제가 승인됐어요. 아래에서 전문을 확인하세요.");
+      setNotice("결제가 승인됐어요. 첫 장부터 끝 장까지 전부 열렸어요.");
     }
+    // 주소에 쪽 번호가 있으면 그 장부터 — 공유한 링크가 같은 자리를 연다
+    const wanted = Number(params.get("p"));
+    if (Number.isInteger(wanted) && wanted > 0) setPage(wanted);
 
     // 결제하려다 로그인으로 빠졌던 경우, 돌아오자마자 결제창을 다시 띄운다
     const pending = takePendingReading();
@@ -69,68 +89,74 @@ export default function ReadingReportPage() {
     }
   }, [id]);
 
-  useEffect(() => {
-    const onScroll = () => {
-      const doc = document.documentElement;
-      const scrollable = doc.scrollHeight - window.innerHeight;
-      setProgress(scrollable > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollable)) : 0);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [status]);
-
   const unlocked = Boolean(entry?.full);
-  const sections = useMemo(
-    () => (entry?.full ? parseReportSections(entry.full) : []),
-    [entry?.full]
-  );
+  const product = PRODUCT_MAP[entry?.category ?? ""];
+  const concept = conceptFor(entry?.category);
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
+
+  const chapters: ReadingChapter[] = useMemo(() => {
+    if (!entry) return [];
+    const pieces = entry.full
+      ? parseReportSections(entry.full).map((section) => ({
+          title: section.title,
+          paragraphs: section.paragraphs,
+        }))
+      : previewPieces(entry.previewSections ?? [], entry.lockedSectionTitles ?? []);
+    return buildChapters(pieces, {
+      toc: product?.toc ?? [],
+      chapterTitles: concept.chapters,
+      epilogueTitle: concept.epilogue,
+    });
+  }, [entry, product?.toc, concept.chapters, concept.epilogue]);
+
+  const total = chapters.length;
+  const current = page > 0 && page <= total ? chapters[page - 1] : null;
+  const indexItems: IndexItem[] = chapters.map((chapter) => ({
+    label: chapter.label,
+    title: chapter.title,
+    locked: chapter.locked,
+  }));
+
+  // 쪽을 넘길 때마다 맨 위로 올리고, 주소에도 남겨 새로고침·공유가 같은 자리를 연다
+  const goto = useCallback(
+    (next: number) => {
+      const clamped = Math.min(Math.max(0, next), Math.max(0, total));
+      setPage(clamped);
+      window.scrollTo({ top: 0, behavior: "auto" });
+      const url = new URL(window.location.href);
+      if (clamped > 0) url.searchParams.set("p", String(clamped));
+      else url.searchParams.delete("p");
+      window.history.replaceState(null, "", url.toString());
+    },
+    [total]
+  );
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.target instanceof HTMLElement && /input|textarea/i.test(event.target.tagName)) return;
+      if (event.key === "ArrowLeft") goto(page - 1);
+      if (event.key === "ArrowRight") goto(page + 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [goto, page]);
 
   // 다음 리딩 추천 — 방금 본 것보다 비싼 상품 중에서,
   // 혼자 본 리딩 뒤에는 '그 사람'이 필요한 리딩을 먼저 올린다.
   const nextReadings = useMemo(() => {
-    const current = PRODUCT_MAP[entry?.category ?? ""];
-    if (!current) return [];
-    // 혼자 본 리딩 뒤에는 상대가 필요한 리딩을 앞세우고,
-    // 이미 상대까지 본 리딩 뒤에는 인기·가격 순서만 따른다.
+    if (!product) return [];
     const rank = (p: (typeof PRODUCTS)[number]) => [
-      current.needsPartner || p.needsPartner ? 0 : 1,
+      product.needsPartner || p.needsPartner ? 0 : 1,
       p.tags.includes("popular") ? 0 : 1,
       p.price,
     ];
-    return PRODUCTS.filter((p) => p.id !== current.id && p.price > current.price)
+    return PRODUCTS.filter((p) => p.id !== product.id && p.price > product.price)
       .sort((a, b) => {
         const [ra, rb] = [rank(a), rank(b)];
         return ra[0] - rb[0] || ra[1] - rb[1] || ra[2] - rb[2];
       })
       .slice(0, 3);
-  }, [entry?.category]);
-  const summaryCards = entry?.summaryCards ?? [];
-  const previewSections = entry?.previewSections ?? [];
-  const lockedTitles = entry?.lockedSectionTitles ?? [];
-
-  // 미리보기는 첫 대목만 읽히고, 그 아래는 흐려지며 끊긴다.
-  // 섹션별로 군데군데 가리는 것보다, 한 번에 잘리는 쪽이 "여기서부터 전문"이라는 경계가 분명하다.
-  const [openSection, ...tailSections] = previewSections;
-  const cutoffSections = [
-    ...tailSections.map((section) => ({ title: section.title, excerpt: section.excerpt })),
-    ...lockedTitles.map((title) => ({ title, excerpt: "" })),
-  ];
-
-  // 목차 앵커는 본문 섹션의 실제 순번을 그대로 따라간다(제목 없는 리드 문단이 있어도 어긋나지 않게)
-  const toc = unlocked
-    ? sections
-        .map((section, index) => ({ title: section.title, index, locked: false }))
-        .filter((item) => item.title)
-    : [
-        ...previewSections.map((section, index) => ({ title: section.title, index, locked: false })),
-        ...lockedTitles.map((title) => ({ title, index: -1, locked: true })),
-      ];
+  }, [product]);
 
   const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";
 
@@ -150,8 +176,8 @@ export default function ReadingReportPage() {
           chart: entry.chart,
           price: entry.price,
           blob: entry.blob,
-          previewSections,
-          lockedSectionTitles: lockedTitles,
+          previewSections: entry.previewSections ?? [],
+          lockedSectionTitles: entry.lockedSectionTitles ?? [],
           scoreLabel: entry.scoreLabel ?? null,
           demo: entry.demo === true,
         },
@@ -236,6 +262,23 @@ export default function ReadingReportPage() {
     }
   };
 
+  // 상단 공유 버튼 — 리딩 자체가 아니라 서비스로 데려온다(본문은 본인 기기에만 있다)
+  const shareReading = async () => {
+    setShareNotice("");
+    const url = `${window.location.origin}/product/${entry?.category ?? ""}`;
+    const text = `${entry?.label ?? "러브레빗 사주"} — 나도 봤어. 너도 한번 봐 🐰`;
+    try {
+      if (navigator.share) await navigator.share({ title: entry?.label ?? "러브레빗", text, url });
+      else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setShareNotice("링크를 복사했어요.");
+      }
+    } catch (reason) {
+      if (reason instanceof DOMException && reason.name === "AbortError") return;
+      setShareNotice("공유하지 못했어요.");
+    }
+  };
+
   if (status === "loading") {
     return (
       <main className="container report-page">
@@ -247,7 +290,6 @@ export default function ReadingReportPage() {
   if (status === "missing" || !entry) {
     return (
       <main className="container report-page" style={{ paddingTop: 60, textAlign: "center" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><BrandMark size={52} /></div>
         <h1 style={{ marginBottom: 8 }}>이 리딩을 찾지 못했어요</h1>
         <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
           리딩은 받은 기기에 보관돼요. 다른 기기·브라우저에서 받은 리딩은 여기서 열 수 없어요.
@@ -259,182 +301,140 @@ export default function ReadingReportPage() {
 
   const minutes = readingMinutes(entry.teaser, entry.full);
   const createdAt = new Date(entry.createdAt);
+  const summaryCards = entry.summaryCards ?? [];
+
+  const paywall = !unlocked && (
+    <div className="rv-paywall">
+      <strong>
+        {entry.offerId ? "무료 운명 미리보기는 여기까지예요" : "결론·정확한 시기·행동 가이드는 전문에 있어요"}
+      </strong>
+      <p>
+        {entry.offerId
+          ? "결론·정확한 시기·행동 가이드까지 끝까지 보고 싶을 때만 990원을 결제하세요."
+          : `${total}개 장 전부가 한 번의 결제로 열리고, 이 기기에 계속 보관돼요.`}
+      </p>
+      {entry.pendingOrderId ? (
+        <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
+          입금 승인 상태 확인 →
+        </Link>
+      ) : (
+        <button className="btn" onClick={startUnlock} disabled={paying}>
+          {paying
+            ? "결제 준비 중…"
+            : user
+              ? `${entry.price.toLocaleString()}원으로 끝까지 보기`
+              : `로그인 후 ${entry.price.toLocaleString()}원으로 끝까지 보기`}
+        </button>
+      )}
+    </div>
+  );
 
   return (
-    <main className="report-page">
-      <div className="report-progress" aria-hidden>
-        <span style={{ transform: `scaleX(${progress})` }} />
-      </div>
+    <ChapterShell concept={concept}>
+      <ChapterTopBar
+        concept={concept}
+        kicker={page === 0 ? `${concept.shrine} · ${concept.narrator}` : `${entry.label} · ${concept.shrine}`}
+        title={current ? `${current.label}. ${current.title}` : entry.label}
+        onOpenIndex={() => setShowIndex(true)}
+        onShare={() => void shareReading()}
+      />
 
-      <article className="report-article">
-        <nav className="report-crumbs">
-          <Link href="/my">‹ 내 상담</Link>
-          <span>{unlocked ? "전문 공개" : "무료 미리보기"}</span>
-        </nav>
+      <div className="rv-scroll">
+        {notice && <p className="rv-notice">{notice}</p>}
 
-        <header className="report-head">
-          <span className="report-kicker">{entry.label}</span>
-          <h1>{points[0] ?? entry.label}</h1>
-          <p className="report-dek">
-            {entry.chart.partner
-              ? "두 사람의 명식을 교차로 읽고, 흐름이 갈라지는 지점을 정리했어요."
-              : "당신의 명식에서 반복되는 패턴과 다음 흐름을 정리했어요."}
-          </p>
-          <div className="report-meta">
-            <span>{createdAt.toLocaleDateString("ko-KR")}</span>
-            <span>·</span>
-            <span>약 {minutes}분 분량</span>
-            <span>·</span>
-            <span className={unlocked ? "report-state on" : "report-state"}>
-              {unlocked ? "🔓 전문" : entry.pendingOrderId ? "⏳ 입금 승인 대기" : "🔒 미리보기"}
-            </span>
-          </div>
-          <dl className="report-chart">
-            <div>
-              <dt>내 사주</dt>
-              <dd>{entry.chart.me}</dd>
-            </div>
-            {entry.chart.partner && (
-              <div>
-                <dt>그 사람</dt>
-                <dd>{entry.chart.partner}</dd>
+        {page === 0 ? (
+          <>
+            {/* 표지 — 어떤 리딩을 손에 쥐었는지 한 화면에 담는다 */}
+            <section className="rv-cover">
+              <div className="rv-cover-art" style={{ backgroundImage: `url(${concept.portrait})` }} aria-hidden />
+              <div className="rv-cover-copy">
+                <Seal concept={concept} size={46} />
+                <small>{concept.cover}</small>
+                <h1>{entry.label}</h1>
+                <p>{points[0] ?? concept.shrine}</p>
+                <span className="rv-cover-meta">
+                  {createdAt.toLocaleDateString("ko-KR")} · 약 {minutes}분 · {total}개 장
+                  {unlocked ? " · 🔓 전문" : entry.pendingOrderId ? " · ⏳ 승인 대기" : " · 🔒 미리보기"}
+                </span>
               </div>
-            )}
-          </dl>
-        </header>
+            </section>
 
-        {notice && <p className="report-notice">{notice}</p>}
+            <ChartPanel chart={entry.chart} scoreLabel={entry.scoreLabel} score={entry.score} />
 
-        <section className="report-summary" aria-label="한눈에 보기">
-          <h2>한눈에 보기</h2>
-          {summaryCards.length > 0 ? (
-            <div className="report-cards">
-              {summaryCards.map((card, index) => (
-                <div key={index} className="report-card">
-                  <small>{card.label}</small>
-                  <strong>{card.value}</strong>
-                  {card.detail && <p>{card.detail}</p>}
+            {summaryCards.length > 0 && (
+              <section className="rv-summary">
+                <h2>한눈에 보기</h2>
+                <div className="rv-summary-cards">
+                  {summaryCards.map((card, index) => (
+                    <div key={index}>
+                      <small>{card.label}</small>
+                      <strong>{card.value}</strong>
+                      {card.detail && <p>{card.detail}</p>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <ul>
-              {points.map((point, index) => (
-                <li key={index}>{point}</li>
-              ))}
-            </ul>
-          )}
-          {entry.scoreLabel && (
-            <div className="report-score">
-              <span>🔮 {entry.scoreLabel}</span>
-              {typeof entry.score === "number" ? (
-                <strong>상위 {100 - entry.score}%</strong>
-              ) : (
-                <strong className="locked">상위 ??% 🔒</strong>
-              )}
-            </div>
-          )}
-        </section>
-
-        {toc.length > 0 && (
-          <nav className="report-toc" aria-label="목차">
-            <strong>목차</strong>
-            <ol>
-              {toc.map((item, index) => (
-                <li key={`${item.title}-${index}`}>
-                  {unlocked ? (
-                    <a href={`#section-${item.index}`}>{item.title}</a>
-                  ) : (
-                    <span>{item.title}</span>
-                  )}
-                </li>
-              ))}
-            </ol>
-          </nav>
-        )}
-
-        {unlocked ? (
-          <div className="report-body">
-            {sections.map((section, index) => (
-              <section key={`${section.title}-${index}`} id={`section-${index}`}>
-                {section.title && (
-                  <h2>
-                    <small>{String(index + 1).padStart(2, "0")}</small>
-                    {section.title}
-                  </h2>
-                )}
-                {section.paragraphs.map((paragraph, pIndex) => (
-                  <p key={pIndex}>{paragraph}</p>
-                ))}
-              </section>
-            ))}
-          </div>
-        ) : (
-          <div className="report-body report-body-locked">
-            {openSection && (
-              <section id="section-0">
-                <h2>
-                  <small>01</small>
-                  {openSection.title}
-                </h2>
-                <p>{openSection.excerpt}</p>
               </section>
             )}
 
-            {/* 여기서부터 끊긴다 — 읽히지 않게 흐려지고, 아래로 갈수록 사라진다 */}
-            {cutoffSections.length > 0 && (
-              <div className="report-cutoff" aria-hidden>
-                {cutoffSections.map((section, index) => (
-                  <section key={`${section.title}-${index}`}>
-                    <h2>
-                      <small>{String(index + 2).padStart(2, "0")}</small>
-                      {section.title}
-                    </h2>
-                    {section.excerpt ? (
-                      <p>{section.excerpt}</p>
-                    ) : (
-                      <div className="preview-blur-lines">
-                        <span />
-                        <span />
-                        <span />
-                      </div>
-                    )}
+            <section className="rv-toc">
+              <h2>
+                <span>목차</span>
+                <small>{concept.narrator}가 읽어주는 {total}개 장</small>
+              </h2>
+              <ChapterIndex items={indexItems} current={page} onJump={goto} />
+            </section>
+
+            {paywall}
+
+            <button type="button" className="btn rv-start" onClick={() => goto(1)}>
+              1장부터 읽기 →
+            </button>
+          </>
+        ) : current ? (
+          <>
+            <ChapterPanel
+              concept={concept}
+              chapter={current}
+              hook={
+                current.kind === "epilogue"
+                  ? concept.outro
+                  : (concept.hooks[page - 1] ?? concept.outro)
+              }
+            />
+            <ChapterBody chapter={current} />
+
+            {paywall}
+
+            {unlocked && page === total && (
+              <>
+                {nextReadings.length > 0 && (
+                  <section className="report-crosssell">
+                    <span className="badge">이 리딩 다음에</span>
+                    <h2>여기까지 봤다면, 다음은 이거예요</h2>
+                    <div className="report-crosssell-list">
+                      {nextReadings.map((p) => (
+                        <Link key={p.id} href={`/product/${p.id}`} className="report-crosssell-item" data-tone={p.tone}>
+                          <span className="report-crosssell-emoji" aria-hidden>{p.emoji}</span>
+                          <span className="report-crosssell-copy">
+                            <strong>{p.title}</strong>
+                            <small>{p.ctaHook}</small>
+                          </span>
+                          <span className="report-crosssell-price">{p.price.toLocaleString()}원</span>
+                        </Link>
+                      ))}
+                    </div>
                   </section>
-                ))}
-              </div>
+                )}
+                <ChatSection readingId={entry.readingId} blob={entry.blob} />
+              </>
             )}
-
-            <div className="report-paywall">
-              <strong>{entry.offerId ? "무료 운명 미리보기는 여기까지예요" : "결론·정확한 시기·행동 가이드는 전문에 있어요"}</strong>
-              <p>
-                {entry.offerId
-                  ? "결론·정확한 시기·행동 가이드까지 끝까지 보고 싶을 때만 990원을 결제하세요."
-                  : "점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관돼요."}
-              </p>
-              {entry.pendingOrderId ? (
-                <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
-                  입금 승인 상태 확인 →
-                </Link>
-              ) : (
-                <button className="btn" onClick={startUnlock} disabled={paying}>
-                  {paying
-                    ? "결제 준비 중…"
-                    : entry.offerId
-                      ? user
-                        ? `${entry.price.toLocaleString()}원으로 끝까지 보기`
-                        : `로그인 후 ${entry.price.toLocaleString()}원으로 끝까지 보기`
-                      : user
-                        ? `결제하고 전문 보기 — ${entry.price.toLocaleString()}원`
-                        : `로그인 후 전문 보기 — ${entry.price.toLocaleString()}원`}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+          </>
+        ) : null}
 
         {error && <p className="report-error" role="alert">{error}</p>}
+        {shareNotice && <p className="rv-notice">{shareNotice}</p>}
 
-        {!unlocked && user && (
+        {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
             <h2>친구가 가입하면 추가 상담권을 드려요</h2>
@@ -446,41 +446,36 @@ export default function ReadingReportPage() {
               </button>
             </div>
             <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>
-            {shareNotice && <p className="referral-notice">{shareNotice}</p>}
           </div>
         )}
 
-        {unlocked && nextReadings.length > 0 && (
-          <section className="report-crosssell">
-            <span className="badge">이 리딩 다음에</span>
-            <h2>여기까지 봤다면, 다음은 이거예요</h2>
-            <div className="report-crosssell-list">
-              {nextReadings.map((p) => (
-                <Link key={p.id} href={`/product/${p.id}`} className="report-crosssell-item" data-tone={p.tone}>
-                  <span className="report-crosssell-emoji" aria-hidden>{p.emoji}</span>
-                  <span className="report-crosssell-copy">
-                    <strong>{p.title}</strong>
-                    <small>{p.ctaHook}</small>
-                  </span>
-                  <span className="report-crosssell-price">{p.price.toLocaleString()}원</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {unlocked && <ChatSection readingId={entry.readingId} blob={entry.blob} />}
-
-        {(entry.disclaimer || entry.confidenceNote || entry.demo) && (
-          <footer className="report-footer">
-            {entry.confidenceNote && <p className="report-note">{entry.confidenceNote}</p>}
-            {entry.disclaimer && <p className="report-note">{entry.disclaimer}</p>}
-            {entry.demo && (
-              <p className="report-demo">⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>
-            )}
+        {page === total && (entry.disclaimer || entry.confidenceNote || entry.demo) && (
+          <footer className="rv-footer">
+            {entry.confidenceNote && <p>{entry.confidenceNote}</p>}
+            {entry.disclaimer && <p>{entry.disclaimer}</p>}
+            {entry.demo && <p>⚙️ 데모 모드로 생성된 리딩이에요 (.env에 API 키를 넣으면 실제 AI 리딩이 생성됩니다)</p>}
+            <Link href="/my">‹ 내 상담으로</Link>
           </footer>
         )}
-      </article>
+      </div>
+
+      <ChapterNavBar
+        page={page}
+        total={total}
+        onPrev={() => goto(page - 1)}
+        onNext={() => goto(page + 1)}
+        nextHint={page === 0 ? "1장 시작" : page === total ? "끝" : `${page + 1}장`}
+      />
+
+      <IndexDrawer
+        open={showIndex}
+        onClose={() => setShowIndex(false)}
+        concept={concept}
+        productLabel={entry.label}
+        items={indexItems}
+        current={page}
+        onJump={goto}
+      />
 
       {showSignup && (
         <SignupModal
@@ -506,6 +501,6 @@ export default function ReadingReportPage() {
           onClose={() => setShowPay(false)}
         />
       )}
-    </main>
+    </ChapterShell>
   );
 }
