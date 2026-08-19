@@ -4,12 +4,14 @@ import { AdLandingCta, AdLandingTracker } from "@/components/AdLandingActions";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import { getAdOffer, type AdOfferId } from "@/lib/ad-offers";
 import { PRODUCT_MAP } from "@/lib/products";
+import { AD_PARTICIPANT_COUNTS } from "@/lib/participant-counts";
 
 export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
   const offer = getAdOffer(offerId);
   if (!offer) notFound();
   const product = PRODUCT_MAP[offer.category];
   if (!product) notFound();
+  const participantCount = AD_PARTICIPANT_COUNTS[offer.id as keyof typeof AD_PARTICIPANT_COUNTS];
 
   const formHref = `/reading?c=${encodeURIComponent(product.id)}&offer=${encodeURIComponent(offer.id)}`;
 
@@ -140,8 +142,8 @@ export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
       </div>
 
       <div className="product-sticky-shell ad-saju-sticky-shell">
-        <span className="ad-saju-participant-badge" aria-label="354명이 참여함">
-          <span aria-hidden="true">🔥</span> 354명이 참여함
+        <span className="ad-saju-participant-badge" aria-label={`${participantCount}명이 참여함`}>
+          <span aria-hidden="true">🔥</span> {participantCount}명이 참여함
         </span>
         <div className="ad-saju-cta-flames" aria-hidden="true">
           <span>🔥</span>

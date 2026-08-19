@@ -6,6 +6,7 @@ import SignupModal from "@/components/SignupModal";
 import AuthReadyTransition from "@/components/AuthReadyTransition";
 import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
+import { INNER_MIND_PARTICIPANT_COUNT } from "@/lib/participant-counts";
 
 const LANDING = "inner_mind" as const;
 const FORM_PATH = "/reading?c=sseom";
@@ -101,8 +102,8 @@ export default function InnerMindFlow() {
             ))}
           </ul>
           <div className="lp-cta-wrap">
-            <span className="lp-participant-badge" aria-label="354명이 참여함">
-              <span aria-hidden="true">🔥</span> 354명이 참여함
+            <span className="lp-participant-badge" aria-label={`${INNER_MIND_PARTICIPANT_COUNT}명이 참여함`}>
+              <span aria-hidden="true">🔥</span> {INNER_MIND_PARTICIPANT_COUNT}명이 참여함
             </span>
             <button type="button" className="btn lp-cta" onClick={go} disabled={!picked}>
               미리보기로 이동

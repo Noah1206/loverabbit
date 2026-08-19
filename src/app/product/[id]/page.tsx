@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
+import { PRODUCT_PARTICIPANT_COUNTS } from "@/lib/participant-counts";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
 // 후킹 질문 → ??% 게이지 → 비전(秘傳) 서사 → 대상 체크 → 풀이 원리 → 리포트 목차 → CTA
@@ -24,6 +25,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!p) notFound();
 
   const cta = `/reading?c=${p.id}`;
+  const participantCount = PRODUCT_PARTICIPANT_COUNTS[p.id] ?? 354;
 
   return (
     <main className="product-page" data-product={p.id}>
@@ -141,8 +143,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       {/* ── 고정 CTA ── */}
       <div className="product-sticky-shell">
         <span className="product-sticky-hook">{p.emoji} {p.ctaHook}</span>
-        <span className="product-participant-badge" aria-label="354명이 참여함">
-          <span aria-hidden="true">🔥</span> 354명이 참여함
+        <span className="product-participant-badge" aria-label={`${participantCount}명이 참여함`}>
+          <span aria-hidden="true">🔥</span> {participantCount}명이 참여함
         </span>
         <ProductCtaGate href={cta} className="product-sticky-cta">
           <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>

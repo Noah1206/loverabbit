@@ -1236,7 +1236,8 @@ label {
 
 /* 광고 전용 랜딩 CTA — 짧은 버튼 카피만 남기고 불꽃이 위로 번지게 한다 */
 .ad-saju-sticky-shell {
-  position: relative;
+  /* 배지의 기준점은 유지하면서 CTA 자체는 항상 화면 하단에 고정한다. */
+  position: fixed;
   z-index: 61;
   bottom: calc(8px + env(safe-area-inset-bottom));
   padding: 0;
