@@ -139,10 +139,16 @@ export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
         </p>
       </div>
 
-      <div className="product-sticky-shell">
-        <span className="product-sticky-hook">{product.emoji} {offer.ctaHook}</span>
+      <div className="product-sticky-shell ad-saju-sticky-shell">
+        <div className="ad-saju-cta-flames" aria-hidden="true">
+          <span>🔥</span>
+          <span>🔥</span>
+          <span>🔥</span>
+          <span>🔥</span>
+          <span>🔥</span>
+          <span>🔥</span>
+        </div>
         <AdLandingCta href={formHref} landingType={offer.landingType} className="product-sticky-cta">
-          <span className="product-sticky-icon" aria-hidden>{product.emoji}</span>
           <span className="product-sticky-copy">
             <strong>무료로 운명보기</strong>
             <small>결제 없이 무료 미리보기부터</small>

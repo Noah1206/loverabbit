@@ -1181,6 +1181,97 @@ label {
   font-size: 1.25rem;
 }
 
+/* 광고 전용 랜딩 CTA — 짧은 버튼 카피만 남기고 불꽃이 위로 번지게 한다 */
+.ad-saju-sticky-shell {
+  padding-top: 16px;
+  overflow: visible;
+}
+
+.ad-saju-cta-flames {
+  position: absolute;
+  z-index: 1;
+  inset: auto 18px 72px;
+  height: 112px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ad-saju-cta-flames span {
+  --flame-x: 50%;
+  --flame-drift: 0px;
+  --flame-delay: 0s;
+  --flame-size: 1.05rem;
+  position: absolute;
+  bottom: 0;
+  left: var(--flame-x);
+  opacity: 0;
+  font-size: var(--flame-size);
+  line-height: 1;
+  filter: drop-shadow(0 4px 8px rgba(255, 92, 31, 0.38));
+  transform: translate3d(-50%, 10px, 0) scale(0.55) rotate(-6deg);
+  animation: ad-saju-flame-rise 2.8s cubic-bezier(0.22, 0.74, 0.25, 1) var(--flame-delay) infinite;
+  will-change: transform, opacity;
+}
+
+.ad-saju-cta-flames span:nth-child(1) {
+  --flame-x: 12%;
+  --flame-drift: -10px;
+  --flame-delay: -0.3s;
+  --flame-size: 0.88rem;
+}
+
+.ad-saju-cta-flames span:nth-child(2) {
+  --flame-x: 29%;
+  --flame-drift: 12px;
+  --flame-delay: -1.7s;
+  --flame-size: 1.08rem;
+}
+
+.ad-saju-cta-flames span:nth-child(3) {
+  --flame-x: 45%;
+  --flame-drift: -7px;
+  --flame-delay: -0.85s;
+  --flame-size: 0.94rem;
+}
+
+.ad-saju-cta-flames span:nth-child(4) {
+  --flame-x: 61%;
+  --flame-drift: 9px;
+  --flame-delay: -2.25s;
+  --flame-size: 1.16rem;
+}
+
+.ad-saju-cta-flames span:nth-child(5) {
+  --flame-x: 77%;
+  --flame-drift: -13px;
+  --flame-delay: -1.2s;
+  --flame-size: 0.9rem;
+}
+
+.ad-saju-cta-flames span:nth-child(6) {
+  --flame-x: 91%;
+  --flame-drift: 7px;
+  --flame-delay: -2.55s;
+  --flame-size: 1rem;
+}
+
+@keyframes ad-saju-flame-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 10px, 0) scale(0.55) rotate(-6deg);
+  }
+  18% {
+    opacity: 0.96;
+  }
+  68% {
+    opacity: 0.72;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(-50% + var(--flame-drift)), -104px, 0) scale(1.18) rotate(8deg);
+  }
+}
+
 .product-page[data-product="baramgi"] .product-sticky-cta {
   border-radius: 14px;
   background: linear-gradient(112deg, #d81332, #ff762e 58%, #ffb13b);
@@ -1220,6 +1311,10 @@ label {
     width: 34px;
     height: 34px;
     flex-basis: 34px;
+  }
+
+  .ad-saju-sticky-shell {
+    padding-top: 14px;
   }
 
   .product-score-labels {
@@ -4103,6 +4198,19 @@ label {
   border: 1px solid var(--line);
   background: var(--bg-card);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+/* 광고 랜딩에서는 무료 CTA를 가리지 않고 버튼 바로 위에 놓는다 */
+.consent-banner--ad-saju {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 114px);
+  width: min(622px, calc(100vw - 18px));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-saju-cta-flames span {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .consent-banner-text {

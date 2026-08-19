@@ -10,7 +10,6 @@ export interface AdOffer {
   badge: string;
   headline: string;
   sub: string;
-  ctaHook: string;
   adultOnly?: boolean;
 }
 
@@ -25,7 +24,6 @@ export const AD_OFFERS = {
     badge: "궁합 사주",
     headline: "우리 둘, 잘 맞을까?",
     sub: "두 사람의 성향과 관계 온도, 자주 부딪히는 지점을 사주 흐름으로 함께 살펴봅니다.",
-    ctaHook: "두 사람의 관계 흐름을 무료로 먼저 확인하세요",
   },
   intimate_compatibility_990: {
     id: "intimate_compatibility_990",
@@ -37,7 +35,6 @@ export const AD_OFFERS = {
     badge: "속궁합 사주",
     headline: "말보다 먼저 맞는 온도",
     sub: "가까워질수록 드러나는 끌림과 주도권, 두 사람만의 친밀도 상성을 섬세하게 읽습니다.",
-    ctaHook: "말보다 먼저 닿는 둘의 온도를 무료로 확인하세요",
   },
   mature_compatibility_990: {
     id: "mature_compatibility_990",
@@ -49,7 +46,6 @@ export const AD_OFFERS = {
     badge: "19금 사주",
     headline: "밤이 되면 달라지는 궁합",
     sub: "두 사람의 끌림과 친밀감, 관계의 완급을 성인 대상의 사주 해석으로 살펴봅니다.",
-    ctaHook: "둘만의 숨은 궁합을 무료로 먼저 확인하세요",
     adultOnly: true,
   },
   romance_timing_990: {
@@ -62,7 +58,6 @@ export const AD_OFFERS = {
     badge: "연애운 사주",
     headline: "이번 사랑, 언제 시작될까?",
     sub: "인연의 창이 열리는 시기와 만남의 경로, 스쳐 가기 전에 알아볼 신호를 확인합니다.",
-    ctaHook: "다음 사랑이 가까워지는 흐름을 무료로 확인하세요",
   },
   breakup_decision_990: {
     id: "breakup_decision_990",
@@ -74,7 +69,6 @@ export const AD_OFFERS = {
     badge: "이별 사주",
     headline: "끝낼까, 붙잡을까?",
     sub: "반복되는 갈등의 원인과 관계의 흐름을 살펴보고, 다음 선택의 기준을 정리합니다.",
-    ctaHook: "관계의 갈림길을 무료로 먼저 확인하세요",
   },
 } as const satisfies Record<string, AdOffer>;
 
