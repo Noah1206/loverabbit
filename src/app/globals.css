@@ -1923,7 +1923,7 @@ label {
   height: 100%;
   border-radius: 19px;
   background-color: #ff3d7f;
-  background-image: linear-gradient(135deg, rgba(255, 92, 148, 0.92), rgba(139, 92, 246, 0.88));
+  background-image: none;
   font-size: 1rem;
   box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 26%, transparent);
   transition:
@@ -1935,8 +1935,8 @@ label {
 
 .reading-fixed-action .btn:hover,
 .reading-fixed-action .btn:focus-visible {
-  background-color: #ff3d7f;
-  background-image: linear-gradient(135deg, rgba(255, 92, 148, 0.96), rgba(139, 92, 246, 0.94));
+  background-color: #ff4d87;
+  background-image: none;
   box-shadow: 0 12px 30px rgba(255, 61, 127, 0.34);
 }
 
@@ -1948,7 +1948,7 @@ label {
 .reading-fixed-action .btn:active {
   transform: scale(0.975);
   background-color: #d92868;
-  background-image: linear-gradient(135deg, rgba(255, 61, 127, 0.98), rgba(124, 58, 237, 0.96));
+  background-image: none;
   box-shadow: 0 5px 16px rgba(255, 61, 127, 0.32);
   filter: saturate(1.12) brightness(0.96);
 }
