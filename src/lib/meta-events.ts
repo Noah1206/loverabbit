@@ -8,8 +8,9 @@
 //  4. 클라이언트 Pixel과 서버 CAPI가 같은 전환을 보낼 때는 같은 event_id로 중복을 제거한다.
 
 import { hasMarketingConsent } from "@/lib/consent";
-
-export type LandingType = "breakup_decision" | "inner_mind";
+import { resolveAdOffer } from "@/lib/ad-offers";
+import type { LandingType } from "@/lib/landing-types";
+export type { LandingType } from "@/lib/landing-types";
 
 export const META_PIXEL_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "").trim();
 
@@ -160,7 +161,12 @@ const LANDING_BY_PRODUCT: Record<string, LandingType> = {
   sseom: "inner_mind",
 };
 
-export function landingTypeForProduct(productId: string | undefined | null): LandingType | null {
+export function landingTypeForProduct(
+  productId: string | undefined | null,
+  offerId?: string | undefined | null,
+): LandingType | null {
   if (!productId) return null;
+  const offer = resolveAdOffer(productId, offerId);
+  if (offer) return offer.landingType;
   return LANDING_BY_PRODUCT[productId] ?? null;
 }

@@ -6,6 +6,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 import { PRODUCT_MAP } from "@/lib/products";
+import { resolveAdOffer } from "@/lib/ad-offers";
 
 const DIR = path.join(process.cwd(), "data", "readings");
 
@@ -13,7 +14,9 @@ const DIR = path.join(process.cwd(), "data", "readings");
 export const READING_PRICE = 9900;
 
 // 상품별 판매가는 카탈로그(products.ts)가 단일 소스다.
-export function priceFor(category: string): number {
+export function priceFor(category: string, offerId?: string | null): number {
+  const offer = resolveAdOffer(category, offerId);
+  if (offer) return offer.price;
   return PRODUCT_MAP[category]?.price ?? READING_PRICE;
 }
 

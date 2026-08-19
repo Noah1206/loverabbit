@@ -53,6 +53,7 @@ export default function ReadingGeneratingPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             category: job.category,
+            offerId: job.offerId,
             me: parsePerson(job.me),
             partner: job.withPartner && job.partner.year ? parsePerson(job.partner) : null,
             userToken: user.token,
@@ -67,6 +68,7 @@ export default function ReadingGeneratingPage() {
           readingId: data.readingId,
           blob: data.blob,
           category: job.category,
+          offerId: data.offerId ?? job.offerId,
           label: PRODUCT_MAP[job.category]?.shortLabel ?? job.category,
           characterId: "",
           teaser: data.teaser,
@@ -84,7 +86,7 @@ export default function ReadingGeneratingPage() {
           confidenceNote: data.confidenceNote ?? "",
         });
         clearReadingDraft();
-        const landing = landingTypeForProduct(job.category);
+        const landing = landingTypeForProduct(job.category, data.offerId ?? job.offerId);
         if (landing) trackPreviewGenerated(landing);
         setProgress(100);
         router.replace(`/reading/${data.readingId}`);

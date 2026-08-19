@@ -8,6 +8,7 @@ export interface ArchiveEntry {
   readingId: string;
   blob: string;
   category: string;
+  offerId?: string;
   label: string; // 상품명 (저장 시점의 표기)
   characterId: string;
   teaser: string;

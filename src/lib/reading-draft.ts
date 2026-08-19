@@ -15,6 +15,7 @@ export interface PersonForm {
 
 export interface ReadingDraft {
   category: string;
+  offerId?: string;
   me: PersonForm;
   partner: PersonForm;
   withPartner: boolean;

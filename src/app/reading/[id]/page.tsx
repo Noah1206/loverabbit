@@ -137,7 +137,7 @@ export default function ReadingReportPage() {
   const startUnlock = () => {
     if (!entry) return;
     // 잠금 해제 CTA 클릭 — 광고 랜딩에서 온 상품일 때만 landing_type을 붙인다.
-    const unlockLanding = landingTypeForProduct(entry.category);
+    const unlockLanding = landingTypeForProduct(entry.category, entry.offerId);
     if (unlockLanding) trackResultUnlockClicked(unlockLanding);
     if (!user) {
       savePendingReading({
@@ -159,7 +159,7 @@ export default function ReadingReportPage() {
       setShowSignup(true);
       return;
     }
-    const checkoutLanding = landingTypeForProduct(entry.category);
+    const checkoutLanding = landingTypeForProduct(entry.category, entry.offerId);
     if (checkoutLanding) {
       trackInitiateCheckout({ value: entry.price, landingType: checkoutLanding });
     }
@@ -405,8 +405,12 @@ export default function ReadingReportPage() {
             )}
 
             <div className="report-paywall">
-              <strong>결론·정확한 시기·행동 가이드는 전문에 있어요</strong>
-              <p>점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관돼요.</p>
+              <strong>{entry.offerId ? "무료 운명 미리보기는 여기까지예요" : "결론·정확한 시기·행동 가이드는 전문에 있어요"}</strong>
+              <p>
+                {entry.offerId
+                  ? "결론·정확한 시기·행동 가이드까지 끝까지 보고 싶을 때만 990원을 결제하세요."
+                  : "점집 1회 5만원보다 가볍게, 한 번 결제로 계속 보관돼요."}
+              </p>
               {entry.pendingOrderId ? (
                 <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
                   입금 승인 상태 확인 →
@@ -415,9 +419,13 @@ export default function ReadingReportPage() {
                 <button className="btn" onClick={startUnlock} disabled={paying}>
                   {paying
                     ? "결제 준비 중…"
-                    : user
-                      ? `결제하고 전문 보기 — ${entry.price.toLocaleString()}원`
-                      : `로그인 후 전문 보기 — ${entry.price.toLocaleString()}원`}
+                    : entry.offerId
+                      ? user
+                        ? `${entry.price.toLocaleString()}원으로 끝까지 보기`
+                        : `로그인 후 ${entry.price.toLocaleString()}원으로 끝까지 보기`
+                      : user
+                        ? `결제하고 전문 보기 — ${entry.price.toLocaleString()}원`
+                        : `로그인 후 전문 보기 — ${entry.price.toLocaleString()}원`}
                 </button>
               )}
             </div>

@@ -53,12 +53,12 @@ export default function PaymentSuccessClient({
         }
         updateArchive(readingId, { full: data.full });
         // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.
-        const category = listArchive().find((entry) => entry.readingId === readingId)?.category;
+        const archiveEntry = listArchive().find((entry) => entry.readingId === readingId);
         void trackPurchase({
           value: amount,
           currency: "KRW",
           transactionId: orderId,
-          landingType: landingTypeForProduct(category) ?? undefined,
+          landingType: landingTypeForProduct(archiveEntry?.category, archiveEntry?.offerId) ?? undefined,
         });
         setFull(data.full);
       } catch (reason) {

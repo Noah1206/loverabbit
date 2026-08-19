@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LANDING_TYPES } from "@/lib/landing-types";
 
 // Meta Conversions API 중계 — 브라우저에서 Pixel이 차단돼도 전환이 남도록 서버에서 한 번 더 보낸다.
 // 클라이언트가 보낸 eventId를 그대로 써서 Pixel 이벤트와 중복 제거된다.
@@ -19,7 +20,7 @@ interface Body {
 }
 
 const ALLOWED_EVENTS = new Set(["Purchase", "InitiateCheckout"]);
-const ALLOWED_LANDINGS = new Set(["breakup_decision", "inner_mind"]);
+const ALLOWED_LANDINGS = new Set<string>(LANDING_TYPES);
 
 function clientIp(request: NextRequest): string | undefined {
   const forwarded = request.headers.get("x-forwarded-for");

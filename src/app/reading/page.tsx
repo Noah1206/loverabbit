@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { PRODUCTS } from "@/lib/products";
+import { resolveAdOffer } from "@/lib/ad-offers";
 import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
 import {
@@ -221,6 +222,7 @@ function PersonFields({
 export default function ReadingPage() {
   const router = useRouter();
   const [category, setCategory] = useState("sokgunghap");
+  const [offerId, setOfferId] = useState<string | undefined>();
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
@@ -236,11 +238,11 @@ export default function ReadingPage() {
   useEffect(() => {
     if (formStartedRef.current) return;
     if (!me.year && !me.month && !me.day) return;
-    const landing = landingTypeForProduct(category);
+    const landing = landingTypeForProduct(category, offerId);
     if (!landing) return;
     formStartedRef.current = true;
     trackSajuFormStarted(landing);
-  }, [me, category]);
+  }, [me, category, offerId]);
 
   // 생성은 이 화면에서 하지 않는다. 초안만 남기고 대기 화면으로 넘겨, 18초의 기다림이
   // 폼이 아니라 결과 쪽에서 일어나게 한다.
@@ -249,7 +251,7 @@ export default function ReadingPage() {
       setLoading(true);
       setError("");
       saveReadingDraft(draft);
-      const landing = landingTypeForProduct(draft.category);
+      const landing = landingTypeForProduct(draft.category, draft.offerId);
       if (landing) trackSajuFormCompleted(landing);
       router.push("/reading/generating");
     },
@@ -258,12 +260,15 @@ export default function ReadingPage() {
 
   // 홈 상품 카드에서 ?c= 로 진입하면 해당 상품을 확정하고, 로그인 복귀 시 입력값으로 자동 재개한다.
   useEffect(() => {
-    const c = new URLSearchParams(window.location.search).get("c");
+    const params = new URLSearchParams(window.location.search);
+    const c = params.get("c");
     const found = CATEGORIES.find((x) => x.id === c);
+    const offer = found ? resolveAdOffer(found.id, params.get("offer")) : null;
     if (found) {
       setCategory(found.id);
       setWithPartner(found.needsPartner);
     }
+    setOfferId(offer?.id);
     setCategorySelectionMode(found ? "fixed" : "picker");
 
     const stored = getUser();
@@ -272,6 +277,7 @@ export default function ReadingPage() {
     const draft = peekReadingDraft();
     if (draft) {
       setCategory(draft.category);
+      setOfferId(draft.offerId);
       setMe(draft.me);
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
@@ -303,6 +309,7 @@ export default function ReadingPage() {
     }
     const draft: ReadingDraft = {
       category,
+      offerId,
       me,
       partner,
       withPartner,
@@ -317,6 +324,7 @@ export default function ReadingPage() {
   };
 
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
+  const activeOffer = resolveAdOffer(category, offerId);
 
   return (
     <main className="container" style={{ paddingTop: 48 }}>
@@ -334,8 +342,8 @@ export default function ReadingPage() {
       <ol className="preview-funnel-steps" aria-label="무료 미리보기 이용 순서">
         <li><strong>1</strong><span>사주 입력</span></li>
         <li><strong>2</strong><span>로그인</span></li>
-        <li><strong>3</strong><span>약 10문장 무료</span></li>
-        <li><strong>4</strong><span>결제 후 전문</span></li>
+        <li><strong>3</strong><span>{activeOffer ? "무료 운명보기" : "약 10문장 무료"}</span></li>
+        <li><strong>4</strong><span>{activeOffer ? "원할 때 990원" : "결제 후 전문"}</span></li>
       </ol>
 
       {!user && pendingReferral && (
@@ -373,6 +381,8 @@ export default function ReadingPage() {
               onClick={() => {
                 const params = new URLSearchParams(window.location.search);
                 params.delete("c");
+                params.delete("offer");
+                setOfferId(undefined);
                 setCategorySelectionMode("picker");
                 router.replace(`/reading${params.size ? `?${params.toString()}` : ""}`, { scroll: false });
               }}
@@ -393,6 +403,7 @@ export default function ReadingPage() {
               style={{ padding: "10px 18px", fontSize: "0.92rem" }}
               onClick={() => {
                 setCategory(item.id);
+                setOfferId(undefined);
                 setWithPartner(item.needsPartner);
               }}
             >
@@ -419,9 +430,13 @@ export default function ReadingPage() {
       <button className="btn" style={{ width: "100%" }} onClick={submit} disabled={loading}>
         {loading
           ? "사주 푸는 중… 🔮"
-          : user
-            ? "무료 10문장 보기 →"
-            : "로그인하고 무료 10문장 보기 →"}
+          : activeOffer
+            ? user
+              ? "무료로 운명보기 →"
+              : "로그인하고 무료로 운명보기 →"
+            : user
+              ? "무료 10문장 보기 →"
+              : "로그인하고 무료 10문장 보기 →"}
       </button>
       {loading && (
         <p className="pulse" style={{ textAlign: "center", color: "var(--text-dim)", marginTop: 14 }}>
@@ -439,6 +454,7 @@ export default function ReadingPage() {
             const draft = peekReadingDraft();
             if (draft) {
               setCategory(draft.category);
+              setOfferId(draft.offerId);
               setMe(draft.me);
               setPartner(draft.partner);
               setWithPartner(draft.withPartner);
@@ -449,7 +465,9 @@ export default function ReadingPage() {
           reason={
             pendingReferral
               ? "친구 초대로 왔어요. 가입하면 무료 미리보기와 친구 보상이 함께 연결돼요"
-              : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
+              : activeOffer
+                ? "무료 운명 미리보기를 저장하려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
+                : "무료 사주 10문장을 보려면 로그인이 필요해요. 로그인 후 입력한 내용으로 바로 이어집니다"
           }
           onClose={() => {
             clearReadingDraft();
