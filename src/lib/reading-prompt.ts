@@ -14,6 +14,8 @@ export interface ReportSectionOut {
   summary: string;
   paragraphs: string[];
   factsUsed: string[];
+  /** 이 절이 근거로 삼은 검수 규칙 id */
+  ruleIds: string[];
   watchOut?: string;
 }
 
@@ -87,8 +89,15 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 
 # OUTPUT CONTRACT
 - 반드시 지정 JSON 하나만 출력한다. JSON 밖에 설명 문장, 마크다운, 코드펜스를 덧붙이지 않는다.
-- headline 42~65자, 각 section.summary 280~650자, section.paragraphs는 2~3개, action_questions는 정확히 3개.
-- character_note.message는 2문장 이하.`;
+- **sections는 delivery.outline의 항목 수와 정확히 같아야 한다.** 목차가 12개면 섹션도 12개다.
+  하나도 합치거나 건너뛰지 않는다. 분량이 길어져도 끝까지 다 쓴다.
+- section.title은 delivery.outline의 문구를 앞머리(예: "1장 03.")까지 그대로 옮겨 적는다.
+- headline 42~65자, 각 section.summary는 **280자 이상** 650자 이하, section.paragraphs는 2~3개.
+  요약이 짧으면 리포트가 성립하지 않는다. 짧게 끝내지 말 것.
+- action_questions는 정확히 3개, character_note.message는 2문장 이하.
+- facts_used에는 saju_facts의 계산값만 적는다 (예: "strength.label=신약", "elementBalance.수=0").
+  어떤 규칙을 썼는지는 facts_used가 아니라 rule_ids에 적는다.
+- 모든 문장은 해요체로 쓴다. '~합니다', '~입니다'로 끝내지 않는다.`;
 
 export interface ReadingInput {
   facts: SajuFacts;
@@ -132,8 +141,13 @@ export function buildReadingInput(input: ReadingInput): string {
   return JSON.stringify(payload, null, 2);
 }
 
-export function buildReadingUserPrompt(inputJson: string): string {
-  return `입력 JSON을 사용해 report_type에 맞는 러브레빗 사주 리포트를 작성해.
+export function buildReadingUserPrompt(inputJson: string, sectionCount = 0): string {
+  const countLine = sectionCount
+    ? `\n\n### 이번 리포트에서 절대 어기면 안 되는 것\nsections 배열의 길이는 정확히 ${sectionCount}개여야 해. ${sectionCount}개보다 적으면 그 리포트는 폐기돼.\ndelivery.outline의 ${sectionCount}개 항목을 순서대로 하나씩 전부 다뤄. 합치거나 건너뛰지 마.\n각 섹션의 summary는 280자 이상으로 써.
+action_questions는 정확히 3개를 쓴다. 1개나 2개로 끝내지 마.
+facts_used는 "경로=값" 꼴로 적는다 (예: "strength.label=신약"). 경로만 적지 마.`
+    : "";
+  return `입력 JSON을 사용해 report_type에 맞는 러브레빗 사주 리포트를 작성해.${countLine}
 
 우선순위는 다음과 같아.
 0. matched_rules 안에서만 해석하기 — 뼈대는 규칙, 살은 계산값
@@ -164,11 +178,14 @@ export function buildReadingUserPrompt(inputJson: string): string {
       "summary": "string",
       "paragraphs": ["string", "string"],
       "facts_used": ["string"],
+      "rule_ids": ["string"],
       "watch_out": "string"
     }
   ],
   "action_questions": [
-    {"question": "지금 확인하거나 실행할 것 한 가지", "why_it_matters": "그게 왜 지금인지 명식 근거로"}
+    {"question": "string", "why_it_matters": "string"},
+    {"question": "string", "why_it_matters": "string"},
+    {"question": "string", "why_it_matters": "string"}
   ],
   "character_note": {
     "character_id": "string",
@@ -182,7 +199,8 @@ export function buildReadingUserPrompt(inputJson: string): string {
   }
 }
 
-sections는 delivery.outline의 각 항목마다 하나씩, 같은 순서로 만든다. title은 outline 문구를 그대로 쓰거나 다듬어 쓴다.
+sections는 delivery.outline의 각 항목마다 하나씩, 같은 순서로 만든다.
+title은 outline 문구를 앞머리 번호까지 그대로 옮겨 적는다.
 
 입력 JSON:
 ${inputJson}`;
@@ -195,6 +213,7 @@ type RawSection = {
   summary?: string;
   paragraphs?: unknown;
   facts_used?: unknown;
+  rule_ids?: unknown;
   watch_out?: string;
 };
 
@@ -256,6 +275,7 @@ export function parseStructuredReport(text: string): StructuredReport | null {
           summary: typeof section.summary === "string" ? section.summary : "",
           paragraphs: asStringArray(section.paragraphs),
           factsUsed: asStringArray(section.facts_used),
+          ruleIds: asStringArray(section.rule_ids),
           watchOut: typeof section.watch_out === "string" ? section.watch_out : undefined,
         })),
       actionQuestions: (Array.isArray(raw.action_questions) ? raw.action_questions : [])

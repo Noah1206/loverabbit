@@ -57,6 +57,8 @@ export interface MajorLuck {
 }
 
 export interface SajuFacts {
+  /** 남녀에 따라 십성의 의미가 갈린다 — 여자는 관성, 남자는 재성이 배우자성 */
+  gender: Gender;
   fourPillars: {
     year: { stem: string; branch: string };
     month: { stem: string; branch: string };
@@ -313,6 +315,7 @@ export function buildSajuFacts(
   notes.push("절기는 태양 황경으로 계산 (오차 15분 이내)");
 
   return {
+    gender: birth.gender,
     fourPillars: {
       year: { stem: chart.year.gan, branch: chart.year.ji },
       month: { stem: chart.month.gan, branch: chart.month.ji },

@@ -120,10 +120,16 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
   if (headline < 20 || headline > 80) {
     add({ kind: "구조", where: "meta.headline", detail: `${headline}자 (20~80 권장)`, blocking: false });
   }
+  // 분량은 summary 하나가 아니라 절 전체로 잰다.
+  // 실제 출력을 보면 모델은 요약을 100자쯤으로 짧게 쓰고 나머지를 문단으로 넘긴다.
+  // 요약만 재면 멀쩡한 절이 전부 위반으로 잡혀 신호가 묻힌다.
   report.sections.forEach((section, index) => {
-    const length = section.summary.length;
-    if (length < 120 || length > 900) {
-      add({ kind: "구조", where: `sections[${index}].summary`, detail: `${length}자 (280~650 권장)`, blocking: false });
+    const length = section.summary.length + section.paragraphs.join("").length;
+    if (length < 220) {
+      add({ kind: "구조", where: `sections[${index}]`, detail: `본문 ${length}자 — 너무 얇다`, blocking: false });
+    }
+    if (length > 1800) {
+      add({ kind: "구조", where: `sections[${index}]`, detail: `본문 ${length}자 — 너무 길다`, blocking: false });
     }
   });
 

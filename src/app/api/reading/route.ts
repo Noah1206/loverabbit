@@ -253,6 +253,10 @@ export async function POST(req: NextRequest) {
   const forbiddenClaims = forbiddenFromRules(matchedRules);
 
   const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
+  // 목차가 길수록 출력이 길어진다. 8000으로 고정하면 12~15장짜리 리포트가 중간에 잘린다.
+  // 한글은 토큰을 많이 먹으므로 항목당 넉넉히 잡고 모델 상한(16k)에서 멈춘다.
+  const maxOutputTokens = Math.min(16000, 3000 + outline.length * 1100);
+
   const userPrompt = buildReadingUserPrompt(
     buildReadingInput({
       facts: myFacts,
@@ -265,7 +269,8 @@ export async function POST(req: NextRequest) {
       characterId: null,
       characterName: null,
       now,
-    })
+    }),
+    outline.length
   );
 
   let teaser: string;
@@ -276,7 +281,7 @@ export async function POST(req: NextRequest) {
   let guardViolations: GuardViolation[] = [];
 
   try {
-    const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], 8000);
+    const result = await chatComplete(READING_SYSTEM_PROMPT, [{ role: "user", content: userPrompt }], maxOutputTokens);
     if (!result) {
       ({ teaser, full } = mockReading(body.category));
     } else {
@@ -295,7 +300,7 @@ export async function POST(req: NextRequest) {
               content: "출력이 스키마에 맞지 않았어. 설명 없이 지정 JSON 객체 하나만 다시 출력해.",
             },
           ],
-          8000
+          maxOutputTokens
         );
         report = retry ? parseStructuredReport(retry.text) : null;
       }
@@ -316,7 +321,7 @@ export async function POST(req: NextRequest) {
               { role: "assistant", content: JSON.stringify({ report_meta: report.meta }).slice(0, 1200) },
               { role: "user", content: guardRetryPrompt(guard.violations) },
             ],
-            8000
+            maxOutputTokens
           );
           const reparsed = fixed ? parseStructuredReport(fixed.text) : null;
           if (reparsed) {
