@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import SignupModal from "@/components/SignupModal";
 import { getUser } from "@/lib/user";
@@ -54,8 +55,18 @@ export default function InnerMindFlow() {
     <div className="lp-flow">
       {stage === "intro" ? (
         <div className="lp-intro">
-          {/* 캐릭터 연출은 사용자가 직접 시작한 뒤에만 재생한다. 자동재생 오디오는 두지 않는다. */}
-          <div className="lp-intro-art" aria-hidden />
+          {/* 광고 소재가 해월신당·해월도령으로 나가므로 랜딩 첫 화면도 같은 얼굴로 받는다. */}
+          <div className="lp-intro-art">
+            <Image
+              src="/characters/haewol.jpg"
+              alt="해월도령"
+              fill
+              priority
+              sizes="(max-width: 640px) 100vw, 480px"
+              style={{ objectFit: "cover", objectPosition: "center 22%" }}
+            />
+            <span className="lp-intro-art-tag">해월신당</span>
+          </div>
           <p className="lp-intro-line">
             말로 다 묻지 못한 것들이 있다면, 하나씩 정리해 볼까요.
           </p>
