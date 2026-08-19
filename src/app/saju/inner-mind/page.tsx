@@ -17,7 +17,7 @@ export default function InnerMindLanding() {
       <LandingTracker />
 
       <section className="lp-hero">
-        <span className="badge">속마음</span>
+        <span className="badge">해월신당 · 속마음</span>
         {/* 몰입형 화면이지만 스크린리더가 읽을 제목은 반드시 남긴다. */}
         <h1 className="lp-h1">상대의 마음과 관계의 흐름을 정리해 보는 속마음 리포트</h1>
         <InnerMindFlow />
