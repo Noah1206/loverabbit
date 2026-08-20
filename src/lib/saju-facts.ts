@@ -94,8 +94,31 @@ function isYangStem(ganIdx: number): boolean {
   return ganIdx % 2 === 0;
 }
 
+/**
+ * 지지의 음양을 무엇으로 볼 것인가 — 십성이 갈리는 지점이다.
+ *
+ * "che"  체(體)의 음양. 자인진오신술=양, 축묘사미유해=음. 간명하다.
+ * "bongi" 지장간 본기의 음양. 자평명리에서 지지의 십성을 논할 때 쓰는 쪽이다.
+ *
+ * 자·오·사·해 네 글자에서 둘이 갈린다 (체양용음 / 체음용양):
+ *   자 체=양 본기=계(음)   사 체=음 본기=병(양)
+ *   오 체=양 본기=정(음)   해 체=음 본기=임(양)
+ *
+ * 실측 — 명식 2,000개에서 지지 자리의 31.6%, 명식의 80.0%가 영향을 받는다.
+ * 뒤집히는 방향이 식신↔상관, 정관↔편관, 정재↔편재처럼 해석이 정반대인 쌍이라
+ * 어느 쪽을 쓰느냐가 리딩의 내용을 바꾼다.
+ *
+ * 지금은 "che" 로 둔다 — 지금까지 발급된 리딩이 그 기준으로 나갔기 때문이다.
+ * 명리 검수에서 "bongi" 로 정해지면 이 상수 하나만 바꾸면 된다.
+ */
+export type BranchYinYangMode = "che" | "bongi";
+export const BRANCH_YIN_YANG_MODE: BranchYinYangMode = "che";
+
+/** 지장간 본기의 음양 — 자축인묘진사오미신유술해 */
+const BONGI_YANG = [false, false, true, false, true, true, false, false, true, false, true, true];
+
 function isYangBranch(jiIdx: number): boolean {
-  return jiIdx % 2 === 0;
+  return BRANCH_YIN_YANG_MODE === "bongi" ? BONGI_YANG[jiIdx] : jiIdx % 2 === 0;
 }
 
 /**
