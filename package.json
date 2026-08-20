@@ -10,7 +10,9 @@
     "db:link": "npx -y supabase@latest link --project-ref uaaxqqzdfmuzzwgqsdki",
     "db:status": "npx -y supabase@latest migration list",
     "db:new": "npx -y supabase@latest migration new",
-    "db:push": "npx -y supabase@latest db push"
+    "db:push": "npx -y supabase@latest db push",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "myeongri:audit:branch-yinyang": "tsx scripts/audit-branch-yinyang.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
@@ -27,6 +29,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.6.0"
   },
   "overrides": {

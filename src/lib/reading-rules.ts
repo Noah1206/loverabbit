@@ -421,10 +421,11 @@ export const READING_RULES: ReadingRule[] = [
   },
   {
     id: "SIN-HWAGAE",
-    // 3,000개 명식에서 66% 발화. 삼합의 고지(진술축미)가 넉 자 중 하나만 걸려도
-    // 잡히기 때문이다. 이렇게 흔한 것은 그 사람을 구별하지 못하므로, 다른 규칙이
-    // 적을 때만 뽑히도록 뒤로 미룬다.
-    priority: 46,
+    // 3,000개 명식에서 66% 발화한다. 삼합의 고지(진술축미)가 넉 자 중 하나만 걸려도
+    // 잡히고, 연지·일지가 그 자체로 고지면 스스로 화개가 되기 때문이다.
+    // 이것은 계산 오류가 아니라 화개의 성질이므로 우선순위를 낮추지 않는다.
+    // 화면에서 얼마나 앞세울지는 노출 정책의 문제다(docs/myeongri/rule-boundaries.md).
+    priority: 76,
     when: { shinsal: ["화개"] , domains: ["bimil", "gwontaegi", "bamgijil", "pyeongsaeng"] },
     claim: "혼자 있는 시간에 기운이 정리되는 편이라, 붙어 있는 시간만으로는 애정이 채워지지 않는 구조",
     safePhrasing: "그런 간격이 필요한",

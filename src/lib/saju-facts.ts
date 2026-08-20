@@ -19,6 +19,9 @@ import {
 import type { BirthMoment } from "./korea-time";
 import { nextMonthTerm, previousMonthTerm } from "./solar-terms";
 import { findShinsal, type ShinsalFact } from "./saju-shinsal";
+import { branchIsYang, calculationPolicyStamp, type CalculationPolicyStamp } from "@/lib/myeongri/policy";
+import { findXing, type BranchSlot, type XingRelation } from "@/lib/myeongri/xing";
+import { strengthEvidence, type StrengthEvidence } from "@/lib/myeongri/rooting";
 
 export type Gender = "M" | "F";
 
@@ -75,6 +78,12 @@ export interface SajuFacts {
   notableRelations: RelationFact[];
   /** 도화·역마·화개·홍염·양인·원진 — 상품 목차가 약속한 값이라 계산으로 낸다 */
   shinsal: ShinsalFact[];
+  /** 형(刑) — partial 은 아직 정책이 없어 점수·서술에 쓰지 않는다 */
+  xing: XingRelation[];
+  /** 통근·투간 증거. 점수는 붙이지 않는다 — 가중치는 정책이 정할 일이다. */
+  strengthEvidence: StrengthEvidence;
+  /** 어느 정책으로 뽑은 값인지. 나중에 결과를 재현할 때 기준이 된다. */
+  policy: CalculationPolicyStamp;
   luckContext: {
     majorLuck: MajorLuck | null;
     yearly: { year: number; pillar: string; tenGod: string };
@@ -95,30 +104,14 @@ function isYangStem(ganIdx: number): boolean {
 }
 
 /**
- * 지지의 음양을 무엇으로 볼 것인가 — 십성이 갈리는 지점이다.
+ * 지지의 음양 — 판정은 정책 모듈이 한다(myeongri/policy.ts).
  *
- * "che"  체(體)의 음양. 자인진오신술=양, 축묘사미유해=음. 간명하다.
- * "bongi" 지장간 본기의 음양. 자평명리에서 지지의 십성을 논할 때 쓰는 쪽이다.
- *
- * 자·오·사·해 네 글자에서 둘이 갈린다 (체양용음 / 체음용양):
- *   자 체=양 본기=계(음)   사 체=음 본기=병(양)
- *   오 체=양 본기=정(음)   해 체=음 본기=임(양)
- *
- * 실측 — 명식 2,000개에서 지지 자리의 31.6%, 명식의 80.0%가 영향을 받는다.
- * 뒤집히는 방향이 식신↔상관, 정관↔편관, 정재↔편재처럼 해석이 정반대인 쌍이라
- * 어느 쪽을 쓰느냐가 리딩의 내용을 바꾼다.
- *
- * 지금은 "che" 로 둔다 — 지금까지 발급된 리딩이 그 기준으로 나갔기 때문이다.
- * 명리 검수에서 "bongi" 로 정해지면 이 상수 하나만 바꾸면 된다.
+ * 체(體)로 볼 것인가 지장간 본기로 볼 것인가는 유파가 갈리는 선택이고,
+ * 그런 선택을 계산 파일 안에 흩어 두면 나중에 어디를 바꿔야 하는지 알 수 없게 된다.
+ * 십성을 매길 때만 쓴다 — 지지의 오행, 합·충·형, 삼합은 지지 그 자체로 본다.
  */
-export type BranchYinYangMode = "che" | "bongi";
-export const BRANCH_YIN_YANG_MODE: BranchYinYangMode = "che";
-
-/** 지장간 본기의 음양 — 자축인묘진사오미신유술해 */
-const BONGI_YANG = [false, false, true, false, true, true, false, false, true, false, true, true];
-
 function isYangBranch(jiIdx: number): boolean {
-  return BRANCH_YIN_YANG_MODE === "bongi" ? BONGI_YANG[jiIdx] : jiIdx % 2 === 0;
+  return branchIsYang(jiIdx);
 }
 
 /**
@@ -252,6 +245,17 @@ function findRelations(chart: SajuChart): RelationFact[] {
   return relations;
 }
 
+/** 형을 볼 때 쓰는 지지 자리 목록 — 시각을 모르면 시지는 없다 */
+function branchSlotsOf(chart: SajuChart): BranchSlot[] {
+  const slots: BranchSlot[] = [
+    { position: "연지", jiIdx: chart.year.jiIdx },
+    { position: "월지", jiIdx: chart.month.jiIdx },
+    { position: "일지", jiIdx: chart.day.jiIdx },
+  ];
+  if (chart.hour) slots.push({ position: "시지", jiIdx: chart.hour.jiIdx });
+  return slots;
+}
+
 function collectTenGods(chart: SajuChart): TenGodFact[] {
   const dayElement = stemElement(chart.day.ganIdx);
   const dayYang = isYangStem(chart.day.ganIdx);
@@ -354,6 +358,9 @@ export function buildSajuFacts(
     dominantTenGods,
     notableRelations: findRelations(chart),
     shinsal: findShinsal(chart),
+    xing: findXing(branchSlotsOf(chart)),
+    strengthEvidence: strengthEvidence(chart),
+    policy: calculationPolicyStamp(),
     luckContext: {
       majorLuck: computeMajorLuck(chart, birth.gender, ageNow),
       yearly: {
