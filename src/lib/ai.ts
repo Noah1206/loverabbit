@@ -5,18 +5,59 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export type ChatMsg = { role: "user" | "assistant"; content: string };
 
-async function callAnthropic(apiKey: string, system: string, messages: ChatMsg[], maxTokens: number): Promise<string> {
+/**
+ * 이번 호출이 실제로 청구된 토큰.
+ *
+ * 비용을 글자 수로 추정하면 한글 때문에 크게 어긋난다. 제공사가 돌려주는 값을
+ * 그대로 실어 보내, 어떤 모델이 얼마인지 재는 쪽에서 추정 없이 쓰게 한다.
+ * 돌려주지 않는 제공사도 있으므로 선택 필드다.
+ */
+export interface ChatUsage {
+  input: number;
+  output: number;
+  /** 프롬프트 캐시로 할인된 입력 토큰 (있으면) */
+  cached: number;
+  /** 추론 모델이 따로 쓴 토큰 (있으면) */
+  reasoning: number;
+}
+
+export interface ChatResult {
+  text: string;
+  provider: string;
+  /** 실제로 응답한 모델 이름 */
+  model: string;
+  usage: ChatUsage | null;
+}
+
+/** 어느 제공사로 보낼지 직접 지목할 때 쓴다. 지정하지 않으면 키 우선순위를 따른다. */
+export type Provider = "anthropic" | "gemini" | "openai";
+
+const NO_USAGE: ChatUsage = { input: 0, output: 0, cached: 0, reasoning: 0 };
+
+async function callAnthropic(
+  apiKey: string,
+  system: string,
+  messages: ChatMsg[],
+  maxTokens: number,
+  modelOverride?: string
+): Promise<ChatResult> {
   const client = new Anthropic({ apiKey });
-  const msg = await client.messages.create({
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
-    max_tokens: maxTokens,
-    system,
-    messages,
-  });
-  return msg.content
-    .filter((b): b is Anthropic.TextBlock => b.type === "text")
-    .map((b) => b.text)
-    .join("");
+  const model = modelOverride ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
+  const msg = await client.messages.create({ model, max_tokens: maxTokens, system, messages });
+  return {
+    text: msg.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join(""),
+    provider: "anthropic",
+    model,
+    usage: {
+      input: msg.usage?.input_tokens ?? 0,
+      output: msg.usage?.output_tokens ?? 0,
+      cached: msg.usage?.cache_read_input_tokens ?? 0,
+      reasoning: 0,
+    },
+  };
 }
 
 /**
@@ -38,9 +79,10 @@ async function callGemini(
   messages: ChatMsg[],
   maxTokens: number,
   thinking: boolean,
-  json: boolean
-): Promise<string> {
-  const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+  json: boolean,
+  modelOverride?: string
+): Promise<ChatResult> {
+  const model = modelOverride ?? process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -75,7 +117,7 @@ async function callGemini(
     // 모델 하나 잘못 고른 것 때문에 리딩이 전부 죽지 않도록, 그 옵션만 빼고 한 번 더 시도한다.
     if (res.status === 400 && !thinking && /thinking/i.test(detail)) {
       console.warn(`Gemini ${model}이 thinkingConfig를 거절함 — 해당 옵션 없이 재시도`);
-      return callGemini(apiKey, system, messages, maxTokens, true, json);
+      return callGemini(apiKey, system, messages, maxTokens, true, json, modelOverride);
     }
     throw new Error(`Gemini API ${res.status}: ${detail}`);
   }
@@ -97,7 +139,20 @@ async function callGemini(
         `${ratings ? ` blocked=${ratings}` : ""})`
     );
   }
-  return text;
+  const u = data?.usageMetadata;
+  return {
+    text,
+    provider: "gemini",
+    model,
+    usage: u
+      ? {
+          input: u.promptTokenCount ?? 0,
+          output: u.candidatesTokenCount ?? 0,
+          cached: u.cachedContentTokenCount ?? 0,
+          reasoning: u.thoughtsTokenCount ?? 0,
+        }
+      : null,
+  };
 }
 
 // OpenAI 호환 chat/completions — OPENAI_BASE_URL만 바꾸면 OpenRouter, Groq, 로컬 Ollama도 동작
@@ -112,9 +167,15 @@ function isReasoningModel(model: string): boolean {
   return /^(gpt-5|o[1-9])/.test(model);
 }
 
-async function callOpenAICompat(apiKey: string, system: string, messages: ChatMsg[], maxTokens: number): Promise<string> {
+async function callOpenAICompat(
+  apiKey: string,
+  system: string,
+  messages: ChatMsg[],
+  maxTokens: number,
+  modelOverride?: string
+): Promise<ChatResult> {
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
-  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const model = modelOverride ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
   const budget = isReasoningModel(model)
     ? {
         // 추론 토큰도 이 예산에서 빠져나가므로 여유를 둔다
@@ -137,7 +198,20 @@ async function callOpenAICompat(apiKey: string, system: string, messages: ChatMs
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
   if (!text) throw new Error("OpenAI 호환 API 응답이 비어 있음");
-  return text;
+  const u = data?.usage;
+  return {
+    text,
+    provider: "openai-compat",
+    model: data?.model ?? model,
+    usage: u
+      ? {
+          input: u.prompt_tokens ?? 0,
+          output: u.completion_tokens ?? 0,
+          cached: u.prompt_tokens_details?.cached_tokens ?? 0,
+          reasoning: u.completion_tokens_details?.reasoning_tokens ?? 0,
+        }
+      : null,
+  };
 }
 
 /**
@@ -154,16 +228,46 @@ export async function chatComplete(
   system: string,
   messages: ChatMsg[],
   maxTokens = 3000,
-  options: { thinking?: boolean; json?: boolean } = {}
-): Promise<{ text: string; provider: string } | null> {
+  options: { thinking?: boolean; json?: boolean; provider?: Provider; model?: string } = {}
+): Promise<ChatResult | null> {
   const thinking = options.thinking !== false;
   const json = options.json === true;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
-  if (ANTHROPIC_API_KEY)
-    return { text: await callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens), provider: "anthropic" };
-  if (GEMINI_API_KEY)
-    return { text: await callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json), provider: "gemini" };
-  if (OPENAI_API_KEY)
-    return { text: await callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens), provider: "openai-compat" };
+
+  // 제공사를 지목한 경우 — 키 우선순위를 건너뛴다. 모델을 바꿔가며 재는 쪽에서 쓴다.
+  // 지목한 제공사의 키가 없으면 조용히 다른 곳으로 새지 않고 그냥 실패한다.
+  if (options.provider) {
+    if (options.provider === "anthropic")
+      return ANTHROPIC_API_KEY
+        ? callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model)
+        : null;
+    if (options.provider === "gemini")
+      return GEMINI_API_KEY
+        ? callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model)
+        : null;
+    return OPENAI_API_KEY
+      ? callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, options.model)
+      : null;
+  }
+
+  if (ANTHROPIC_API_KEY) return callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model);
+  if (GEMINI_API_KEY) return callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model);
+  if (OPENAI_API_KEY) return callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, options.model);
   return null;
+}
+
+/** 여러 호출의 사용량을 하나로 더한다. */
+export function sumUsage(parts: (ChatUsage | null | undefined)[]): ChatUsage {
+  return parts.reduce<ChatUsage>(
+    (acc, u) =>
+      u
+        ? {
+            input: acc.input + u.input,
+            output: acc.output + u.output,
+            cached: acc.cached + u.cached,
+            reasoning: acc.reasoning + u.reasoning,
+          }
+        : acc,
+    { ...NO_USAGE }
+  );
 }

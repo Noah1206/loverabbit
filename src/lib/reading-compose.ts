@@ -15,6 +15,7 @@
 //   입력 토큰이 (장 수 + 1)배로 늘고, 장 사이의 문맥 연결이 한 번에 쓸 때보다 느슨하다.
 //   대신 한 장이 실패해도 그 장만 다시 시키면 된다.
 
+import { sumUsage, type ChatUsage } from "@/lib/ai";
 import { chapterNumbersFromToc } from "@/lib/reading-chapters";
 import {
   buildReadingInput,
@@ -30,13 +31,30 @@ export type Complete = (
   system: string,
   user: string,
   maxTokens: number
-) => Promise<{ text: string; provider: string } | null>;
+) => Promise<{ text: string; provider: string; model?: string; usage?: ChatUsage | null } | null>;
+
+/** 조각 하나가 걸린 시간. 전체 시간은 이 중 가장 큰 값이 정한다. */
+export interface PartTiming {
+  label: string;
+  ms: number;
+  ok: boolean;
+  /** 재시도로 다시 부른 조각인가 */
+  retry: boolean;
+}
 
 export interface ComposeResult {
   report: StructuredReport | null;
   provider: string;
   /** 생성기가 붙어 있는데도 실패한 조각들 */
   failedParts: string[];
+  /** 실제로 응답한 모델 이름 (조각마다 같다) */
+  model: string;
+  /** 조각별 소요 시간 — 어느 조각이 병목인지 보려면 이게 필요하다 */
+  timings: PartTiming[];
+  /** 조각 전체를 합친 실제 청구 토큰. 제공사가 안 주면 전부 0이다. */
+  usage: ChatUsage;
+  requestCount: number;
+  retryCount: number;
 }
 
 /**
@@ -185,14 +203,22 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
   const chapters = chaptersOf(input.outline);
   const failedParts: string[] = [];
   let provider = "";
+  let model = "";
+  const timings: PartTiming[] = [];
+  const usages: (ChatUsage | null)[] = [];
 
-  const run = async (label: string, prompt: string, budget: number) => {
+  const run = async (label: string, prompt: string, budget: number, retry = false) => {
+    const started = Date.now();
     try {
       const result = await complete(READING_SYSTEM_PROMPT, prompt, budget);
+      timings.push({ label, ms: Date.now() - started, ok: Boolean(result), retry });
       if (!result) return null;
       provider = result.provider;
+      if (result.model) model = result.model;
+      usages.push(result.usage ?? null);
       return result.text;
     } catch (error) {
+      timings.push({ label, ms: Date.now() - started, ok: false, retry });
       console.error(`리포트 조각 실패 (${label}):`, error);
       return null;
     }
@@ -209,7 +235,7 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
   const head = headText ? parseStructuredReport(injectDummySection(headText)) : null;
   if (!head) {
     failedParts.push("head");
-    return { report: null, provider, failedParts };
+    return { report: null, provider, failedParts, model, timings, usage: sumUsage(usages), requestCount: timings.length, retryCount: 0 };
   }
 
   // 조각별 결과. 실패했거나 항목 수가 모자란 조각만 한 번 더 시킨다.
@@ -235,7 +261,8 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
         return run(
           `${chapter.label} 재시도`,
           chapterPrompt(inputJson, target, input.outline),
-          chapterBudget(target.items.length)
+          chapterBudget(target.items.length),
+          true
         ).then((text) => ({ text, target }));
       })
     );
@@ -260,6 +287,11 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
     report: { ...head, sections: parsedByBatch.flat() },
     provider,
     failedParts,
+    model,
+    timings,
+    usage: sumUsage(usages),
+    requestCount: timings.length,
+    retryCount: timings.filter((t) => t.retry).length,
   };
 }
 

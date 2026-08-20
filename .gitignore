@@ -14,3 +14,6 @@ next-env.d.ts
 .claude/
 skills-lock.json
 public/cards-pastel-original/
+
+# 모델 비교 결과 (scripts/model-compare.mts) — 리딩 원문이 들어 있다
+.model-compare.json
