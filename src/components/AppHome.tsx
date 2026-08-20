@@ -163,7 +163,7 @@ export default function AppHome() {
                     style={{ objectFit: "cover", objectPosition: "center 10%" }}
                   />
                 </div>
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,6,16,0.95) 85%)" }} />
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,10,12,0.95) 85%)" }} />
                 <div className="shrine-card-copy">
                   <span className="shrine-card-label">
                     {ch.title}

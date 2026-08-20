@@ -587,6 +587,9 @@ label {
   overflow-x: auto;
   overscroll-behavior-inline: contain;
   scroll-snap-type: x mandatory;
+  /* 스냅은 기본적으로 padding을 무시하고 카드를 스크롤 영역 끝에 붙인다.
+     그래서 첫 카드가 화면 가장자리에 닿아 보였다. 스냅 기준선을 여백만큼 민다. */
+  scroll-padding-inline: 20px;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -620,7 +623,7 @@ label {
 .shrine-card-art {
   position: relative;
   overflow: hidden;
-  background: #0a0710;
+  background: #0a0a0c;
 }
 
 .shrine-card-copy {
