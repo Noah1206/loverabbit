@@ -1805,6 +1805,10 @@ label {
    바깥에 선이 하나 더 있으면 상자 안의 상자가 된다. (.card는 다른 곳에서 쓰므로 그대로) */
 .reading-step-card.card {
   border-color: transparent;
+  /* 배경까지 없앤다 — 테두리만 지우면 색 있는 판이 남아 여전히 하나로 묶여 보인다 */
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow: none;
 }
 
@@ -1832,12 +1836,13 @@ label {
   appearance: none;
   -webkit-appearance: none;
   min-width: 0;
-  padding: 13px 12px;
+  padding: 15px 12px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  background-color: var(--bg-card2);
+  /* 판을 깔지 않는다. 테두리만으로 누를 수 있는 자리를 표시한다. */
+  background-color: transparent;
   color: var(--text);
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition:
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -1851,7 +1856,7 @@ label {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
   background-color: rgba(255, 61, 127, 0.14);
-  background-color: color-mix(in srgb, var(--accent) 14%, var(--bg-card2));
+  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
   outline: none;
 }
 
@@ -1859,33 +1864,20 @@ label {
   transform: translateY(0) scale(0.98);
   border-color: var(--accent);
   background-color: rgba(255, 61, 127, 0.24);
-  background-color: color-mix(in srgb, var(--accent) 24%, var(--bg-card2));
+  background-color: color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
 .reading-category-option.is-selected {
   border-color: var(--accent);
   background-color: rgba(255, 61, 127, 0.22);
-  background-color: color-mix(in srgb, var(--accent) 22%, var(--bg-card2));
+  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
   box-shadow: 0 0 0 2px rgba(255, 61, 127, 0.18);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
-.reading-category-option strong,
-.reading-category-option span {
-  display: block;
-}
-
 .reading-category-option strong {
+  display: block;
   font-size: 0.9rem;
-}
-
-.reading-category-option span {
-  margin-top: 4px;
-  overflow: hidden;
-  color: var(--text-dim);
-  font-size: 0.66rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .reading-birth-grid {

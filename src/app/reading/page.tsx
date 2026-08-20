@@ -647,7 +647,6 @@ export default function ReadingPage() {
                       }}
                     >
                       <strong>{item.label}</strong>
-                      <span>{item.needsPartner ? "두 사람의 흐름 리딩" : "나의 운명 흐름 리딩"}</span>
                     </button>
                   ))}
                 </div>
