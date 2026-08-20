@@ -27,7 +27,7 @@ export default function ShrineStage({
         position: "fixed",
         inset: 0,
         zIndex: 70,
-        background: "#0a0710",
+        background: "#0a0a0c",
         display: "flex",
         flexDirection: "column",
       }}

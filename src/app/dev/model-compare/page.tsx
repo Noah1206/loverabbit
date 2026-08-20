@@ -138,7 +138,10 @@ export default function ModelComparePage() {
     const started = performance.now();
     const win = window.open(`/reading/${id}`, "_blank");
     if (!win) {
-      setNotice("팝업이 막혔어요. 브라우저에서 이 사이트의 팝업을 허용하면 화면 시간까지 잴 수 있어요.");
+      // 팝업이 막혔으면 화면 시간은 포기하고 같은 탭에서 연다.
+      // 보는 것이 먼저고, 재는 것은 그다음이다.
+      setNotice("팝업이 막혀 같은 탭에서 열어요. 화면 시간을 재려면 팝업을 허용해주세요.");
+      window.location.href = `/reading/${id}`;
       return;
     }
     // .rv-body 는 장 본문이 실제로 그려졌을 때만 나온다. 로딩 화면에는 없다.
@@ -415,7 +418,7 @@ function Style() {
       .mc-wrap { position: fixed; inset: 0; overflow-y: auto; z-index: 9999;
         padding: 24px clamp(16px, 3vw, 40px) 80px;
         font: 14px/1.7 system-ui, -apple-system, "Segoe UI", sans-serif;
-        color: #e8e6f0; background: #0d0b14; }
+        color: #e8e6f0; background: #0a0a0c; }
       .mc-wrap > * { max-width: 1500px; margin-left: auto; margin-right: auto; }
       .mc-wrap h1 { font-size: 24px; margin: 0 0 4px; }
       .mc-wrap h2 { font-size: 17px; margin: 40px 0 8px; padding-top: 20px; border-top: 1px solid #2a2537; }
@@ -449,7 +452,7 @@ function Style() {
       .mc-select { margin-top: 12px; background: #1a1626; color: #e8e6f0; border: 1px solid #43395f;
         border-radius: 8px; padding: 8px 10px; font: inherit; max-width: 100%; }
       .mc-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-top: 14px; }
-      .mc-col { background: #14111f; border: 1px solid #241f34; border-radius: 12px; padding: 14px; }
+      .mc-col { background: #121215; border: 1px solid #26262c; border-radius: 12px; padding: 14px; }
       .mc-col p { margin: 0 0 10px; }
       .mc-summary { color: #cfc8e6; }
       .mc-watch { border-left: 2px solid #6b5aa8; padding-left: 10px; color: #a99ec7; font-size: 13px; }
