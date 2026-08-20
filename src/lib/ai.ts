@@ -69,7 +69,16 @@ async function callGemini(
       }),
     }
   );
-  if (!res.ok) throw new Error(`Gemini API ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    const detail = await res.text();
+    // Gemini 3.x 일부 모델은 thinkingConfig를 400으로 거절한다(필드 이름이 바뀌었다).
+    // 모델 하나 잘못 고른 것 때문에 리딩이 전부 죽지 않도록, 그 옵션만 빼고 한 번 더 시도한다.
+    if (res.status === 400 && !thinking && /thinking/i.test(detail)) {
+      console.warn(`Gemini ${model}이 thinkingConfig를 거절함 — 해당 옵션 없이 재시도`);
+      return callGemini(apiKey, system, messages, maxTokens, true, json);
+    }
+    throw new Error(`Gemini API ${res.status}: ${detail}`);
+  }
   const data = await res.json();
   const text = data?.candidates?.[0]?.content?.parts
     ?.map((p: { text?: string }) => p.text ?? "")
