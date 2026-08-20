@@ -11,7 +11,7 @@
 import type { StructuredReport } from "@/lib/reading-prompt";
 
 export interface GuardViolation {
-  kind: "단정" | "선넘음" | "구조" | "근거";
+  kind: "단정" | "선넘음" | "구조" | "근거" | "용어";
   /** 어디서 걸렸는지 — "sections[3].summary" */
   where: string;
   detail: string;
@@ -73,6 +73,46 @@ export interface GuardOptions {
   forbiddenClaims?: string[];
 }
 
+/**
+ * 본문에 쓰면 안 되는 구조 용어.
+ *
+ * 독자가 알 필요가 없고 전부 쉬운 말이 있는 것들이다. 프롬프트에 변환표를 줬지만,
+ * 지시만으로는 지켜지지 않는다는 것을 해요체에서 이미 봤다(51% -> 변환표 -> 0%).
+ * 여기서 세지 않으면 다시 돌아온다.
+ *
+ * 실측(gpt-5.6, 105문장): 용어 61회 중 이 목록이 33회를 차지했다.
+ */
+const STRUCTURE_TERMS = [
+  "일간", "일주", "일지", "월지", "연지", "시지", "월간", "연간",
+  "대운", "세운", "월운", "신강", "신약",
+  "비견", "겁재", "관성", "재성", "인성", "식상", "비겁",
+];
+
+/**
+ * 남겨도 되는 고유명 — 그 사람 명식에만 있는 이름.
+ * 지우면 일반 연애 조언과 구별되지 않는다. 다만 절당 1개까지, 첫 등장에 괄호 설명이
+ * 붙어야 한다.
+ */
+const NAMED_TERMS = [
+  "정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인",
+  "도화", "홍염", "역마", "화개", "양인", "원진",
+  "삼합", "육합", "천간합", "지지충",
+  "갑기합", "을경합", "병신합", "정임합", "무계합",
+  "자오충", "축미충", "인신충", "묘유충", "진술충", "사해충",
+  "목국", "화국", "금국", "수국",
+];
+
+/** 절당 허용하는 고유명 개수 */
+const NAMED_BUDGET = 1;
+
+/** 그 용어가 처음 나올 때 괄호 설명이 붙었는가 — "정임합(서로 끌어당기는 짝)" */
+function isGlossed(text: string, term: string): boolean {
+  const at = text.indexOf(term);
+  if (at < 0) return false;
+  const after = text.slice(at + term.length, at + term.length + 3);
+  return /^\s*\(/.test(after);
+}
+
 export function checkReport(report: StructuredReport, options: GuardOptions): GuardResult {
   const violations: GuardViolation[] = [];
   const add = (v: GuardViolation) => violations.push(v);
@@ -94,7 +134,37 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
         add({ kind: "단정", where, detail: `규칙이 금지한 주장 "${claim}"`, blocking: true });
       }
     }
+    // 구조 용어는 본문에 있으면 안 된다 — 쉬운 말로 쓸 수 있는 것들이다.
+    for (const term of STRUCTURE_TERMS) {
+      if (text.includes(term)) {
+        add({ kind: "용어", where, detail: `구조 용어 "${term}" — 쉬운 말로 바꿔야 한다`, blocking: false });
+      }
+    }
   }
+
+  // ── 용어: 고유명은 절당 예산 안에서, 반드시 괄호 설명과 함께 ──
+  report.sections.forEach((section, index) => {
+    const body = [section.summary, ...section.paragraphs, section.watchOut ?? ""].join(" ");
+    const used = NAMED_TERMS.filter((t) => body.includes(t));
+    for (const term of used) {
+      if (!isGlossed(body, term)) {
+        add({
+          kind: "용어",
+          where: `sections[${index}]`,
+          detail: `"${term}" 에 괄호 설명이 없다`,
+          blocking: false,
+        });
+      }
+    }
+    if (used.length > NAMED_BUDGET) {
+      add({
+        kind: "용어",
+        where: `sections[${index}]`,
+        detail: `고유명 ${used.length}개 (${used.join(", ")}) — 절당 ${NAMED_BUDGET}개까지`,
+        blocking: false,
+      });
+    }
+  });
 
   // ── 구조 ──
   if (options.expectedSections > 0 && report.sections.length !== options.expectedSections) {
