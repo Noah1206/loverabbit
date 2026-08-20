@@ -1557,7 +1557,8 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
-  padding-top: calc(60px + env(safe-area-inset-top));
+  /* 고정 상단바는 6px에서 시작해 54px에서 끝난다. 그 아래로 숨 쉴 자리를 둔다. */
+  padding-top: calc(74px + env(safe-area-inset-top));
 }
 
 .app-header {
@@ -4563,6 +4564,17 @@ label {
   display: flex;
   justify-content: flex-end;
   pointer-events: none;
+}
+
+/* 첫 화면에서는 접어 둔다 — 그 자리에 태그 필터가 온다 */
+.inquiry-fab-slot-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.inquiry-fab-slot {
+  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
 }
 
 .inquiry-fab {

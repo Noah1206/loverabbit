@@ -116,7 +116,7 @@ export default function AppHome() {
         </header>
 
         {/* ── 공지 배너 캐러셀 ── */}
-        <div style={{ padding: "10px 20px 2px" }}>
+        <div style={{ padding: "0 20px 10px" }}>
           <div
             style={{
               borderRadius: 14, padding: "11px 16px", textAlign: "center", cursor: "default",
@@ -145,8 +145,8 @@ export default function AppHome() {
         </div>
 
         {/* ── 신당 — 도령 캐릭터 챗 ── */}
-        <section style={{ padding: "16px 0 0" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 12px" }}>
+        <section style={{ padding: "30px 0 0" }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 16px" }}>
             <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
             <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령·신녀와 비밀 상담 — 로그인 후 무료 5번</span>
           </div>
@@ -179,7 +179,7 @@ export default function AppHome() {
         </section>
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
-        <section style={{ padding: "26px 20px 0" }}>
+        <section style={{ padding: "40px 20px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {([["all", "전체"], ["popular", "인기"], ["new", "신규"]] as const).map(([k, label]) => (
               <button key={k} className={`chip${filter === k ? " on" : ""}`} onClick={() => setFilter(k)}>{label}</button>
