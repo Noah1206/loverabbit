@@ -92,67 +92,38 @@ export function chaptersOf(outline: string[]): Batch[] {
   return batches;
 }
 
-const HEAD_SCHEMA = `{
-  "report_meta": {"title": "string", "headline": "string", "reading_time_min": 6, "disclaimer": "string", "confidence_note": "string"},
-  "summary_cards": [
-    {"label": "나의 중심", "value": "string", "detail": "string", "facts_used": ["string"]},
-    {"label": "관계의 결", "value": "string", "detail": "string", "facts_used": ["string"]},
-    {"label": "지금의 흐름", "value": "string", "detail": "string", "facts_used": ["string"]}
-  ],
-  "action_questions": [
-    {"question": "string", "why_it_matters": "string"},
-    {"question": "string", "why_it_matters": "string"},
-    {"question": "string", "why_it_matters": "string"}
-  ],
-  "character_note": {"character_id": "string", "name": "string", "message": "string"},
-  "next_step": {"label": "string", "description": "string", "recommended_focus": "relationship|work|timing"}
-}`;
+/** 목차 항목의 앞머리 번호만 남긴 짧은 목록 — 옆 조각과 겹치지 않게 하는 용도 */
+function outlineBrief(outline: string[], mine: string[]): string {
+  const owned = new Set(mine);
+  const others = outline.filter((item) => !owned.has(item));
+  if (others.length === 0) return "";
+  return `\n다른 조각이 맡은 항목(겹치게 쓰지 않기 위한 참고, 여기서 쓰지 않는다):\n${others.join(" / ")}\n`;
+}
 
 function headPrompt(inputJson: string, outline: string[]): string {
-  return `입력 JSON으로 러브레빗 사주 리포트의 **머리 부분만** 쓴다. 본문 섹션은 다른 곳에서 쓰므로 여기서는 만들지 않는다.
+  return `지시: 머리. 리포트 전체가 다룰 내용은 아래와 같고, 본문은 다른 조각이 쓴다.
+${outline.join(" / ")}
 
-리포트 전체가 다룰 목차(참고용, 여기서 쓰지는 않는다):
-${outline.map((item) => `- ${item}`).join("\n")}
-
-지켜야 할 것
-- summary_cards는 정확히 3개, label은 위 스키마의 것을 그대로 쓴다.
-- action_questions는 정확히 3개. 리포트 전체를 읽은 사람이 오늘 해볼 수 있는 것으로 쓴다.
-- headline 42~65자. 계산값에 근거한 판단을 담는다.
-- 모든 문장은 해요체.
-- 설명 없이 아래 JSON 객체 하나만 출력한다.
-
-${HEAD_SCHEMA}
-
-입력 JSON:
+입력:
 ${inputJson}`;
 }
 
 function chapterPrompt(inputJson: string, chapter: Batch, outline: string[]): string {
-  return `입력 JSON으로 러브레빗 사주 리포트의 **${chapter.label} 본문만** 쓴다.
-
-이 묶음이 맡은 항목은 정확히 ${chapter.items.length}개다. 순서대로 하나씩, 빠짐없이 쓴다.
-${chapter.items.map((item) => `- ${item}`).join("\n")}
-
-리포트 전체 목차(다른 장이 무엇을 다루는지 알고 겹치지 않게 쓰기 위한 참고):
-${outline.map((item) => `- ${item}`).join("\n")}
-
-지켜야 할 것
-- sections 배열의 길이는 정확히 ${chapter.items.length}개. 합치거나 건너뛰지 않는다.
-- title은 위 항목 문구를 앞머리 번호까지 그대로 옮겨 적는다.
-- summary는 280~420자. paragraphs는 2개, 각 100~180자.
-- facts_used는 "경로=값" 꼴로 적는다 (예: "strength.label=신약"). 경로만 적지 않는다.
-- 이 장에서 쓴 규칙은 rule_ids에 적는다.
-- 모든 문장은 해요체. '~합니다', '~입니다'로 끝내지 않는다.
-- 설명 없이 아래 JSON 객체 하나만 출력한다.
-
-{"sections": [{"id": "core", "nav_label": "string", "title": "string", "summary": "string", "paragraphs": ["string", "string"], "facts_used": ["string"], "rule_ids": ["string"], "watch_out": "string"}]}
-
-입력 JSON:
+  return `지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
+${chapter.items.map((item, i) => `${i + 1}. ${item}`).join("\n")}
+${outlineBrief(outline, chapter.items)}
+입력:
 ${inputJson}`;
 }
 
-/** 장 응답에서 섹션만 꺼낸다. 머리 스키마가 아니므로 파서를 직접 쓸 수 없다. */
-function parseSections(text: string): ReportSectionOut[] {
+/**
+ * 장 응답에서 섹션만 꺼낸다. 머리 스키마가 아니므로 파서를 직접 쓸 수 없다.
+ *
+ * 제목은 모델이 쓰지 않는다. 목차 문구를 그대로 옮겨 적게 하면 항목마다 25토큰씩
+ * 나가는데, 그건 서버가 이미 아는 값이다. 번호(n)만 받아 여기서 붙인다 —
+ * 값이 싸질 뿐 아니라 제목이 어긋날 여지 자체가 사라진다.
+ */
+function parseSections(text: string, items: string[]): ReportSectionOut[] {
   const attempts = [text.trim()];
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenced) attempts.push(fenced[1].trim());
@@ -169,15 +140,23 @@ function parseSections(text: string): ReportSectionOut[] {
     if (!Array.isArray(raw.sections)) continue;
     const strings = (value: unknown) =>
       Array.isArray(value) ? value.filter((v): v is string => typeof v === "string" && v.trim().length > 0) : [];
-    const sections = (raw.sections as Record<string, unknown>[])
-      .filter((section) => typeof section.title === "string" && section.title.trim())
-      .map((section) => ({
+    const rows = raw.sections as Record<string, unknown>[];
+    const sections = rows
+      .map((section, order) => {
+        // n이 오면 그 번호의 목차 문구를, 없거나 범위를 벗어나면 나온 순서대로 붙인다.
+        const n = typeof section.n === "number" ? section.n : Number(section.n);
+        const at = Number.isInteger(n) && n >= 1 && n <= items.length ? n - 1 : order;
+        // 옛 형식(title을 직접 쓰던 응답)도 그대로 받는다
+        const title = typeof section.title === "string" && section.title.trim() ? section.title : items[at];
+        return { section, title, at };
+      })
+      .filter((row): row is { section: Record<string, unknown>; title: string; at: number } => Boolean(row.title))
+      // 모델이 순서를 흩어 보내도 n이 제자리를 안다. n이 없었으면 at은 나온 순서라 그대로다.
+      .sort((x, y) => x.at - y.at)
+      .map(({ section, title }) => ({
         id: typeof section.id === "string" ? section.id : "core",
-        navLabel:
-          typeof section.nav_label === "string" && section.nav_label.trim()
-            ? section.nav_label
-            : (section.title as string),
-        title: section.title as string,
+        navLabel: typeof section.nav_label === "string" && section.nav_label.trim() ? section.nav_label : title,
+        title,
         summary: typeof section.summary === "string" ? section.summary : "",
         paragraphs: strings(section.paragraphs),
         factsUsed: strings(section.facts_used),
@@ -233,7 +212,7 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
   // 조각별 결과. 실패했거나 항목 수가 모자란 조각만 한 번 더 시킨다.
   // 한 번에 다 쓰던 시절에는 재시도가 리포트 전체를 다시 만드는 일이었지만,
   // 이제는 모자란 묶음 하나만 다시 받으면 된다.
-  const parsedByBatch = chapterTexts.map((text) => (text ? parseSections(text) : []));
+  const parsedByBatch = chapterTexts.map((text, i) => (text ? parseSections(text, chapters[i].items) : []));
 
   const needsRetry = chapters
     .map((chapter, index) => ({ chapter, index }))
@@ -241,19 +220,31 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
 
   if (needsRetry.length > 0) {
     const retried = await Promise.all(
-      needsRetry.map(({ chapter }) =>
-        run(
+      needsRetry.map(({ chapter, index }) => {
+        // 이미 받아둔 절은 다시 시키지 않는다. 제목이 겹치지 않는 항목만 다시 부른다.
+        const done = new Set(parsedByBatch[index].map((section) => section.title));
+        const missing = chapter.items.filter((item) => ![...done].some((title) => sameItem(title, item)));
+        const target: Batch = missing.length > 0 ? { label: chapter.label, items: missing } : chapter;
+        return run(
           `${chapter.label} 재시도`,
-          chapterPrompt(inputJson, chapter, input.outline),
-          chapterBudget(chapter.items.length)
-        )
-      )
+          chapterPrompt(inputJson, target, input.outline),
+          chapterBudget(target.items.length)
+        ).then((text) => ({ text, target }));
+      })
     );
-    retried.forEach((text, order) => {
+    retried.forEach(({ text, target }, order) => {
       const { index, chapter } = needsRetry[order];
-      const parsed = text ? parseSections(text) : [];
-      // 다시 받은 쪽이 더 채워졌을 때만 갈아 끼운다
-      if (parsed.length > parsedByBatch[index].length) parsedByBatch[index] = parsed;
+      const parsed = text ? parseSections(text, target.items) : [];
+      if (parsed.length > 0) {
+        parsedByBatch[index] =
+          target.items.length === chapter.items.length
+            ? // 통째로 다시 받은 경우 — 더 채워졌을 때만 갈아 끼운다
+              parsed.length > parsedByBatch[index].length
+              ? parsed
+              : parsedByBatch[index]
+            : // 빠진 것만 받은 경우 — 기존 절과 합치고 목차 순서로 다시 세운다
+              orderByOutline([...parsedByBatch[index], ...parsed], chapter.items);
+      }
       if (parsedByBatch[index].length < chapter.items.length) failedParts.push(chapter.label);
     });
   }
@@ -281,4 +272,31 @@ function injectDummySection(headText: string): string {
   } catch {
     return headText;
   }
+}
+
+/**
+ * 목차 항목과 절 제목이 같은 것을 가리키는지 본다.
+ * 모델이 앞머리 번호나 공백을 흘리는 일이 있어 글자만 비교한다.
+ */
+function sameItem(title: string, item: string): boolean {
+  const bare = (v: string) => v.replace(/\s+/g, "").replace(/^[0-9]+장?[0-9.)]*/, "");
+  return bare(title) === bare(item) || bare(title).includes(bare(item)) || bare(item).includes(bare(title));
+}
+
+/** 합쳐진 절을 목차 순서로 다시 세우고, 같은 항목이 둘이면 뒤엣것을 버린다. */
+function orderByOutline(sections: ReportSectionOut[], items: string[]): ReportSectionOut[] {
+  const picked: ReportSectionOut[] = [];
+  const used = new Set<number>();
+  for (const item of items) {
+    const at = sections.findIndex((section, i) => !used.has(i) && sameItem(section.title, item));
+    if (at >= 0) {
+      used.add(at);
+      picked.push(sections[at]);
+    }
+  }
+  // 어느 항목에도 붙지 않은 절은 뒤에 남겨 둔다 — 버리는 것보다 낫다
+  sections.forEach((section, i) => {
+    if (!used.has(i)) picked.push(section);
+  });
+  return picked;
 }

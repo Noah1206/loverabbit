@@ -80,7 +80,7 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - 사실에 기댄 문장을 쓸 때마다 그 섹션의 facts_used 배열에 근거를 남긴다.
   (예: "strength.label=신약", "elementBalance.수=0", "luckContext.yearly.tenGod=정인")
 - 시기를 말할 때는 반드시 luckContext(대운·세운·월운)에서 출발한다. 근거 없는 달을 지어내지 않는다.
-- 계산 노트(calculation_notes)에 시각 미상 같은 한계가 있으면 confidence_note에 반영한다.
+- saju_facts.limits에 시각 미상 같은 계산 한계가 적혀 있으면 confidence_note에 반영한다.
 
 # LIMITS
 - 의료·법률·재무는 판정하지 않는다. 진단명, 법적 판단, 투자·대출 지시를 쓰지 않는다.
@@ -88,16 +88,32 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - 불안이나 죄책감을 키워 결제를 재촉하지 않는다. 결제·서비스·화면을 언급하지 않는다.
 
 # OUTPUT CONTRACT
-- 반드시 지정 JSON 하나만 출력한다. JSON 밖에 설명 문장, 마크다운, 코드펜스를 덧붙이지 않는다.
-- **sections는 delivery.outline의 항목 수와 정확히 같아야 한다.** 목차가 12개면 섹션도 12개다.
-  하나도 합치거나 건너뛰지 않는다. 분량이 길어져도 끝까지 다 쓴다.
-- section.title은 delivery.outline의 문구를 앞머리(예: "1장 03.")까지 그대로 옮겨 적는다.
-- headline 42~65자, 각 section.summary는 **280자 이상** 650자 이하, section.paragraphs는 2~3개.
-  요약이 짧으면 리포트가 성립하지 않는다. 짧게 끝내지 말 것.
-- action_questions는 정확히 3개, character_note.message는 2문장 이하.
-- facts_used에는 saju_facts의 계산값만 적는다 (예: "strength.label=신약", "elementBalance.수=0").
-  어떤 규칙을 썼는지는 facts_used가 아니라 rule_ids에 적는다.
-- 모든 문장은 해요체로 쓴다. '~합니다', '~입니다'로 끝내지 않는다.`;
+- JSON 객체 하나만 출력한다. 코드펜스, 설명 문장, 마크다운을 덧붙이지 않는다.
+- 모든 문장은 해요체로 쓴다. '~합니다', '~입니다'로 끝내지 않는다.
+- facts_used에는 saju_facts의 계산값을 "경로=값" 꼴로 적는다
+  (예: "strength.label=신약", "elementBalance.수=0"). 경로만 적지 않는다.
+- 어떤 규칙을 썼는지는 facts_used가 아니라 rule_ids에 적는다.
+
+## 지시가 "머리"일 때
+{"report_meta":{"headline":"string","confidence_note":"string"},
+"summary_cards":[{"label":"나의 중심","value":"string","detail":"string","facts_used":["string"]},{"label":"관계의 결","value":"string","detail":"string","facts_used":["string"]},{"label":"지금의 흐름","value":"string","detail":"string","facts_used":["string"]}],
+"action_questions":[{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"}],
+"character_note":{"character_id":"string","name":"string","message":"string"},
+"next_step":{"label":"string","description":"string","recommended_focus":"relationship|work|timing"}}
+
+- summary_cards는 정확히 3개, label은 위의 것을 그대로 쓴다.
+- action_questions는 정확히 3개. 리포트를 다 읽은 사람이 오늘 해볼 수 있는 것으로 쓴다.
+- headline 42~65자. 계산값에 근거한 판단을 담는다.
+- character_note.message는 2문장 이하. sections는 만들지 않는다.
+
+## 지시가 "본문"일 때
+{"sections":[{"n":1,"summary":"string","paragraphs":["string","string"],"facts_used":["string"],"rule_ids":["string"],"watch_out":"string"}]}
+
+- sections 길이는 지시받은 항목 수와 정확히 같다. 합치거나 건너뛰지 않는다.
+- n은 지시에 붙은 항목 번호를 그대로 적는다. 제목은 다시 적지 않는다 — 서버가 붙인다.
+- summary는 280~420자. 짧게 끝내면 그 리포트는 폐기된다.
+- paragraphs는 2개, 각 100~180자.
+`;
 
 export interface ReadingInput {
   facts: SajuFacts;
@@ -113,97 +129,66 @@ export interface ReadingInput {
   now: Date;
 }
 
+/**
+ * 계산 결과에서 모델이 실제로 인용하는 것만 남긴다.
+ *
+ * 원본 SajuFacts를 그대로 실으면 한 리딩에 입력 6만 자가 나간다 — 조각마다
+ * 같은 명식을 다시 보내기 때문에 낭비가 조각 수만큼 곱해진다. 여기서 줄이는
+ * 한 글자는 요청 수만큼 줄어든다.
+ *
+ * 지우는 것: 들여쓰기, 매번 같은 계산 주석, 신살 유도 과정.
+ * 남기는 것: 근거로 인용될 수 있는 값 전부. facts_used의 경로가 바뀌지 않도록
+ * 키 이름은 그대로 둔다.
+ */
+function slimFacts(facts: SajuFacts) {
+  const pillar = (p: { stem: string; branch: string } | null) => (p ? `${p.stem}${p.branch}` : null);
+  return {
+    gender: facts.gender,
+    fourPillars: {
+      year: pillar(facts.fourPillars.year),
+      month: pillar(facts.fourPillars.month),
+      day: pillar(facts.fourPillars.day),
+      hour: pillar(facts.fourPillars.hour),
+    },
+    dayMaster: facts.dayMaster,
+    dayMasterElement: facts.dayMasterElement,
+    elementBalance: facts.elementBalance,
+    missingElements: facts.missingElements,
+    strength: facts.strength,
+    // 배열 7개를 자리별 한 줄로 접는다. "tenGods.일지" 경로는 그대로 살아 있다.
+    tenGods: Object.fromEntries(facts.tenGods.map((t) => [t.position, `${t.character} ${t.tenGod}`])),
+    dominantTenGods: facts.dominantTenGods,
+    notableRelations: facts.notableRelations.map((r) => r.label),
+    // basis(유도 과정)는 빼고 이름과 자리만 남긴다. 모델이 인용하는 것은 그 둘뿐이다.
+    shinsal: facts.shinsal.map((f) => `${f.name}=${f.positions.join(",")}`),
+    luckContext: facts.luckContext,
+    // 매번 같은 계산 주석(표준시·진태양시·절기)은 뺀다. confidence_note에 반영해야 할
+    // 한계(시각 미상, 음력 변환)만 남긴다.
+    limits: facts.calculationNotes.filter((n) => LIMIT_NOTE.test(n)),
+  };
+}
+
+/** confidence_note에 반영해야 할 한계만 골라내는 표시 */
+const LIMIT_NOTE = /(미상|모름|음력|추정|불명)/;
+
 /** 모델에 넘길 입력 JSON — 계산 결과와 사용자 맥락만 담는다 */
 export function buildReadingInput(input: ReadingInput): string {
   const payload = {
-    subject: {
-      birth_calendar: "solar",
-      birth_timezone: "Asia/Seoul",
-      privacy_mode: "alias_only",
-    },
-    saju_facts: input.facts,
-    partner_saju_facts: input.partnerFacts,
+    saju_facts: slimFacts(input.facts),
+    partner_saju_facts: input.partnerFacts ? slimFacts(input.partnerFacts) : null,
     matched_rules: rulesForPrompt(input.matchedRules),
     user_context: {
       focus: input.focus,
       current_scene: input.currentScene || null,
-      desired_depth: "full",
       today: `${input.now.getFullYear()}-${String(input.now.getMonth() + 1).padStart(2, "0")}`,
     },
     delivery: {
       report_type: input.productLabel,
-      outline: input.outline,
-      character: input.characterId,
       character_name: input.characterName,
-      tone: "calm_editorial",
     },
   };
-  return JSON.stringify(payload, null, 2);
-}
-
-export function buildReadingUserPrompt(inputJson: string, sectionCount = 0): string {
-  const countLine = sectionCount
-    ? `\n\n### 이번 리포트에서 절대 어기면 안 되는 것\nsections 배열의 길이는 정확히 ${sectionCount}개여야 해. ${sectionCount}개보다 적으면 그 리포트는 폐기돼.\ndelivery.outline의 ${sectionCount}개 항목을 순서대로 하나씩 전부 다뤄. 합치거나 건너뛰지 마.\n각 섹션의 summary는 280자 이상으로 써.
-action_questions는 정확히 3개를 쓴다. 1개나 2개로 끝내지 마.
-facts_used는 "경로=값" 꼴로 적는다 (예: "strength.label=신약"). 경로만 적지 마.`
-    : "";
-  return `입력 JSON을 사용해 report_type에 맞는 러브레빗 사주 리포트를 작성해.${countLine}
-
-우선순위는 다음과 같아.
-0. matched_rules 안에서만 해석하기 — 뼈대는 규칙, 살은 계산값
-1. 계산 데이터와 facts_used의 정합성
-2. 사용자의 current_scene에 대한 구체적인 답 — 시기와 결론을 분명히 짚는다
-3. delivery.outline의 순서와 개수를 그대로 따른 sections 구성
-4. 읽기 쉬운 문장과 해요체
-
-출력 JSON 스키마:
-{
-  "report_meta": {
-    "title": "string",
-    "headline": "string",
-    "reading_time_min": 3,
-    "disclaimer": "string",
-    "confidence_note": "string"
-  },
-  "summary_cards": [
-    {"label": "나의 중심", "value": "string", "detail": "string", "facts_used": ["string"]},
-    {"label": "관계의 결", "value": "string", "detail": "string", "facts_used": ["string"]},
-    {"label": "지금의 흐름", "value": "string", "detail": "string", "facts_used": ["string"]}
-  ],
-  "sections": [
-    {
-      "id": "core|relationship|work|timing",
-      "nav_label": "string",
-      "title": "string",
-      "summary": "string",
-      "paragraphs": ["string", "string"],
-      "facts_used": ["string"],
-      "rule_ids": ["string"],
-      "watch_out": "string"
-    }
-  ],
-  "action_questions": [
-    {"question": "string", "why_it_matters": "string"},
-    {"question": "string", "why_it_matters": "string"},
-    {"question": "string", "why_it_matters": "string"}
-  ],
-  "character_note": {
-    "character_id": "string",
-    "name": "string",
-    "message": "string"
-  },
-  "next_step": {
-    "label": "string",
-    "description": "string",
-    "recommended_focus": "relationship|work|timing"
-  }
-}
-
-sections는 delivery.outline의 각 항목마다 하나씩, 같은 순서로 만든다.
-title은 outline 문구를 앞머리 번호까지 그대로 옮겨 적는다.
-
-입력 JSON:
-${inputJson}`;
+  // 들여쓰기를 빼면 같은 내용이 3분의 2 크기가 된다. 모델은 압축 JSON도 그대로 읽는다.
+  return JSON.stringify(payload);
 }
 
 type RawSection = {
@@ -248,9 +233,11 @@ export function parseStructuredReport(text: string): StructuredReport | null {
 
     return {
       meta: {
+        // title과 reading_time_min은 화면 어디에도 쓰이지 않는다. 모델에게 시키지 않고
+        // 여기서 채운다 — 출력 토큰이 곧 비용이라, 안 읽는 글자를 사지 않는다.
         title: typeof meta.title === "string" ? meta.title : "",
         headline: typeof meta.headline === "string" ? meta.headline : "",
-        readingTimeMin: typeof meta.reading_time_min === "number" ? meta.reading_time_min : 3,
+        readingTimeMin: typeof meta.reading_time_min === "number" ? meta.reading_time_min : 6,
         disclaimer:
           typeof meta.disclaimer === "string" && meta.disclaimer.trim()
             ? meta.disclaimer
