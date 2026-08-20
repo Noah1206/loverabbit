@@ -129,20 +129,20 @@ function downloadShareImage(teaser: string) {
   const ctx = canvas.getContext("2d")!;
 
   const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#17121f");
-  bg.addColorStop(1, "#0d0a14");
+  bg.addColorStop(0, "#121215");
+  bg.addColorStop(1, "#0a0a0c");
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = "#2c2338";
+  ctx.strokeStyle = "#26262c";
   ctx.lineWidth = 4;
   ctx.strokeRect(40, 40, W - 80, H - 80);
 
   ctx.textAlign = "center";
-  ctx.fillStyle = "#ff3d7f";
+  ctx.fillStyle = "#f2f2f4";
   ctx.font = "bold 56px 'Malgun Gothic', sans-serif";
   ctx.fillText("🐰 러브레빗", W / 2, 180);
-  ctx.fillStyle = "#a99cbb";
+  ctx.fillStyle = "#a5a3ac";
   ctx.font = "32px 'Malgun Gothic', sans-serif";
   ctx.fillText("레빗 언니가 나한테 한 말", W / 2, 240);
 
@@ -175,7 +175,7 @@ function downloadShareImage(teaser: string) {
   ctx.fillStyle = "#e8b84b";
   ctx.font = "bold 36px 'Malgun Gothic', sans-serif";
   ctx.fillText("너도 궁금하면 → 러브레빗", W / 2, H - 160);
-  ctx.fillStyle = "#a99cbb";
+  ctx.fillStyle = "#a5a3ac";
   ctx.font = "28px 'Malgun Gothic', sans-serif";
   ctx.fillText("속궁합·연애운을 섬세하게 읽는 AI 사주", W / 2, H - 110);
 

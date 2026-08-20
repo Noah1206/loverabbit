@@ -120,14 +120,17 @@ export default function AppHome() {
           <div
             style={{
               borderRadius: 14, padding: "11px 16px", textAlign: "center", cursor: "default",
+              // 색으로 눈길을 끌던 자리다. 포인트를 무채색으로 바꾸면서, 배너도
+              // 한 단계 밝은 표면 + 얇은 테두리로 구분만 짓는다.
               background: dark
-                ? "linear-gradient(120deg, rgba(255,61,127,0.85), rgba(139,92,246,0.85))"
-                : "linear-gradient(120deg, rgba(255,140,180,0.95), rgba(185,157,248,0.95))",
-              boxShadow: dark ? "0 6px 28px rgba(255,61,127,0.25)" : "0 6px 24px rgba(255,140,180,0.35)",
+                ? "linear-gradient(120deg, #1b1b20, #131316)"
+                : "linear-gradient(120deg, #ffffff, #f2f2f4)",
+              border: dark ? "1px solid #2c2c33" : "1px solid #e2e2e6",
+              boxShadow: dark ? "0 6px 28px rgba(0,0,0,0.45)" : "0 6px 24px rgba(0,0,0,0.12)",
             }}
           >
-            <p style={{ fontWeight: 800, fontSize: "0.92rem", lineHeight: 1.35, color: "#fff" }}>{NOTICES[notice].text}</p>
-            <p style={{ fontSize: "0.75rem", lineHeight: 1.35, color: "rgba(255,255,255,0.88)" }}>{NOTICES[notice].sub}</p>
+            <p style={{ fontWeight: 800, fontSize: "0.92rem", lineHeight: 1.35, color: "var(--text)" }}>{NOTICES[notice].text}</p>
+            <p style={{ fontSize: "0.75rem", lineHeight: 1.35, color: "var(--text-dim)" }}>{NOTICES[notice].sub}</p>
             <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 6 }}>
               {NOTICES.map((_, i) => (
                 <button
