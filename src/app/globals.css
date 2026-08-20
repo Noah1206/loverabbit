@@ -1813,6 +1813,130 @@ label {
 
 /* 이 입력이 명식에서 무엇을 정하는지 짚어주는 한 줄. 제목이 아니라 곁말이라
    본문보다 작고 흐리게, 왼쪽에 얇은 선만 세운다. */
+/* ── 리딩 입력 전용 상단바 ────────────────────────────────────────────
+   홈의 .app-header와 달리 뒤로 가기 하나뿐이다. 입력 도중에 다른 곳으로
+   새는 길을 만들지 않는다. */
+.reading-flow-topbar {
+  margin: 0 0 14px;
+}
+
+.reading-flow-topbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 12px 0 6px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reading-flow-topbar button span {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text-dim);
+}
+
+.reading-flow-topbar button:hover span,
+.reading-flow-topbar button:focus-visible span {
+  color: var(--text);
+}
+
+/* ── 명식(원국) 표 ───────────────────────────────────────────────────
+   오행 색은 장식이 아니라 정보다. 만세력을 색으로 읽는 관습이 있어서,
+   무채색으로 칠하면 판이 읽히지 않는다. 배경 전체가 무채색인 화면에서
+   이 표만 색을 갖는 것은 그래서 의도한 것이다. */
+.sj-wrap {
+  margin: 0 0 20px;
+}
+
+.sj-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sj-head strong {
+  font-size: 0.95rem;
+}
+
+.sj-head span {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+.sj-grid {
+  display: grid;
+  gap: 7px;
+}
+
+.sj-row {
+  display: grid;
+  grid-template-columns: 30px repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  align-items: center;
+}
+
+.sj-axis {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.sj-col-head {
+  padding: 6px 0;
+  border-radius: 9px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.sj-cell {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 12px 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--sj-c, var(--line)) 34%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sj-c, var(--line)) 13%, transparent);
+}
+
+.sj-cell strong {
+  color: var(--sj-c, var(--text));
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sj-cell span {
+  color: color-mix(in srgb, var(--sj-c, var(--text-dim)) 70%, var(--text-dim));
+  font-size: 0.68rem;
+}
+
+/* 목=청 화=적 토=황 금=백 수=흑 을 어두운 화면에 맞게 옮긴 값 */
+.sj-wood { --sj-c: #55c47a; }
+.sj-fire { --sj-c: #e2564f; }
+.sj-earth { --sj-c: #d09b3f; }
+.sj-metal { --sj-c: #d8d8de; }
+.sj-water { --sj-c: #5b8fd6; }
+
+.sj-cell-empty {
+  --sj-c: var(--line);
+}
+
+.sj-cell-empty strong {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+}
+
 .reading-step-note {
   margin: 0 0 16px;
   padding-left: 11px;

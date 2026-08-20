@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,8 @@ import {
 } from "@/lib/reading-draft";
 import { getUser, type User } from "@/lib/user";
 import { hasLeapMonth, lunarToSolar } from "@/lib/lunar";
+import { computeSaju } from "@/lib/saju";
+import SajuChart from "@/components/SajuChart";
 import {
   captureReferralFromLocation,
   type PendingReferral,
@@ -487,6 +489,24 @@ export default function ReadingPage() {
     startGeneration(draft);
   };
 
+  // 확인 화면에 보여줄 내 명식. 서버가 리딩을 만들 때 쓰는 것과 같은 계산이다.
+  // 값이 아직 안 채워졌거나 없는 날짜면 null이 되어 표를 그리지 않는다.
+  const meChart = useMemo(() => {
+    if (step !== "ready") return null;
+    const solar = solarOf(me);
+    if (!solar) return null;
+    try {
+      return computeSaju({
+        year: solar.year,
+        month: solar.month,
+        day: solar.day,
+        hour: !me.hour || me.hour === "unknown" ? null : parseInt(me.hour, 10),
+      });
+    } catch {
+      return null;
+    }
+  }, [step, me]);
+
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
   const activeOffer = resolveAdOffer(category, offerId);
 
@@ -555,6 +575,16 @@ export default function ReadingPage() {
     : ["category", "meBirth", "meDetails", "concern", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
+  // 헤더의 < 버튼. 첫 단계에서는 흐름을 벗어나 홈으로 돌아간다.
+  const goBack = () => {
+    setError("");
+    if (workflowStepIndex <= 0) {
+      router.push("/");
+      return;
+    }
+    setStep(workflowSteps[workflowStepIndex - 1]);
+  };
+
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
   // 고민 단계도 머리글을 띄운다. 다른 입력 단계와 달리 무엇을 왜 적는지가
   // 컨트롤만 봐서는 드러나지 않는 자리다.
@@ -590,6 +620,15 @@ export default function ReadingPage() {
 
   return (
     <main className="container reading-flow-page">
+      {/* 이 흐름 전용 상단바. 홈의 .app-header와 달리 뒤로 가기 하나만 둔다 —
+          입력 중에 QR이나 로그인으로 새는 길을 만들지 않기 위해서다. */}
+      <header className="reading-flow-topbar">
+        <button type="button" onClick={goBack} aria-label={workflowStepIndex <= 0 ? "홈으로" : "이전 단계로"}>
+          <span aria-hidden>‹</span>
+          러브레빗
+        </button>
+      </header>
+
       {showIntroHeader && (
         <header className="reading-flow-header">
           {step === "concern" ? (
@@ -733,6 +772,13 @@ export default function ReadingPage() {
 
             {step === "ready" && selectedCategory && (
               <>
+                {meChart && (
+                  <SajuChart
+                    chart={meChart}
+                    name={user?.email?.split("@")[0]}
+                    birthLine={personSummary(me)}
+                  />
+                )}
                 <dl className="reading-summary">
                   <div>
                     <dt>리딩</dt>

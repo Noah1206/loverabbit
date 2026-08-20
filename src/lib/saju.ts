@@ -11,6 +11,10 @@ import { isAfterIpchun, monthOrderAt } from "./solar-terms";
 export const CHEONGAN = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"] as const;
 export const JIJI = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"] as const;
 
+/** 만세력 표기에 쓰는 한자. 순서는 CHEONGAN / JIJI 와 같다. */
+export const CHEONGAN_HANJA = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"] as const;
+export const JIJI_HANJA = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"] as const;
+
 export const CHEONGAN_OHAENG = ["목", "목", "화", "화", "토", "토", "금", "금", "수", "수"] as const;
 // 지지의 본기(本氣) 오행 — 자축인묘진사오미신유술해 순서
 export const JIJI_OHAENG = ["수", "토", "목", "목", "토", "화", "화", "토", "금", "금", "토", "수"] as const;
