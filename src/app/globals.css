@@ -1794,7 +1794,9 @@ label {
 }
 
 .reading-step-card {
-  padding: clamp(20px, 5vw, 28px);
+  /* 좌우 들여쓰기를 두지 않는다 — 테두리가 없어져 안쪽을 밀어넣을 이유가 사라졌고,
+     그만큼 항목이 넓어지면서 위 진행바·제목과 같은 20px 기준선에 맞는다. */
+  padding: clamp(20px, 5vw, 28px) 0;
   transform-origin: 50% 20%;
   animation: reading-step-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
