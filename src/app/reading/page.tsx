@@ -667,6 +667,9 @@ export default function ReadingPage() {
 
             {step === "meBirth" && (
               <>
+                <p className="reading-step-note">
+                  이 날짜에서 연·월·일 세 기둥이 나와요. 달은 절기로 갈려서, 월초에 태어났다면 하루 차이로 기둥이 바뀌기도 해요.
+                </p>
                 <CalendarToggle value={me} onChange={setMe} />
                 <BirthDateFields value={me} onChange={setMe} />
                 {visibleMeBirthError && (
@@ -677,6 +680,9 @@ export default function ReadingPage() {
 
             {step === "meDetails" && (
               <>
+                <p className="reading-step-note">
+                  태어난 시각이 네 번째 기둥이 되고, 성별은 태어난 해와 함께 대운이 흐르는 방향을 정해요. 시각을 모르면 세 기둥으로 읽고 그 사실을 결과에 밝혀둬요.
+                </p>
                 <PersonDetailsFields value={me} onChange={setMe} />
                 <label className="reading-partner-toggle">
                   <input
@@ -694,6 +700,9 @@ export default function ReadingPage() {
 
             {step === "partnerBirth" && (
               <>
+                <p className="reading-step-note">
+                  그 사람의 기둥도 같은 방식으로 세워요. 두 명식을 맞대야 합과 충이 보여요.
+                </p>
                 <CalendarToggle value={partner} onChange={setPartner} />
                 <BirthDateFields value={partner} onChange={setPartner} />
               </>
@@ -701,6 +710,9 @@ export default function ReadingPage() {
 
             {step === "partnerDetails" && (
               <>
+                <p className="reading-step-note">
+                  성별에 따라 배우자를 뜻하는 글자가 갈려요 — 여자는 관성, 남자는 재성으로 읽어요.
+                </p>
                 <PersonDetailsFields value={partner} onChange={setPartner} />
               </>
             )}

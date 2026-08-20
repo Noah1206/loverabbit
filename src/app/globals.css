@@ -1811,6 +1811,18 @@ label {
   box-shadow: none;
 }
 
+/* 이 입력이 명식에서 무엇을 정하는지 짚어주는 한 줄. 제목이 아니라 곁말이라
+   본문보다 작고 흐리게, 왼쪽에 얇은 선만 세운다. */
+.reading-step-note {
+  margin: 0 0 16px;
+  padding-left: 11px;
+  border-left: 2px solid color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
 .reading-step-card.reading-step-card--plain {
   padding: 6px 0 0;
 }
