@@ -626,13 +626,12 @@ export default function ReadingPage() {
           <section
             key={step}
             className={`reading-step-card${isDataEntryStep ? " reading-step-card--plain" : " card"}`}
-            aria-labelledby="reading-step-title"
+            // 카드 안에는 제목을 두지 않는다 — 바로 위 진행바가 단계 이름을 보여준다.
+            // 제목 요소가 없으므로 영역 이름은 여기서 직접 준다.
+            aria-label={READING_STEP_LABELS[step]}
           >
             {step === "category" && (
               <>
-                <p className="reading-step-kicker">STEP 1</p>
-                <h2 id="reading-step-title">어떤 걸 리딩할까요?</h2>
-                <p className="reading-step-description">지금 가장 궁금한 운명을 하나 선택해주세요.</p>
                 <div className="reading-category-grid">
                   {CATEGORIES.map((item) => (
                     <button
@@ -657,11 +656,6 @@ export default function ReadingPage() {
 
             {step === "meBirth" && (
               <>
-                <p className="reading-step-kicker">내 정보</p>
-                <h2 id="reading-step-title">내 생년월일을 입력해주세요</h2>
-                <p className="reading-step-description">
-                  양력이 기본이에요. 음력 생일만 안다면 위에서 음력으로 바꿔 입력하세요.
-                </p>
                 <CalendarToggle value={me} onChange={setMe} />
                 <BirthDateFields value={me} onChange={setMe} />
                 {visibleMeBirthError && (
@@ -672,9 +666,6 @@ export default function ReadingPage() {
 
             {step === "meDetails" && (
               <>
-                <p className="reading-step-kicker">내 정보</p>
-                <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
-                <p className="reading-step-description">태어난 시간을 모르면 ‘모름’을 선택해도 괜찮아요.</p>
                 <PersonDetailsFields value={me} onChange={setMe} />
                 <label className="reading-partner-toggle">
                   <input
@@ -692,9 +683,6 @@ export default function ReadingPage() {
 
             {step === "partnerBirth" && (
               <>
-                <p className="reading-step-kicker">그 사람 정보</p>
-                <h2 id="reading-step-title">그 사람의 생년월일을 입력해주세요</h2>
-                <p className="reading-step-description">정확히 모르는 정보는 확인한 뒤 입력하는 것이 좋아요.</p>
                 <CalendarToggle value={partner} onChange={setPartner} />
                 <BirthDateFields value={partner} onChange={setPartner} />
               </>
@@ -702,20 +690,12 @@ export default function ReadingPage() {
 
             {step === "partnerDetails" && (
               <>
-                <p className="reading-step-kicker">그 사람 정보</p>
-                <h2 id="reading-step-title">태어난 시각과 성별을 알려주세요</h2>
-                <p className="reading-step-description">그 사람의 태어난 시간을 모르면 ‘모름’을 선택해주세요.</p>
                 <PersonDetailsFields value={partner} onChange={setPartner} />
               </>
             )}
 
             {step === "concern" && (
               <>
-                <p className="reading-step-kicker">마지막 한 가지</p>
-                <h2 id="reading-step-title">지금 가장 답답한 게 뭔가요?</h2>
-                <p className="reading-step-description">
-                  한 줄만 적어두면 그 장면을 중심으로 풀어드려요. 건너뛰어도 괜찮아요.
-                </p>
                 <textarea
                   className="reading-concern-input"
                   value={question}
@@ -730,9 +710,6 @@ export default function ReadingPage() {
 
             {step === "ready" && selectedCategory && (
               <>
-                <p className="reading-step-kicker">입력 완료</p>
-                <h2 id="reading-step-title">무료 운명 미리보기를 준비했어요</h2>
-                <p className="reading-step-description">입력한 정보를 확인하고 무료로 결과를 열어보세요.</p>
                 <dl className="reading-summary">
                   <div>
                     <dt>리딩</dt>
