@@ -73,7 +73,8 @@ body {
   width: min(100%, var(--app-max-width));
   min-height: 100dvh;
   margin-inline: auto;
-  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  /* 탭바(66px)와 그 아래 여백(22px)을 비우고 20px 더 — 마지막 요소가 가리지 않게 */
+  padding-bottom: calc(108px + env(safe-area-inset-bottom));
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -3030,7 +3031,8 @@ label {
   --active-index: 0;
   --nav-count: 5;
   position: fixed;
-  bottom: calc(6px + env(safe-area-inset-bottom));
+  /* 페이지 CTA 바(.reading-fixed-action, .product-sticky-shell)와 같은 기준 */
+  bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
@@ -3167,7 +3169,7 @@ label {
 }
 
 .payment-pending-page {
-  min-height: calc(100dvh - 92px);
+  min-height: calc(100dvh - 108px);
   display: grid;
   place-items: center;
   padding-top: calc(28px + env(safe-area-inset-top));
@@ -3294,7 +3296,7 @@ label {
 }
 
 .admin-payments-page {
-  min-height: calc(100dvh - 92px);
+  min-height: calc(100dvh - 108px);
   padding-top: calc(28px + env(safe-area-inset-top));
   padding-bottom: 32px;
 }
@@ -4562,7 +4564,8 @@ label {
 /* 문의 버튼 — 하단 탭바(높이 66px, bottom 6px) 바로 위에 같은 폭으로 정렬한다 */
 .inquiry-fab-slot {
   position: fixed;
-  bottom: calc(82px + env(safe-area-inset-bottom));
+  /* 탭바 바로 위. 탭바가 올라간 만큼 같이 올린다 */
+  bottom: calc(98px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
