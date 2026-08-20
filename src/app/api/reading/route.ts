@@ -281,7 +281,10 @@ export async function POST(req: NextRequest) {
     // 한 번에 다 시키면 목차 10개짜리가 gpt-5.6에서 128초 걸린다 — 토큰이 순서대로
     // 나오기 때문이고, 그건 요청을 나눠 동시에 던지는 것 말고는 줄일 방법이 없다.
     const composed = await composeReport(readingInput, (system, user, budget) =>
-      chatComplete(system, [{ role: "user", content: user }], budget)
+      // thinking을 끄는 이유는 OpenAI에서 reasoning_effort를 낮게 두는 이유와 같다.
+      // 명리 계산은 이미 끝났고 여기서 하는 일은 문장 쓰기다. 게다가 Gemini는 생각
+      // 토큰도 maxOutputTokens에서 빼가므로, 켜두면 JSON이 중간에 잘려 조각이 날아간다.
+      chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true })
     );
 
     if (!composed.report) {
@@ -342,7 +345,7 @@ export async function POST(req: NextRequest) {
       id,
       // 무료 리딩부터 로그인한 사용자에게 귀속한다.
       userId: user.userId,
-      createdAt,
+      createdAt: new Date().toISOString(),
       category: body.category,
       teaser,
       full,
@@ -356,7 +359,6 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("리딩 저장 실패:", e);
     if (isDatabaseConfigured() || process.env.NODE_ENV === "production") {
-      scoreSeal,
       return NextResponse.json(
         { error: "리딩을 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 503 }

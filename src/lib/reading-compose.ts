@@ -58,6 +58,9 @@ interface Batch {
  * 동시 요청과 입력 토큰이 늘고 문맥이 더 잘게 끊긴다. 3이 그 사이의 타협점이고,
  * 배포에서 재보고 조정할 수 있게 환경변수로 뺀다.
  */
+/** 재시도 전에 쉬는 시간 — 속도 제한에 걸린 조각이 같은 벽에 다시 부딪히지 않게 한다 */
+const RETRY_DELAY_MS = 1200;
+
 function batchSize(): number {
   const raw = Number(process.env.READING_BATCH_SIZE);
   return Number.isInteger(raw) && raw >= 1 && raw <= 8 ? raw : 3;
@@ -219,6 +222,10 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
     .filter(({ chapter, index }) => parsedByBatch[index].length < chapter.items.length);
 
   if (needsRetry.length > 0) {
+    // 조각이 빈 이유가 속도 제한(429)이면 곧바로 다시 부르는 것은 같은 벽에 다시
+    // 부딪히는 일이다. Gemini 무료 티어처럼 분당 요청이 적은 곳에서 특히 그렇다.
+    // 한 박자 쉬고 부른다 — 어차피 이 경로는 이미 늦은 요청뿐이다.
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
     const retried = await Promise.all(
       needsRetry.map(({ chapter, index }) => {
         // 이미 받아둔 절은 다시 시키지 않는다. 제목이 겹치지 않는 항목만 다시 부른다.

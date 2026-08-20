@@ -19,12 +19,26 @@ async function callAnthropic(apiKey: string, system: string, messages: ChatMsg[]
     .join("");
 }
 
+/**
+ * 안전 등급 문턱.
+ *
+ * 속궁합·연애 기질처럼 친밀함을 다루는 상품이 있어, 성적 표현 기준이 조이면
+ * 응답이 통째로 비어 돌아온다(= 결제 가능한 상품 하나가 죽는다). 기본값은 그대로
+ * 두되 환경변수로 열어둔다 — 실제로 막히는지는 키를 꽂고 속궁합으로 재봐야 안다.
+ */
+function safetyThreshold(): string {
+  const raw = process.env.GEMINI_SAFETY_SEXUAL;
+  const allowed = ["BLOCK_NONE", "BLOCK_ONLY_HIGH", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_LOW_AND_ABOVE"];
+  return raw && allowed.includes(raw) ? raw : "BLOCK_MEDIUM_AND_ABOVE";
+}
+
 async function callGemini(
   apiKey: string,
   system: string,
   messages: ChatMsg[],
   maxTokens: number,
-  thinking: boolean
+  thinking: boolean,
+  json: boolean
 ): Promise<string> {
   const model = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
   const res = await fetch(
@@ -43,10 +57,13 @@ async function callGemini(
           // Gemini 2.5는 '생각' 토큰도 maxOutputTokens에서 쓴다. 캐릭터 대화처럼
           // 추론이 필요 없는 호출에서 이걸 켜두면 답이 문장 중간에 잘린다.
           ...(thinking ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
+          // JSON을 받기로 한 호출은 형식을 모델 쪽에서 강제한다. 앞뒤에 설명이나
+          // 코드펜스가 붙어 나오면 조각 하나가 통째로 날아간다.
+          ...(json ? { responseMimeType: "application/json" } : {}),
         },
         // 관계 상담이 자극적인 방향으로 흐르지 않도록 표현 안전 기준을 적용한다.
         safetySettings: [
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: safetyThreshold() },
           { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
         ],
       }),
@@ -57,7 +74,20 @@ async function callGemini(
   const text = data?.candidates?.[0]?.content?.parts
     ?.map((p: { text?: string }) => p.text ?? "")
     .join("");
-  if (!text) throw new Error("Gemini 응답이 비어 있음 (안전 필터 차단 가능)");
+  if (!text) {
+    // 왜 비었는지를 남긴다. 안전 필터 차단과 토큰 소진은 대응이 전혀 다른데,
+    // "응답이 비어 있음"만 찍히면 로그를 봐도 어느 쪽인지 알 수 없다.
+    const blocked = data?.promptFeedback?.blockReason;
+    const finish = data?.candidates?.[0]?.finishReason;
+    const ratings = data?.candidates?.[0]?.safetyRatings
+      ?.filter((r: { blocked?: boolean }) => r.blocked)
+      ?.map((r: { category?: string }) => r.category)
+      ?.join(",");
+    throw new Error(
+      `Gemini 응답이 비어 있음 (blockReason=${blocked ?? "none"} finishReason=${finish ?? "none"}` +
+        `${ratings ? ` blocked=${ratings}` : ""})`
+    );
+  }
   return text;
 }
 
@@ -115,14 +145,15 @@ export async function chatComplete(
   system: string,
   messages: ChatMsg[],
   maxTokens = 3000,
-  options: { thinking?: boolean } = {}
+  options: { thinking?: boolean; json?: boolean } = {}
 ): Promise<{ text: string; provider: string } | null> {
   const thinking = options.thinking !== false;
+  const json = options.json === true;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
   if (ANTHROPIC_API_KEY)
     return { text: await callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens), provider: "anthropic" };
   if (GEMINI_API_KEY)
-    return { text: await callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking), provider: "gemini" };
+    return { text: await callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json), provider: "gemini" };
   if (OPENAI_API_KEY)
     return { text: await callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens), provider: "openai-compat" };
   return null;
