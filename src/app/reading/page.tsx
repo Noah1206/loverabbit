@@ -556,7 +556,10 @@ export default function ReadingPage() {
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   const showFixedAction = categorySelectionMode !== "loading" && (step !== "category" || hasChosenCategory);
-  const showIntroHeader = categorySelectionMode === "loading" || step === "category";
+  // 고민 단계도 머리글을 띄운다. 다른 입력 단계와 달리 무엇을 왜 적는지가
+  // 컨트롤만 봐서는 드러나지 않는 자리다.
+  const showIntroHeader =
+    categorySelectionMode === "loading" || step === "category" || step === "concern";
   const isDataEntryStep = step === "meBirth"
     || step === "meDetails"
     || step === "partnerBirth"
@@ -589,12 +592,21 @@ export default function ReadingPage() {
     <main className="container reading-flow-page">
       {showIntroHeader && (
         <header className="reading-flow-header">
-          <h1>어떤 운명을 읽어볼까요?</h1>
-          <p>
-            {activeOffer
-              ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
-              : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
-          </p>
+          {step === "concern" ? (
+            <>
+              <h1>당신의 속마음을 말해주세요.</h1>
+              <p>자세하면 자세할 수록 좋아요!</p>
+            </>
+          ) : (
+            <>
+              <h1>어떤 운명을 읽어볼까요?</h1>
+              <p>
+                {activeOffer
+                  ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
+                  : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
+              </p>
+            </>
+          )}
         </header>
       )}
 
