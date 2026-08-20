@@ -1799,6 +1799,13 @@ label {
   animation: reading-step-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* 이 카드에는 테두리를 두지 않는다. 안쪽 항목들이 이미 각자 상자를 갖고 있어서
+   바깥에 선이 하나 더 있으면 상자 안의 상자가 된다. (.card는 다른 곳에서 쓰므로 그대로) */
+.reading-step-card.card {
+  border-color: transparent;
+  box-shadow: none;
+}
+
 .reading-step-card.reading-step-card--plain {
   padding: 6px 0 0;
 }
@@ -1810,6 +1817,13 @@ label {
   max-height: 340px;
   padding: 2px;
   overflow-y: auto;
+  /* 목록은 계속 스크롤되지만 막대는 그리지 않는다 (.shrine-scroll과 같은 처리) */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.reading-category-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .reading-category-option {
@@ -2054,10 +2068,12 @@ label {
   width: 100%;
   height: 100%;
   border-radius: 19px;
-  background-color: #ff3d7f;
+  background-color: #ffffff;
   background-image: none;
+  border-color: transparent;
+  color: #0a0a0c;
   font-size: 1rem;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 26%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   transition:
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 440ms ease,
@@ -2067,22 +2083,23 @@ label {
 
 .reading-fixed-action .btn:hover,
 .reading-fixed-action .btn:focus-visible {
-  background-color: #ff4d87;
+  background-color: #f1f1f3;
   background-image: none;
-  box-shadow: 0 12px 30px rgba(255, 61, 127, 0.34);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
 
 .reading-fixed-action .btn:focus-visible {
-  outline: 3px solid rgba(255, 255, 255, 0.78);
+  /* 버튼이 흰색이 됐으므로 흰 테두리는 보이지 않는다 */
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
 .reading-fixed-action .btn:active {
   transform: scale(0.975);
-  background-color: #d92868;
+  background-color: #dededf;
   background-image: none;
-  box-shadow: 0 5px 16px rgba(255, 61, 127, 0.32);
-  filter: saturate(1.12) brightness(0.96);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.4);
+  filter: none;
 }
 
 .reading-fixed-action .btn:disabled {
