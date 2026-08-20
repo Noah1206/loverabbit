@@ -847,7 +847,8 @@ label {
   max-width: 640px;
   min-height: 100dvh;
   margin: 0 auto;
-  padding-bottom: calc(152px + env(safe-area-inset-bottom));
+  /* 고정 CTA 바(128px) + 바닥 여백(22px)보다 넉넉해야 마지막 문단이 가리지 않는다 */
+  padding-bottom: calc(166px + env(safe-area-inset-bottom));
   overflow: clip;
   background:
     radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--product-c1, #cf3cff) 8%, transparent), transparent 38%),
@@ -1145,7 +1146,8 @@ label {
 .product-sticky-shell {
   position: fixed;
   z-index: 55;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  /* 리딩 CTA와 같은 기준. 이 페이지에도 탭바가 없어 이 바가 마지막 요소다. */
+  bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100% - 18px), 622px);
   /* 상단 후킹 문구(pill)와 CTA 버튼이 겹치지 않도록 pill 높이 + 여백만큼 위쪽을 비워둔다 */
@@ -2054,7 +2056,8 @@ label {
 .reading-fixed-action {
   position: fixed;
   z-index: 60;
-  bottom: calc(6px + env(safe-area-inset-bottom));
+  /* 화면 바닥에 붙어 보이지 않게 띄운다. 이 페이지에는 탭바가 없어 이 바가 마지막 요소다. */
+  bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
   height: 66px;
