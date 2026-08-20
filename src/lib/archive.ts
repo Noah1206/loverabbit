@@ -27,7 +27,19 @@ export interface ArchiveEntry {
   /** 지수가 어느 구간인지 — 상품 meterLabels의 문구 */
   scoreBand?: string | null;
   /** 그 지수가 어디서 나왔는지. 해금 후에만 채워진다. */
-  scoreFactors?: { label: string; delta: number; basis: string }[];
+  scoreFactors?: { label: string; delta: number; basis: string; timeVarying?: boolean }[];
+  /**
+   * 그 지수를 낼 때 열려 있던 운. 지수는 대운·세운을 보므로 해가 바뀌면 값이
+   * 달라지는데, 이 리딩의 숫자는 발급 시점에 봉인돼 그대로다. 그 사실을 화면에
+   * 밝히기 위한 정보다. 서버가 봉인에서 꺼내 내려준다.
+   */
+  scoreAsOf?: {
+    subject: "me" | "partner";
+    majorLuck: { pillar: string; range: string; tenGod: string } | null;
+    yearly: { year: number; pillar: string; tenGod: string };
+    monthly: { month: number; pillar: string; tenGod: string };
+    issuedAt: string;
+  } | null;
   /** 구조화 리포트 원본 — 근거와 주의점이 여기에 남는다. 해금 후에만 채워진다. */
   report?: StructuredReport | null;
   demo?: boolean;

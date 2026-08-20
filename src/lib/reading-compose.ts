@@ -43,7 +43,10 @@ export interface PartTiming {
 }
 
 export interface ComposeResult {
+  /** 머리를 만든 경우에만 채워진다. 이어 만들기(composeRest)에서는 항상 null이다. */
   report: StructuredReport | null;
+  /** 이번 호출이 만든 절. 이어 만들 때는 이것만 쓴다. */
+  sections: ReportSectionOut[];
   provider: string;
   /** 생성기가 붙어 있는데도 실패한 조각들 */
   failedParts: string[];
@@ -78,6 +81,24 @@ interface Batch {
  */
 /** 재시도 전에 쉬는 시간 — 속도 제한에 걸린 조각이 같은 벽에 다시 부딪히지 않게 한다 */
 const RETRY_DELAY_MS = 1200;
+
+/**
+ * 결제 전 화면이 실제로 보여주는 절 수 (/api/reading의 preview).
+ * 첫 절은 읽히고 둘째 절은 흐려지며 끊긴다. 그 뒤는 제목만 목차에 남으므로
+ * 결제 전에 만들 이유가 없다.
+ */
+export const PREVIEW_SECTIONS = 2;
+
+/** 미리보기 절 수를 채우는 데 필요한 묶음 수 */
+export function previewBatchCount(outline: string[]): number {
+  const batches = chaptersOf(outline);
+  let items = 0;
+  for (let i = 0; i < batches.length; i += 1) {
+    items += batches[i].items.length;
+    if (items >= PREVIEW_SECTIONS) return i + 1;
+  }
+  return batches.length;
+}
 
 function batchSize(): number {
   const raw = Number(process.env.READING_BATCH_SIZE);
@@ -194,13 +215,45 @@ function chapterBudget(items: number): number {
   return 1200 + items * 1200;
 }
 
+export interface ComposeOptions {
+  /** 앞에서 몇 묶음까지만 만들지. 생략하면 전부. 미리보기는 previewBatchCount()를 쓴다. */
+  batchLimit?: number;
+  /**
+   * 이미 만들어 둔 절 수. 그 절을 맡았던 묶음은 건너뛰고 그다음부터 만든다.
+   * 머리도 발급 때 이미 만들었으므로 다시 만들지 않는다.
+   */
+  doneSections?: number;
+}
+
 /**
  * 머리 1개 + 장 N개를 동시에 던지고 하나로 합친다.
  * 벽시계 시간은 "가장 느린 조각 하나"에 수렴한다.
+ *
+ * 결제 전에는 미리보기에 필요한 묶음까지만 만들고(batchLimit), 나머지는 결제가
+ * 확인된 뒤에 이어 만든다(doneSections). 결제하지 않는 사람의 유료 본문을
+ * 만들지 않기 위해서다.
  */
-export async function composeReport(input: ReadingInput, complete: Complete): Promise<ComposeResult> {
+export async function composeReport(
+  input: ReadingInput,
+  complete: Complete,
+  options: ComposeOptions = {}
+): Promise<ComposeResult> {
   const inputJson = buildReadingInput(input);
-  const chapters = chaptersOf(input.outline);
+  const all = chaptersOf(input.outline);
+
+  // 이미 만든 절을 맡았던 묶음은 건너뛴다. 항목 수로 세므로 묶음 크기가 바뀌어도 안전하다.
+  let skipBatches = 0;
+  if (options.doneSections && options.doneSections > 0) {
+    let counted = 0;
+    while (skipBatches < all.length && counted < options.doneSections) {
+      counted += all[skipBatches].items.length;
+      skipBatches += 1;
+    }
+  }
+  const resuming = skipBatches > 0;
+  const chapters = all
+    .slice(skipBatches)
+    .slice(0, options.batchLimit === undefined ? undefined : options.batchLimit);
   const failedParts: string[] = [];
   let provider = "";
   let model = "";
@@ -224,18 +277,19 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
     }
   };
 
-  const [headText, ...chapterTexts] = await Promise.all([
-    run("head", headPrompt(inputJson, input.outline), 2600),
-    ...chapters.map((chapter) =>
-      run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
-    ),
-  ]);
+  const batchCalls = chapters.map((chapter) =>
+    run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
+  );
+  // 이어 만들 때는 머리가 이미 있다. 다시 만들면 헤드라인과 요약 카드가 바뀌어,
+  // 결제 전에 본 화면과 결제 후에 보는 화면이 달라진다.
+  const headCall = resuming ? Promise.resolve(null) : run("head", headPrompt(inputJson, input.outline), 2600);
+  const [headText, ...chapterTexts] = await Promise.all([headCall, ...batchCalls]);
 
-  // 머리가 없으면 리포트가 성립하지 않는다.
+  // 머리가 없으면 리포트가 성립하지 않는다 (이어 만들기는 애초에 머리를 안 만든다).
   const head = headText ? parseStructuredReport(injectDummySection(headText)) : null;
-  if (!head) {
+  if (!resuming && !head) {
     failedParts.push("head");
-    return { report: null, provider, failedParts, model, timings, usage: sumUsage(usages), requestCount: timings.length, retryCount: 0 };
+    return { report: null, sections: [], provider, failedParts, model, timings, usage: sumUsage(usages), requestCount: timings.length, retryCount: 0 };
   }
 
   // 조각별 결과. 실패했거나 항목 수가 모자란 조각만 한 번 더 시킨다.
@@ -283,8 +337,10 @@ export async function composeReport(input: ReadingInput, complete: Complete): Pr
     });
   }
 
+  const sections = parsedByBatch.flat();
   return {
-    report: { ...head, sections: parsedByBatch.flat() },
+    report: head ? { ...head, sections } : null,
+    sections,
     provider,
     failedParts,
     model,

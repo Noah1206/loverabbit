@@ -138,6 +138,14 @@ export interface ScoreFactorView {
   label: string;
   delta: number;
   basis: string;
+  /** 운에서 온 인자 — 발급 이후 해가 바뀌면 달라졌을 자리 */
+  timeVarying?: boolean;
+}
+
+export interface ScoreAsOfView {
+  majorLuck: { pillar: string; range: string; tenGod: string } | null;
+  yearly: { year: number; pillar: string; tenGod: string };
+  issuedAt: string;
 }
 
 /** 명식 카드 — 스크린샷의 "약한 부위 / 주의 시기" 판때기에 해당하는 자리 */
@@ -190,12 +198,22 @@ export function ScoreBreakdown({
   scoreLabel,
   score,
   factors,
+  asOf,
 }: {
   scoreLabel?: string | null;
   score?: number | null;
   factors: ScoreFactorView[];
+  asOf?: ScoreAsOfView | null;
 }) {
   if (typeof score !== "number" || factors.length === 0) return null;
+  // 운에서 온 인자가 섞여 있으면 이 숫자는 "그때의" 값이다. 봉인돼 있으니 지금도
+  // 같은 숫자지만, 왜 고정인지는 밝혀둔다.
+  const timeBound = factors.some((factor) => factor.timeVarying);
+  const issued = asOf?.issuedAt ? new Date(asOf.issuedAt) : null;
+  const issuedText =
+    issued && !Number.isNaN(issued.getTime())
+      ? `${issued.getFullYear()}년 ${issued.getMonth() + 1}월 ${issued.getDate()}일`
+      : null;
   return (
     <section className="rv-score">
       <h2>
@@ -209,12 +227,24 @@ export function ScoreBreakdown({
               {factor.delta}
             </b>
             <span>
-              <strong>{factor.label}</strong>
+              <strong>
+                {factor.label}
+                {factor.timeVarying ? <em className="rv-score-luck">운</em> : null}
+              </strong>
               <small>{factor.basis}</small>
             </span>
           </li>
         ))}
       </ul>
+      {timeBound && asOf ? (
+        <p className="rv-score-asof">
+          <b>운</b> 표시가 붙은 자리는 그때 열려 있던 운이에요.{" "}
+          {asOf.majorLuck ? `대운 ${asOf.majorLuck.pillar}(${asOf.majorLuck.range}), ` : ""}
+          {asOf.yearly.year}년 {asOf.yearly.pillar} 세운을 보고 낸 값이라, 해가 바뀌면 다시 계산했을 때
+          숫자가 달라져요. 이 리딩의 {scoreLabel ?? "지수"}는 {issuedText ? `${issuedText} ` : ""}발급 시점에
+          봉인돼서 앞으로도 {score}점 그대로예요.
+        </p>
+      ) : null}
     </section>
   );
 }

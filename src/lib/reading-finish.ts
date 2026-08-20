@@ -1,0 +1,146 @@
+// 결제가 확인된 뒤에 유료 본문을 마저 만든다.
+//
+// 발급(/api/reading)은 미리보기에 필요한 절까지만 만든다. 결제하지 않는 사람의
+// 유료 본문을 만드느라 돈을 태우지 않기 위해서다. 그 나머지를 여기서 잇는다.
+//
+// 순서가 중요하다: 권리 확정(결제 검증 + markUnlocked) -> 생성 -> 저장.
+// 생성이 먼저면 돈을 받기 전에 만들게 되고, 저장이 먼저면 반쪽을 판 것이 된다.
+// 생성이 실패해도 리딩은 해금 상태로 남으므로, 다시 열면 이 함수가 한 번 더 시도한다.
+
+import { chatComplete } from "@/lib/ai";
+import { PRODUCT_MAP } from "@/lib/products";
+import { composeReport, type Complete } from "@/lib/reading-compose";
+import { READING_RULES, forbiddenFromRules } from "@/lib/reading-rules";
+import { reportToText, type StructuredReport } from "@/lib/reading-prompt";
+import { checkReport } from "@/lib/reading-guard";
+import { clearResume, loadResume } from "@/lib/reading-resume";
+import { getReading, saveReading, type StoredReading } from "@/lib/store";
+
+export interface FinishResult {
+  full: string;
+  report: StructuredReport | null;
+  /** 본문을 아직 다 못 만들었다. 호출부는 이걸로 503을 낸다. */
+  incomplete: boolean;
+  /** 이번 호출이 실제로 나머지를 만들었는가 (로그·계측용) */
+  generated: boolean;
+}
+
+/**
+ * 리딩을 완성해서 돌려준다.
+ *
+ * 이미 다 만들어져 있거나(재조회), 재개 정보가 없는 옛 리딩이면 저장된 것을 그대로 쓴다.
+ * 모자랄 때만 나머지를 만들고, 성공하면 전문을 DB에 써서 다음부터는 만들지 않게 한다.
+ */
+export async function finishReading(params: {
+  readingId: string;
+  stored: StoredReading | null;
+  /** 발급 때 봉인해 둔 부분 리포트 (클라이언트 blob에서 나온다) */
+  partialReport: StructuredReport | null;
+  storedFull: string;
+  /** 모델 호출부 — 검증에서 갈아끼우기 위한 자리. 생략하면 실제 생성기를 쓴다. */
+  complete?: Complete;
+}): Promise<FinishResult> {
+  const { readingId, stored, partialReport, storedFull } = params;
+  const complete: Complete =
+    params.complete ??
+    ((system, user, budget) =>
+      chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true }));
+
+  const category = stored?.category ?? "";
+  const outline = PRODUCT_MAP[category]?.toc ?? [];
+  const done = partialReport?.sections.length ?? 0;
+
+  // 목차를 모르거나(옛 상품) 이미 다 있으면 손대지 않는다.
+  if (outline.length === 0 || (partialReport && done >= outline.length)) {
+    return { full: storedFull, report: partialReport, incomplete: false, generated: false };
+  }
+
+  let resume;
+  try {
+    resume = await loadResume(readingId);
+  } catch (error) {
+    console.error("재개 정보 조회 실패:", error);
+    return { full: storedFull, report: partialReport, incomplete: true, generated: false };
+  }
+
+  // 재개 정보가 없다 = 미뤄 생성 이전에 발급된 리딩. 그때는 전문을 다 만들어 저장했다.
+  if (!resume) {
+    return { full: storedFull, report: partialReport, incomplete: false, generated: false };
+  }
+
+  // 머리는 발급 때 만든 것을 그대로 쓴다. 없으면 이어 붙일 곳이 없다.
+  if (!partialReport) {
+    console.error(`리딩 ${readingId}: 재개 정보는 있는데 부분 리포트가 없어 이어 만들 수 없음`);
+    return { full: storedFull, report: null, incomplete: true, generated: false };
+  }
+
+  // 발급 시점에 켜졌던 규칙을 그대로 복원한다. 그 사이 규칙 표현을 고쳤더라도
+  // 산 사람이 산 리딩은 발급 때의 해석으로 이어져야 한다.
+  const byId = new Map(READING_RULES.map((rule) => [rule.id, rule]));
+  const matchedRules = resume.ruleIds.map((id) => byId.get(id)).filter((rule) => rule !== undefined);
+
+  const rest = await composeReport(
+    {
+      facts: resume.facts,
+      partnerFacts: resume.partnerFacts,
+      matchedRules,
+      productLabel: PRODUCT_MAP[category]?.promptLabel ?? category,
+      outline,
+      focus: resume.partnerFacts ? "relationship" : "self",
+      currentScene: resume.currentScene,
+      characterId: null,
+      characterName: null,
+      // 대운·세운은 발급 시점 기준이어야 앞 절과 뒷 절이 같은 해를 말한다
+      now: new Date(resume.issuedAt),
+    },
+    complete,
+    { doneSections: done }
+  );
+
+  const sections = [...partialReport.sections, ...rest.sections];
+  const report: StructuredReport = { ...partialReport, sections };
+  const { full } = reportToText(report);
+
+  if (sections.length < outline.length) {
+    console.error(
+      `리딩 ${readingId} 본문 미완성: ${sections.length}/${outline.length} (실패 조각: ${rest.failedParts.join(", ") || "불명"})`
+    );
+    // 만들어진 것까지는 저장해 둔다. 다음 시도는 그만큼을 건너뛴다.
+    if (sections.length > done) await persist(stored, full);
+    return { full, report, incomplete: true, generated: true };
+  }
+
+  // 여기서부터는 표현 문제만 남는다. 팔 수 없는 수준은 위에서 걸렀다.
+  const guard = checkReport(report, {
+    expectedSections: outline.length,
+    forbiddenClaims: forbiddenFromRules(matchedRules),
+  });
+  const blocking = guard.violations.filter((v) => v.blocking);
+  if (blocking.length > 0) {
+    console.warn(`리딩 ${readingId} 출고 검사 위반:`, blocking.map((v) => `${v.where} ${v.detail}`).join(" / "));
+  }
+
+  await persist(stored, full);
+  await clearResume(readingId);
+  return { full, report, incomplete: false, generated: true };
+}
+
+/**
+ * 완성된 전문을 DB에 쓴다. 이 뒤로는 재개 정보 없이도 전문을 돌려줄 수 있다.
+ *
+ * 반드시 지금 저장된 것을 다시 읽어 그 위에 얹는다. 호출부(/api/unlock)가 들고 있는
+ * stored는 결제 처리 *전*에 읽은 것이라, 그대로 upsert하면 방금 해금한 리딩이
+ * unlocked=false로 되돌아가고 결제 기록이 지워진다.
+ *
+ * 저장에 실패해도 이번 응답은 내보낸다 — 사용자는 이미 돈을 냈고, 글은 손에 있다.
+ * 저장이 안 됐으면 다음 조회에서 다시 만들게 되므로 잃는 것은 비용뿐이다.
+ */
+async function persist(stored: StoredReading | null, full: string): Promise<void> {
+  if (!stored) return;
+  try {
+    const current = (await getReading(stored.id)) ?? stored;
+    await saveReading({ ...current, full });
+  } catch (error) {
+    console.error("완성된 리딩 저장 실패:", error);
+  }
+}

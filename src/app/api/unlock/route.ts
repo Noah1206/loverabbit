@@ -9,6 +9,7 @@ import {
   isDatabaseConfigured,
 } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
+import { finishReading } from "@/lib/reading-finish";
 
 // 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
@@ -74,6 +75,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
   }
 
+  /**
+   * 권리가 확정된 뒤에 부르는 마무리.
+   *
+   * 유료 본문은 결제 전에 만들지 않는다(발급 때는 미리보기 몫만 만든다). 여기서
+   * 나머지를 이어 만들고 전문을 DB에 쓴다. 이미 다 있거나 옛 리딩이면 그냥 지나간다.
+   *
+   * 실패하면 503을 내되 해금 상태는 그대로 둔다 — 다시 열면 "이미 해금됨" 경로로
+   * 들어와 여기서 한 번 더 시도한다. 돈만 받고 끝나지 않게 하는 지점이다.
+   */
+  const deliver = async (extra: Record<string, unknown> = {}) => {
+    let finished;
+    try {
+      finished = await finishReading({
+        readingId: body.readingId,
+        stored,
+        partialReport: report,
+        storedFull: full,
+      });
+    } catch (error) {
+      console.error("리딩 완성 실패:", error);
+      finished = null;
+    }
+    if (!finished || finished.incomplete) {
+      return NextResponse.json(
+        { error: "결제는 확인됐어요. 본문을 마저 준비하는 중이니 잠시 후 다시 열어주세요.", paid: true },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json({
+      full: finished.full,
+      score,
+      scoreLabel,
+      scoreBand,
+      scoreFactors,
+      report: finished.report,
+      ...extra,
+    });
+  };
+
   if (body.method === "referral") {
     return NextResponse.json(
       { error: "전문 무료 해금 이벤트는 종료됐어요. 결제 후 전문을 볼 수 있습니다." },
@@ -93,7 +133,7 @@ export async function POST(req: NextRequest) {
     if (!user?.userId || stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩을 볼 권한이 없어요." }, { status: 403 });
     }
-    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report });
+    return deliver();
   }
 
   const now = new Date().toISOString();
@@ -229,7 +269,7 @@ export async function POST(req: NextRequest) {
       );
     }
     console.log(`[결제:토스PG] userId=${user.userId ?? "local"} reading=${body.readingId} orderId=${body.orderId}`);
-    return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report, method: "toss-pg" });
+    return deliver({ method: "toss-pg" });
   }
 
   // ── 개발용 모의결제 ──
@@ -237,5 +277,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "결제 방식을 확인할 수 없습니다." }, { status: 400 });
   }
   await markUnlocked(body.readingId, { method: "mock", at: now });
-  return NextResponse.json({ full, score, scoreLabel, scoreBand, scoreFactors, report, method: "mock", mock: true });
+  return deliver({ method: "mock", mock: true });
 }

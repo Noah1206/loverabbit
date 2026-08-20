@@ -375,6 +375,7 @@ export default function ReadingReportPage() {
               scoreLabel={entry.scoreLabel}
               score={entry.score}
               factors={entry.scoreFactors ?? []}
+              asOf={entry.scoreAsOf ?? null}
             />
 
             {summaryCards.length > 0 && (

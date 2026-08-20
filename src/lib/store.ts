@@ -7,6 +7,7 @@ import path from "path";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
+import type { SealedScore } from "@/lib/saju-score";
 
 const DIR = path.join(process.cwd(), "data", "readings");
 
@@ -32,6 +33,12 @@ export interface StoredReading {
   price: number;
   score?: number;
   scoreLabel?: string | null;
+  /**
+   * 발급 시점에 봉인된 지수. 지수는 대운·세운을 보므로 해가 바뀌면 값이 달라지는데,
+   * 이미 판 리딩의 숫자는 변하면 안 된다. 그래서 계산은 발급 때 한 번만 하고,
+   * 값·구간·근거·본 운(asOf)을 통째로 여기 남긴다. 이후 조회는 전부 이걸 읽는다.
+   */
+  scoreSeal?: SealedScore | null;
   unlocked: boolean;
   // 결제 기록 — 계좌이체는 입금코드로 통장 내역과 사후 대조한다
   payment?: {
@@ -53,6 +60,7 @@ interface ReadingRow {
   price: number;
   score: number | null;
   score_label: string | null;
+  score_seal: SealedScore | null;
   unlocked: boolean;
   payment: StoredReading["payment"] | null;
   created_at: string;
@@ -71,6 +79,7 @@ function fromRow(row: ReadingRow): StoredReading {
     price: row.price,
     score: row.score ?? undefined,
     scoreLabel: row.score_label,
+    scoreSeal: row.score_seal ?? null,
     unlocked: row.unlocked,
     payment: row.payment ?? undefined,
   };
@@ -97,6 +106,7 @@ export async function saveReading(r: StoredReading): Promise<void> {
         price: r.price,
         score: r.score ?? null,
         score_label: r.scoreLabel ?? null,
+        score_seal: r.scoreSeal ?? null,
         unlocked: r.unlocked,
         payment: r.payment ?? null,
         created_at: r.createdAt,
@@ -126,7 +136,7 @@ export async function getReading(id: string): Promise<StoredReading | null> {
   if (db) {
     const { data, error } = await db
       .from("lr_readings")
-      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,unlocked,payment,created_at")
+      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,score_seal,unlocked,payment,created_at")
       .eq("id", id)
       .maybeSingle();
     if (error) throw databaseError("리딩 조회", error);
@@ -158,7 +168,7 @@ export async function markUnlocked(
       .from("lr_readings")
       .update(updates)
       .eq("id", id)
-      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,unlocked,payment,created_at")
+      .select("id,user_id,category,teaser,full_text,chart,provider,price,score,score_label,score_seal,unlocked,payment,created_at")
       .maybeSingle();
     if (error) throw databaseError("리딩 해금", error);
     return data ? fromRow(data as ReadingRow) : null;

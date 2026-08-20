@@ -5907,3 +5907,35 @@ body:has(.product-page[data-landing]) .consent-banner {
   font-variant-numeric: tabular-nums;
   word-break: break-all;
 }
+
+/* ── 지수의 '운' 표시와 봉인 고지 ── */
+.rv-score-luck {
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+.rv-score-asof {
+  margin-top: 13px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.rv-score-asof b {
+  display: inline;
+  flex: none;
+  margin-right: 2px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: left;
+}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { listArchive, updateArchive } from "@/lib/archive";
+import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { landingTypeForProduct, trackPurchase } from "@/lib/meta-events";
 import { getUser } from "@/lib/user";
 import type { StructuredReport } from "@/lib/reading-prompt";
@@ -49,7 +49,8 @@ export default function PaymentSuccessClient({
           full?: string;
           score?: number;
           scoreBand?: string | null;
-          scoreFactors?: { label: string; delta: number; basis: string }[];
+          scoreFactors?: { label: string; delta: number; basis: string; timeVarying?: boolean }[];
+          scoreAsOf?: ArchiveEntry["scoreAsOf"];
           report?: StructuredReport | null;
           error?: string;
         };
@@ -62,6 +63,7 @@ export default function PaymentSuccessClient({
           score: data.score ?? null,
           scoreBand: data.scoreBand ?? null,
           scoreFactors: data.scoreFactors ?? [],
+          scoreAsOf: data.scoreAsOf ?? null,
           report: data.report ?? null,
         });
         // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.

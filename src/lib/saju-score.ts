@@ -7,7 +7,10 @@
 //
 // 시간 의존성에 대하여:
 //   luckFavor는 대운·세운을 보므로 같은 사람이라도 해가 바뀌면 값이 달라진다.
-//   운을 보는 지수이니 그게 맞고, 발급 시점의 값은 리딩과 함께 봉인되어 고정된다.
+//   운을 보는 지수이니 그게 맞다. 대신 발급 시점의 값은 리딩과 함께 봉인한다.
+//   봉인(SealedScore)에는 숫자만이 아니라 "어느 운을 보고 낸 값인가"(asOf)와
+//   "어느 배합표로 냈는가"(engine)까지 넣는다. 이미 팔린 리딩은 해가 바뀌어도,
+//   배합표를 고쳐도 다시 계산하지 않는다 — 저장된 봉인을 그대로 읽어 보여준다.
 
 import { CHEONGAN, JIJI, type Ohaeng } from "./saju";
 import {
@@ -29,6 +32,17 @@ export interface ScoreFactor {
   delta: number;
   /** 어느 글자에서 나왔는지 */
   basis: string;
+  /** 운(대운·세운)에서 나온 인자인가 — 해가 바뀌면 달라지는 부분 */
+  timeVarying?: boolean;
+}
+
+/** 지수를 낼 때 본 운의 창(窓). 봉인에 같이 넣어 나중에 되짚는다. */
+export interface ScoreAsOf {
+  /** 누구의 운을 봤는가. 바람기처럼 상대를 판정하는 상품이 있다. */
+  subject: "me" | "partner";
+  majorLuck: { pillar: string; range: string; tenGod: string } | null;
+  yearly: { year: number; pillar: string; tenGod: string };
+  monthly: { month: number; pillar: string; tenGod: string };
 }
 
 export interface SajuScore {
@@ -37,7 +51,30 @@ export interface SajuScore {
   /** products.meterLabels의 인덱스 (0~4) */
   bandIndex: number;
   factors: ScoreFactor[];
+  /** 이 값을 낼 때 열려 있던 운 */
+  asOf: ScoreAsOf;
+  /** 배합표의 판(版) */
+  engine: string;
 }
+
+/**
+ * 발급 시점에 봉인되는 지수. 리딩 레코드에 통째로 저장되고, 해금할 때는
+ * 다시 계산하지 않고 이걸 그대로 읽는다.
+ */
+export interface SealedScore extends SajuScore {
+  /** 상품의 meterLabels 문구 */
+  band: string | null;
+  /** 상품의 지수 이름 ("재회 가능성" 같은) */
+  label: string | null;
+  /** 봉인한 시각 */
+  issuedAt: string;
+}
+
+/**
+ * 배합표·인자가 바뀌면 올린다. 옛 리딩의 봉인에 옛 판이 그대로 남으므로,
+ * "이 숫자는 어느 규칙으로 나온 값인가"를 나중에도 답할 수 있다.
+ */
+export const SCORE_ENGINE = "score-2026-08";
 
 type FactorName =
   | "pairHarmony"
@@ -176,6 +213,7 @@ function luckFavor(facts: SajuFacts): ScoreFactor[] {
       label: `대운 ${major.currentTenGod}`,
       delta: Math.round(delta),
       basis: `${major.currentPillar} (${major.currentRange})`,
+      timeVarying: true,
     });
   }
   const yearly = facts.luckContext.yearly;
@@ -183,6 +221,7 @@ function luckFavor(facts: SajuFacts): ScoreFactor[] {
     label: `세운 ${yearly.tenGod}`,
     delta: LUCK_WEIGHT[yearly.tenGod] ?? 0,
     basis: `${yearly.year}년 ${yearly.pillar}`,
+    timeVarying: true,
   });
   return out.filter((factor) => factor.delta !== 0);
 }
@@ -299,5 +338,36 @@ export function computeSajuScore(
     bandIndex: bandOf(value),
     // 영향이 큰 근거부터 보여준다
     factors: factors.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta)),
+    asOf: asOfFrom(subject, subject === me ? "me" : "partner"),
+    engine: SCORE_ENGINE,
   };
+}
+
+/** 지수를 낼 때 본 운을 그대로 옮겨 적는다 */
+function asOfFrom(subject: SajuFacts, whose: "me" | "partner"): ScoreAsOf {
+  const major = subject.luckContext.majorLuck;
+  return {
+    subject: whose,
+    majorLuck: major
+      ? { pillar: major.currentPillar, range: major.currentRange, tenGod: major.currentTenGod }
+      : null,
+    yearly: { ...subject.luckContext.yearly },
+    monthly: { ...subject.luckContext.monthly },
+  };
+}
+
+/**
+ * 계산 결과에 상품 문구와 발급 시각을 붙여 봉인 형태로 만든다.
+ * 이 값이 리딩 레코드에 저장되고, 해금·재조회는 전부 여기서 읽는다.
+ */
+export function sealScore(
+  score: SajuScore,
+  meta: { band: string | null; label: string | null; issuedAt: string }
+): SealedScore {
+  return { ...score, band: meta.band, label: meta.label, issuedAt: meta.issuedAt };
+}
+
+/** 운에서 온 인자가 하나라도 있으면, 그 숫자는 발급 시점에 묶인 값이다 */
+export function isTimeBound(seal: Pick<SealedScore, "factors">): boolean {
+  return seal.factors.some((factor) => factor.timeVarying === true);
 }

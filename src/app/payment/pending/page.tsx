@@ -68,6 +68,7 @@ export default function PaymentPendingPage() {
         score: data.score ?? null,
         scoreBand: data.scoreBand ?? null,
         scoreFactors: data.scoreFactors ?? [],
+        scoreAsOf: data.scoreAsOf ?? null,
         report: data.report ?? null,
         pendingOrderId: undefined,
       });

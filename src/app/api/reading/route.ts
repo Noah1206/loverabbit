@@ -17,7 +17,8 @@ import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore } from "@/lib/saju-score";
 import { checkReport, guardRetryPrompt, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
-import { composeReport } from "@/lib/reading-compose";
+import { composeReport, previewBatchCount, PREVIEW_SECTIONS } from "@/lib/reading-compose";
+import { saveResume } from "@/lib/reading-resume";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
 // 여유가 없어, 재시도가 한 번 붙으면 함수가 먼저 끊긴다.
@@ -280,11 +281,17 @@ export async function POST(req: NextRequest) {
     // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
     // 한 번에 다 시키면 목차 10개짜리가 gpt-5.6에서 128초 걸린다 — 토큰이 순서대로
     // 나오기 때문이고, 그건 요청을 나눠 동시에 던지는 것 말고는 줄일 방법이 없다.
-    const composed = await composeReport(readingInput, (system, user, budget) =>
+    const composed = await composeReport(
+      readingInput,
       // thinking을 끄는 이유는 OpenAI에서 reasoning_effort를 낮게 두는 이유와 같다.
       // 명리 계산은 이미 끝났고 여기서 하는 일은 문장 쓰기다. 게다가 Gemini는 생각
       // 토큰도 maxOutputTokens에서 빼가므로, 켜두면 JSON이 중간에 잘려 조각이 날아간다.
-      chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true })
+      (system, user, budget) =>
+        chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true }),
+      // 결제 전에는 미리보기가 보여주는 절까지만 만든다. 나머지는 결제가 확인된 뒤
+      // /api/unlock이 이어 만든다(reading-finish.ts). 결제하지 않는 사람의 유료
+      // 본문을 만드느라 돈을 태우지 않기 위해서다.
+      { batchLimit: previewBatchCount(outline) }
     );
 
     if (!composed.report) {
@@ -299,7 +306,9 @@ export async function POST(req: NextRequest) {
       }
 
       // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고 결과를 남긴다.
-      const guard = checkReport(report, { expectedSections: outline.length, forbiddenClaims });
+      // 이 시점에는 미리보기 몫만 있으므로, 목차 전체가 아니라 만든 절 수로 본다.
+      // 나머지 절은 결제 후 완성될 때 다시 검사한다(reading-finish.ts).
+      const guard = checkReport(report, { expectedSections: report.sections.length, forbiddenClaims });
       guardViolations = guard.violations;
       if (guard.mustRetry) {
         const blocking = guard.violations.filter((v) => v.blocking);
@@ -307,8 +316,9 @@ export async function POST(req: NextRequest) {
           "리포트 출고 검사 위반:",
           blocking.map((v) => `${v.where} ${v.detail}`).join(" / ")
         );
-        // 섹션이 통째로 비었다면 팔 수 없는 리포트다. 표현 문제는 기록만 남기고 내보낸다.
-        if (report.sections.length < outline.length && isAiConfigured()) generationFailed = true;
+        // 미리보기에 필요한 절도 못 만들었다면 팔 수 없다. 표현 문제는 기록만 남기고 내보낸다.
+        if (report.sections.length < Math.min(PREVIEW_SECTIONS, outline.length) && isAiConfigured())
+          generationFailed = true;
       }
       ({ teaser, full } = reportToText(report));
     }
@@ -367,15 +377,41 @@ export async function POST(req: NextRequest) {
   }
 
   // 무료 공개분: 첫 섹션은 읽히고, 둘째 섹션은 흐려지며 끊기고, 나머지는 제목만 목차에 남는다.
+  // 잠긴 제목은 상품 목차에서 뽑는다 — 그 절은 아직 만들지도 않았고, 어차피 모델이
+  // 목차 문구를 그대로 옮겨 적게 돼 있어 결과가 같다.
   const preview = report
     ? {
-        sections: report.sections.slice(0, 2).map((section) => ({
+        sections: report.sections.slice(0, PREVIEW_SECTIONS).map((section) => ({
           title: section.title,
           excerpt: section.summary.slice(0, 360),
         })),
-        lockedTitles: report.sections.slice(2).map((section) => section.title),
+        lockedTitles: outline.slice(PREVIEW_SECTIONS),
       }
     : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
+
+  // 나머지 본문을 결제 후에 이어 만들기 위한 정보. 클라이언트 blob에만 두면
+  // 계좌이체처럼 며칠 뒤에 승인되는 경우 기기를 바꾼 사용자에게 못 준다.
+  if (report && report.sections.length < outline.length) {
+    try {
+      await saveResume(id, {
+        category: body.category,
+        facts: myFacts,
+        partnerFacts,
+        ruleIds: matchedRules.map((rule) => rule.id),
+        currentScene: body.question ?? "",
+        // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해
+        issuedAt: now.toISOString(),
+        doneSections: report.sections.length,
+      });
+    } catch (e) {
+      // 여기서 실패하면 결제 후에 나머지를 만들 방법이 없다. 팔지 않는다.
+      console.error("재개 정보 저장 실패:", e);
+      return NextResponse.json(
+        { error: "리딩을 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 503 }
+      );
+    }
+  }
   return NextResponse.json({
     readingId: id,
     teaser,
