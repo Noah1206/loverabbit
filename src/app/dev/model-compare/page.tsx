@@ -92,7 +92,13 @@ export default function ModelComparePage() {
     }
   }, []);
 
-  const ok = useMemo(() => (data?.runs ?? []).filter((r) => r.ok && r.report), [data]);
+  // 절이 하나도 없으면 리포트가 아니다. 머리만 오고 본문이 전부 죽어도 report 객체는
+  // 만들어지므로(빈 sections), 여기서 걸러야 표가 성공처럼 보이지 않는다.
+  const ok = useMemo(
+    () => (data?.runs ?? []).filter((r) => r.ok && r.report && r.report.sections.length > 0),
+    [data]
+  );
+  const isOk = (r: Run) => r.ok && r.sections > 0;
 
   // 표에서 강조할 최소값들
   const best = useMemo(() => {
@@ -209,13 +215,13 @@ export default function ModelComparePage() {
             const total = r.ms.total + (rm ?? 0);
             const voiceRate = r.voice.total ? r.voice.bad / r.voice.total : 0;
             return (
-              <tr key={r.id} className={r.ok ? undefined : "mc-fail"}>
+              <tr key={r.id} className={isOk(r) ? undefined : "mc-fail"}>
                 <td>
                   <strong>{r.id}</strong>
                   <div className="mc-sub">{r.note}</div>
                   {r.model !== r.id && <div className="mc-sub">→ {r.model}</div>}
                 </td>
-                {r.ok ? (
+                {isOk(r) ? (
                   <>
                     <td className={best && r.ms.total === best.time ? "mc-win" : undefined}>{sec(total)}</td>
                     <td>{sec(r.ms.generate)}</td>
@@ -260,7 +266,7 @@ export default function ModelComparePage() {
                   </>
                 ) : (
                   <td colSpan={10} className="mc-warn">
-                    실패 — {r.error}
+                    실패 — {r.error ?? `절이 0개예요 (실패 조각: ${r.failedParts.join(", ") || "불명"})`}
                   </td>
                 )}
               </tr>

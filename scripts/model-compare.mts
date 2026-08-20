@@ -227,7 +227,9 @@ async function runOne(c: Candidate, seed: number, dry: boolean): Promise<ModelRu
   }
   const tGen = Date.now() - t0;
 
-  if (!composed.report) {
+  // 머리만 오고 본문이 전부 죽으면 report 객체는 생기지만 sections가 비어 있다.
+  // 그건 리포트가 아니므로 성공으로 적지 않는다.
+  if (!composed.report || composed.report.sections.length === 0) {
     return {
       ...base,
       ok: false,
