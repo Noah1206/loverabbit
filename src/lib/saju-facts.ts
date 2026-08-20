@@ -20,7 +20,7 @@ import type { BirthMoment } from "./korea-time";
 import { nextMonthTerm, previousMonthTerm } from "./solar-terms";
 import { findShinsal, type ShinsalFact } from "./saju-shinsal";
 import { branchIsYang, calculationPolicyStamp, type CalculationPolicyStamp } from "@/lib/myeongri/policy";
-import { findXing, type BranchSlot, type XingRelation } from "@/lib/myeongri/xing";
+import { findXing, findXingWithLuck, type BranchSlot, type XingRelation } from "@/lib/myeongri/xing";
 import { strengthEvidence, type StrengthEvidence } from "@/lib/myeongri/rooting";
 
 export type Gender = "M" | "F";
@@ -78,8 +78,13 @@ export interface SajuFacts {
   notableRelations: RelationFact[];
   /** 도화·역마·화개·홍염·양인·원진 — 상품 목차가 약속한 값이라 계산으로 낸다 */
   shinsal: ShinsalFact[];
-  /** 형(刑) — partial 은 아직 정책이 없어 점수·서술에 쓰지 않는다 */
+  /** 본명식의 형(刑). 늘 있는 것이다. */
   xing: XingRelation[];
+  /**
+   * 운이 들어와 성립하는 형. 지나가는 것이라 본명식의 형과 나눠 둔다.
+   * 시기를 짚을 때 쓴다 — "지금 구간에 이 자리가 흔들린다" 는 여기서만 나온다.
+   */
+  xingLuck: XingRelation[];
   /** 통근·투간 증거. 점수는 붙이지 않는다 — 가중치는 정책이 정할 일이다. */
   strengthEvidence: StrengthEvidence;
   /** 어느 정책으로 뽑은 값인지. 나중에 결과를 재현할 때 기준이 된다. */
@@ -256,6 +261,29 @@ function branchSlotsOf(chart: SajuChart): BranchSlot[] {
   return slots;
 }
 
+/**
+ * 대운·세운·월운의 지지. 형을 볼 때 본명식 지지와 함께 넣는다.
+ * 대운은 기둥 문자열에서 지지 한 글자를 다시 꺼내야 해서 색인으로 되돌린다.
+ */
+function luckSlotsOf(
+  chart: SajuChart,
+  gender: Gender,
+  ageNow: number,
+  luck: { year: Pillar; month: Pillar }
+): BranchSlot[] {
+  const slots: BranchSlot[] = [
+    { position: "세운", jiIdx: luck.year.jiIdx },
+    { position: "월운", jiIdx: luck.month.jiIdx },
+  ];
+  const major = computeMajorLuck(chart, gender, ageNow);
+  if (major) {
+    // currentPillar 는 "병자" 처럼 천간+지지 두 글자다. 뒷 글자가 지지다.
+    const ji = JIJI.indexOf(major.currentPillar.slice(1) as (typeof JIJI)[number]);
+    if (ji >= 0) slots.push({ position: "대운", jiIdx: ji });
+  }
+  return slots;
+}
+
 function collectTenGods(chart: SajuChart): TenGodFact[] {
   const dayElement = stemElement(chart.day.ganIdx);
   const dayYang = isYangStem(chart.day.ganIdx);
@@ -359,6 +387,7 @@ export function buildSajuFacts(
     notableRelations: findRelations(chart),
     shinsal: findShinsal(chart),
     xing: findXing(branchSlotsOf(chart)),
+    xingLuck: findXingWithLuck(branchSlotsOf(chart), luckSlotsOf(chart, birth.gender, ageNow, luck)),
     strengthEvidence: strengthEvidence(chart),
     policy: calculationPolicyStamp(),
     luckContext: {

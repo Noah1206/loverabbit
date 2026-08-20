@@ -5,7 +5,11 @@ import { computeSaju } from "@/lib/saju";
 import { buildSajuFacts } from "@/lib/saju-facts";
 import { hiddenStemsOf } from "@/lib/myeongri/hidden-stems";
 import { findExposedStems, findRooting, rootingWeightProfile } from "@/lib/myeongri/rooting";
-import { luckInterpretationFlags } from "@/lib/myeongri/luck-flags";
+import {
+  DEFAULT_FEMALE_SHANGGUAN_POLICY,
+  femaleShangguanPolicyEnabled,
+  luckInterpretationFlags,
+} from "@/lib/myeongri/luck-flags";
 
 const CHART = { year: 1999, month: 10, day: 2, hour: 14 };
 
@@ -118,10 +122,34 @@ describe("여성 상관운 정책 플래그", () => {
   });
 
   it("정책이 꺼져 있으면 여성이어도 성별 플래그가 붙지 않는다", () => {
-    delete process.env.FEMALE_SHANGGUAN_POLICY;
+    // 기본값이 켜짐으로 바뀌었으므로 여기서 명시적으로 끈다.
+    // 이 테스트가 붙잡는 것은 "끄면 안 붙는다" 이고 그 기대는 그대로다.
+    process.env.FEMALE_SHANGGUAN_POLICY = "off";
     const f = withShangguan();
     if (!f) return;
     const flags = luckInterpretationFlags(f, "female").map((x) => x.flag);
+    assert.equal(flags.includes("female_shangguan_relationship_policy_candidate"), false);
+    delete process.env.FEMALE_SHANGGUAN_POLICY;
+  });
+
+  it("기본값은 켜짐이다 — 지시로 정한 값이고 근거로 정한 값이 아니다", () => {
+    delete process.env.FEMALE_SHANGGUAN_POLICY;
+    assert.equal(DEFAULT_FEMALE_SHANGGUAN_POLICY, true);
+    assert.equal(femaleShangguanPolicyEnabled(), true);
+  });
+
+  it("알 수 없는 값이면 경고하고 기본값으로 떨어진다", () => {
+    process.env.FEMALE_SHANGGUAN_POLICY = "아무거나";
+    assert.equal(femaleShangguanPolicyEnabled(), DEFAULT_FEMALE_SHANGGUAN_POLICY);
+    delete process.env.FEMALE_SHANGGUAN_POLICY;
+  });
+
+  it("기본값이 켜져 있어도 성별을 안 밝히면 여전히 안 붙는다", () => {
+    // 정책이 켜진 것과 성별을 아는 것은 다른 문제다. 둘 다여야 붙는다.
+    delete process.env.FEMALE_SHANGGUAN_POLICY;
+    const f = withShangguan();
+    if (!f) return;
+    const flags = luckInterpretationFlags(f, "unspecified").map((x) => x.flag);
     assert.equal(flags.includes("female_shangguan_relationship_policy_candidate"), false);
   });
 

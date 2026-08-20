@@ -27,6 +27,8 @@ import {
   type SajuFacts,
 } from "./saju-facts";
 import { WONJIN, type ShinsalName } from "./saju-shinsal";
+import { completeXing, type XingKind } from "./myeongri/xing";
+import { luckInterpretationFlags } from "./myeongri/luck-flags";
 
 export type PairRelation = "일지육합" | "일지삼합" | "일지충" | "일지원진" | "일간합";
 
@@ -52,6 +54,21 @@ export interface RuleCondition {
   needsPartner?: boolean;
   /** 시주가 없을 때만 켜지는 규칙 */
   hourUnknown?: boolean;
+  /**
+   * 원국의 형(刑). 부분 삼형을 실질로 칠지는 XING_PARTIAL_POLICY 가 정하고
+   * 여기서는 정하지 않는다.
+   */
+  xingKind?: XingKind[];
+  /** 원국의 형이 일지(배우자궁)에 걸려 있는가 */
+  xingAtDayBranch?: boolean;
+  /** 운에서 들어온 형 — 어느 운의 글자가 끼었는가 */
+  xingLuckScope?: ("대운" | "세운" | "월운")[];
+  /**
+   * 여자 상관운 후보 플래그가 붙었는가.
+   * 정책(FEMALE_SHANGGUAN_POLICY)이 켜져 있고, 성별이 명시됐고,
+   * 명식에 관성이 실제로 있을 때만 참이 된다.
+   */
+  femaleShangguanCandidate?: boolean;
   /** 특정 상품에서만 */
   domains?: string[];
 }
@@ -391,6 +408,129 @@ export const READING_RULES: ReadingRule[] = [
     source: "궁위 — 일지 충은 배우자궁이 흔들리는 것으로 본다.",
   },
 
+  {
+    // 여자 명식에서 관성은 배우자성이고 상관이 그 관성을 극한다(상관견관).
+    // 이 규칙이 여자 상관운 정책이 실제로 말할 수 있는 전부다 — 플래그 하나에
+    // 규칙 하나. 여기 없는 말은 정책이 켜져 있어도 나가지 않는다.
+    id: "LUCK-SANGGWAN-GYEONGWAN-F",
+    priority: 83,
+    when: {
+      gender: ["F"],
+      femaleShangguanCandidate: true,
+      domains: ["ibyeol", "gwontaegi", "gyeolhon", "jaehoe", "yeonae"],
+    },
+    claim: "지금 흐름이 하고 싶은 말을 밀어내는 쪽으로 서 있어, 참아 온 말이 관계의 규칙과 부딪히기 쉬운 때",
+    safePhrasing: "그렇게 부딪히기 쉬운",
+    forbidden: [
+      "남편과 싸운다",
+      "이혼한다",
+      "관계가 끝난다",
+      "남자 복이 없다",
+      "말을 참아야 한다",
+    ],
+    source:
+      "십성 + 운 — 상관견관. 여자 사주에서 관성은 배우자성이고 상관이 그것을 극한다. " +
+      "명식에 관성이 실제로 있을 때만 성립하며(luck-flags.ts), 결과가 아니라 마찰의 방향으로만 읽는다.",
+  },
+
+  // ── 형(刑) ─────────────────────────────────────────────
+  // 형은 충처럼 한 번에 깨지 않고 안에서 긁는다. 그래서 관계에서는
+  // "터졌다"가 아니라 "같은 자리에서 반복해 걸린다"로 읽는다.
+  // 부분 삼형(두 글자)을 실질로 볼지는 XING_PARTIAL_POLICY 가 정한다.
+  {
+    id: "XING-YINSISHEN",
+    priority: 80,
+    when: {
+      xingKind: ["yin_si_shen_three_xing"],
+      domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "들인 만큼이 그대로 돌아오지 않는 자리라, 애쓴 쪽이 먼저 지치기 쉬운 구조",
+    safePhrasing: "그렇게 어긋나는",
+    forbidden: ["배신당한다", "이용당한다", "손해를 본다"],
+    source: "형 — 인사신 삼형(무은지형). 은혜가 은혜로 돌아오지 않는 어긋남으로 본다.",
+  },
+  {
+    id: "XING-CHOUXUWEI",
+    priority: 80,
+    when: {
+      xingKind: ["chou_xu_wei_three_xing"],
+      domains: ["gwontaegi", "ibyeol", "gyeolhon", "pyeongsaeng"],
+    },
+    claim: "서로 물러설 근거가 있어서 오히려 안 굽히는 자리라, 옳고 그름을 가리다 사이가 상하는 구조",
+    safePhrasing: "그렇게 맞부딪히는",
+    forbidden: ["싸움이 끊이지 않는다", "결국 갈라선다"],
+    source: "형 — 축술미 삼형(지세지형). 각자 세력을 믿고 밀어붙이는 충돌로 본다.",
+  },
+  {
+    id: "XING-ZIMAO",
+    priority: 82,
+    when: {
+      xingKind: ["zi_mao_mutual_xing"],
+      domains: ["ibyeol", "gwontaegi", "sokgunghap", "bamgijil", "pyeongsaeng"],
+    },
+    claim: "가까워질수록 말이 거칠어지는 자리라, 감정보다 말투가 먼저 사이를 깎는 구조",
+    safePhrasing: "그렇게 날이 서는",
+    forbidden: ["폭언한다", "성격이 나쁘다", "헤어진다"],
+    source: "형 — 자묘 상형(무례지형). 예의가 무너지는 방향으로 본다.",
+  },
+  {
+    id: "XING-SELF",
+    priority: 74,
+    when: {
+      xingKind: [
+        "chen_chen_self_xing",
+        "wu_wu_self_xing",
+        "you_you_self_xing",
+        "hai_hai_self_xing",
+      ],
+      domains: ["gwontaegi", "sseom", "jjak", "bimil", "pyeongsaeng", "yeonae"],
+    },
+    claim: "밖에서 온 문제보다 혼자 되짚는 시간이 관계를 더 흔드는 구조",
+    safePhrasing: "그렇게 안으로 도는",
+    forbidden: ["자학한다", "우울증이 있다", "정신적으로 문제가 있다"],
+    source: "형 — 자형(自刑). 같은 글자가 겹쳐 밖이 아니라 안에서 긁는 것으로 본다.",
+  },
+  {
+    id: "XING-SPOUSE-PALACE",
+    priority: 86,
+    when: {
+      xingAtDayBranch: true,
+      domains: ["gyeolhon", "ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "pyeongsaeng"],
+    },
+    claim: "배우자 자리가 형에 걸려, 다른 관계에선 안 나오는 문제가 가까운 사이에서만 반복되는 구조",
+    safePhrasing: "그 자리에 걸려 있는",
+    forbidden: ["이혼한다", "결혼 운이 없다", "배우자가 문제다"],
+    source: "궁위 + 형 — 일지는 배우자궁. 그 자리의 형은 관계 안에서만 드러나는 마찰로 본다.",
+  },
+  {
+    id: "XING-LUCK-NOW",
+    // 무작위 명식 768건에서 63.0% 발화한다(부분 삼형 off 면 43.8%). 계산은 정확하다 —
+    // 대운·세운이 지지 셋을 더하니 그만큼 겹칠 자리가 늘어난다. 다만 3분의 2가 공유하는
+    // 신호를 맨 앞에 세우면 리딩이 서로 비슷해지므로, 명식 고유의 형(80~86)보다
+    // 뒤에 세운다. 계산이 아니라 노출의 문제다(docs/myeongri/rule-boundaries.md).
+    priority: 79,
+    when: {
+      xingLuckScope: ["대운", "세운"],
+      domains: ["ibyeol", "jaehoe", "gwontaegi", "hwanseung", "insun", "yeonae"],
+    },
+    claim: "지금 지나는 흐름이 명식의 글자와 형을 이뤄, 평소엔 넘어가던 지점이 이 구간에만 크게 걸리는 때",
+    safePhrasing: "지금 그렇게 겹치는",
+    forbidden: ["올해 헤어진다", "이 시기에 반드시 일이 생긴다", "지금 만나면 안 된다"],
+    source: "형 + 운 — 대운·세운의 지지가 원국 지지와 형을 이룰 때. 지나가는 것이라 원국의 형과 무게를 나눈다.",
+  },
+  {
+    id: "XING-LUCK-MONTH",
+    priority: 70,
+    when: {
+      xingLuckScope: ["월운"],
+      domains: ["jaehoe", "sseom", "yeonae", "hwanseung"],
+    },
+    claim: "이달만 유독 같은 대목에서 걸리는 흐름이라, 길게 볼 신호로 삼기엔 이른 때",
+    safePhrasing: "이달에 겹치는",
+    forbidden: ["이번 달에 연락이 온다", "이번 달에 끝난다"],
+    source: "형 + 월운 — 월운의 형은 가장 짧게 지나므로 구조로 읽지 않는다.",
+  },
+
   // ── 신살 ───────────────────────────────────────────────
   {
     id: "SIN-DOHWA",
@@ -676,6 +816,25 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
       me.luckContext.monthly.tenGod,
     ].filter(Boolean) as string[];
     if (!w.luckTenGodAny.some((t) => running.includes(t))) return false;
+  }
+  if (w.femaleShangguanCandidate !== undefined) {
+    // gender 는 사용자가 입력해야만 생기는 값이라 명시된 성별로 본다.
+    // 미입력 경로가 생기면 여기서 "unspecified" 를 넘겨야 한다.
+    const flags = luckInterpretationFlags(me, me.gender === "F" ? "female" : "male");
+    const candidate = flags.some((f) => f.flag === "female_shangguan_relationship_policy_candidate");
+    if (w.femaleShangguanCandidate !== candidate) return false;
+  }
+  if (w.xingKind) {
+    const active = completeXing(me.xing);
+    if (!w.xingKind.some((k) => active.some((x) => x.kind === k))) return false;
+  }
+  if (w.xingAtDayBranch !== undefined) {
+    const onDay = completeXing(me.xing).some((x) => x.pillarPositions.includes("일지"));
+    if (w.xingAtDayBranch !== onDay) return false;
+  }
+  if (w.xingLuckScope) {
+    const active = completeXing(me.xingLuck);
+    if (!w.xingLuckScope.some((s) => active.some((x) => x.luckSources?.includes(s)))) return false;
   }
   if (w.pairRelation) {
     const relations = pairRelationsOf(me, partner);

@@ -27,7 +27,11 @@ describe("삼형", () => {
     assert.equal(found.completeness, "complete");
   });
 
-  it("두 글자만 있으면 partial 이고 complete 목록에서 빠진다", () => {
+  it("두 글자만 있으면 partial 이고, off 정책에서는 complete 목록에서 빠진다", () => {
+    // 이 기대값은 원래 XING_PARTIAL_POLICY 기본값이 off 일 때 받아 적은 것이다.
+    // 기본값이 on 으로 바뀌었으므로 어느 정책 아래의 기대인지 여기서 못박는다.
+    // 기대값 자체는 손대지 않았다.
+    process.env.XING_PARTIAL_POLICY = "off";
     const all = findXing(slots("인", "사", "자", "묘"));
     const found = all.find((r) => r.kind === "yin_si_shen_three_xing");
     assert.ok(found, "부분 삼형을 감지하지 못했다");
@@ -39,6 +43,18 @@ describe("삼형", () => {
       usable.some((r) => r.kind === "yin_si_shen_three_xing"),
       false,
       "partial 이 점수·서술에 쓰이는 목록에 들어갔다"
+    );
+    delete process.env.XING_PARTIAL_POLICY;
+  });
+
+  it("기본 정책(on)에서는 같은 부분 삼형이 complete 목록에 남는다", () => {
+    delete process.env.XING_PARTIAL_POLICY;
+    const all = findXing(slots("인", "사", "자", "묘"));
+    const usable = completeXing(all);
+    assert.equal(
+      usable.some((r) => r.kind === "yin_si_shen_three_xing" && r.completeness === "partial"),
+      true,
+      "기본값이 on 인데 partial 이 걸러졌다"
     );
   });
 

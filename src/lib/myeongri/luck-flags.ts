@@ -38,11 +38,26 @@ const POLICY_ID = "female-shangguan-relationship-v0";
 /**
  * 여자 상관운 정책을 켤 것인가.
  *
- * 기본은 꺼짐이다. 켜도 플래그가 하나 더 붙을 뿐, 사용자에게 보이는 문구가
- * 저절로 생기지는 않는다. 문구는 검수된 템플릿을 고를 때만 나온다.
+ * **기본값은 2026-08-20 부터 켜짐이다.** 운영자의 지시로 정했다.
+ *
+ * 켠다고 문구가 저절로 생기지는 않는다. 플래그는 검수된 규칙을 고르는 입력일 뿐이고,
+ * 실제로 나가는 말은 reading-rules.ts 의 LUCK-SANGGWAN-GYEONGWAN-F 하나뿐이다.
+ * 그 규칙의 claim 과 forbidden 이 이 정책이 말할 수 있는 전부다.
+ *
+ * 되돌리려면 FEMALE_SHANGGUAN_POLICY=off 하나면 된다.
  */
+export const DEFAULT_FEMALE_SHANGGUAN_POLICY = true;
+
 export function femaleShangguanPolicyEnabled(): boolean {
-  return process.env.FEMALE_SHANGGUAN_POLICY === "on";
+  const raw = process.env.FEMALE_SHANGGUAN_POLICY;
+  if (!raw) return DEFAULT_FEMALE_SHANGGUAN_POLICY;
+  if (raw === "on") return true;
+  if (raw === "off") return false;
+  console.warn(
+    `FEMALE_SHANGGUAN_POLICY="${raw}" 는 알 수 없는 값입니다. on | off 중 하나여야 합니다. ` +
+      `기본값 "${DEFAULT_FEMALE_SHANGGUAN_POLICY ? "on" : "off"}" 로 진행합니다.`
+  );
+  return DEFAULT_FEMALE_SHANGGUAN_POLICY;
 }
 
 const GWAN = ["정관", "편관"];

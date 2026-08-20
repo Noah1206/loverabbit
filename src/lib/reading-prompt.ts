@@ -5,6 +5,7 @@
 // AI는 saju_facts에 있는 값만 근거로 쓰고, 명리 사실을 새로 만들지 않는다.
 
 import type { SajuFacts } from "@/lib/saju-facts";
+import { completeXing, type XingKind, type XingRelation } from "@/lib/myeongri/xing";
 import { rulesForPrompt, type ReadingRule } from "@/lib/reading-rules";
 
 export interface ReportSectionOut {
@@ -93,6 +94,9 @@ export const READING_SYSTEM_PROMPT = `# ROLE
   (예: "strength.label=신약", "luckContext.yearly.tenGod=정인", "상대.shinsal=홍염=일지")
   facts_used에는 saju_facts와 partner_saju_facts의 계산값만 적는다. user_context나
   delivery는 근거가 아니다 — 사용자가 쓴 고민을 근거로 되돌려주지 않는다.
+- 형(刑)은 saju_facts.xing(타고난 것)과 saju_facts.xingLuck(지금 운에서 들어온 것)에
+  나뉘어 있다. 이 둘을 한 문장에 섞지 않는다. xing은 "늘 그렇게 걸리는 자리",
+  xingLuck은 "이 구간에만 겹치는 것"이다. 목록에 없는 형은 언급하지 않는다.
 - 시기를 말할 때는 반드시 luckContext(대운·세운·월운)에서 출발한다. 근거 없는 달을 지어내지 않는다.
 - saju_facts.limits에 시각 미상 같은 계산 한계가 적혀 있으면 confidence_note에 반영한다.
 
@@ -185,11 +189,37 @@ function slimFacts(facts: SajuFacts) {
     notableRelations: facts.notableRelations.map((r) => r.label),
     // basis(유도 과정)는 빼고 이름과 자리만 남긴다. 모델이 인용하는 것은 그 둘뿐이다.
     shinsal: facts.shinsal.map((f) => `${f.name}=${f.positions.join(",")}`),
+    // 형(刑) — 타고난 것과 운에서 들어온 것을 나눠 준다. 섞으면 "늘 그렇다"와
+    // "지금 그렇다"가 한 문장으로 붙어버린다.
+    xing: xingLines(facts.xing),
+    xingLuck: xingLines(facts.xingLuck),
     luckContext: facts.luckContext,
     // 매번 같은 계산 주석(표준시·진태양시·절기)은 뺀다. confidence_note에 반영해야 할
     // 한계(시각 미상, 음력 변환)만 남긴다.
     limits: facts.calculationNotes.filter((n) => LIMIT_NOTE.test(n)),
   };
+}
+
+/**
+ * 형의 종류를 사람이 읽는 이름으로. 계산층은 kind 코드만 알고 이름은 모른다 —
+ * 이름은 화면에 나가는 말이므로 콘텐츠층에서 붙인다.
+ */
+const XING_LABEL: Record<XingKind, string> = {
+  yin_si_shen_three_xing: "인사신 삼형",
+  chou_xu_wei_three_xing: "축술미 삼형",
+  zi_mao_mutual_xing: "자묘 상형",
+  chen_chen_self_xing: "진진 자형",
+  wu_wu_self_xing: "오오 자형",
+  you_you_self_xing: "유유 자형",
+  hai_hai_self_xing: "해해 자형",
+};
+
+/** 신살과 같은 모양으로 접는다 — 이름=자리. 부분 성립이면 그렇다고 적는다. */
+function xingLines(relations: XingRelation[]): string[] {
+  return completeXing(relations).map((x) => {
+    const partial = x.completeness === "partial" ? "(부분)" : "";
+    return `${XING_LABEL[x.kind]}${partial}=${x.pillarPositions.join(",")}`;
+  });
 }
 
 /** confidence_note에 반영해야 할 한계만 골라내는 표시 */
