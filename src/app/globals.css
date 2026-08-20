@@ -1820,16 +1820,9 @@ label {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
-  max-height: 340px;
   padding: 2px;
-  overflow-y: auto;
-  /* 목록은 계속 스크롤되지만 막대는 그리지 않는다 (.shrine-scroll과 같은 처리) */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.reading-category-grid::-webkit-scrollbar {
-  display: none;
+  /* 높이를 묶지 않는다. 부제를 없애 타일이 52px로 줄면서 15개가 한 화면에 들어가고,
+     안쪽 스크롤은 (막대를 감춘 뒤로는) 잘린 줄만 보일 뿐 넘길 수 있다는 신호가 없었다. */
 }
 
 .reading-category-option {
