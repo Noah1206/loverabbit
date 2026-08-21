@@ -14,9 +14,10 @@ import { resolveAdOffer } from "@/lib/ad-offers";
 import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
-import { computeSajuScore } from "@/lib/saju-score";
-import { checkReport, guardRetryPrompt, type GuardViolation } from "@/lib/reading-guard";
+import { computeSajuScore, sealScore } from "@/lib/saju-score";
+import { checkReport, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
+import { scopeOutline } from "@/lib/reading-scope";
 import { composeReport, previewBatchCount, PREVIEW_SECTIONS } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
 
@@ -42,6 +43,11 @@ interface Body {
   me: PersonBody;
   partner?: PersonBody | null;
   question?: string;
+  /**
+   * 사용자가 적은 직업. 없어도 된다.
+   * 계산에는 들어가지 않는다 — 해석의 장면을 고르는 데만 쓴다.
+   */
+  occupation?: string;
   userToken?: string;
 }
 
@@ -249,12 +255,35 @@ export async function POST(req: NextRequest) {
   if (partnerNote && partnerFacts) partnerFacts.calculationNotes.unshift(partnerNote);
 
   // 계산값에서 켜지는 검수 규칙. 이 목록이 리포트가 말해도 되는 것의 경계가 된다.
-  const matchedRules = matchRules(myFacts, partnerFacts, body.category);
+  // 목차가 15절인데 규칙을 12개만 켜면 세 절은 남의 근거로 쓴다.
+  // 절마다 딛을 것이 하나는 있어야 같은 판단이 형태만 바꿔 반복되지 않는다.
+  const matchedRules = matchRules(
+    myFacts,
+    partnerFacts,
+    body.category,
+    Math.max(12, product?.toc.length ?? 12)
+  );
   const forbiddenClaims = forbiddenFromRules(matchedRules);
 
-  const outline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
+  const fullOutline = product?.toc ?? ["나의 핵심 결", "관계의 결", "지금의 흐름"];
+  // 목차가 파는 것과 계산이 감당하는 것을 맞춘다. 앞날이 없는데 "앞으로 6개월"을
+  // 팔면 그 절은 지난달 이야기로 끝난다 — 모델의 문제가 아니라 입력의 문제다.
+  const scoped = scopeOutline({
+    product: body.category,
+    outline: fullOutline,
+    facts: myFacts,
+    matchedRules,
+  });
+  const outline = scoped.outline;
+  if (scoped.notes.length > 0) {
+    console.warn("리딩 범위 축소:", scoped.notes.join(" / "));
+  }
   // 목차가 길수록 출력이 길어진다. 8000으로 고정하면 12~15장짜리 리포트가 중간에 잘린다.
   // 한글은 토큰을 많이 먹으므로 항목당 넉넉히 잡고 모델 상한(16k)에서 멈춘다.
+  // 자유 입력이라 길이를 잘라 둔다. 프롬프트로 들어가는 값이므로 긴 문장을
+  // 그대로 실으면 지시문을 밀어내는 데 쓰일 수 있다.
+  const occupation = (body.occupation ?? "").trim().slice(0, 30);
+
   const readingInput = {
     facts: myFacts,
     partnerFacts,
@@ -263,6 +292,7 @@ export async function POST(req: NextRequest) {
     outline,
     focus: partnerFacts ? "relationship" : "self",
     currentScene: body.question ?? "",
+    occupation: occupation || undefined,
     characterId: null,
     characterName: null,
     now,
@@ -308,7 +338,16 @@ export async function POST(req: NextRequest) {
       // 스키마는 맞아도 내용이 선을 넘을 수 있다. 한 번 훑고 결과를 남긴다.
       // 이 시점에는 미리보기 몫만 있으므로, 목차 전체가 아니라 만든 절 수로 본다.
       // 나머지 절은 결제 후 완성될 때 다시 검사한다(reading-finish.ts).
-      const guard = checkReport(report, { expectedSections: report.sections.length, forbiddenClaims });
+      const guard = checkReport(report, {
+        expectedSections: report.sections.length,
+        forbiddenClaims,
+        // 명식을 함께 넘긴다. 이것이 없으면 가드는 리포트만 보고 판정하므로
+        // "명식에 없는 글자를 이름으로 부르는" 문제를 원리적으로 못 잡는다.
+        facts: myFacts,
+        partnerFacts,
+        matchedRules,
+        productDomain: body.category,
+      });
       guardViolations = guard.violations;
       if (guard.mustRetry) {
         const blocking = guard.violations.filter((v) => v.blocking);
@@ -343,19 +382,24 @@ export async function POST(req: NextRequest) {
     me: chartSummary(myChart),
     partner: partnerChart ? chartSummary(partnerChart) : null,
   };
-  // 지수는 명식에서 뽑는다 — 인자와 근거가 함께 나오고, 그대로 봉인해 해금 후 보여준다.
+  // 지수는 명식에서 뽑는다 — 인자와 근거가 함께 나온다.
+  // 계산은 여기, 이 한 번뿐이다. 대운·세운을 보는 인자가 섞여 있어 내년에 다시
+  // 돌리면 다른 숫자가 나오므로, 결과를 통째로 봉인해 리딩 레코드에 저장한다.
+  // 해금·재조회는 전부 저장된 봉인을 읽는다(= 이미 판 리딩의 숫자는 그대로다).
   const scoreResult = computeSajuScore(body.category, myFacts, partnerFacts);
   const score = scoreResult.value;
   const scoreBand = product?.meterLabels?.[scoreResult.bandIndex] ?? null;
   const scoreLabel = product?.scoreLabel ?? null;
   const id = randomUUID();
+  const createdAt = new Date().toISOString();
+  const scoreSeal = sealScore(scoreResult, { band: scoreBand, label: scoreLabel, issuedAt: createdAt });
   // 운영에서는 반드시 Supabase에 저장하고, 로컬 무설정 환경만 파일 저장소를 쓴다.
   try {
     await saveReading({
       id,
       // 무료 리딩부터 로그인한 사용자에게 귀속한다.
       userId: user.userId,
-      createdAt: new Date().toISOString(),
+      createdAt,
       category: body.category,
       teaser,
       full,
@@ -364,6 +408,7 @@ export async function POST(req: NextRequest) {
       price,
       score,
       scoreLabel,
+      scoreSeal,
       unlocked: false,
     });
   } catch (e) {
@@ -399,7 +444,9 @@ export async function POST(req: NextRequest) {
         partnerFacts,
         ruleIds: matchedRules.map((rule) => rule.id),
         currentScene: body.question ?? "",
-        // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해
+        occupation: occupation || undefined,
+        // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해.
+        // 리딩 계산에 쓴 now를 그대로 쓴다(다른 변수에 기대지 않는다).
         issuedAt: now.toISOString(),
         doneSections: report.sections.length,
       });
@@ -437,6 +484,8 @@ export async function POST(req: NextRequest) {
       price,
       label,
       chart,
+      // 봉인된 지수 한 덩어리. DB가 정본이고, 이건 예전 클라이언트와의 호환용 사본이다.
+      scoreSeal,
       score,
       scoreLabel,
       scoreBand,

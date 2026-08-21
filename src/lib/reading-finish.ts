@@ -11,6 +11,7 @@ import { chatComplete } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
 import { composeReport, type Complete } from "@/lib/reading-compose";
 import { READING_RULES, forbiddenFromRules } from "@/lib/reading-rules";
+import { approvedPartnerRules } from "@/lib/myeongri-policy/partner-rules";
 import { reportToText, type StructuredReport } from "@/lib/reading-prompt";
 import { checkReport } from "@/lib/reading-guard";
 import { clearResume, loadResume } from "@/lib/reading-resume";
@@ -76,7 +77,9 @@ export async function finishReading(params: {
 
   // 발급 시점에 켜졌던 규칙을 그대로 복원한다. 그 사이 규칙 표현을 고쳤더라도
   // 산 사람이 산 리딩은 발급 때의 해석으로 이어져야 한다.
-  const byId = new Map(READING_RULES.map((rule) => [rule.id, rule]));
+  const byId = new Map(
+    [...READING_RULES, ...approvedPartnerRules()].map((rule) => [rule.id, rule])
+  );
   const matchedRules = resume.ruleIds.map((id) => byId.get(id)).filter((rule) => rule !== undefined);
 
   const rest = await composeReport(
@@ -88,6 +91,8 @@ export async function finishReading(params: {
       outline,
       focus: resume.partnerFacts ? "relationship" : "self",
       currentScene: resume.currentScene,
+      // 발급 때와 같은 무대에서 이어 쓴다. 앞 절과 뒤 절의 장면이 달라지면 안 된다.
+      occupation: resume.occupation,
       characterId: null,
       characterName: null,
       // 대운·세운은 발급 시점 기준이어야 앞 절과 뒷 절이 같은 해를 말한다
@@ -114,6 +119,10 @@ export async function finishReading(params: {
   const guard = checkReport(report, {
     expectedSections: outline.length,
     forbiddenClaims: forbiddenFromRules(matchedRules),
+    facts: resume.facts,
+    partnerFacts: resume.partnerFacts,
+    matchedRules,
+    productDomain: category,
   });
   const blocking = guard.violations.filter((v) => v.blocking);
   if (blocking.length > 0) {

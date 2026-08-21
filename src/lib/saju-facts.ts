@@ -12,6 +12,7 @@ import {
   computeSaju,
   currentLuckPillars,
   pillarLabel,
+  yearPillarOf,
   type Ohaeng,
   type Pillar,
   type SajuChart,
@@ -20,8 +21,19 @@ import type { BirthMoment } from "./korea-time";
 import { nextMonthTerm, previousMonthTerm } from "./solar-terms";
 import { findShinsal, type ShinsalFact } from "./saju-shinsal";
 import { branchIsYang, calculationPolicyStamp, type CalculationPolicyStamp } from "@/lib/myeongri/policy";
-import { findXing, findXingWithLuck, type BranchSlot, type XingRelation } from "@/lib/myeongri/xing";
+import {
+  completeXing,
+  findXing,
+  findXingWithLuck,
+  type BranchSlot,
+  type XingRelation,
+} from "@/lib/myeongri/xing";
+import { buildRelationBundles, type RelationBundle } from "@/lib/myeongri/relation-bundle";
+import { hiddenStemsOf, stemElementOf } from "@/lib/myeongri/hidden-stems";
 import { strengthEvidence, type StrengthEvidence } from "@/lib/myeongri/rooting";
+import { strengthPolicyEvidence, type StrengthPolicyEvidence } from "@/lib/myeongri/strength-policy";
+import { johuEvidence, type JohuEvidence } from "@/lib/myeongri/johu";
+import { buildAdvancedFacts, type AdvancedMyeongriFacts } from "@/lib/myeongri/advanced-facts";
 
 export type Gender = "M" | "F";
 
@@ -49,6 +61,41 @@ export interface RelationFact {
   kind: "천간합" | "지지충" | "지지육합" | "삼합";
   members: string[];
   label: string;
+  /**
+   * 그 글자들이 앉은 자리 — 연간/월간/일간/시간, 연지/월지/일지/시지.
+   * 형(刑)은 처음부터 자리를 들고 있었는데 합·충은 없어서, 모델이 "축미충"을
+   * 받아도 그것이 어느 자리인지 몰라 문장으로 옮기지 못했다. 근거 칸만 채우고
+   * 본문에는 한 번도 못 쓰인 칩이 감사에서 두 건 나왔다.
+   */
+  pillarPositions: string[];
+}
+
+/**
+ * 앞으로의 흐름.
+ *
+ * 감사에서 나온 문제: 목차는 "앞으로 6개월", "다음 기회가 또 오는지"를 팔고 있는데
+ * luckContext 에는 이번 달 하나뿐이었다. 모델은 없는 달을 지어내지 않는 쪽을 골랐고
+ * (그건 옳다), 그 결과 시기를 묻는 절 27곳이 전부 같은 달로 끝났다.
+ * 데이터가 없어서 생긴 일은 프롬프트로 고칠 수 없다.
+ *
+ * 달의 경계는 달력이 아니라 절기다. 8월 7일 입추부터 9월 7일 백로까지가 신월이다.
+ */
+export interface UpcomingLuck {
+  months: Array<{
+    /** 그 절기월의 한가운데가 놓인 달력 연·월 — 사람에게 "9월"이라고 말할 때 쓰는 값 */
+    year: number;
+    month: number;
+    pillar: { stem: string; branch: string };
+    tenGod: string;
+    /** 절입 시각 (ISO). 이 달이 실제로 시작하는 지점이다 */
+    start: string;
+    end: string;
+  }>;
+  nextYear: {
+    year: number;
+    pillar: { stem: string; branch: string };
+    tenGod: string;
+  } | null;
 }
 
 export interface MajorLuck {
@@ -71,11 +118,30 @@ export interface SajuFacts {
   dayMaster: string; // 예: "무토"
   dayMasterElement: Ohaeng;
   elementBalance: ElementBalance;
+  /** 천간·지지 본기에 드러나지 않은 오행. 지장간에 숨어 있을 수는 있다. */
   missingElements: Ohaeng[];
+  /**
+   * 지장간에만 있고 겉으로는 안 드러난 오행 — 암장(暗藏).
+   *
+   * missingElements 를 그냥 "없다"로 읽으면 절반이 틀린다. 기준 케이스의 상대는
+   * 화·수가 둘 다 0으로 나오지만, 지장간을 열면 화는 미·술에 들어 있고 수는 없다.
+   * 하나는 숨은 것이고 하나는 진짜 없는 것인데, 같은 말로 부르면 같은 해석이 나간다.
+   */
+  hiddenOnlyElements: Ohaeng[];
+  /** 지장간까지 열어도 없는 오행 — 전무(全無). 여기부터가 진짜 "없다"이다. */
+  absentElements: Ohaeng[];
   strength: StrengthFact;
   tenGods: TenGodFact[];
   dominantTenGods: string[];
   notableRelations: RelationFact[];
+  /**
+   * 같은 글자 묶음에 걸린 합·충·형을 하나로 모은 것.
+   *
+   * notableRelations 와 xing 을 각각 따로 보내면 사신합과 사신형이 두 개의
+   * 독립된 구조처럼 읽힌다 — 실제로는 같은 두 글자다. 해석에 나가는 것은
+   * 이쪽이고, 위의 두 벌은 계산 사실로 남는다.
+   */
+  relationBundles: RelationBundle[];
   /** 도화·역마·화개·홍염·양인·원진 — 상품 목차가 약속한 값이라 계산으로 낸다 */
   shinsal: ShinsalFact[];
   /** 본명식의 형(刑). 늘 있는 것이다. */
@@ -87,12 +153,38 @@ export interface SajuFacts {
   xingLuck: XingRelation[];
   /** 통근·투간 증거. 점수는 붙이지 않는다 — 가중치는 정책이 정할 일이다. */
   strengthEvidence: StrengthEvidence;
+  /**
+   * 확장된 강약 증거 — 왕상휴수사·설기·통근·인성과다.
+   *
+   * **strength.label 을 바꾸지 않는다.** proposedLabel 을 나란히 낼 뿐이다.
+   * 강약은 기능이 아니라 해석 정책이라, 가중치를 정하지 않은 채 기본 결론을 갈아 끼우면
+   * 이미 리딩을 받은 사람들의 결과가 소급해서 달라진다(myeongri-policy/strength-v1.json).
+   */
+  strengthPolicy: StrengthPolicyEvidence;
+  /**
+   * 조후 — 계절이 무엇을 필요로 하는가. 계산 artifact 다.
+   * exposable 이 false 면 프롬프트에 실리지 않는다(myeongri-policy/johu-v1.json).
+   */
+  johu: JohuEvidence;
+  /**
+   * 조후·격국·용신 — 고급 해석 층.
+   *
+   * ADVANCED_MYEONGRI_MODE 가 evidence_only(기본값)인 동안 이 값은 계산·감사·관리
+   * 화면에만 쓰인다. 사용자 리포트의 결론도 strength.label 도 바꾸지 않는다.
+   * 여기서 나오는 어떤 값도 위층(P0/P1)의 판단을 덮지 못한다 — 얹혀 있을 뿐이다.
+   */
+  advanced: AdvancedMyeongriFacts;
   /** 어느 정책으로 뽑은 값인지. 나중에 결과를 재현할 때 기준이 된다. */
   policy: CalculationPolicyStamp;
   luckContext: {
     majorLuck: MajorLuck | null;
     yearly: { year: number; pillar: string; tenGod: string };
     monthly: { month: number; pillar: string; tenGod: string };
+    /**
+     * 앞으로의 달과 다음 해. 목차가 "앞으로 6개월"을 약속했는데 이것이 비어 있으면
+     * 그 절은 약속을 지킬 수 없다 — reading-guard 가 그 어긋남을 막는다.
+     */
+    upcoming: UpcomingLuck;
   };
   calculationNotes: string[];
 }
@@ -122,8 +214,12 @@ function isYangBranch(jiIdx: number): boolean {
 /**
  * 십성 — 일간을 기준으로 다른 글자가 어떤 관계에 놓이는가.
  * 오행 관계(같음/생/극)와 음양의 같고 다름으로 열 가지가 갈린다.
+ *
+ * threads-inputs.ts 가 "오늘 일진이 이 일간에게 무슨 십성인가"를 재느라 밖에서 부른다.
+ * 명식 하나를 통째로 만들지 않고도 확정되는 몇 안 되는 값이라, 그쪽에서 이 함수가 없으면
+ * 같은 계산을 다시 쓰게 된다.
  */
-function tenGodOf(dayElement: Ohaeng, dayYang: boolean, targetElement: Ohaeng, targetYang: boolean): string {
+export function tenGodOf(dayElement: Ohaeng, dayYang: boolean, targetElement: Ohaeng, targetYang: boolean): string {
   const sameYinYang = dayYang === targetYang;
   if (targetElement === dayElement) return sameYinYang ? "비견" : "겁재";
   if (GENERATES[dayElement] === targetElement) return sameYinYang ? "식신" : "상관";
@@ -133,7 +229,7 @@ function tenGodOf(dayElement: Ohaeng, dayYang: boolean, targetElement: Ohaeng, t
   return "비견";
 }
 
-function stemElement(ganIdx: number): Ohaeng {
+export function stemElement(ganIdx: number): Ohaeng {
   return CHEONGAN_OHAENG[ganIdx] as Ohaeng;
 }
 
@@ -221,30 +317,62 @@ export const BRANCH_TRIPLES: [number[], string][] = [
 ];
 
 function findRelations(chart: SajuChart): RelationFact[] {
-  const pillars = [chart.year, chart.month, chart.day, chart.hour].filter(Boolean) as Pillar[];
-  const stems = pillars.map((p) => p.ganIdx);
-  const branches = pillars.map((p) => p.jiIdx);
+  // 자리를 잃지 않으려면 filter(Boolean) 뒤의 색인이 아니라 기둥 이름을 들고 다녀야 한다.
+  const slots = [
+    { stemPos: "연간", branchPos: "연지", pillar: chart.year },
+    { stemPos: "월간", branchPos: "월지", pillar: chart.month },
+    { stemPos: "일간", branchPos: "일지", pillar: chart.day },
+    { stemPos: "시간", branchPos: "시지", pillar: chart.hour },
+  ].filter((slot) => slot.pillar) as { stemPos: string; branchPos: string; pillar: Pillar }[];
+
+  const stems = slots.map((slot) => slot.pillar.ganIdx);
+  const branches = slots.map((slot) => slot.pillar.jiIdx);
+  const stemsAt = (...idx: number[]) =>
+    slots.filter((slot) => idx.includes(slot.pillar.ganIdx)).map((slot) => slot.stemPos);
+  const branchesAt = (...idx: number[]) =>
+    slots.filter((slot) => idx.includes(slot.pillar.jiIdx)).map((slot) => slot.branchPos);
+
   const relations: RelationFact[] = [];
 
   for (const [a, b, label] of HEAVENLY_COMBOS) {
     if (stems.includes(a) && stems.includes(b)) {
-      relations.push({ kind: "천간합", members: [CHEONGAN[a], CHEONGAN[b]], label });
+      relations.push({
+        kind: "천간합",
+        members: [CHEONGAN[a], CHEONGAN[b]],
+        label,
+        pillarPositions: stemsAt(a, b),
+      });
     }
   }
   for (const [a, b] of BRANCH_CLASHES) {
     if (branches.includes(a) && branches.includes(b)) {
-      relations.push({ kind: "지지충", members: [JIJI[a], JIJI[b]], label: `${JIJI[a]}${JIJI[b]}충` });
+      relations.push({
+        kind: "지지충",
+        members: [JIJI[a], JIJI[b]],
+        label: `${JIJI[a]}${JIJI[b]}충`,
+        pillarPositions: branchesAt(a, b),
+      });
     }
   }
   for (const [a, b] of BRANCH_SIX_COMBOS) {
     if (branches.includes(a) && branches.includes(b)) {
-      relations.push({ kind: "지지육합", members: [JIJI[a], JIJI[b]], label: `${JIJI[a]}${JIJI[b]}합` });
+      relations.push({
+        kind: "지지육합",
+        members: [JIJI[a], JIJI[b]],
+        label: `${JIJI[a]}${JIJI[b]}합`,
+        pillarPositions: branchesAt(a, b),
+      });
     }
   }
   for (const [members, label] of BRANCH_TRIPLES) {
     const hit = members.filter((m) => branches.includes(m));
     if (hit.length === 3) {
-      relations.push({ kind: "삼합", members: hit.map((m) => JIJI[m]), label });
+      relations.push({
+        kind: "삼합",
+        members: hit.map((m) => JIJI[m]),
+        label,
+        pillarPositions: branchesAt(...hit),
+      });
     }
   }
   return relations;
@@ -345,6 +473,42 @@ function computeMajorLuck(chart: SajuChart, gender: Gender, ageNow: number): Maj
   };
 }
 
+/**
+ * 지금 달 다음부터 count 개월. 경계는 절기로 걷는다.
+ *
+ * 달력 달로 걸으면 절입 전후 며칠이 통째로 어긋난다 — 9월 3일은 달력으로 9월이지만
+ * 사주로는 아직 신월(8월)이다. 그 며칠에 "9월에는" 이라고 말하면 틀린 달을 짚는다.
+ */
+function upcomingMonths(
+  chart: SajuChart,
+  now: Date,
+  count: number
+): UpcomingLuck["months"] {
+  const dayElement = stemElement(chart.day.ganIdx);
+  const dayYang = isYangStem(chart.day.ganIdx);
+  const out: UpcomingLuck["months"] = [];
+
+  let start = previousMonthTerm(now.getTime()).utcMs;
+  for (let i = 0; i < count; i += 1) {
+    // 절입 시각에서 한 시간 뒤를 물어야 "지금 달"이 아니라 "다음 절입"이 나온다.
+    const boundary = nextMonthTerm(start + 3600_000);
+    const mid = (start + boundary.utcMs) / 2;
+    const at = new Date(mid);
+    const luck = currentLuckPillars(at);
+    out.push({
+      year: at.getFullYear(),
+      month: at.getMonth() + 1,
+      pillar: { stem: luck.month.gan, branch: luck.month.ji },
+      tenGod: tenGodOf(dayElement, dayYang, stemElement(luck.month.ganIdx), isYangStem(luck.month.ganIdx)),
+      start: new Date(start).toISOString(),
+      end: new Date(boundary.utcMs).toISOString(),
+    });
+    start = boundary.utcMs;
+  }
+  // 첫 칸은 지금 달이다. 앞으로를 묻는 자리에는 그 다음부터가 필요하다.
+  return out.slice(1);
+}
+
 export function buildSajuFacts(
   birth: BirthMoment & { gender: Gender },
   now = new Date()
@@ -365,6 +529,16 @@ export function buildSajuFacts(
   const ageNow = now.getFullYear() - birth.year + 1; // 세는나이 — 대운 표기 관행
   const luck = currentLuckPillars(now);
 
+  // 지지 속에 숨은 오행 — 겉으로 안 드러난 것과 아예 없는 것을 가르는 데 쓴다.
+  const hiddenElements = new Set<Ohaeng>(
+    [chart.year, chart.month, chart.day, chart.hour]
+      .filter(Boolean)
+      .flatMap((pillar) => hiddenStemsOf(pillar!.jiIdx).map((h) => stemElementOf(h.stem)))
+  );
+
+  const relations = findRelations(chart);
+  const natalXing = findXing(branchSlotsOf(chart));
+
   const notes = [...chart.moment.notes];
   if (chart.hour === null) notes.push("시주 미상이라 시간대 관련 해석은 근거가 약하다");
   notes.push("절기는 태양 황경으로 계산 (오차 15분 이내)");
@@ -381,14 +555,22 @@ export function buildSajuFacts(
     dayMasterElement: dayElement,
     elementBalance: balance,
     missingElements: ELEMENTS.filter((e) => balance[e] === 0),
+    hiddenOnlyElements: ELEMENTS.filter((e) => balance[e] === 0 && hiddenElements.has(e)),
+    absentElements: ELEMENTS.filter((e) => balance[e] === 0 && !hiddenElements.has(e)),
     strength: judgeStrength(chart, balance),
     tenGods,
     dominantTenGods,
-    notableRelations: findRelations(chart),
+    notableRelations: relations,
+    // 부분 성립을 실질로 볼지는 XING_PARTIAL_POLICY 가 정한다. 번들에는 그 정책을
+    // 통과한 것만 넣는다 — 규칙(matches)이 보는 것과 같은 집합이어야 한다.
+    relationBundles: buildRelationBundles(relations, completeXing(natalXing)),
     shinsal: findShinsal(chart),
-    xing: findXing(branchSlotsOf(chart)),
+    xing: natalXing,
     xingLuck: findXingWithLuck(branchSlotsOf(chart), luckSlotsOf(chart, birth.gender, ageNow, luck)),
     strengthEvidence: strengthEvidence(chart),
+    strengthPolicy: strengthPolicyEvidence(chart),
+    johu: johuEvidence(chart, judgeStrength(chart, balance).label),
+    advanced: buildAdvancedFacts(chart, judgeStrength(chart, balance).label),
     policy: calculationPolicyStamp(),
     luckContext: {
       majorLuck: computeMajorLuck(chart, birth.gender, ageNow),
@@ -401,6 +583,18 @@ export function buildSajuFacts(
         month: now.getMonth() + 1,
         pillar: pillarLabel(luck.month),
         tenGod: tenGodOf(dayElement, dayYang, stemElement(luck.month.ganIdx), isYangStem(luck.month.ganIdx)),
+      },
+      upcoming: {
+        // 6개월을 약속하는 목차가 있으므로 6개월을 낸다. 지금 달을 빼고 세려면 7칸을 걸어야 한다.
+        months: upcomingMonths(chart, now, 7),
+        nextYear: (() => {
+          const next = yearPillarOf(luck.sajuYear + 1);
+          return {
+            year: luck.sajuYear + 1,
+            pillar: { stem: next.gan, branch: next.ji },
+            tenGod: tenGodOf(dayElement, dayYang, stemElement(next.ganIdx), isYangStem(next.ganIdx)),
+          };
+        })(),
       },
     },
     calculationNotes: notes,

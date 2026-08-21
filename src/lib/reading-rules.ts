@@ -27,8 +27,10 @@ import {
   type SajuFacts,
 } from "./saju-facts";
 import { WONJIN, type ShinsalName } from "./saju-shinsal";
-import { completeXing, type XingKind } from "./myeongri/xing";
+import { hiddenStemsOf } from "./myeongri/hidden-stems";
+import { completeXing, type XingCompleteness, type XingKind } from "./myeongri/xing";
 import { luckInterpretationFlags } from "./myeongri/luck-flags";
+import { approvedPartnerRules, isPartnerRule } from "./myeongri-policy/partner-rules";
 
 export type PairRelation = "일지육합" | "일지삼합" | "일지충" | "일지원진" | "일간합";
 
@@ -52,6 +54,47 @@ export interface RuleCondition {
   pairRelation?: PairRelation[];
   /** 상대 명식이 있어야만 켜지는 규칙 */
   needsPartner?: boolean;
+
+  // ── 상대 명식 ──────────────────────────────────────────
+  //
+  // 이 조건들이 없던 동안, 65개 규칙 전부가 me 만 읽었다. 상대를 보는 통로는
+  // pairRelation 하나였고 그것도 일간 대 일간, 일지 대 일지뿐이었다. 그래서
+  // 궁합 상품인데 두 명식을 잇는 축이 하나였고, 기준 케이스처럼 일주가 안 걸리는
+  // 짝에서는 상대 쪽 검수 규칙이 **0개**가 됐다. 그런데도 리포트는 상대의 성향을
+  // 열두 절 내내 말했다 — 전부 규칙 밖의 말이었다.
+  //
+  // 조건을 지원한다고 해서 서술이 열리는 것은 아니다. 이 조건을 쓰는 규칙은
+  // PARTNER_RULE_REGISTRY(partner-rules.ts)에 출처와 함께 등재돼야 하고,
+  // 등재 전에는 reading-guard 가 상대 성향 문장을 막는다.
+  /** 상대의 강약 */
+  partnerStrength?: ("신강" | "중화" | "신약")[];
+  /** 상대 명식에 아예 없는 오행 */
+  partnerMissingElement?: Ohaeng[];
+  /** 상대의 대운·세운·월운 십성 */
+  partnerLuckTenGodAny?: string[];
+  /** 상대의 두드러진 십성 */
+  partnerDominantTenGod?: string[];
+  /** 상대의 일지(배우자궁)에 앉은 십성 */
+  partnerDayBranchTenGod?: string[];
+  /**
+   * 상대 명식에 **지장간까지 열어도 없는** 오행.
+   *
+   * partnerMissingElement 는 겉으로 안 드러난 것까지 잡는다. 숨어 있는 것과
+   * 아예 없는 것을 같은 말로 부르면 같은 해석이 나가므로 나눠 둔다.
+   */
+  partnerAbsentElement?: Ohaeng[];
+  /** 상대 명식에서 지장간에만 있고 겉으로는 안 드러난 오행 */
+  partnerHiddenOnlyElement?: Ohaeng[];
+  /** 상대 명식의 신살 — 본인 쪽 SIN-* 이 쓰는 원리를 그대로 옮긴 것 */
+  partnerShinsal?: ShinsalName[];
+  /** 상대 지지 속에 숨어 있는 천간 — 드러나지 않은 자리를 볼 때 */
+  partnerHiddenStem?: string[];
+  /** 상대 명식에서 한 자리에 겹친 관계의 꼴 */
+  partnerRelationBundle?: ("합+형" | "충+형" | "합+충")[];
+  /** 한쪽에 없는 오행을 다른 쪽이 갖고 있는가 — 서로 메우는 자리 */
+  pairElementComplement?: Ohaeng[];
+  /** 월지끼리의 관계. 일지만 보던 궁합에 사회 자리를 더한다 */
+  pairMonthBranchRelation?: ("육합" | "충" | "삼합" | "원진")[];
   /** 시주가 없을 때만 켜지는 규칙 */
   hourUnknown?: boolean;
   /**
@@ -59,6 +102,24 @@ export interface RuleCondition {
    * 여기서는 정하지 않는다.
    */
   xingKind?: XingKind[];
+  /**
+   * 형이 몇 글자로 섰는가.
+   *
+   * 완성 삼형의 상의(무은지형·지세지형)를 두 글자짜리에 그대로 씌우면
+   * 명식에 없는 글자의 해석을 사용자에게 주게 된다. 그래서 상의를 쓰는 규칙은
+   * ["complete"] 를 명시해야 하고, 두 글자용 규칙은 ["partial"] 로 따로 선다.
+   * 비워 두면 예전처럼 둘 다 받는다 — 상의를 쓰지 않는 궁위 규칙이 그렇다.
+   */
+  xingCompleteness?: XingCompleteness[];
+  /**
+   * 실제로 선 두 글자 — "사신", "축미", "술미"...
+   *
+   * 삼형의 상의를 걷어내고 나니 두 글자짜리에 할 말이 없어졌다. 그런데 고전은
+   * 원래 선 글자로 부르고 선 글자로 읽는다(巳刑申·戌刑未). 글자 쌍마다 성질이
+   * 다르므로 — 사신은 육합이 겹치고 축미는 충이 겹친다 — 쌍을 조건으로 받는다.
+   * 부분 성립에만 쓴다. 세 글자가 다 서면 그때는 국(局)의 이름으로 읽는다.
+   */
+  xingPair?: string[];
   /** 원국의 형이 일지(배우자궁)에 걸려 있는가 */
   xingAtDayBranch?: boolean;
   /** 운에서 들어온 형 — 어느 운의 글자가 끼었는가 */
@@ -83,6 +144,42 @@ export interface ReadingRule {
   forbidden: string[];
   source: string;
 }
+
+// ── 상품 도메인 검토 (감사 후속) ─────────────────────────
+//
+// 속궁합 12절이 규칙 4개 위에 서 있었다. 그중 하나가 11개 절의 뼈대였다.
+// 아래는 규칙마다 '이 상품의 물음에 이 판단이 답이 되는가'를 따져 넓힌 것이다.
+//
+//   TG-SANGGWAN                +jaehoe,sokgunghap
+//     상관은 표현·발산의 자리다. 재회에서는 하고 싶은 말이 먼저 나가는 결로, 속궁합에서는 원하는 것을 말로 꺼내는 결로 그대로 닿는다.
+//   TG-PYEONJAE                +jaehoe,sokgunghap
+//     편재는 감각으로 움직이는 애정이다. 속궁합의 축이고, 재회에서는 마음이 한 곳에 안 머무는 결이다.
+//   TG-GEOPJAE                 +jaehoe,sokgunghap
+//     겁재는 나눠야 하는 자리다. 관계에서는 비교와 경쟁으로 드러나므로 두 상품 다에 걸린다.
+//   SIN-HWAGAE                 +jaehoe,sokgunghap
+//     화개는 혼자 있는 시간이 필요한 자리다. 재회에서 답장이 끊긴 밤의 근거가 되고, 속궁합에서는 가까워도 안으로 도는 결이 된다. 이 명식의 유일한 신살인데 두 상품 모두에서 빠져 있었다.
+//   REL-CHUNG                  +sokgunghap
+//     지지충은 자리끼리 부딪히는 것이라 가까운 사이에서 가장 크게 드러난다. 속궁합에서 뺄 이유가 없었다.
+//   SIN-WONJIN                 +sokgunghap
+//     원진은 까닭 없이 거슬리는 자리다. 몸이 가까울수록 도드라지므로 속궁합의 핵심에 가깝다.
+//   LUCK-SIKSANG               +jaehoe,sokgunghap
+//     식상운은 표현이 늘어나는 흐름이다. 지금 말이 어떻게 나가는지를 묻는 두 상품에 직접 닿는다.
+//   SPOUSE-STAR-F              +sokgunghap
+//     일지는 배우자궁이다. 그 자리의 배우자성을 속궁합에서 뺄 이유가 없다.
+//   SPOUSE-STAR-M              +sokgunghap
+//     일지는 배우자궁이다. 그 자리의 배우자성을 속궁합에서 뺄 이유가 없다.
+//   XING-LUCK-NOW              +sokgunghap
+//     지금 구간에만 겹치는 형은 '요즘 유독 걸린다'는 말이 된다. 속궁합에서도 유효하다.
+//   XING-YINSISHEN             +sokgunghap,gyeolhon
+//     완성 삼형이 섰을 때의 상의는 가까운 관계에서 가장 크게 나온다.
+//   XING-CHOUXUWEI             +jaehoe,sokgunghap,bamgijil
+//     완성 삼형이 섰을 때의 상의는 가까운 관계에서 가장 크게 나온다.
+// ── 도메인을 넓히지 않기로 한 것 ────────────────────────
+//   SIN-YEOKMA   역마는 이동·자리 옮김이다. 속궁합·재회의 물음과 축이 다르다.
+//   SIN-YANGIN   양인은 힘이 과한 자리로 본다. 관계 상품에 바로 옮기면 성격 판정이 된다.
+//   XING-SELF    자형은 혼자 안으로 도는 결이라 짝을 묻는 상품의 답이 되기 어렵다.
+//   LUCK-BIGEOP  비겁운은 경쟁·나눔인데, 재회에서 '경쟁자가 있다'로 새기 쉽다.
+// 절 수가 모자란 것과 그 규칙이 그 상품의 답이 되는 것은 다른 문제다.
 
 export const READING_RULES: ReadingRule[] = [
   // ── 일간 오행 × 강약 ────────────────────────────────────
@@ -316,7 +413,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-PYEONJAE",
     priority: 74,
-    when: { tenGodAny: ["편재"] , domains: ["baramgi", "dohwasal", "hwanseung", "pyeongsaeng", "bamgijil", "sseom"] },
+    when: { tenGodAny: ["편재"] , domains: ["baramgi", "dohwasal", "hwanseung", "pyeongsaeng", "bamgijil", "sseom", "jaehoe", "sokgunghap"] },
     claim: "인연의 폭이 넓게 열려 여러 갈래가 동시에 들어오고, 그만큼 한곳에 고이지 않는 구조",
     safePhrasing: "그렇게 열려 있는",
     forbidden: ["바람을 피운다"],
@@ -334,7 +431,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-SANGGWAN",
     priority: 74,
-    when: { tenGodAny: ["상관"] , domains: ["baramgi", "ibyeol", "dohwasal", "gwontaegi", "pyeongsaeng", "bamgijil", "sseom", "jjak"] },
+    when: { tenGodAny: ["상관"] , domains: ["baramgi", "ibyeol", "dohwasal", "gwontaegi", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap"] },
     claim: "정해진 틀을 답답해하고 관계의 규칙을 다시 짜려 해, 상대에게는 반박처럼 들리기 쉬운 경향",
     safePhrasing: "그런 쪽으로 기우는",
     forbidden: ["관계를 반드시 망친다"],
@@ -370,7 +467,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-GEOPJAE",
     priority: 72,
-    when: { tenGodAny: ["겁재"] , domains: ["hwanseung", "baramgi", "ibyeol", "pyeongsaeng", "bamgijil", "sseom", "jjak"] },
+    when: { tenGodAny: ["겁재"] , domains: ["hwanseung", "baramgi", "ibyeol", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap"] },
     claim: "비교와 경쟁이 개입할 때 관계의 온도가 흔들리고, 가진 것을 나눠야 하는 자리에서 특히 예민해지는 구조",
     safePhrasing: "그렇게 흔들리기 쉬운",
     forbidden: ["빼앗긴다", "삼각관계가 생긴다"],
@@ -383,7 +480,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SPOUSE-STAR-F",
     priority: 86,
-    when: { gender: ["F"], dayBranchTenGod: ["정관", "편관"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng"] },
+    when: { gender: ["F"], dayBranchTenGod: ["정관", "편관"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap"] },
     claim: "배우자 자리에 배우자를 뜻하는 글자가 앉아, 관계가 삶의 중심으로 들어오기 쉬운 구조",
     safePhrasing: "그렇게 놓인 자리",
     forbidden: ["좋은 남편을 만난다", "반드시 결혼한다"],
@@ -392,7 +489,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SPOUSE-STAR-M",
     priority: 86,
-    when: { gender: ["M"], dayBranchTenGod: ["정재", "편재"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng"] },
+    when: { gender: ["M"], dayBranchTenGod: ["정재", "편재"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap"] },
     claim: "배우자 자리에 배우자를 뜻하는 글자가 앉아, 관계가 삶의 중심으로 들어오기 쉬운 구조",
     safePhrasing: "그렇게 놓인 자리",
     forbidden: ["좋은 아내를 만난다", "반드시 결혼한다"],
@@ -442,24 +539,128 @@ export const READING_RULES: ReadingRule[] = [
     priority: 80,
     when: {
       xingKind: ["yin_si_shen_three_xing"],
-      domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil"],
+      // 무은지형은 세 글자가 다 선 삼형의 상의다. 두 글자에 씌우면 명식에 없는
+      // 글자의 해석을 주게 된다 — 감사에서 잡힌 이론 오적용이 정확히 이것이다.
+      xingCompleteness: ["complete"],
+      domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "sokgunghap", "gyeolhon"],
     },
     claim: "들인 만큼이 그대로 돌아오지 않는 자리라, 애쓴 쪽이 먼저 지치기 쉬운 구조",
     safePhrasing: "그렇게 어긋나는",
     forbidden: ["배신당한다", "이용당한다", "손해를 본다"],
-    source: "형 — 인사신 삼형(무은지형). 은혜가 은혜로 돌아오지 않는 어긋남으로 본다.",
+    source: "형 — 인사신 삼형(무은지형). 은혜가 은혜로 돌아오지 않는 어긋남으로 본다. 세 글자가 다 설 때만.",
+  },
+  // ── 두 글자만 선 형 ───────────────────────────────────
+  //
+  // 삼형의 상의(무은지형·지세지형)를 걷어내고 나니 두 글자짜리에 할 말이 없어졌다.
+  // 그런데 그건 해석이 없어서가 아니라 뭉뚱그려 불렀기 때문이다. 고전은 선 글자로
+  // 부르고 선 글자로 읽는다. 여섯 쌍은 성질이 제각기 다르다 —
+  // 사신은 육합이 겹치고, 인신·축미는 충이 겹치고, 축술·술미는 창고끼리 부딪힌다.
+  //
+  // 무게는 완성 삼형(80)보다 낮게, 궁위의 형(86)보다도 낮게 둔다. 국이 서지 않았다.
+  {
+    id: "XING-PAIR-SASIN",
+    // 여섯 쌍 중 이것만 무게가 한 칸 높다. 육합이 함께 걸린 자리라 형 단독보다
+    // 관계에서 크게 작동한다 — 걸리는데 벗어나지지가 않는다.
+    priority: 73,
+    when: {
+      xingPair: ["사신"],
+      xingCompleteness: ["partial"],
+      domains: ["ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "gyeolhon", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "붙드는 힘과 걸리는 결이 같은 자리에서 나와, 쉽게 놓지도 못하면서 가까울수록 같은 대목에 걸리는 구조",
+    safePhrasing: "그렇게 놓지도 편하지도 못한",
+    forbidden: ["배신당한다", "이용당한다", "손해를 본다", "삼형이다", "결국 갈라선다"],
+    source:
+      "형 — 巳刑申. 이 쌍은 육합이 함께 걸린 자리라 합중유형(合中有刑)으로 본다. " +
+      "巳中庚金과 申中丙火가 서로를 극하니, 묶여 있으면서 안에서 긁는다.",
+  },
+  {
+    id: "XING-PAIR-INSA",
+    priority: 70,
+    when: {
+      xingPair: ["인사"],
+      xingCompleteness: ["partial"],
+      domains: ["ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "도우려고 낸 힘이 그대로 돌아오지 않아, 먼저 마음 쓴 쪽이 서운함을 안고 가는 구조",
+    safePhrasing: "그렇게 어긋나기 쉬운",
+    forbidden: ["배신당한다", "이용당한다", "손해를 본다", "삼형이다"],
+    source:
+      "형 — 寅刑巳. 목이 화를 생하는 상생 관계인데도 형이 선다. 寅中戊土와 巳中庚金이 " +
+      "어긋나는 자리라, 준 것과 돌아오는 것의 결이 달라진다.",
+  },
+  {
+    id: "XING-PAIR-INSIN",
+    priority: 72,
+    when: {
+      xingPair: ["인신"],
+      xingCompleteness: ["partial"],
+      domains: ["ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "hwanseung", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "부딪히면 그 자리에 머물지 않고 상황 자체가 크게 움직여, 갈등이 곧 자리 이동으로 이어지는 구조",
+    safePhrasing: "그렇게 크게 움직이는",
+    forbidden: ["헤어진다", "떠나게 된다", "삼형이다", "이사한다"],
+    source:
+      "형 — 寅刑申. 이 쌍은 인신충이 함께 걸린 자리다. 둘 다 역마(驛馬)의 글자라 " +
+      "충과 형이 겹치면 마찰이 정지가 아니라 이동으로 나간다.",
   },
   {
     id: "XING-CHOUXUWEI",
     priority: 80,
     when: {
       xingKind: ["chou_xu_wei_three_xing"],
-      domains: ["gwontaegi", "ibyeol", "gyeolhon", "pyeongsaeng"],
+      xingCompleteness: ["complete"],
+      domains: ["gwontaegi", "ibyeol", "gyeolhon", "pyeongsaeng", "jaehoe", "sokgunghap", "bamgijil"],
     },
     claim: "서로 물러설 근거가 있어서 오히려 안 굽히는 자리라, 옳고 그름을 가리다 사이가 상하는 구조",
     safePhrasing: "그렇게 맞부딪히는",
     forbidden: ["싸움이 끊이지 않는다", "결국 갈라선다"],
-    source: "형 — 축술미 삼형(지세지형). 각자 세력을 믿고 밀어붙이는 충돌로 본다.",
+    source: "형 — 축술미 삼형(지세지형). 각자 세력을 믿고 밀어붙이는 충돌로 본다. 세 글자가 다 설 때만.",
+  },
+  {
+    id: "XING-PAIR-CHUKMI",
+    priority: 71,
+    when: {
+      xingPair: ["축미"],
+      xingCompleteness: ["partial"],
+      domains: ["gwontaegi", "ibyeol", "gyeolhon", "jaehoe", "sokgunghap", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "밀어내면서도 결국 같은 자리라 완전히 갈라지지는 않고, 같은 다툼이 같은 대목에서 되돌아오는 구조",
+    safePhrasing: "그렇게 되돌아오는",
+    forbidden: ["싸움이 끊이지 않는다", "결국 갈라선다", "세력 싸움이다", "삼형이다"],
+    source:
+      "형 — 丑刑未. 이 쌍은 축미충이 함께 걸린 자리다. 둘 다 토라 충으로 밀어내도 " +
+      "성질이 같아 멀리 못 간다. 丑中辛金·癸水와 未中丁火·乙木이 서로 극하니 안에서 긁힌다.",
+  },
+  {
+    id: "XING-PAIR-CHUKSUL",
+    priority: 69,
+    when: {
+      xingPair: ["축술"],
+      xingCompleteness: ["partial"],
+      domains: ["gwontaegi", "ibyeol", "gyeolhon", "jaehoe", "sokgunghap", "bimil", "pyeongsaeng"],
+    },
+    claim: "묻어 두었던 것이 부딪히는 순간 한꺼번에 열려, 오래된 이야기가 지금 다툼에 섞여 나오는 구조",
+    safePhrasing: "그렇게 열리는",
+    forbidden: ["과거가 발목을 잡는다", "비밀이 드러난다", "삼형이다", "결국 갈라선다"],
+    source:
+      "형 — 丑刑戌. 축토는 금의 고지, 술토는 화의 고지다. 창고끼리 부딪히면 " +
+      "안에 갈무리해 둔 것이 나온다고 본다(개고, 開庫).",
+  },
+  {
+    id: "XING-PAIR-SULMI",
+    priority: 69,
+    when: {
+      xingPair: ["술미"],
+      xingCompleteness: ["partial"],
+      domains: ["gwontaegi", "ibyeol", "gyeolhon", "jaehoe", "sokgunghap", "pyeongsaeng", "bamgijil"],
+    },
+    claim: "둘 다 무를 자리가 없어 한번 부딪히면 완충 없이 그대로 닿는, 말이 곧장 세게 가는 구조",
+    safePhrasing: "그렇게 곧장 닿는",
+    forbidden: ["싸움이 끊이지 않는다", "성격이 나쁘다", "삼형이다", "결국 갈라선다"],
+    source:
+      "형 — 戌刑未. 술과 미는 둘 다 조토(燥土)다. 축·진 같은 습토가 사이에 없으면 " +
+      "부딪힘을 눅여 줄 자리가 없다고 본다.",
   },
   {
     id: "XING-ZIMAO",
@@ -511,7 +712,7 @@ export const READING_RULES: ReadingRule[] = [
     priority: 79,
     when: {
       xingLuckScope: ["대운", "세운"],
-      domains: ["ibyeol", "jaehoe", "gwontaegi", "hwanseung", "insun", "yeonae"],
+      domains: ["ibyeol", "jaehoe", "gwontaegi", "hwanseung", "insun", "yeonae", "sokgunghap"],
     },
     claim: "지금 지나는 흐름이 명식의 글자와 형을 이뤄, 평소엔 넘어가던 지점이 이 구간에만 크게 걸리는 때",
     safePhrasing: "지금 그렇게 겹치는",
@@ -566,7 +767,7 @@ export const READING_RULES: ReadingRule[] = [
     // 이것은 계산 오류가 아니라 화개의 성질이므로 우선순위를 낮추지 않는다.
     // 화면에서 얼마나 앞세울지는 노출 정책의 문제다(docs/myeongri/rule-boundaries.md).
     priority: 76,
-    when: { shinsal: ["화개"] , domains: ["bimil", "gwontaegi", "bamgijil", "pyeongsaeng"] },
+    when: { shinsal: ["화개"] , domains: ["bimil", "gwontaegi", "bamgijil", "pyeongsaeng", "jaehoe", "sokgunghap"] },
     claim: "혼자 있는 시간에 기운이 정리되는 편이라, 붙어 있는 시간만으로는 애정이 채워지지 않는 구조",
     safePhrasing: "그런 간격이 필요한",
     forbidden: ["연애를 못 한다"],
@@ -584,7 +785,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SIN-WONJIN",
     priority: 80,
-    when: { shinsal: ["원진"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "hwanseung", "pyeongsaeng", "bamgijil"] },
+    when: { shinsal: ["원진"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "hwanseung", "pyeongsaeng", "bamgijil", "sokgunghap"] },
     claim: "이유를 대기 어려운 거슬림이 관계 안에 깔려, 사건 없이도 마음이 멀어지는 구조",
     safePhrasing: "그렇게 걸리는 자리",
     forbidden: ["반드시 헤어진다", "악연이다"],
@@ -595,7 +796,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "REL-CHUNG",
     priority: 80,
-    when: { relationKind: ["지지충"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "bimil"] },
+    when: { relationKind: ["지지충"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "bimil", "sokgunghap"] },
     claim: "명식 안에 정면으로 부딪히는 자리가 있어, 같은 지점에서 반복해 걸려 넘어지는 구조",
     safePhrasing: "그 자리가 자주 걸리는",
     forbidden: ["관계가 깨진다"],
@@ -679,7 +880,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-SIKSANG",
     priority: 82,
-    when: { luckTenGodAny: ["식신", "상관"] , domains: ["insun", "yeonae", "sseom", "dohwasal", "pyeongsaeng", "bamgijil", "jjak", "bimil"] },
+    when: { luckTenGodAny: ["식신", "상관"] , domains: ["insun", "yeonae", "sseom", "dohwasal", "pyeongsaeng", "bamgijil", "jjak", "bimil", "jaehoe", "sokgunghap"] },
     claim: "지금 구간은 말과 표현이 관계를 크게 움직여, 한 마디가 평소보다 멀리 가는 흐름",
     safePhrasing: "그런 힘이 실린 구간",
     forbidden: ["말하면 반드시 이루어진다"],
@@ -824,9 +1025,20 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
     const candidate = flags.some((f) => f.flag === "female_shangguan_relationship_policy_candidate");
     if (w.femaleShangguanCandidate !== candidate) return false;
   }
-  if (w.xingKind) {
-    const active = completeXing(me.xing);
-    if (!w.xingKind.some((k) => active.some((x) => x.kind === k))) return false;
+  if (w.xingKind || w.xingCompleteness) {
+    let active = completeXing(me.xing);
+    if (w.xingCompleteness) {
+      active = active.filter((x) => w.xingCompleteness!.includes(x.completeness));
+    }
+    if (w.xingKind && !w.xingKind.some((k) => active.some((x) => x.kind === k))) return false;
+    if (!w.xingKind && active.length === 0) return false;
+  }
+  if (w.xingPair) {
+    // 두 글자만 선 것에서만 쌍을 본다. 세 글자가 다 서면 국의 이름으로 읽는다.
+    const pairs = completeXing(me.xing)
+      .filter((x) => x.completeness === "partial")
+      .map((x) => [...new Set(x.branches)].join(""));
+    if (!w.xingPair.some((pair) => pairs.includes(pair))) return false;
   }
   if (w.xingAtDayBranch !== undefined) {
     const onDay = completeXing(me.xing).some((x) => x.pillarPositions.includes("일지"));
@@ -840,22 +1052,175 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
     const relations = pairRelationsOf(me, partner);
     if (!w.pairRelation.some((r) => relations.includes(r))) return false;
   }
+
+  // ── 상대 명식 ──
+  const needsPartnerFacts =
+    w.partnerStrength ||
+    w.partnerMissingElement ||
+    w.partnerLuckTenGodAny ||
+    w.partnerDominantTenGod ||
+    w.partnerHiddenStem ||
+    w.partnerAbsentElement ||
+    w.partnerHiddenOnlyElement ||
+    w.partnerShinsal ||
+    w.partnerDayBranchTenGod ||
+    w.partnerRelationBundle ||
+    w.pairElementComplement ||
+    w.pairMonthBranchRelation;
+  if (needsPartnerFacts && !partner) return false;
+  if (partner) {
+    if (w.partnerStrength && !w.partnerStrength.includes(partner.strength.label)) return false;
+    if (w.partnerMissingElement && !w.partnerMissingElement.some((e) => partner.missingElements.includes(e))) {
+      return false;
+    }
+    if (w.partnerDominantTenGod && !w.partnerDominantTenGod.some((t) => partner.dominantTenGods.includes(t))) {
+      return false;
+    }
+    if (w.partnerDayBranchTenGod) {
+      const seated = partner.tenGods.find((t) => t.position === "일지")?.tenGod;
+      if (!seated || !w.partnerDayBranchTenGod.includes(seated)) return false;
+    }
+    if (w.partnerAbsentElement && !w.partnerAbsentElement.some((e) => partner.absentElements.includes(e))) {
+      return false;
+    }
+    if (
+      w.partnerHiddenOnlyElement &&
+      !w.partnerHiddenOnlyElement.some((e) => partner.hiddenOnlyElements.includes(e))
+    ) {
+      return false;
+    }
+    if (w.partnerShinsal && !w.partnerShinsal.some((name) => partner.shinsal.some((x) => x.name === name))) {
+      return false;
+    }
+    if (w.partnerLuckTenGodAny) {
+      const running = [
+        partner.luckContext.majorLuck?.currentTenGod,
+        partner.luckContext.yearly.tenGod,
+        partner.luckContext.monthly.tenGod,
+      ].filter(Boolean) as string[];
+      if (!w.partnerLuckTenGodAny.some((t) => running.includes(t))) return false;
+    }
+    if (w.partnerHiddenStem && !w.partnerHiddenStem.some((stem) => hiddenStemsIn(partner).includes(stem))) {
+      return false;
+    }
+    if (w.partnerRelationBundle && !w.partnerRelationBundle.some((shape) => bundleShapes(partner).includes(shape))) {
+      return false;
+    }
+    // 한쪽에 없는 오행을 다른 쪽이 갖고 있는가. 방향은 양쪽 다 본다 —
+    // 내가 못 채우는 것을 상대가 채우는 것도, 그 반대도 같은 자리의 일이다.
+    if (w.pairElementComplement) {
+      const complements = (a: SajuFacts, b: SajuFacts) =>
+        a.missingElements.filter((e) => b.elementBalance[e] > 0);
+      const both = [...complements(me, partner), ...complements(partner, me)];
+      if (!w.pairElementComplement.some((e) => both.includes(e))) return false;
+    }
+    if (w.pairMonthBranchRelation) {
+      const found = monthBranchRelations(me, partner);
+      if (!w.pairMonthBranchRelation.some((r) => found.includes(r))) return false;
+    }
+  }
   return true;
+}
+
+/** 상대 지지에 숨어 있는 천간 전부 */
+function hiddenStemsIn(facts: SajuFacts): string[] {
+  const branches = [
+    facts.fourPillars.year.branch,
+    facts.fourPillars.month.branch,
+    facts.fourPillars.day.branch,
+    facts.fourPillars.hour?.branch,
+  ].filter(Boolean) as string[];
+  return [
+    ...new Set(
+      branches.flatMap((b) => {
+        const idx = JIJI.indexOf(b as (typeof JIJI)[number]);
+        return idx < 0 ? [] : hiddenStemsOf(idx).map((h) => h.stem);
+      })
+    ),
+  ];
+}
+
+/** 한 자리에 겹친 관계의 꼴 — 번들이 이미 세어 둔 것을 이름으로 옮긴다 */
+function bundleShapes(facts: SajuFacts): string[] {
+  const out: string[] = [];
+  for (const bundle of facts.relationBundles) {
+    const kinds = new Set(bundle.relations.map((r) => r.kind));
+    const combo = kinds.has("지지육합") || kinds.has("삼합");
+    if (kinds.has("형") && combo) out.push("합+형");
+    if (kinds.has("형") && kinds.has("지지충")) out.push("충+형");
+    if (kinds.has("지지충") && combo) out.push("합+충");
+  }
+  return out;
+}
+
+/** 월지끼리의 관계 — 일지가 배우자 자리라면 월지는 두 사람이 함께 선 사회 자리다 */
+function monthBranchRelations(me: SajuFacts, partner: SajuFacts): string[] {
+  const a = JIJI.indexOf(me.fourPillars.month.branch as (typeof JIJI)[number]);
+  const b = JIJI.indexOf(partner.fourPillars.month.branch as (typeof JIJI)[number]);
+  if (a < 0 || b < 0) return [];
+  const pairHit = (pairs: [number, number][]) =>
+    pairs.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+
+  const out: string[] = [];
+  if (pairHit(BRANCH_SIX_COMBOS)) out.push("육합");
+  if (pairHit(BRANCH_CLASHES)) out.push("충");
+  if (pairHit(WONJIN)) out.push("원진");
+  if (a !== b && BRANCH_TRIPLES.some(([members]) => members.includes(a) && members.includes(b))) {
+    out.push("삼합");
+  }
+  return out;
 }
 
 /**
  * 이 명식에서 켜지는 규칙을 우선순위 순으로. 모델에는 상위 몇 개만 실어
  * 한 리포트가 감당할 수 있는 만큼만 주장하게 한다.
  */
+/**
+ * 상대 규칙에 남겨 두는 최소 자리.
+ *
+ * 상대 규칙의 무게는 본인 규칙보다 낮게 잡혀 있다(60~68). 그게 맞다 — 이 리포트를
+ * 사는 사람은 본인이다. 그런데 우선순위로만 자르면 상대 규칙이 **통째로 밀려난다.**
+ * 궁합 상품에서 그것은 두 사람 중 한 사람이 사라진다는 뜻이다.
+ * 그래서 자리를 조금 남겨 둔다. 남길 뿐이고, 없으면 안 채운다.
+ */
+const PARTNER_RULE_FLOOR = 5;
+
 export function matchRules(
   me: SajuFacts,
   partner: SajuFacts | null,
   productId: string,
   limit = 12
 ): ReadingRule[] {
-  return READING_RULES.filter((rule) => matches(rule, me, partner, productId))
-    .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id))
-    .slice(0, limit);
+  // 상대 규칙은 등재부에서 승인된 것만 들어온다. 조건이 계산된다고 켜지지 않는다 —
+  // 상대는 이 자리에 없는 사람이라 틀려도 아무도 못 잡는다(myeongri-policy/partner-rules.ts).
+  const pool = [...READING_RULES, ...approvedPartnerRules()];
+  const matched = pool
+    .filter((rule) => matches(rule, me, partner, productId))
+    .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+
+  if (matched.length <= limit) return matched;
+
+  const partnerMatched = matched.filter((rule) => isPartnerRule(rule.id));
+  const reserved = Math.min(PARTNER_RULE_FLOOR, partnerMatched.length, Math.floor(limit / 3));
+  if (reserved === 0) return matched.slice(0, limit);
+
+  const head = matched.slice(0, limit - reserved);
+  const taken = new Set(head.map((rule) => rule.id));
+  const filled = [...head];
+  for (const rule of partnerMatched) {
+    if (filled.length >= limit) break;
+    if (taken.has(rule.id)) continue;
+    filled.push(rule);
+    taken.add(rule.id);
+  }
+  // 자리를 남겨 뒀는데 상대 규칙이 이미 앞자리에 다 들어와 있으면 그만큼 되돌려 채운다.
+  for (const rule of matched) {
+    if (filled.length >= limit) break;
+    if (taken.has(rule.id)) continue;
+    filled.push(rule);
+    taken.add(rule.id);
+  }
+  return filled.sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
 }
 
 /** 매칭된 규칙이 금지한 문구 — reading-guard가 그대로 검사한다 */

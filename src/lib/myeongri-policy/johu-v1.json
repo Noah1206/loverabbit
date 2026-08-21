@@ -1,0 +1,46 @@
+{
+  "policyVersion": "johu-v1-proposed",
+  "status": "policy_proposed",
+  "statusNote": "승인 전이다. 이 표는 계산 artifact 로만 나가고 사용자 리포트에는 노출되지 않는다.",
+  "why": [
+    "src/ 전체에 용신·격국·조후·억부가 한 글자도 없다. 해석 축이 억부 하나뿐이다.",
+    "기준 명식(축월 을목, 한랭)에 2026 병오·병신의 화가 들어온다. 조후로는 해동(解凍)이고",
+    "억부로는 설기다. 두 축이 정면으로 부딪히는 자리인데, 조후 축 자체가 없어서 충돌이",
+    "인지조차 되지 않았다. 그래서 병화는 오직 상관(마찰)으로만 읽혔다."
+  ],
+  "openQuestions": [
+    "일간×월지 조후용신 표(궁통보감 계열, 120칸)를 그대로 실을 것인가. 지금 이 파일에는 계절의 한난조습만 있다.",
+    "조후와 억부가 부딪힐 때 어느 쪽을 먼저 볼 것인가. 겨울·여름 생에 한해 조후를 먼저 보는 것이 통설이나, 그 경계를 월지로 자를지 절기 심천으로 자를지가 남는다.",
+    "조후용신이 명식에 없고 운에서만 올 때, 그것을 '필요한 것이 온다'로 읽을지 '없던 것이 흔든다'로 읽을지."
+  ],
+
+  "climateOfMonthBranch": {
+    "해": "cold", "자": "cold", "축": "cold",
+    "인": "balanced", "묘": "balanced",
+    "진": "wet",
+    "사": "hot", "오": "hot", "미": "hot",
+    "신": "balanced", "유": "balanced",
+    "술": "dry"
+  },
+
+  "seasonalNeed": {
+    "cold": [
+      { "element": "화", "role": "언 것을 녹인다", "sourceId": "johu-cold-fire" },
+      { "element": "목", "role": "그 불을 살린다", "sourceId": "johu-cold-wood" }
+    ],
+    "hot": [
+      { "element": "수", "role": "타는 것을 식힌다", "sourceId": "johu-hot-water" },
+      { "element": "금", "role": "그 물을 살린다", "sourceId": "johu-hot-metal" }
+    ],
+    "wet": [{ "element": "화", "role": "젖은 것을 말린다", "sourceId": "johu-wet-fire" }],
+    "dry": [{ "element": "수", "role": "마른 것을 적신다", "sourceId": "johu-dry-water" }],
+    "balanced": []
+  },
+
+  "sourceLocation": "조후(調候) — 한난조습(寒暖燥濕). 겨울 생에는 온기가, 여름 생에는 냉기가 먼저 필요하다고 보는 틀. 궁통보감(欄江網) 계열의 대전제다. 다만 이 파일이 담은 것은 계절의 필요일 뿐, 일간별 조후용신 표가 아니다.",
+
+  "conflictWithStrength": {
+    "note": "조후가 필요하다고 한 오행이 억부로는 일간을 빼거나 누르는 자리일 때 충돌한다. 신약한 목에게 화는 설기지만, 언 목에게 화는 얼지 않게 하는 것이다.",
+    "extremeSeasonBranches": ["해", "자", "축", "사", "오", "미"]
+  }
+}

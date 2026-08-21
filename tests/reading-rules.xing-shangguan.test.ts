@@ -15,13 +15,23 @@ const PRODUCTS = [
   "yeonae", "hwanseung", "insun", "dohwasal", "baramgi",
 ];
 
-/** 무작위에 가까운 표본. 날짜를 고정해 두어 결과가 매번 같다. */
+/**
+ * 무작위에 가까운 표본. 날짜를 고정해 두어 결과가 매번 같다.
+ *
+ * 날짜와 시각을 넓힌 이유: 완성 삼형(세 글자가 다 선 것)은 드물어서, 날짜 하나에
+ * 시각 하나로는 표본 256건에 한 건도 안 들어온다. 완성 전용 규칙이 생긴 뒤로는
+ * 그 희소성이 그대로 "규칙이 죽었다"로 보고된다.
+ */
 function sample(): ReturnType<typeof buildSajuFacts>[] {
   const out = [];
   for (let y = 1975; y <= 2006; y += 1) {
     for (const m of [2, 5, 8, 11]) {
-      for (const g of ["F", "M"] as const) {
-        out.push(buildSajuFacts({ year: y, month: m, day: 13, hour: 9, gender: g }));
+      for (const d of [3, 13, 23]) {
+        for (const h of [1, 9, 17]) {
+          for (const g of ["F", "M"] as const) {
+            out.push(buildSajuFacts({ year: y, month: m, day: d, hour: h, gender: g }));
+          }
+        }
       }
     }
   }
@@ -37,8 +47,11 @@ function firedIds(facts: ReturnType<typeof buildSajuFacts>): Set<string> {
 const XING_RULE_IDS = READING_RULES.filter((r) => r.id.startsWith("XING-")).map((r) => r.id);
 
 describe("형 규칙이 리딩까지 닿는다", () => {
-  it("여덟 종류가 다 등록돼 있다", () => {
-    assert.equal(XING_RULE_IDS.length, 7, "형 규칙 수가 달라졌다");
+  it("열세 종류가 다 등록돼 있다", () => {
+    // 7 + 글자 쌍 전용 6 (사신·인사·인신·축미·축술·술미)
+    assert.equal(XING_RULE_IDS.length, 13, "형 규칙 수가 달라졌다");
+    const pairs = XING_RULE_IDS.filter((id) => id.startsWith("XING-PAIR-"));
+    assert.equal(pairs.length, 6, "글자 쌍 규칙이 여섯이어야 한다");
   });
 
   it("표본 안에서 모든 형 규칙이 한 번은 켜진다", () => {
@@ -60,7 +73,59 @@ describe("형 규칙이 리딩까지 닿는다", () => {
     assert.ok(luckMonth < luckNow, "월운이 대운·세운보다 앞선다");
   });
 
-  it("부분 삼형 정책을 끄면 삼형 규칙이 켜지는 명식이 줄어든다", () => {
+  it("완성 삼형의 상의는 세 글자가 다 설 때만 켜진다", () => {
+    // 감사에서 잡힌 이론 오적용: 사·신 두 글자에 무은지형(인사신 삼형의 상의)을
+    // 그대로 씌웠다. 명식에 없는 인(寅)의 해석을 사용자에게 준 셈이다.
+    delete process.env.XING_PARTIAL_POLICY;
+    for (const facts of sample()) {
+      const ids = firedIds(facts);
+      const kindComplete = (kind: string) =>
+        facts.xing.some((x) => x.kind === kind && x.completeness === "complete");
+      if (ids.has("XING-YINSISHEN")) {
+        assert.ok(kindComplete("yin_si_shen_three_xing"), "부분 성립인데 완성 삼형 규칙이 켜졌다");
+      }
+      if (ids.has("XING-CHOUXUWEI")) {
+        assert.ok(kindComplete("chou_xu_wei_three_xing"), "부분 성립인데 완성 삼형 규칙이 켜졌다");
+      }
+    }
+  });
+
+  it("부분 성립 전용 규칙은 완성 삼형에서는 켜지지 않는다", () => {
+    delete process.env.XING_PARTIAL_POLICY;
+    for (const facts of sample()) {
+      const ids = firedIds(facts);
+      for (const id of [...ids].filter((x) => x.startsWith("XING-PAIR-"))) {
+        const rule = READING_RULES.find((r) => r.id === id)!;
+        const pairs = facts.xing
+          .filter((x) => x.completeness === "partial")
+          .map((x) => [...new Set(x.branches)].join(""));
+        assert.ok(
+          rule.when.xingPair!.some((pair) => pairs.includes(pair)),
+          `${id} 가 그 글자 쌍 없이 켜졌다`
+        );
+      }
+    }
+  });
+
+  it("부분 삼형 정책을 끄면 부분 성립 규칙이 통째로 사라진다", () => {
+    const charts = sample();
+    const countWith = (mode: string) => {
+      if (mode) process.env.XING_PARTIAL_POLICY = mode;
+      else delete process.env.XING_PARTIAL_POLICY;
+      return charts.filter((f) => {
+        const ids = firedIds(f);
+        return [...ids].some((id) => id.startsWith("XING-PAIR-"));
+      }).length;
+    };
+    const on = countWith("on");
+    const off = countWith("off");
+    delete process.env.XING_PARTIAL_POLICY;
+    assert.ok(on > 0, "기본값이 켜짐인데 부분 성립 규칙이 한 번도 안 켜진다");
+    assert.equal(off, 0, "정책을 껐는데도 부분 성립 규칙이 켜진다 — 되돌릴 길이 막혔다");
+  });
+
+  it("완성 삼형 규칙은 정책과 무관하게 켜진다", () => {
+    // 되돌림 스위치가 완성 삼형까지 끄면, 정책을 끄는 순간 명식에 실재하는 국이 사라진다.
     const charts = sample();
     const countWith = (mode: string) => {
       if (mode) process.env.XING_PARTIAL_POLICY = mode;
@@ -73,8 +138,22 @@ describe("형 규칙이 리딩까지 닿는다", () => {
     const on = countWith("on");
     const off = countWith("off");
     delete process.env.XING_PARTIAL_POLICY;
-    assert.ok(off < on, `정책이 결과를 못 바꾼다 (on=${on}, off=${off})`);
-    assert.ok(off > 0, "완전 삼형만으로도 켜지는 명식은 있어야 한다");
+    assert.ok(on > 0, "완성 삼형이 표본에 한 건도 없다 — 표본이 좁다");
+    assert.equal(off, on, "정책이 완성 삼형까지 건드린다");
+  });
+
+  it("여섯 글자 쌍이 저마다 다른 해석을 갖는다", () => {
+    // 두 개로 뭉뚱그렸을 때는 사신형과 술미형이 같은 문장을 받았다.
+    // 사신은 육합이 겹치고 술미는 조토끼리 부딪히는 자리라, 같을 수 없다.
+    const pairs = READING_RULES.filter((r) => r.id.startsWith("XING-PAIR-"));
+    const claims = new Set(pairs.map((r) => r.claim));
+    assert.equal(claims.size, pairs.length, "글자 쌍끼리 같은 해석을 쓰고 있다");
+    for (const rule of pairs) {
+      assert.ok(rule.when.xingPair?.length, `${rule.id}: 글자 쌍이 없다`);
+      assert.deepEqual(rule.when.xingCompleteness, ["partial"], `${rule.id}: 부분 성립 전용이어야 한다`);
+      assert.ok(!rule.claim.includes("삼형"), `${rule.id}: 두 글자짜리가 삼형을 말한다`);
+      assert.ok(rule.forbidden.includes("삼형이다"), `${rule.id}: 삼형 금지선이 없다`);
+    }
   });
 
   it("형 규칙의 금지선에 결과 확정 표현이 들어 있다", () => {

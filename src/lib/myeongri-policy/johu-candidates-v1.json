@@ -1,0 +1,105 @@
+{
+  "policyVersion": "johu-candidates-v1-draft",
+  "status": "draft",
+  "statusNote": "전 행이 draft다. 승인된 행이 하나도 없으므로 사용자 리포트에 조후 후보가 나가지 않는다.",
+  "scope": "계절의 한난조습에서 나오는 일반 후보까지만. 일간×월지 120칸 조후용신 표가 아니다.",
+  "whyNot120": [
+    "120칸 표는 궁통보감 계열 판본에서 나온다. 그 판본이 아직 metadata_only 상태다.",
+    "판본 없이 표를 채우면, 채운 사람이 정한 것이 고전에서 온 것처럼 보이게 된다.",
+    "그 표는 리포트에서 가장 단정적인 문장('당신의 용신은 병화입니다')의 근거가 되므로,",
+    "가장 얇은 근거 위에 가장 무거운 결론이 서는 꼴이 된다."
+  ],
+  "rows": [
+    {
+      "ruleId": "ADV-JOHU-COLD-FIRE-V1",
+      "climate": { "temperature": ["cold"], "moisture": ["any"] },
+      "candidateElement": "화",
+      "role": "warm",
+      "priority": "primary",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG", "SRC-ACADEMIC-2019-JOHU"],
+      "applicability": "월지가 해·자·축인 명식",
+      "reason": "언 것은 먼저 녹아야 쓸 수 있다고 보는 조후의 기본",
+      "safePhrasing": [
+        "계절로 보면 온기가 먼저 필요한 자리",
+        "겨울에 난 명식이라 따뜻해지는 흐름이 반가운 쪽"
+      ],
+      "forbiddenPhrasing": [
+        "당신의 용신은 화다",
+        "화 운이 오면 반드시 좋아진다",
+        "빨간색을 쓰면 운이 열린다"
+      ]
+    },
+    {
+      "ruleId": "ADV-JOHU-COLD-WOOD-V1",
+      "climate": { "temperature": ["cold"], "moisture": ["any"] },
+      "candidateElement": "목",
+      "role": "circulate",
+      "priority": "supporting",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG"],
+      "applicability": "월지가 해·자·축이고 화가 필요한 명식",
+      "reason": "불을 살리는 것이 함께 있어야 온기가 유지된다고 보는 자리",
+      "safePhrasing": ["그 온기를 이어 주는 결"],
+      "forbiddenPhrasing": ["희신은 목이다"]
+    },
+    {
+      "ruleId": "ADV-JOHU-HOT-WATER-V1",
+      "climate": { "temperature": ["hot"], "moisture": ["any"] },
+      "candidateElement": "수",
+      "role": "cool",
+      "priority": "primary",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG", "SRC-ACADEMIC-2019-JOHU"],
+      "applicability": "월지가 사·오·미인 명식",
+      "reason": "타는 것은 먼저 식어야 한다고 보는 조후의 기본",
+      "safePhrasing": ["계절로 보면 식히는 쪽이 먼저 필요한 자리"],
+      "forbiddenPhrasing": ["당신의 용신은 수다", "물가에 살면 좋다"]
+    },
+    {
+      "ruleId": "ADV-JOHU-HOT-METAL-V1",
+      "climate": { "temperature": ["hot"], "moisture": ["any"] },
+      "candidateElement": "금",
+      "role": "circulate",
+      "priority": "supporting",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG"],
+      "applicability": "월지가 사·오·미이고 수가 필요한 명식",
+      "reason": "물을 이어 내는 자리가 함께 있어야 식힘이 유지된다고 보는 자리",
+      "safePhrasing": ["그 서늘함을 이어 주는 결"],
+      "forbiddenPhrasing": ["희신은 금이다"]
+    },
+    {
+      "ruleId": "ADV-JOHU-WET-FIRE-V1",
+      "climate": { "temperature": ["any"], "moisture": ["wet"] },
+      "candidateElement": "화",
+      "role": "dry",
+      "priority": "secondary",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG"],
+      "applicability": "월지가 진·축이거나 수가 무거운 명식",
+      "reason": "젖은 흙은 말라야 쓸 수 있다고 보는 자리",
+      "safePhrasing": ["눅눅한 것이 마르는 쪽"],
+      "forbiddenPhrasing": ["당신의 용신은 화다"]
+    },
+    {
+      "ruleId": "ADV-JOHU-DRY-WATER-V1",
+      "climate": { "temperature": ["any"], "moisture": ["dry"] },
+      "candidateElement": "수",
+      "role": "moisten",
+      "priority": "secondary",
+      "status": "draft",
+      "sourceIds": ["SRC-GUNGTONG"],
+      "applicability": "월지가 술·미이거나 화·토가 무거운 명식",
+      "reason": "마른 흙은 적셔야 쓸 수 있다고 보는 자리",
+      "safePhrasing": ["메마른 것이 적셔지는 쪽"],
+      "forbiddenPhrasing": ["당신의 용신은 수다"]
+    }
+  ],
+  "openQuestions": [
+    "일간별 조후용신 표(10 × 12 = 120칸)를 어느 판본으로 채울 것인가.",
+    "온도 축과 습도 축이 서로 다른 오행을 부를 때(예: 축월 — 한랭이면서 습) 어느 쪽이 먼저인가.",
+    "조후 후보가 명식에 없고 운에서만 올 때, '필요한 것이 온다'로 읽을지 '없던 것이 흔든다'로 읽을지.",
+    "절입 심천(절기 초·중·말)에 따라 후보의 무게가 달라지는가."
+  ]
+}

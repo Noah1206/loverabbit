@@ -1,0 +1,73 @@
+{
+  "policyVersion": "strength-v1-proposed",
+  "status": "policy_proposed",
+  "statusNote": "승인 전이다. 이 표의 어떤 값도 saju_facts.strength.label 을 바꾸지 않는다. 증거만 낸다.",
+  "why": [
+    "지금 판정(saju-facts.ts judgeStrength)은 월지를 오행 4분류로만 본다. 목 일간이 토(재성)월에 나면",
+    "'월지는 중립'이 되어 0점이다. 축월 을목은 계절이 일간을 전혀 돕지 않는 자리인데 감점이 없다.",
+    "설기(식상·재성)도 0점이다. 감점은 오직 극(剋)일 때만 일어난다.",
+    "통근(strengthEvidence.rooting)은 이미 계산되어 있는데 판정에 쓰이지 않는다.",
+    "인성이 몇 개든 아군으로 더하기만 한다 — 과다 임계가 없다."
+  ],
+  "openQuestions": [
+    "왕상휴수사의 감점 폭을 얼마로 둘 것인가. 아래 값은 제안일 뿐 어느 고전에서 숫자로 나온 것이 아니다.",
+    "토왕절(진술축미)을 사계로 볼지, 그 달의 여기·중기까지 볼지.",
+    "설기와 극을 같은 축에서 뺄 것인가, 다른 축으로 볼 것인가.",
+    "인성과다 임계를 3개로 둘지, 비겁 유무를 함께 볼지."
+  ],
+
+  "seasonalPhase": {
+    "sourceId": "wangsang-hyusu-sa",
+    "sourceLocation": "왕상휴수사(旺相休囚死) — 계절과 오행의 관계. 자평진전·적천수 계열에서 공통으로 쓰는 틀이다. 다만 점수로 옮긴 값은 고전에 없다.",
+    "seasonElementOfBranch": {
+      "인": "목", "묘": "목",
+      "사": "화", "오": "화",
+      "신": "금", "유": "금",
+      "해": "수", "자": "수",
+      "진": "토", "술": "토", "축": "토", "미": "토"
+    },
+    "scoreDelta": { "왕": 30, "상": 20, "휴": -5, "수": -12, "사": -18 },
+    "note": "왕=계절이 곧 나, 상=계절이 나를 생함, 휴=내가 계절을 생함, 수=내가 계절을 극함, 사=계절이 나를 극함"
+  },
+
+  "draining": {
+    "sourceId": "seolgi",
+    "sourceLocation": "설기(泄氣) — 식상은 일간의 기운을 빼내고 재성은 일간이 힘을 써서 취한다. 둘 다 일간을 약하게 하는 방향이다.",
+    "scoreDeltaPerOccurrence": { "식상": -4, "재성": -3 },
+    "note": "지금 판정은 이 둘을 0점으로 둔다. 일지 상관이 중립으로 처리되는 이유다."
+  },
+
+  "controlling": {
+    "sourceId": "geuk",
+    "sourceLocation": "극(剋) — 관살은 일간을 직접 누른다. 지금 판정도 월지·일지에 한해 감점하고 있으나 나머지 자리는 세지 않는다.",
+    "scoreDeltaPerOccurrence": { "관살": -6 }
+  },
+
+  "rooting": {
+    "sourceId": "tonggeun",
+    "sourceLocation": "통근(通根) — 천간은 지지에 뿌리가 있어야 힘을 쓴다. 억부의 대전제인데 지금 판정은 지장간을 보지 않는다. 증거는 myeongri/rooting.ts 에 이미 계산되어 있다.",
+    "scoreDeltaByLevel": { "direct": 10, "middle": 6, "residual": 3 },
+    "maxTotal": 20,
+    "note": "여기·중기·본기에 몇 점을 줄지는 유파가 갈린다. TONGGEUN_WEIGHT_PROFILE 과 같은 자리의 문제다."
+  },
+
+  "exposure": {
+    "sourceId": "tugan",
+    "sourceLocation": "투간(透干) — 지장간이 천간으로 드러나면 그 기운이 실제로 쓰인다.",
+    "scoreDeltaPerOccurrence": 4
+  },
+
+  "supportExcess": {
+    "sourceId": "inseong-gwada",
+    "sourceLocation": "인성과다 — 생조가 지나치면 오히려 일간이 제 일을 못 한다. 수다목부(水多木浮), 모왕자쇠(母旺子衰)로 부른다. 어느 개수부터 과다인지는 정해진 수가 없다.",
+    "rules": [
+      {
+        "type": "인성과다",
+        "threshold": 3,
+        "requiresNoSibling": true,
+        "scoreDelta": -6,
+        "note": "인성 셋 이상에 비겁이 없으면, 돕는 것이 많아서 오히려 뜨는 자리로 본다"
+      }
+    ]
+  }
+}

@@ -255,6 +255,10 @@ async function runOne(c: Candidate, seed: number, dry: boolean): Promise<ModelRu
   const guard = checkReport(composed.report, {
     expectedSections: product.toc.length,
     forbiddenClaims: forbiddenFromRules(rules),
+    facts: me,
+    partnerFacts: partner,
+    matchedRules: rules,
+    productDomain: PRODUCT_ID,
   });
   const tGuard = Date.now() - t1;
 
