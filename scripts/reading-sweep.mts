@@ -108,9 +108,16 @@ for (const product of PRODUCTS) {
             continue;
           }
 
-          // 상대는 있는 경우와 없는 경우를 번갈아 본다. 실제로 둘 다 들어온다 —
-          // 상대 정보를 안 적고 넘어가는 사람이 있다.
-          const withPartner = needsPartner ? i % 3 !== 0 : i % 5 === 0;
+          /*
+            상대를 넣었는가.
+
+            두 사람을 보는 상품에서는 이제 안 넣고 넘어갈 수 없다 — 화면에서 감추고
+            API 에서도 막는다. 그래서 여기서도 항상 넣는다. 예전에는 번갈아 봤는데,
+            그러면 도달할 수 없는 조합의 실패가 표에 섞여 실제보다 나쁘게 나온다.
+
+            혼자 보는 상품은 상대를 넣을지 고를 수 있으므로 둘 다 본다.
+          */
+          const withPartner = needsPartner || i % 5 === 0;
           const partner = withPartner
             ? buildSajuFacts(
                 {

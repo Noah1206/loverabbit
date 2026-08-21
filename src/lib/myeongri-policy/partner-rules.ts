@@ -20,6 +20,27 @@
 // 있다"** 이다. 그래서 아래 규칙의 claim 은 전부 관계의 결까지만 말하고, 상대의
 // 사람됨이나 미래 행동으로 넘어가지 않는다. forbidden 이 그 선을 지킨다.
 
+// ── 바람기 레이더에 열어 준 것 (2026-08-21) ──────────────
+//
+// 바람기(baramgi)는 11절 중 1장 01 "상대 명식의 이성 기운 총량", 1장 02 "도화는 몇
+// 개이고 어디에 있는가", 2장 01 "그 사람의 관계 습관" 이 전부 상대를 묻는데,
+// **여기 등재된 상대 규칙 중 어느 것도 이 상품에 걸려 있지 않았다.**
+//
+// 근거 없이 상대를 말하는 절이 셋이라는 뜻이다. 가드가 막으면 그 절이 비고,
+// 안 막으면 등재 밖의 말이 나간다. 둘 다 이 파일이 있는 이유에 어긋난다.
+// 그래서 열한 규칙 전부에 baramgi 를 더했다. 새 규칙은 만들지 않았다.
+//
+// **P-SHINSAL 을 여는 것이 이 변경의 핵심이자 위험이다.** 그 규칙의 resolution 이
+// 낙인의 예로 든 것이 바로 "도화 → 바람기" 이고, forbidden 에 "상대는 바람을
+// 피운다" 가 들어 있다. 그 선은 그대로 둔다 — 오히려 이 상품에서 가장 필요한
+// 선이다. 도화가 어디에 몇 개 있는지는 계산된 사실이므로 말할 수 있고,
+// 그것이 무엇을 뜻하는지 판정하는 것은 여전히 막힌다.
+//
+// 남는 문제 하나를 여기 적어 둔다. 이 상품의 3장 01 은 "바람기 지수 판정" 이다.
+// 규칙 층은 그 판정을 금지하고 있고, 앞으로도 금지해야 한다. **목차가 규칙 층이
+// 내주지 않는 것을 팔고 있다** — 규칙을 더 넣어 풀 문제가 아니라 그 절의 이름을
+// 고칠 일이다.
+
 import type { ReadingRule } from "@/lib/reading-rules";
 
 export type PartnerRuleStatus = "approved" | "policy_proposed";
@@ -61,7 +82,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.high,
       when: {
         partnerAbsentElement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
       },
       claim:
         "상대 쪽에 그 기운이 쓸 뿌리째 없어서, 그 결이 필요한 대목에서는 타고나서가 아니라 " +
@@ -90,7 +111,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerHiddenOnlyElement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
       },
       claim:
         "상대 안에 있기는 한데 평소에 꺼내 쓰지 않는 결이라, 그것이 나올 때와 안 나올 때의 " +
@@ -116,7 +137,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         pairElementComplement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak"],
+        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "baramgi", "jaehoe"],
       },
       claim:
         "한쪽에 옅은 자리를 다른 쪽이 대신 맡게 되는 구조. 편해지는 만큼 그 역할이 " +
@@ -145,7 +166,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         pairMonthBranchRelation: ["충", "원진"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi"],
       },
       claim:
         "두 사람이 바깥에서 서 있는 자리가 어긋나, 둘만 있을 때보다 사람들 사이에 있을 때 " +
@@ -171,7 +192,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         pairMonthBranchRelation: ["육합", "삼합"],
-        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "sseom"],
+        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "sseom", "baramgi", "jaehoe"],
       },
       claim:
         "바깥에서 서 있는 자리가 서로 맞아, 사람들 사이에서의 속도와 예의가 자연스럽게 " +
@@ -196,7 +217,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.high,
       when: {
         partnerDayBranchTenGod: ["정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun", "baramgi"],
       },
       claim:
         "상대의 배우자 자리에 앉은 기운이 있어, 가까운 사이에서 상대가 먼저 확인하려는 것이 " +
@@ -226,7 +247,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerLuckTenGodAny: ["정인", "편인"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "insun", "hwanseung"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "insun", "hwanseung", "baramgi"],
       },
       claim:
         "상대가 지금 안으로 거두는 흐름을 지나고 있어, 말수와 연락이 줄어드는 것이 " +
@@ -257,7 +278,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       when: {
         strength: ["신약"],
         partnerStrength: ["신강", "중화"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi"],
       },
       claim:
         "자기 힘을 오래 끌고 가는 쪽과 그렇지 못한 쪽이 만나, 관계의 속도를 한쪽이 정하고 " +
@@ -291,7 +312,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
         partnerDominantTenGod: [
           "정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재",
         ],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun", "baramgi"],
       },
       claim:
         "상대가 기본으로 쓰는 결이 따로 있어, 같은 상황에서 두 사람이 먼저 꺼내는 카드가 " +
@@ -322,7 +343,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerShinsal: ["도화", "홍염", "역마", "화개", "양인", "원진"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
       },
       claim:
         "상대 명식에도 관계에서 도드라지는 자리가 있어, 두 사람이 같은 장면에서 서로 다른 " +
@@ -351,7 +372,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         partnerRelationBundle: ["합+형", "충+형"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "baramgi"],
       },
       claim:
         "상대 쪽에도 붙드는 힘과 걸리는 결이 같은 자리에서 나오는 대목이 있어, " +
