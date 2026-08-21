@@ -27,7 +27,8 @@
     "reading:cost": "tsx scripts/reading-cost.mts",
     "reading:sweep": "tsx scripts/reading-sweep.mts",
     "ai:doctor": "tsx --env-file=.env.local --env-file=.env scripts/ai-doctor.mts",
-    "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts"
+    "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts",
+    "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chatDepositorCode, getChatProduct } from "@/lib/chat-products";
 import { createPendingChatTransferOrder, isDatabaseConfigured } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
+import { notifyAdmin } from "@/lib/telegram";
 
 interface Body {
   productId?: string;
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
       depositorCode: expectedCode,
     });
     if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
+    // 리딩 이체와 같은 이유 — 사람이 승인해야 풀리는 주문은 사람에게 알린다.
+    await notifyAdmin(
+      [
+        "[입금 확인 요청] 대화권",
+        `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${product.credits}회권`,
+        `입금코드 ${order.depositorCode}`,
+        "https://loverebbit.xyz/admin/payments",
+      ].join("\n")
+    );
     return NextResponse.json({
       orderId: order.id,
       status: order.status,

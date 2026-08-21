@@ -12,6 +12,7 @@ import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
+import { notifyAdmin } from "@/lib/telegram";
 
 // 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
@@ -200,6 +201,16 @@ export async function POST(req: NextRequest) {
       if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
       console.log(
         `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${price}`
+      );
+      // 입금 확인 요청은 사람이 승인해야 풀린다. 알리지 않으면 입금한 사람이
+      // 관리자가 우연히 /admin/payments 를 열 때까지 기다린다.
+      await notifyAdmin(
+        [
+          "[입금 확인 요청] 리딩",
+          `주문 #${order.id} · ${price.toLocaleString()}원`,
+          `상품 ${stored?.category ?? "리딩"} · 입금코드 ${body.depositorCode}`,
+          "https://loverebbit.xyz/admin/payments",
+        ].join("\n")
       );
       return NextResponse.json({
         orderId: order.id,
