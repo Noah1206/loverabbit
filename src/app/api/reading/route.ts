@@ -564,8 +564,12 @@ export async function POST(req: NextRequest) {
     // 섹션별 핵심만 공개한다. 실제 나머지 원문은 서버 밖으로 보내지 않는다.
     previewSections: preview.sections,
     lockedSectionTitles: preview.lockedTitles,
-    // 잠금 상태에선 지수 라벨만 노출 — 실제 지수는 blob에 봉인, 해금 시 공개
+    // 지수는 결제 전에도 공개한다 (운영자 결정, 2026-08-22). "상위 N%" 가
+    // 표지의 미끼가 되고, 그 숫자가 왜 나왔는지(scoreFactors)는 여전히 해금
+    // 뒤에만 온다 — 숫자는 무료, 근거는 유료다.
     scoreLabel,
+    score,
+    scoreBand,
     // 결제 전에도 보여주는 구조 정보 — 요약 카드와 고지는 유료 본문이 아니다
     headline: report?.meta.headline ?? null,
     summaryCards: report?.summaryCards ?? [],

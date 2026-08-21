@@ -7170,3 +7170,73 @@ body:has(.product-page[data-landing]) .consent-banner {
     animation: none;
   }
 }
+
+/* ── 결과 페이지 지수 게이지 — 상세 페이지 게이지의 문법을 빌리되 다른 판 ── */
+.rv-gauge {
+  margin-top: 18px;
+  padding: 16px 0 14px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.rv-gauge-label {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.rv-gauge-value {
+  margin-top: 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.rv-gauge-value b {
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  margin: 0 1px 0 3px;
+}
+
+.rv-gauge-value small {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* 상세 페이지와 같은 팔레트의 그라데이션 - 낯익어야 "아까 그 지수" 로 읽힌다.
+   채워지는 애니메이션은 표지가 열릴 때 한 번. transform 기반이라 리플로우가 없다. */
+.rv-gauge-meter {
+  height: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+}
+
+.rv-gauge-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #65bf65 0%, #e2df55 40%, #f54c8b 75%, #cf3cff 100%);
+  box-shadow: 0 0 12px rgba(245, 76, 139, 0.35);
+  transform-origin: 0 50%;
+  animation: rv-gauge-fill 800ms 150ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rv-gauge-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.rv-gauge-band {
+  margin-top: 8px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-gauge-meter span { animation: none; }
+}

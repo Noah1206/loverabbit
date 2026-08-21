@@ -360,19 +360,33 @@ export function ChartPanel({
   scoreBand?: string | null;
 }) {
   if (!scoreLabel) return null;
+  // 지수는 결제 전에도 숫자까지 보여준다 (운영자 결정, 2026-08-22). 상세
+  // 페이지의 게이지와 같은 문법(큰 퍼센트 + 그라데이션 바)을 쓰되 똑같이
+  // 만들지는 않는다 - 저쪽은 "??%" 로 궁금하게 하는 판이고, 여기는 실제
+  // 숫자를 주는 판이다. 숫자는 무료, 그 숫자의 근거(ScoreBreakdown)는 해금 뒤.
+  // score 가 없는 옛 리딩은 예전처럼 잠금 표기로 남는다.
   return (
-    <div className="rv-chart-score">
-      <span>{scoreLabel}</span>
-      <strong>
+    <section className="rv-gauge" aria-label={scoreLabel}>
+      <span className="rv-gauge-label">{scoreLabel}</span>
+      <p className="rv-gauge-value">
         {typeof score === "number" ? (
           <>
-            상위 {100 - score}%{scoreBand ? ` · ${scoreBand}` : ""}
+            상위 <b>{100 - score}</b>
+            <small>%</small>
           </>
         ) : (
           "상위 ??% 🔒"
         )}
-      </strong>
-    </div>
+      </p>
+      {typeof score === "number" && (
+        <>
+          <div className="rv-gauge-meter" aria-hidden>
+            <span style={{ width: `${Math.min(100, Math.max(4, score))}%` }} />
+          </div>
+          {scoreBand && <p className="rv-gauge-band">{scoreBand}</p>}
+        </>
+      )}
+    </section>
   );
 }
 

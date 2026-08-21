@@ -17,17 +17,31 @@ import {
 import { landingTypeForProduct, trackPreviewGenerated } from "@/lib/meta-events";
 import { getUser } from "@/lib/user";
 
-// 단계 문구. 실제 파이프라인(명식 계산 -> 규칙 매칭 -> 문장 생성)을 닮게 적되,
-// 마지막 항목이 "기다리는 자리"다 - 응답이 올 때까지 이 줄에서 점이 돈다.
-// 넷인 것은 의도다. 명식 표를 지우면서 "네 기둥을 세웠어요"도 함께 뺐다 -
-// 화면에 기둥이 없는데 세웠다고 말하면 빈말이 된다. (2026-08-22 운영자 피드백:
-// 볼 것이 많아 어디를 봐야 할지 모르겠다 - 화면을 체크리스트 하나로 줄인다)
-const STAGES = [
-  "일간의 기질을 읽는 중",
-  "합과 충을 맞춰보는 중",
-  "흐름을 문장으로 옮기는 중",
-  "마지막 정리",
+// 단계 문구 - 사주를 모르는 사람이 읽는 말이므로 일간·합충 같은 용어를 쓰지
+// 않는다. 세트가 여럿이고 방문마다 하나를 뽑는다 - 두 번째 리딩에서 같은
+// 문구가 또 나오면 녹음처럼 들린다. 모든 세트는 넷이고, 마지막 항목이
+// "기다리는 자리"다 - 응답이 올 때까지 그 줄에서 점이 돈다.
+const STAGE_SETS = [
+  [
+    "태어난 날의 기운을 살피는 중",
+    "인연의 흐름을 짚어보는 중",
+    "이야기로 풀어 적는 중",
+    "마지막으로 다듬는 중",
+  ],
+  [
+    "생년월일의 짝을 맞춰보는 중",
+    "사랑의 방향을 살피는 중",
+    "쉬운 말로 옮기는 중",
+    "마무리하는 중",
+  ],
+  [
+    "타고난 결을 읽어내는 중",
+    "마음이 오가는 길을 찾는 중",
+    "당신에게 맞는 문장을 고르는 중",
+    "곧 보여드릴 준비 중",
+  ],
 ] as const;
+const STAGE_COUNT = 4;
 
 // 사주 생성 대기 화면.
 // 폼에서 18초를 붙잡아두는 대신 제출 즉시 이 화면으로 넘어와, 여기서 리딩을 만들고
@@ -59,6 +73,9 @@ export default function ReadingGeneratingPage() {
   */
   const [stage, setStage] = useState(0);
   const [runId, setRunId] = useState(0);
+  // 어느 문구 세트를 쓸지. 초기 렌더는 0으로 두고 마운트 뒤에 뽑는다 -
+  // useState 초기값에서 뽑으면 서버 HTML 과 어긋나 hydration 이 깨진다.
+  const [stageSet, setStageSet] = useState(0);
 
   // 단계 전환 시각표. 실제 소요 15~20초에 맞춘 배분이고, 마지막 단계는 멈춰서
   // 응답을 기다린다 - 그래서 시각표는 단계 수보다 하나 적다.
@@ -74,6 +91,7 @@ export default function ReadingGeneratingPage() {
     async (job: ReadingDraft) => {
       setError("");
       setStage(0);
+      setStageSet(Math.floor(Math.random() * STAGE_SETS.length));
       setRunId((now) => now + 1);
       const user = getUser();
       if (!user) {
@@ -121,7 +139,9 @@ export default function ReadingGeneratingPage() {
           previewSections: data.previewSections ?? [],
           lockedSectionTitles: data.lockedSectionTitles ?? [],
           scoreLabel: data.scoreLabel ?? null,
-          score: null,
+          // 지수는 이제 미리보기에도 실려 온다. 근거(scoreFactors)는 해금 뒤에.
+          score: data.score ?? null,
+          scoreBand: data.scoreBand ?? null,
           demo: data.demo === true,
           summaryCards: data.summaryCards ?? [],
           disclaimer: data.disclaimer ?? "",
@@ -132,7 +152,7 @@ export default function ReadingGeneratingPage() {
         if (landing) trackPreviewGenerated(landing);
         // 전부 체크된 것을 잠깐 보여준다. 마지막 줄이 도는 중에 화면이 확 바뀌면
         // 끝났다는 감각 없이 끊긴다. 400ms 는 체크 전환이 눈에 들어오는 최소치다.
-        setStage(STAGES.length);
+        setStage(STAGE_COUNT);
         // 리딩은 이미 보관함에 앉았다. 화면을 떠난 사람은 잡아채지 않는다 —
         // 홈에서 딴 걸 보고 있는데 갑자기 리딩으로 끌려가면 그게 더 놀랍다.
         // 떠난 경우 리딩은 내 상담에서 기다린다.
@@ -203,7 +223,7 @@ export default function ReadingGeneratingPage() {
 
           {/* role=status: 단계가 바뀔 때 보조기기가 활성 줄을 읽는다 */}
           <ol className="reading-generating-stages" role="status" aria-label="사주 푸는 단계">
-            {STAGES.map((text, index) => {
+            {STAGE_SETS[stageSet].map((text, index) => {
               const state = index < stage ? "done" : index === stage ? "active" : "pending";
               return (
                 <li key={text} data-state={state}>
