@@ -885,3 +885,41 @@ ${lines.join("\n")}
 - 각 섹션의 facts_used에 근거를 남긴다.
 설명 없이 JSON 객체 하나만 출력해.`;
 }
+
+/**
+ * 막힌 위반을 "다시 쓸 절"로 옮긴다.
+ *
+ * 가드는 어디가 걸렸는지 `where` 로 말한다 — `sections[3]`, `sections[3].paragraphs[2]`,
+ * `sections[7].rule_ids`. 앞의 번호만 떼면 어느 절인지 나온다.
+ *
+ * 절을 가리키지 않는 위반도 있다. 계절을 몇 번 말했는지 같은 것은 리포트 전체를
+ * 두고 세므로 `where` 가 그냥 `sections` 다. 그런 지적은 어느 한 절의 잘못이
+ * 아니므로, **다시 쓰기로 이미 정해진 절들에 함께 실어 보낸다.** 다시 쓸 절이
+ * 하나도 없으면 그 지적은 이번에 못 고친다 — 고칠 자리를 특정할 수 없는데
+ * 아무 절이나 다시 쓰는 것은 고치는 게 아니라 굴리는 것이다.
+ */
+export function flaggedSections(
+  violations: GuardViolation[],
+  sectionTitles: string[]
+): { title: string; notes: string[] }[] {
+  const byIndex = new Map<number, string[]>();
+  const wide: string[] = [];
+
+  for (const violation of violations) {
+    if (!violation.blocking) continue;
+    const at = /^sections\[(\d+)\]/.exec(violation.where);
+    if (!at) {
+      wide.push(violation.detail);
+      continue;
+    }
+    const index = Number(at[1]);
+    if (!Number.isInteger(index) || index < 0 || index >= sectionTitles.length) continue;
+    const list = byIndex.get(index) ?? [];
+    list.push(violation.detail);
+    byIndex.set(index, list);
+  }
+
+  return [...byIndex.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([index, notes]) => ({ title: sectionTitles[index], notes: [...notes, ...wide] }));
+}

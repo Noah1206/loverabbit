@@ -16,10 +16,10 @@ import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore, sealScore } from "@/lib/saju-score";
-import { checkReport, type GuardViolation } from "@/lib/reading-guard";
+import { checkReport, flaggedSections, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
 import { scopeOutline } from "@/lib/reading-scope";
-import { composeReport, previewBatchCount, previewSections } from "@/lib/reading-compose";
+import { composeReport, previewBatchCount, previewSections, rewriteFlagged } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
@@ -215,6 +215,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 두 사람을 보는 상품에 상대가 없으면 만들지 않는다.
+  //
+  // 화면에서도 막지만 여기서 한 번 더 본다 — 화면은 사람이 고치거나 건너뛸 수
+  // 있고, 그렇게 들어온 요청은 두 명식을 잇는 규칙이 통째로 죽은 채 12절을 쓴다.
+  // 상대 이야기가 본인 이야기의 되풀이가 되고, 그 값을 치른 사람은 두 사람을
+  // 보러 온 사람이다.
+  if (PRODUCT_MAP[body.category]?.needsPartner && !body.partner) {
+    return NextResponse.json(
+      { error: "이 리포트는 두 사람의 사주를 함께 봐요. 그 사람의 생년월일도 입력해주세요." },
+      { status: 400 }
+    );
+  }
+
   const offer = body.offerId ? resolveAdOffer(body.category, body.offerId) : null;
   if (body.offerId && !offer) {
     return NextResponse.json({ error: "유효하지 않은 광고 오퍼입니다." }, { status: 400 });
@@ -381,6 +394,53 @@ export async function POST(req: NextRequest) {
           "리포트 출고 검사 위반:",
           blocking.map((v) => `${v.where} ${v.detail}`).join(" / ")
         );
+
+        /*
+          걸린 절만 다시 받는다.
+
+          여기까지 오는 위반은 표현 문제가 아니다 — 규칙에 없는 상대 성향을
+          단정했거나 계산에 없는 값을 근거로 적은 것이고, 이 저장소가 "그러지
+          않는다" 고 못 박아 둔 것들이다. 예전에는 경고만 찍고 그대로 내보냈다.
+          그러면 가드는 무엇이 잘못됐는지 알면서 그 글을 파는 셈이 된다.
+
+          리포트 전체가 아니라 걸린 절만 다시 받으므로 값이 절당 한 조각치만
+          는다. 한 번만 한다 — 두 번째에도 같은 자리가 걸리면 그건 모델이
+          흔들린 것이 아니라 이 명식에 그 절을 쓸 근거가 없다는 뜻이다.
+        */
+        const flagged = flaggedSections(
+          guard.violations,
+          report.sections.map((section) => section.title)
+        );
+        if (flagged.length > 0 && isAiConfigured()) {
+          const redone = await rewriteFlagged(readingInput, (system, user, budget) =>
+            chatComplete(system, [{ role: "user", content: user }], budget, {
+              thinking: false,
+              json: true,
+            })
+          , flagged);
+          for (const section of redone.sections) {
+            const at = report.sections.findIndex((item) => item.title === section.title);
+            if (at >= 0) report.sections[at] = section;
+          }
+          if (redone.sections.length > 0) {
+            const recheck = checkReport(report, {
+              expectedSections: report.sections.length,
+              forbiddenClaims,
+              facts: myFacts,
+              partnerFacts,
+              matchedRules,
+              productDomain: body.category,
+            });
+            guardViolations = recheck.violations;
+            const left = recheck.violations.filter((v) => v.blocking);
+            console.warn(
+              left.length === 0
+                ? `다시 쓴 절 ${redone.sections.length}개로 막는 위반이 사라졌습니다.`
+                : `다시 썼는데도 남은 위반: ${left.map((v) => `${v.where} ${v.detail}`).join(" / ")}`
+            );
+          }
+        }
+
         // 미리보기에 필요한 절도 못 만들었다면 팔 수 없다. 표현 문제는 기록만 남기고 내보낸다.
         if (report.sections.length < Math.min(previewSections(), outline.length) && isAiConfigured())
           generationFailed = true;

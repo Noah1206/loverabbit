@@ -199,7 +199,14 @@ ${inputJson}
 ${outline.join(" / ")}`;
 }
 
-function chapterPrompt(inputJson: string, chapter: Batch, outline: string[], season: string): string {
+function chapterPrompt(
+  inputJson: string,
+  chapter: Batch,
+  outline: string[],
+  season: string,
+  /** 가드가 잡은 지적. 다시 쓸 때만 붙는다 */
+  notes: string[] = []
+): string {
   // 어떤 모양(extra)을 얹을지는 서버가 정해서 알려준다. 묶음마다 따로 생성되므로
   // 모델에게 고르라고 맡기면 옆 묶음이 뭘 골랐는지 몰라 결국 한 가지로 몰린다.
   const shape = (item: string) => {
@@ -213,7 +220,21 @@ ${inputJson}
 지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
 대괄호 안의 extra 지정을 그대로 따른다.
 ${chapter.items.map((item, i) => `${i + 1}. ${item}${shape(item)}`).join("\n")}
-${season ? `${season}\n` : ""}${outlineBrief(outline, chapter.items)}`;
+${season ? `${season}\n` : ""}${notes.length ? `${rewriteBrief(notes)}\n` : ""}${outlineBrief(outline, chapter.items)}`;
+}
+
+/**
+ * 다시 쓰라고 할 때 붙이는 줄.
+ *
+ * 무엇이 걸렸는지만 말하고 무엇을 쓰라고는 말하지 않는다. 고쳐 쓸 문장을 여기서
+ * 불러 주면 그건 규칙이 아니라 서버가 지어낸 말이 되고, 가드를 통과시키려고
+ * 가드를 우회하는 꼴이 된다.
+ */
+function rewriteBrief(notes: string[]): string {
+  return [
+    "앞서 쓴 글이 아래에서 걸렸다. 같은 항목을 처음부터 다시 쓰되 이 지적을 피한다.",
+    ...notes.map((note) => `- ${note}`),
+  ].join("\n");
 }
 
 /**
@@ -480,4 +501,60 @@ function orderByOutline(sections: ReportSectionOut[], items: string[]): ReportSe
     if (!used.has(i)) picked.push(section);
   });
   return picked;
+}
+
+/**
+ * 가드가 막은 절만 다시 쓴다.
+ *
+ * 여기까지 오는 위반은 표현 문제가 아니다. 규칙에 없는 상대 성향을 단정했다거나,
+ * 계산에 없는 값을 근거로 적었다거나 — 이 저장소가 "그러지 않는다" 고 못 박아 둔
+ * 것들이다. 그런 문장이 든 리포트를 그대로 파는 것은 가드를 달아 둔 이유를 지우는
+ * 일이다.
+ *
+ * 그런데 리포트 전체를 다시 만들면 값이 여섯 배가 되고, 통과했던 절까지 새로 뽑혀
+ * 결제 전에 본 화면과 결제 후 화면이 달라진다. 걸린 절만 도려내고 그 자리에만
+ * 다시 받는다.
+ *
+ * 한 번만 한다. 두 번째에도 같은 자리가 걸린다면 그건 모델이 흔들린 것이 아니라
+ * 이 명식에 그 절을 쓸 근거가 없다는 뜻이고, 그건 다시 시켜서 풀 문제가 아니다.
+ */
+export async function rewriteFlagged(
+  input: ReadingInput,
+  complete: Complete,
+  /** 다시 쓸 절의 목차 문구와, 그 절이 걸린 이유 */
+  flagged: { title: string; notes: string[] }[]
+): Promise<{ sections: ReportSectionOut[]; usage: ChatUsage; requestCount: number }> {
+  const empty = { sections: [] as ReportSectionOut[], usage: sumUsage([]), requestCount: 0 };
+  if (flagged.length === 0) return empty;
+
+  const inputJson = buildReadingInput(input);
+  const usages: (ChatUsage | null)[] = [];
+  let requestCount = 0;
+
+  // 걸린 이유가 절마다 다르므로 한 절씩 따로 보낸다. 묶어 보내면 한 절의 지적이
+  // 옆 절에도 걸려, 멀쩡하던 절이 지적을 피하느라 같이 비틀린다.
+  const results = await Promise.all(
+    flagged.map(async ({ title, notes }) => {
+      requestCount += 1;
+      try {
+        const result = await complete(
+          READING_SYSTEM_PROMPT,
+          chapterPrompt(inputJson, { label: "다시", items: [title] }, input.outline, "", notes),
+          chapterBudget(1)
+        );
+        if (!result) return null;
+        usages.push(result.usage ?? null);
+        return parseSections(result.text, [title])[0] ?? null;
+      } catch (error) {
+        console.error(`다시 쓰기 실패 (${title}):`, error);
+        return null;
+      }
+    })
+  );
+
+  return {
+    sections: results.filter((section): section is ReportSectionOut => Boolean(section)),
+    usage: sumUsage(usages),
+    requestCount,
+  };
 }

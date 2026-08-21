@@ -9,11 +9,11 @@
 
 import { chatComplete } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
-import { composeReport, type Complete } from "@/lib/reading-compose";
+import { composeReport, rewriteFlagged, type Complete } from "@/lib/reading-compose";
 import { READING_RULES, forbiddenFromRules } from "@/lib/reading-rules";
 import { approvedPartnerRules } from "@/lib/myeongri-policy/partner-rules";
 import { reportToText, type StructuredReport } from "@/lib/reading-prompt";
-import { checkReport } from "@/lib/reading-guard";
+import { checkReport, flaggedSections } from "@/lib/reading-guard";
 import { clearResume, loadResume } from "@/lib/reading-resume";
 import { getReading, saveReading, type StoredReading } from "@/lib/store";
 
@@ -82,8 +82,9 @@ export async function finishReading(params: {
   );
   const matchedRules = resume.ruleIds.map((id) => byId.get(id)).filter((rule) => rule !== undefined);
 
-  const rest = await composeReport(
-    {
+  // 다시 쓰기도 같은 입력을 써야 한다. 여기서 한 번 만들어 둘 다 쓴다 —
+  // 따로 만들면 now 나 occupation 이 어긋나 앞뒤 절이 다른 무대에서 논다.
+  const readingInput = {
       facts: resume.facts,
       partnerFacts: resume.partnerFacts,
       matchedRules,
@@ -97,10 +98,9 @@ export async function finishReading(params: {
       characterName: null,
       // 대운·세운은 발급 시점 기준이어야 앞 절과 뒷 절이 같은 해를 말한다
       now: new Date(resume.issuedAt),
-    },
-    complete,
-    { doneSections: done }
-  );
+  };
+
+  const rest = await composeReport(readingInput, complete, { doneSections: done });
 
   const sections = [...partialReport.sections, ...rest.sections];
   const report: StructuredReport = { ...partialReport, sections };
@@ -127,6 +127,33 @@ export async function finishReading(params: {
   const blocking = guard.violations.filter((v) => v.blocking);
   if (blocking.length > 0) {
     console.warn(`리딩 ${readingId} 출고 검사 위반:`, blocking.map((v) => `${v.where} ${v.detail}`).join(" / "));
+
+    // 전문이 다 모인 지금이 계절 반복처럼 리포트 전체를 두고 세는 지적이 실제로
+    // 걸리는 자리다. 미리보기 때는 절이 둘뿐이라 애초에 안 걸린다.
+    // 걸린 절만 다시 받는다 — 산 사람이 볼 글이므로 여기서 그냥 넘기면 안 된다.
+    const flagged = flaggedSections(guard.violations, sections.map((section) => section.title));
+    if (flagged.length > 0) {
+      const redone = await rewriteFlagged(readingInput, complete, flagged);
+      for (const section of redone.sections) {
+        const at = sections.findIndex((item) => item.title === section.title);
+        if (at >= 0) sections[at] = section;
+      }
+      if (redone.sections.length > 0) {
+        const left = checkReport(report, {
+          expectedSections: outline.length,
+          forbiddenClaims: forbiddenFromRules(matchedRules),
+          facts: resume.facts,
+          partnerFacts: resume.partnerFacts,
+          matchedRules,
+          productDomain: category,
+        }).violations.filter((v) => v.blocking);
+        console.warn(
+          left.length === 0
+            ? `리딩 ${readingId} 다시 쓴 절 ${redone.sections.length}개로 막는 위반이 사라졌습니다.`
+            : `리딩 ${readingId} 다시 썼는데도 남은 위반: ${left.map((v) => `${v.where} ${v.detail}`).join(" / ")}`
+        );
+      }
+    }
   }
 
   await persist(stored, full);

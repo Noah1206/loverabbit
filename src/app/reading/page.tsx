@@ -511,6 +511,17 @@ export default function ReadingPage() {
   }, [step, me]);
 
   const selectedCategory = CATEGORIES.find((item) => item.id === category);
+
+  /*
+    두 사람을 보는 상품이면 상대 입력을 되돌려 놓는다.
+
+    체크박스를 감추는 것만으로는 모자라다. 저장해 둔 초안을 복원할 때
+    (setWithPartner(draft.withPartner)) 예전에 꺼 둔 값이 그대로 살아나고,
+    그러면 화면에는 선택지가 없는데 상태는 "상대 없음" 인 채로 제출된다.
+  */
+  useEffect(() => {
+    if (selectedCategory?.needsPartner) setWithPartner(true);
+  }, [selectedCategory?.needsPartner]);
   const activeOffer = resolveAdOffer(category, offerId);
 
   const moveTo = (nextStep: ReadingStep) => {
@@ -726,17 +737,35 @@ export default function ReadingPage() {
                   태어난 시각이 네 번째 기둥이 되고, 성별은 태어난 해와 함께 대운이 흐르는 방향을 정해요. 시각을 모르면 세 기둥으로 읽고 그 사실을 결과에 밝혀둬요.
                 </p>
                 <PersonDetailsFields value={me} onChange={setMe} />
-                <label className="reading-partner-toggle">
-                  <input
-                    type="checkbox"
-                    checked={withPartner}
-                    onChange={(event) => setWithPartner(event.target.checked)}
-                  />
-                  <span>
-                    <strong>그 사람 정보도 넣기</strong>
-                    <small>체크하면 같은 순서로 그 사람의 정보를 입력해요.</small>
-                  </span>
-                </label>
+                {/*
+                  두 사람을 보는 상품에서는 끄지 못하게 한다.
+
+                  끌 수 있던 동안 궁합을 상대 없이 살 수 있었다. 그러면 두 명식을
+                  잇는 규칙이 통째로 죽는다 — 상대를 넣으면 12절 중 못 채우는 절이
+                  1%인데, 안 넣으면 70%가 된다. 리포트는 그래도 나오지만 상대 이야기가
+                  본인 이야기의 되풀이가 되고, 그 값을 치른 사람은 두 사람을 보러 온
+                  사람이다.
+
+                  혼자 보는 상품에서는 그대로 고를 수 있게 둔다.
+                */}
+                {selectedCategory?.needsPartner ? (
+                  <p className="reading-step-note">
+                    <strong>{selectedCategory.label}</strong>은 두 사람의 명식을 맞대어 보는
+                    리포트예요. 다음 화면에서 그 사람의 정보도 받을게요.
+                  </p>
+                ) : (
+                  <label className="reading-partner-toggle">
+                    <input
+                      type="checkbox"
+                      checked={withPartner}
+                      onChange={(event) => setWithPartner(event.target.checked)}
+                    />
+                    <span>
+                      <strong>그 사람 정보도 넣기</strong>
+                      <small>체크하면 같은 순서로 그 사람의 정보를 입력해요.</small>
+                    </span>
+                  </label>
+                )}
               </>
             )}
 
