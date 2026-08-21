@@ -27,3 +27,18 @@ export function requestOrigin(request: Request) {
   // Never build a production OAuth redirect from an untrusted Host header.
   return SITE_URL;
 }
+
+/**
+ * 로그인 오류 화면으로 보내되, 돌아갈 자리를 들려 보낸다.
+ *
+ * 로그인은 대개 무언가를 하려다 부딪히는 문이다 — 결과를 열려다, 결제를 하려다.
+ * 실패했다고 홈으로 보내면 하려던 일이 사라진다. `next` 를 붙여 보내면 오류
+ * 화면이 그 자리로 되돌려 준다.
+ */
+export function authErrorUrl(request: Request, reason: string, next?: string | null) {
+  const url = new URL("/auth/error", requestOrigin(request));
+  url.searchParams.set("reason", reason);
+  const back = safeNextPath(next ?? null, "");
+  if (back) url.searchParams.set("next", back);
+  return url;
+}

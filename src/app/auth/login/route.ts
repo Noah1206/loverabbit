@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requestOrigin, safeNextPath } from "@/lib/auth-navigation";
+import { authErrorUrl, requestOrigin, safeNextPath } from "@/lib/auth-navigation";
 import {
   createSupabaseServerClient,
   getSocialProviderStatus,
@@ -11,9 +11,9 @@ function isSocialProvider(value: string | null): value is SocialProvider {
 }
 
 function authError(request: NextRequest, reason: string) {
-  return NextResponse.redirect(
-    new URL(`/auth/error?reason=${encodeURIComponent(reason)}`, requestOrigin(request))
-  );
+  // 돌아갈 자리를 들려 보낸다. 실패했다고 홈으로 보내면 하려던 일이 사라진다.
+  const next = request.nextUrl.searchParams.get("next");
+  return NextResponse.redirect(authErrorUrl(request, reason, next));
 }
 
 export async function GET(request: NextRequest) {

@@ -6,6 +6,7 @@ import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 import { trackCompleteRegistration } from "@/lib/meta-events";
 import BrandMark from "@/components/BrandMark";
+import BackOnError from "@/components/BackOnError";
 
 interface SessionResult extends Partial<User> {
   needsProfile?: boolean;
@@ -22,6 +23,14 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(true);
   const [error, setError] = useState("");
+  /**
+   * 몇 번 실패했는지.
+   *
+   * 처음 실패는 대개 한 번 더 해 보면 된다 — 네트워크가 잠깐 끊겼거나. 그래서 첫
+   * 실패에는 다시 시도할 자리를 주고, 되돌아가는 것은 사람이 누를 때만 한다.
+   * 두 번째부터는 정말 안 되는 것이므로 하던 자리로 저절로 되돌린다.
+   */
+  const [attempts, setAttempts] = useState(0);
 
   const finish = (data: SessionResult) => {
     if (!data.token || !data.email) throw new Error("로그인 정보를 완성하지 못했어요.");
@@ -67,6 +76,7 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       finish(data);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "로그인을 완료하지 못했어요.");
+      setAttempts((count) => count + 1);
     } finally {
       setSubmitting(false);
     }
@@ -101,9 +111,13 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             {error && (
               <>
                 <p className="auth-error" role="alert">{error}</p>
-                <button className="btn" type="button" onClick={() => void connectSession()}>
-                  다시 시도하기
-                </button>
+                {attempts < 2 && (
+                  <button className="btn" type="button" onClick={() => void connectSession()}>
+                    다시 시도하기
+                  </button>
+                )}
+                {/* 두 번 실패하면 저절로 되돌린다. 그 전에는 누를 때만. */}
+                <BackOnError fallback={nextPath} label="이전 화면" auto={attempts >= 2} />
               </>
             )}
           </>
@@ -128,7 +142,12 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             >
               {submitting ? "가입 중…" : "가입하고 계속하기 →"}
             </button>
-            {error && <p className="auth-error" role="alert">{error}</p>}
+            {error && (
+              <>
+                <p className="auth-error" role="alert">{error}</p>
+                <BackOnError fallback={nextPath} label="이전 화면" auto={attempts >= 2} />
+              </>
+            )}
           </>
         )}
       </section>
