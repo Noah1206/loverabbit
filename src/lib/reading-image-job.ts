@@ -73,31 +73,53 @@ export async function runImageJob({
       if (!has.has(c.chapter)) await markImage(readingId, c.chapter, { status: "failed" });
     }
 
-    for (const prompt of prompts.sort((a, b) => a.chapter - b.chapter)) {
-      const bytes = await renderImage(prompt.prompt);
-      if (!bytes) {
-        await markImage(readingId, prompt.chapter, { status: "failed" });
-        continue;
-      }
-      const url = await putImage(readingId, prompt.chapter, bytes);
-      await markImage(
-        readingId,
-        prompt.chapter,
-        url ? { status: "ready", url, alt: prompt.alt } : { status: "failed" }
-      );
-    }
+    /*
+      생성은 병렬, 기록은 직렬 (2026-08-22 운영자 방향: 읽는 동안 준비되는
+      순서대로 결합).
 
-    // ── 부적 ── 맨 마지막에 그린다. 장 그림이 먼저 도착해야 읽는 순서와 맞는다.
+      - 병렬: 장당 수십 초짜리를 다섯 장 직렬로 돌리면 5분이다. 동시에 세 장씩
+        그리면 첫 그림이 1분 안에 붙기 시작하고, 전체도 2분 안에 끝난다.
+        셋인 것은 이미지 API 의 분당 한도를 넘지 않는 선이다.
+      - 직렬 기록: markImage 는 전체 배열을 읽고-고쳐-쓴다. 두 완료가 겹치면
+        한쪽 기록이 사라져 그 장이 pending 인 채 영영 남는다. 그래서 그리는
+        것은 겹치되 적는 것은 한 줄로 세운다.
+
+      부적은 대기열 맨 뒤다. 장 그림이 먼저 붙어야 읽는 순서와 맞는다.
+    */
+    type ImageTask = { chapter: number; prompt: string; alt?: string; kind: "scene" | "talisman" };
+    const tasks: ImageTask[] = prompts
+      .sort((a, b) => a.chapter - b.chapter)
+      .map((p) => ({ chapter: p.chapter, prompt: p.prompt, alt: p.alt, kind: "scene" as const }));
     if (chart) {
       const plan = planTalisman(chart, label ?? "이 리딩");
-      const bytes = await renderImage(plan.prompt, "talisman");
-      const url = bytes ? await putImage(readingId, TALISMAN_SLOT, bytes) : null;
-      await markImage(
-        readingId,
-        TALISMAN_SLOT,
-        url ? { status: "ready", url, alt: plan.alt } : { status: "failed" }
-      );
+      tasks.push({ chapter: TALISMAN_SLOT, prompt: plan.prompt, alt: plan.alt, kind: "talisman" });
     }
+
+    let markChain: Promise<void> = Promise.resolve();
+    const mark = (chapter: number, patch: { status: "ready" | "failed"; url?: string; alt?: string }) => {
+      markChain = markChain
+        .then(() => markImage(readingId, chapter, patch))
+        .catch((e) => console.warn("그림 상태 기록 실패:", String(e).slice(0, 120)));
+      return markChain;
+    };
+
+    const queue = [...tasks];
+    const CONCURRENCY = 3;
+    await Promise.all(
+      Array.from({ length: Math.min(CONCURRENCY, queue.length) }, async () => {
+        for (;;) {
+          const task = queue.shift();
+          if (!task) return;
+          const bytes = await renderImage(task.prompt, task.kind);
+          if (!bytes) {
+            await mark(task.chapter, { status: "failed" });
+            continue;
+          }
+          const url = await putImage(readingId, task.chapter, bytes);
+          await mark(task.chapter, url ? { status: "ready", url, alt: task.alt } : { status: "failed" });
+        }
+      })
+    );
   } catch (e) {
     // 여기까지 온 오류는 그림만의 문제다. 리딩은 이미 팔렸고 이미 읽히고 있다.
     console.error(`리딩 ${readingId} 그림 작업 실패:`, String(e).slice(0, 300));

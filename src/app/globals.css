@@ -7385,3 +7385,22 @@ body:has(.product-page[data-landing]) .consent-banner {
 .transfer-pay-confirm span {
   color: var(--gold);
 }
+
+/* 표지 일러스트 — 사전 제작 에셋이라 즉시 뜬다. 아래쪽을 배경으로 녹여
+   글 위에 자연스럽게 얹는다 (본문 삽화 .rv-art img 와 같은 수법). */
+.rv-cover-art {
+  margin: 0 0 6px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.rv-cover-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 72%, transparent 100%);
+}

@@ -591,6 +591,19 @@ export default function ReadingReportPage() {
           <>
             {/* 표지 — 어떤 리딩을 손에 쥐었는지 한 화면에 담는다 */}
             <section className="rv-cover">
+              {/* 표지는 기다리게 하지 않는다. 홈 카드와 같은 사전 제작 일러스트를
+                  즉시 깔고, 이 리딩만의 장면 컷은 본문에서 도착하는 대로 붙는다. */}
+              <div className="rv-cover-art" aria-hidden>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/cards-pastel/${entry.category}.jpg`}
+                  alt=""
+                  onError={(event) => {
+                    // 일러스트가 없는 카테고리(내린 상품 등)는 조용히 접는다
+                    event.currentTarget.parentElement?.style.setProperty("display", "none");
+                  }}
+                />
+              </div>
               <div className="rv-cover-copy">
                 <Seal concept={concept} size={46} />
                 <small>{concept.cover}</small>
