@@ -14,6 +14,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { PRODUCTS, type Product } from "@/lib/products";
 import { SITE_URL } from "@/lib/site";
 import InquiryButton from "@/components/InquiryButton";
+import HomeReviews from "@/components/HomeReviews";
 
 const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
@@ -215,7 +216,7 @@ export default function AppHome() {
                     <p>{p.cardCopy}</p>
                     <span className="fortune-grid-cta">
                       <span aria-hidden>{p.emoji}</span>
-                      {p.ctaLabel}
+                      <span className="fortune-grid-cta-label">{p.ctaLabel}</span>
                       <b aria-hidden>→</b>
                     </span>
                   </div>
@@ -224,6 +225,9 @@ export default function AppHome() {
             })}
           </div>
         </section>
+
+        {/* ── 후기 ── 사주 카드를 전부 지나온 뒤에 온다 ── */}
+        <HomeReviews />
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>

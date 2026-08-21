@@ -26,7 +26,8 @@
     "demo:fixture": "tsx --env-file=.env.local --env-file=.env scripts/demo-fixture.mts",
     "reading:cost": "tsx scripts/reading-cost.mts",
     "reading:sweep": "tsx scripts/reading-sweep.mts",
-    "ai:doctor": "tsx --env-file=.env.local --env-file=.env scripts/ai-doctor.mts"
+    "ai:doctor": "tsx --env-file=.env.local --env-file=.env scripts/ai-doctor.mts",
+    "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

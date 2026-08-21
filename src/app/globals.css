@@ -677,21 +677,23 @@ label {
   font-weight: 800;
 }
 
+/* 한 장씩 세로로 쌓이면 상품이 몇 개인지 스크롤해야 알 수 있다.
+   2열 타일로 좁혀 한 화면에 네 장이 들어오게 한다. */
 .fortune-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 18px;
-  margin-top: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .fortune-grid-card {
-  min-height: clamp(420px, 112vw, 510px);
+  aspect-ratio: 5 / 6.2;
   padding: 0;
   overflow: hidden;
   position: relative;
   display: block;
-  border-radius: 22px;
-  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.24);
+  border-radius: 16px;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
 }
 
 [data-product="sokgunghap"] { --product-c1: #ff347f; --product-c2: #ff7a3d; --product-glow: rgba(255, 52, 127, 0.42); --product-line: rgba(255, 116, 141, 0.56); }
@@ -718,12 +720,12 @@ label {
 
 .fortune-grid-badge {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  padding: 4px 10px;
+  top: 10px;
+  left: 10px;
+  padding: 3px 8px;
   border-radius: 999px;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.63rem;
   font-weight: 900;
   letter-spacing: 0.03em;
 }
@@ -738,65 +740,76 @@ label {
 
 .fortune-grid-copy {
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 18px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
 }
 
+/* 카드가 절반 폭이 되면서 제목 위 말머리는 읽히지 않고 자리만 먹는다.
+   같은 정보는 인기/NEW 배지와 상세 페이지가 이미 들고 있다. */
 .fortune-grid-kicker {
-  display: block;
-  margin-bottom: 6px;
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  display: none;
 }
 
 .fortune-grid-copy strong {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   color: #fff;
-  font-size: clamp(1.25rem, 5.2vw, 1.55rem);
-  line-height: 1.25;
+  font-size: clamp(0.95rem, 3.9vw, 1.08rem);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
 }
 
 .fortune-grid-copy p {
-  max-width: 37ch;
-  margin: 0 0 12px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0 0 8px;
   color: rgba(255, 255, 255, 0.62);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-weight: 450;
-  line-height: 1.68;
+  line-height: 1.5;
   letter-spacing: -0.012em;
   text-wrap: pretty;
 }
 
+/* 절반 폭 카드에 알약 버튼을 넣으면 문구가 두 줄로 접힌다.
+   상품 색을 그대로 쓴 텍스트 링크로 바꿔 한 줄에 담는다. */
 .fortune-grid-cta {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
-  max-width: 100%;
-  padding: 9px 13px;
-  border: 1px solid var(--product-line, rgba(255, 255, 255, 0.2));
-  border-radius: 999px;
-  background: linear-gradient(110deg, color-mix(in srgb, var(--product-c1, #c83cff) 82%, transparent), color-mix(in srgb, var(--product-c2, #f54c8b) 82%, transparent));
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--product-glow, rgba(207, 60, 255, 0.35)) 66%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.22);
-  color: #fff;
-  font-size: 0.79rem;
+  gap: 5px;
+  width: 100%;
+  color: color-mix(in srgb, var(--product-c1, #c83cff) 42%, #ffffff);
+  font-size: 0.72rem;
   font-weight: 850;
   line-height: 1.25;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  letter-spacing: -0.01em;
+  transition: gap 180ms ease;
+}
+
+.fortune-grid-cta > span[aria-hidden] {
+  display: none;
+}
+
+/* 문구가 길면 두 줄로 접히면서 화살표만 반대편으로 밀려난다. 한 줄로 자른다. */
+.fortune-grid-cta-label {
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fortune-grid-cta b {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 700;
 }
 
 .fortune-grid-card:hover .fortune-grid-cta,
 .fortune-grid-card:focus-visible .fortune-grid-cta {
-  transform: translateY(-2px);
-  box-shadow: 0 11px 30px var(--product-glow, rgba(207, 60, 255, 0.4)), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  gap: 9px;
 }
 
 .fortune-grid-card[data-tone="ember"] .fortune-grid-copy p {
@@ -843,6 +856,292 @@ label {
 .fortune-grid-card[data-tone="starlight"] .fortune-grid-copy p {
   color: rgba(216, 211, 255, 0.68);
   letter-spacing: 0.01em;
+}
+
+/* ── 홈 후기 ── 사주 카드를 전부 지난 뒤에 오는 마지막 섹션 */
+.review-section {
+  padding: 40px 20px 0;
+}
+
+.review-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.review-head h3 {
+  font-size: 1.05rem;
+}
+
+.review-head-score {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.review-head-score b {
+  color: #ffc55a;
+  font-weight: 900;
+}
+
+.review-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.review-card {
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.review-card-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+
+.review-card-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  font-size: 0.95rem;
+}
+
+.review-card-who {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.review-card-who strong {
+  font-size: 0.84rem;
+  line-height: 1.2;
+}
+
+.review-card-who span {
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.review-card-stars {
+  margin-left: auto;
+  color: #ffc55a;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.review-card p {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.68;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+
+.review-more {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: none;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.review-more em {
+  color: var(--text-dim);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.review-more:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.review-more:hover em {
+  color: inherit;
+}
+
+/* 평균 옆의 (n) — 그 평균이 몇 개를 세어 나온 값인지 */
+.review-head-score em {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+/* 베타 후기 표시. 별점 자리에 대신 들어간다 — 원본에 별점이 없기 때문이다. */
+.review-card-tag {
+  margin-left: auto;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* ── 후기 폼 ── 리딩을 끝까지 읽은 사람에게만 나온다 */
+.review-prompt {
+  margin-top: 16px;
+  padding: 18px 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+
+.review-prompt h2 {
+  margin: 8px 0 4px;
+  font-size: 1.08rem;
+  line-height: 1.35;
+}
+
+.review-prompt-lead {
+  margin-bottom: 12px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+.review-prompt-stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+
+.review-prompt-stars button {
+  padding: 2px 3px;
+  border: none;
+  background: none;
+  color: var(--line);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 120ms ease, transform 120ms ease;
+}
+
+.review-prompt-stars button.on {
+  color: #ffc55a;
+}
+
+.review-prompt-stars button:hover {
+  transform: scale(1.08);
+}
+
+.review-prompt-rating-text {
+  margin-left: 8px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.review-prompt textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.review-prompt textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.review-prompt-count {
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.review-prompt-submit {
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink, #111);
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.review-prompt-submit:disabled {
+  background: var(--bg-card2, var(--line));
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.review-prompt-note {
+  display: block;
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.review-prompt-done {
+  text-align: center;
+}
+
+.review-prompt-done strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 1rem;
+}
+
+.review-prompt-done p {
+  color: var(--text-dim);
+  font-size: 0.82rem;
+}
+
+/* 후기가 어디서 왔는지 밝히는 한 줄. 이 문장이 사실이 아니게 되는 변경은 하지 마라. */
+.review-verified {
+  margin-top: 12px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.review-verified span {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.admin-review-policy {
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.6;
 }
 
 .product-page {

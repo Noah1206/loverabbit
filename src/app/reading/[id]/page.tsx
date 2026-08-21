@@ -38,6 +38,7 @@ import {
 import { getUser, saveUser, type User } from "@/lib/user";
 import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
 import Talisman from "@/components/Talisman";
+import ReviewPrompt from "@/components/ReviewPrompt";
 
 interface ReferralStatus {
   referralCode: string;
@@ -582,6 +583,14 @@ export default function ReadingReportPage() {
               <>
                 {/* 마지막 장 끝 — 다 읽은 사람만 받는다 */}
                 <Talisman image={imageOf(TALISMAN_SLOT)} label={entry.label} />
+
+                {/* 후기는 다음 상품을 권하기 전에 묻는다. 다 읽은 직후가 할 말이
+                    남아 있는 유일한 순간이고, 홈에 걸리는 후기는 전부 여기서 온다. */}
+                <ReviewPrompt
+                  readingId={entry.readingId}
+                  userToken={user?.token ?? null}
+                  productLabel={entry.label}
+                />
 
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">

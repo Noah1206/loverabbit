@@ -1,6 +1,8 @@
 import "server-only";
 
 import { databaseError, getSupabaseAdmin, isDatabaseConfigured } from "@/lib/supabase-admin";
+import { PRODUCT_MAP } from "@/lib/products";
+import { maskName, type ReviewSource, type ReviewStatus } from "@/lib/reviews";
 
 export interface DatabaseUser {
   id: number;
@@ -965,6 +967,256 @@ export async function reviewInquiry(
     .maybeSingle();
   if (error) throw databaseError("문의 상태 변경", error);
   return data ? mapInquiry(data as Record<string, unknown>) : null;
+}
+
+// ── 후기 ─────────────────────────────────────────────────────────────────────
+//
+// 출처가 둘이다 (lr_reviews.source):
+//
+//   live  지금 사이트에서 결제하고 리딩을 열어 본 사람이 직접 남긴 것.
+//         주인인지·해금됐는지 확인을 화면이 아니라 여기서 한다 — 화면 쪽 검사는
+//         요청을 직접 만들면 그냥 지나간다.
+//
+//   beta  베타 테스트 때 받은 후기를 운영자가 옮겨 담은 것. 별점이 없다.
+//         넣는 길은 여기에 없다 — scripts/import-beta-reviews.mts 가 자기 클라이언트로
+//         직접 넣는다. 앱 코드에 넣는 함수를 두면 언젠가 요청 핸들러가 그걸 부른다.
+
+export interface ReviewRecord {
+  id: number;
+  source: ReviewSource;
+  userId: number | null;
+  readingId: string | null;
+  displayName: string;
+  productId: string | null;
+  productLabel: string;
+  rating: number | null;
+  body: string | null;
+  purchaseCount: number;
+  status: ReviewStatus;
+  hiddenReason: string | null;
+  createdAt: string;
+}
+
+export interface AdminReviewRecord extends ReviewRecord {
+  importKey: string | null;
+}
+
+/** 후기를 남길 자격이 없을 때의 이유 — 화면이 상황에 맞는 문구를 고르라고 구분해 둔다. */
+export type ReviewRejection = "not_found" | "not_owner" | "locked" | "already_reviewed";
+
+const REVIEW_COLUMNS =
+  "id,source,user_id,reading_id,display_name,product_id,product_label,rating,body,purchase_count,status,hidden_reason,created_at";
+
+function mapReview(row: Record<string, unknown>): ReviewRecord {
+  return {
+    id: Number(row.id),
+    source: row.source === "beta" ? "beta" : "live",
+    userId: row.user_id === null || row.user_id === undefined ? null : Number(row.user_id),
+    readingId: typeof row.reading_id === "string" ? row.reading_id : null,
+    displayName: String(row.display_name),
+    productId: typeof row.product_id === "string" ? row.product_id : null,
+    productLabel: String(row.product_label),
+    rating: row.rating === null || row.rating === undefined ? null : Number(row.rating),
+    body: typeof row.body === "string" ? row.body : null,
+    purchaseCount: Number(row.purchase_count ?? 0),
+    status: row.status === "hidden" ? "hidden" : "published",
+    hiddenReason: typeof row.hidden_reason === "string" ? row.hidden_reason : null,
+    createdAt: String(row.created_at),
+  };
+}
+
+/** 이 사람이 결제를 끝낸 주문 수 — 후기의 "N번 구매" 로 굳어진다. */
+async function countPaidOrders(userId: number): Promise<number> {
+  const db = getSupabaseAdmin();
+  if (!db) return 0;
+  const { count, error } = await db
+    .from("lr_orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("status", "paid");
+  if (error) throw databaseError("구매 횟수 확인", error);
+  return count ?? 0;
+}
+
+/** 표시 이름을 저장 시점에 가려서 굳힌다. 그래서 조회 경로는 이메일을 볼 일이 없다. */
+async function maskedNameFor(userId: number): Promise<string> {
+  const db = getSupabaseAdmin();
+  if (!db) return maskName(null, null);
+
+  const [{ data: user }, { data: profile }] = await Promise.all([
+    db.from("lr_users").select("email").eq("id", userId).maybeSingle(),
+    db.from("lr_user_profiles").select("display_name").eq("user_id", userId).maybeSingle(),
+  ]);
+
+  const displayName = typeof profile?.display_name === "string" ? profile.display_name : null;
+  const email = typeof user?.email === "string" ? user.email : null;
+  return maskName(displayName, email);
+}
+
+/**
+ * 후기 저장. 리딩 주인이 아니거나 아직 해금 전이면 저장하지 않고 이유를 돌려준다.
+ * 리딩 한 건에 후기는 하나다 (reading_id unique).
+ */
+export async function createReview(input: {
+  userId: number;
+  readingId: string;
+  rating: number;
+  body: string | null;
+}): Promise<{ review: ReviewRecord } | { rejected: ReviewRejection }> {
+  const db = getSupabaseAdmin();
+  if (!db) return { rejected: "not_found" };
+
+  const { data: reading, error: readingError } = await db
+    .from("lr_readings")
+    .select("id,user_id,category,unlocked")
+    .eq("id", input.readingId)
+    .maybeSingle();
+  if (readingError) throw databaseError("후기 대상 리딩 조회", readingError);
+  if (!reading) return { rejected: "not_found" };
+  if (Number(reading.user_id) !== input.userId) return { rejected: "not_owner" };
+  if (reading.unlocked !== true) return { rejected: "locked" };
+
+  const [purchaseCount, displayName] = await Promise.all([
+    countPaidOrders(input.userId),
+    maskedNameFor(input.userId),
+  ]);
+
+  // 표시용 상품명은 저장 시점에 굳힌다. 나중에 카탈로그에서 이름을 바꿔도
+  // 후기에 붙은 이름은 그 사람이 실제로 산 그때의 이름이어야 한다.
+  const productId = String(reading.category);
+  const productLabel = PRODUCT_MAP[productId]?.title ?? productId;
+
+  const { data, error } = await db
+    .from("lr_reviews")
+    .insert({
+      source: "live",
+      user_id: input.userId,
+      reading_id: input.readingId,
+      display_name: displayName,
+      product_id: productId,
+      product_label: productLabel,
+      rating: input.rating,
+      body: input.body,
+      purchase_count: Math.max(purchaseCount, 1),
+    })
+    .select(REVIEW_COLUMNS)
+    .maybeSingle();
+
+  // 23505 = unique 위반. 같은 리딩에 두 번째 후기를 쓴 것이다.
+  if (error?.code === "23505") return { rejected: "already_reviewed" };
+  if (error) throw databaseError("후기 저장", error);
+  if (!data) return { rejected: "not_found" };
+  return { review: mapReview(data as Record<string, unknown>) };
+}
+
+/** 이 리딩에 이미 후기를 썼는지 — 결과 화면이 폼을 띄울지 결정할 때 쓴다. */
+export async function getReviewForReading(readingId: string): Promise<ReviewRecord | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_reviews")
+    .select(REVIEW_COLUMNS)
+    .eq("reading_id", readingId)
+    .maybeSingle();
+  if (error) throw databaseError("후기 조회", error);
+  return data ? mapReview(data as Record<string, unknown>) : null;
+}
+
+/**
+ * 노출 중인 후기. 홈은 본문이 있는 것만 보여주지만, 평균과 개수는 별점만 남긴
+ * 후기까지 모두 세야 실제 만족도가 된다. 그래서 둘을 따로 돌려준다.
+ *
+ * 평균은 별점이 있는 후기(live)로만 낸다 — 베타 후기에는 별점이 없고, 없는 것을
+ * 5점으로 치면 평균이 실제보다 높아진다.
+ */
+export async function listPublishedReviews(input: {
+  limit: number;
+  productId?: string;
+}): Promise<{
+  rows: ReviewRecord[];
+  total: number;
+  average: number | null;
+  ratedCount: number;
+}> {
+  const db = getSupabaseAdmin();
+  if (!db) return { rows: [], total: 0, average: null, ratedCount: 0 };
+
+  let ratingQuery = db.from("lr_reviews").select("rating").eq("status", "published");
+  if (input.productId) ratingQuery = ratingQuery.eq("product_id", input.productId);
+  const { data: ratings, error: ratingError } = await ratingQuery;
+  if (ratingError) throw databaseError("후기 평점 집계", ratingError);
+
+  const all = ratings ?? [];
+  const scores = all
+    .map((row) => (row.rating === null || row.rating === undefined ? null : Number(row.rating)))
+    .filter((score): score is number => score !== null && Number.isFinite(score));
+  const average =
+    scores.length > 0
+      ? Math.round((scores.reduce((sum, n) => sum + n, 0) / scores.length) * 10) / 10
+      : null;
+
+  let query = db
+    .from("lr_reviews")
+    .select(REVIEW_COLUMNS)
+    .eq("status", "published")
+    .not("body", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(input.limit);
+  if (input.productId) query = query.eq("product_id", input.productId);
+  const { data, error } = await query;
+  if (error) throw databaseError("후기 목록 조회", error);
+
+  return {
+    rows: ((data ?? []) as Record<string, unknown>[]).map(mapReview),
+    total: all.length,
+    average,
+    ratedCount: scores.length,
+  };
+}
+
+/** 관리자 화면 — 내려간 것까지 전부 본다. */
+export async function listReviewsForAdmin(status?: ReviewStatus): Promise<AdminReviewRecord[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+  let query = db
+    .from("lr_reviews")
+    .select(`${REVIEW_COLUMNS},import_key`)
+    .order("created_at", { ascending: false })
+    .limit(300);
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw databaseError("후기 목록 조회", error);
+
+  return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
+    ...mapReview(row),
+    importKey: typeof row.import_key === "string" ? row.import_key : null,
+  }));
+}
+
+/**
+ * 후기 내리기·되돌리기.
+ *
+ * 내릴 때 사유를 반드시 받는 것은 실수가 아니다. 낮은 별점을 조용히 걷어내면
+ * 남은 후기 전체가 거짓말이 된다. 도배·욕설·개인정보처럼 댈 수 있는 사유가
+ * 있을 때만 내려가야 하고, 그 사유는 기록으로 남는다.
+ */
+export async function moderateReview(
+  id: number,
+  status: ReviewStatus,
+  reason?: string
+): Promise<ReviewRecord | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const patch: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
+  patch.hidden_reason = status === "hidden" ? (reason ?? "").trim() : null;
+  const { data, error } = await db
+    .from("lr_reviews")
+    .update(patch)
+    .eq("id", id)
+    .select(REVIEW_COLUMNS)
+    .maybeSingle();
+  if (error) throw databaseError("후기 상태 변경", error);
+  return data ? mapReview(data as Record<string, unknown>) : null;
 }
 
 export { isDatabaseConfigured };
