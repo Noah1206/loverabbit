@@ -733,58 +733,25 @@ label {
   letter-spacing: 0.03em;
 }
 
-/* 금박. 색이 테마를 타지 않는 것은 의도다 — 이 알약이 앉는 곳은 페이지
-   배경이 아니라 카드 사진이라, 두 테마에서 같은 금색인 편이 예측이 된다.
+/* 색을 갖지 않는 유리판. 카드 그림이 비쳐 보이고, 도드라지는 것은 흐림과
+   테두리의 빛뿐이다 — 배경은 명도로만 깊이를 준다는 이 화면의 규칙 그대로다.
 
-   글자색을 #fff 로 두지 마라. 예전에 흰 글자에 배경이 var(--accent) 였고,
-   다크의 --accent 가 #f2f2f4 라 흰 알약에 흰 글씨로 통째로 사라져 있었다.
-   지금 값은 가장 어두운 금색(#c98f2d) 위에서도 명암비 5.95 가 나온다.
+   흰 16% 라는 숫자는 취향이 아니라 한계값이다. 배지가 앉는 좌상단에서
+   popular 카드 넉 장의 그림 평균은 rgb(52~91) 이고, 그 위에 흰색을 16%
+   얹었을 때 흰 글자 명암비가 5.68~9.04 로 떨어진다. 22% 로 올리면
+   baramgi 가 4.84, 28% 면 4.15 까지 내려간다. 더 밝게 하지 마라 —
+   이 배지는 직전까지 흰 글자에 흰 배경이라 통째로 안 보이던 자리다.
 
-   사진 위에 그대로 얹히니 색만으로는 경계가 녹는다. 바깥 발광으로 띄우고
-   안쪽 테두리로 금박의 도드라진 면을 만든다. */
+   backdrop-filter 를 지원하지 않는 브라우저는 흐림 없이 반투명만 남는데,
+   위의 명암비가 바로 그 경우의 값이라 읽히는 데는 문제가 없다. */
 .fortune-grid-badge-popular {
-  overflow: hidden;
-  background: linear-gradient(135deg, #ffe8a3 0%, #f0c65c 45%, #c98f2d 100%);
-  color: #2b1a03;
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #fff;
   box-shadow:
-    0 2px 10px rgba(232, 184, 75, 0.5),
-    0 1px 3px rgba(0, 0, 0, 0.4),
-    inset 0 0 0 1px rgba(255, 244, 214, 0.6);
-}
-
-/* 금박 위를 지나가는 빛. 한 화면에 이 배지가 여럿이라 계속 번쩍이면
-   그리드 전체가 소란스러워진다. 주기의 대부분은 멈춰 있고 끝에 한 번만 훑는다. */
-.fortune-grid-badge-popular::after {
-  content: "";
-  position: absolute;
-  inset: -40% -20%;
-  background: linear-gradient(
-    100deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.7) 50%,
-    transparent 62%
-  );
-  transform: translateX(-130%);
-  pointer-events: none;
-  animation: badge-sheen 3.4s ease-in-out infinite;
-}
-
-@keyframes badge-sheen {
-  0%,
-  62% {
-    transform: translateX(-130%);
-  }
-  88%,
-  100% {
-    transform: translateX(130%);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fortune-grid-badge-popular::after {
-    animation: none;
-    opacity: 0;
-  }
+    inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .fortune-grid-copy {
