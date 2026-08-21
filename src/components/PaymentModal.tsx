@@ -44,7 +44,9 @@ export default function PaymentModal({
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${price}&origin=linkgen`;
 
   useEffect(() => {
-    if (!TOSS_CLIENT_KEY) return;
+    // 이체가 기본 결제인 동안은 토스 SDK 를 아예 부르지 않는다 — 안 그리는
+    // 위젯을 위해 스크립트만 내려받는다.
+    if (!TOSS_CLIENT_KEY || transferConfigured) return;
     let active = true;
 
     const setup = async () => {
@@ -122,18 +124,15 @@ export default function PaymentModal({
         <p className="toss-payment-price">{price.toLocaleString()}원</p>
         <p className="toss-payment-intro">결제가 승인된 뒤에만 결론과 전문이 열립니다.</p>
 
-        {TOSS_CLIENT_KEY ? (
-          <>
-            <div id="toss-payment-methods" className="toss-payment-widget" />
-            <div id="toss-payment-agreement" className="toss-payment-widget" />
-            <button className="btn toss-payment-submit" onClick={() => void requestPayment()} disabled={!ready || paying}>
-              {paying ? "결제창 여는 중…" : `${price.toLocaleString()}원 결제하고 전문 보기`}
-            </button>
-          </>
-        ) : transferConfigured ? (
+        {/* 계좌이체가 기본이다 — 운영자 결정 (2026-08-21). 토스 PG 결제는 토스
+            승인 API 를 거치는데, 승인 중 새로고침이 겹치면 결제한 사람이 실패
+            화면을 볼 수 있는 레이스가 있다. 이체는 관리자가 입금을 눈으로 확인해
+            승인하는 흐름이라 그 문제 자체가 없다. 토스 위젯은 이체 계좌가
+            설정되지 않은 환경에서만 나온다. */}
+        {transferConfigured ? (
           <div className="transfer-payment-fallback">
             <p className="toss-payment-config-error">
-              카드 결제는 준비 중이에요. 계좌이체는 관리자가 실제 입금을 확인한 뒤 전문이 열립니다.
+              계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 전문이 열립니다.
             </p>
             <div className="card transfer-payment-account">
               <p><strong>{BANK_NAME}</strong> {BANK_ACCOUNT}</p>
@@ -159,6 +158,14 @@ export default function PaymentModal({
               {transferSubmitting ? "승인 요청 중…" : "이체했어요 · 입금 확인 요청"}
             </button>
           </div>
+        ) : TOSS_CLIENT_KEY ? (
+          <>
+            <div id="toss-payment-methods" className="toss-payment-widget" />
+            <div id="toss-payment-agreement" className="toss-payment-widget" />
+            <button className="btn toss-payment-submit" onClick={() => void requestPayment()} disabled={!ready || paying}>
+              {paying ? "결제창 여는 중…" : `${price.toLocaleString()}원 결제하고 전문 보기`}
+            </button>
+          </>
         ) : (
           <p className="toss-payment-config-error" role="alert">
             결제 수단 설정이 아직 완료되지 않았어요. 관리자에게 문의해주세요.
@@ -167,7 +174,11 @@ export default function PaymentModal({
 
         {error && <p className="toss-payment-error" role="alert">{error}</p>}
         <button className="btn btn-ghost toss-payment-close" onClick={onClose}>닫기</button>
-        <p className="toss-payment-note">토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요.</p>
+        <p className="toss-payment-note">
+          {transferConfigured
+            ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
+            : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
+        </p>
       </div>
     </div>
   );

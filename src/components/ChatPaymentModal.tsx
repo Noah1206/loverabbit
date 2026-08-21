@@ -44,7 +44,8 @@ export default function ChatPaymentModal({
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${product.price}&origin=linkgen`;
 
   useEffect(() => {
-    if (!TOSS_CLIENT_KEY) return;
+    // 이체가 기본 결제인 동안은 토스 SDK 를 부르지 않는다 (PaymentModal 과 같은 이유)
+    if (!TOSS_CLIENT_KEY || transferConfigured) return;
     let active = true;
     const setup = async () => {
       try {
@@ -150,14 +151,6 @@ export default function ChatPaymentModal({
             <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
             <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>
           </div>
-        ) : TOSS_CLIENT_KEY ? (
-          <>
-            <div id="chat-toss-payment-methods" className="toss-payment-widget" />
-            <div id="chat-toss-payment-agreement" className="toss-payment-widget" />
-            <button className="btn toss-payment-submit" onClick={() => void requestPayment()} disabled={!ready || paying}>
-              {paying ? "결제창 여는 중…" : `${product.price.toLocaleString()}원 결제하기`}
-            </button>
-          </>
         ) : transferConfigured ? (
           <div className="transfer-payment-fallback">
             <p className="toss-payment-config-error">계좌이체는 관리자가 실제 입금을 확인한 뒤 대화권이 지급됩니다.</p>
@@ -177,6 +170,16 @@ export default function ChatPaymentModal({
               {paying ? "승인 요청 중…" : "이체했어요 · 입금 확인 요청"}
             </button>
           </div>
+        ) : TOSS_CLIENT_KEY ? (
+          // 계좌이체가 기본이다 — 운영자 결정 (2026-08-21, PaymentModal 참조).
+          // 이 분기는 이체 계좌가 설정되지 않은 환경에서만 나온다.
+          <>
+            <div id="chat-toss-payment-methods" className="toss-payment-widget" />
+            <div id="chat-toss-payment-agreement" className="toss-payment-widget" />
+            <button className="btn toss-payment-submit" onClick={() => void requestPayment()} disabled={!ready || paying}>
+              {paying ? "결제창 여는 중…" : `${product.price.toLocaleString()}원 결제하기`}
+            </button>
+          </>
         ) : (
           <p className="toss-payment-config-error" role="alert">결제 수단 설정이 아직 완료되지 않았어요.</p>
         )}
