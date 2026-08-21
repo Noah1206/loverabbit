@@ -10,7 +10,8 @@ export type ReviewStatus = "published" | "hidden";
  * 후기가 어디서 왔는지.
  *   live  지금 사이트에서 결제하고 리딩을 열어 본 사람이 직접 남긴 것
  *   beta  베타 테스트 때 받은 후기를 운영자가 옮겨 담은 것 (별점이 없다)
- * 화면은 이 둘을 구분해서 보여준다. 섞어 놓으면 어느 쪽도 무슨 말인지 알 수 없다.
+ * 화면은 이 둘을 구분하지 않는다 — 표시도 안내 문장도 운영자 요청으로 뺐다.
+ * 그래서 홈에 출처를 두고 어떤 주장도 적으면 안 된다 (HomeReviews 위쪽 설명 참고).
  */
 export type ReviewSource = "live" | "beta";
 
@@ -25,8 +26,6 @@ export interface PublicReview {
   productId: string | null;
   /** 베타 후기에는 상품명이 없다. 그때 이름은 다른 서비스를 가리킨다. */
   productLabel: string | null;
-  /** 여기서 결제한 횟수 — "3번 구매". 베타 후기는 셀 근거가 없어 비어 있다. */
-  purchaseCount: number | null;
   body: string | null;
   createdAt: string;
 }

@@ -16,7 +16,7 @@
 | 03 | 상대 속마음 · 해월신당 | 연락 없는 관계, 궁금한 마음의 흐름 | `meta-policy-v1/inner-mind-ad-vertical-1080x1920.png` | `meta-policy-v1/inner-mind-ad-horizontal-1200x628.png` | 해월신당 또는 속마음 전용 랜딩 |
 | 04 | 속궁합 · 관능 커플형 | 말보다 먼저 닿는 두 사람의 온도 | `product-campaigns-v1/compatibility-ad-vertical-1080x1920.png` | `product-campaigns-v1/compatibility-ad-horizontal-1200x628.png` | `/product/sokgunghap` 또는 전용 랜딩 |
 | 05 | 재회 흐름 리포트 | 다시 이어질 가능성을 정리해 보는 시간 | `product-campaigns-v1/reunion-ad-vertical-1080x1920.png` | `product-campaigns-v1/reunion-ad-horizontal-1200x628.png` | `/product/jaehoe` 또는 전용 랜딩 |
-| 06 | 평생 연애운 | 연애의 큰 흐름, 어떤 모양일까? | `product-campaigns-v1/lifetime-romance-ad-vertical-1080x1920.png` | `product-campaigns-v1/lifetime-romance-ad-horizontal-1200x628.png` | `/product/pyeongsaeng` 또는 전용 랜딩 |
+| 06 | 평생 연애운 | 연애의 큰 흐름, 어떤 모양일까? | `product-campaigns-v1/lifetime-romance-ad-vertical-1080x1920.png` | `product-campaigns-v1/lifetime-romance-ad-horizontal-1200x628.png` | **사용 중지 — 상품이 내려갔습니다.** 옛 랜딩 `/product/pyeongsaeng` 은 홈으로 넘어갑니다 |
 | 07 | 궁합 사주 · 후킹 커플형 | 우리 둘, 잘 맞을까? | `hook-five-v1/01-general-compatibility-ad-vertical-1080x1920.png` | `hook-five-v1/01-general-compatibility-ad-horizontal-1200x628.png` | 궁합 전용 랜딩 |
 | 08 | 속궁합 사주 · 레드 라운지형 | 말보다 먼저 맞는 온도 | `hook-five-v1/02-intimate-compatibility-ad-vertical-1080x1920.png` | `hook-five-v1/02-intimate-compatibility-ad-horizontal-1200x628.png` | 속궁합 전용 랜딩 |
 | 09 | 19금 사주 · 향수 광고형 | 밤이 되면 달라지는 궁합 | `hook-five-v1/03-mature-night-ad-vertical-1080x1920.png` | `hook-five-v1/03-mature-night-ad-horizontal-1200x628.png` | 성인 인증/정책 검토 랜딩 |
@@ -37,7 +37,7 @@
 - 이별 고민 수요: **02 관계 결정 리포트**
 - 캐릭터 몰입형: **03 상대 속마음 · 해월신당**
 - 재접촉·재회 수요: **05 재회 흐름 리포트**
-- 넓은 연애운 관심층과 990원 입문 상품: **06 평생 연애운**
+- ~~넓은 연애운 관심층과 990원 입문 상품: **06 평생 연애운**~~ — 상품이 내려가 이 소재는 쓰지 않습니다
 - 이번 후킹형 5종만 빠르게 비교: **07–11**, 또는 `hook-five-v1/hook-five-preview.png`
 - 가장 관능적인 신규 소재: **09 19금 사주 · 향수 광고형**
 

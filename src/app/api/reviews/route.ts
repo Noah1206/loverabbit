@@ -54,14 +54,22 @@ export async function GET(request: NextRequest) {
       rating: row.rating,
       productId: row.productId,
       productLabel: row.productLabel,
-      purchaseCount: row.purchaseCount,
       body: row.body,
       createdAt: row.createdAt,
     }));
     return NextResponse.json(
       { reviews, total, average, ratedCount } satisfies ReviewSummary,
-      // 후기는 자주 바뀌지 않는다. 1분 캐시로 홈 첫 화면을 가볍게 둔다.
-      { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } }
+      // 후기는 자주 바뀌지 않는다. CDN 에서 1분 잡아 홈 첫 화면을 가볍게 둔다.
+      //
+      // max-age=0 이 필요하다. s-maxage 는 공유 캐시(CDN)만 읽는 지시라, 이걸
+      // 빼면 브라우저에는 max-age 없는 "public" 만 남는다. 그러면 브라우저가
+      // 제 임의 기준으로 캐시해 버려서, 배포를 해도 쓰던 사람 화면만 안 바뀐다.
+      // 후기 순서를 뒤집고 왜 안 보이나 한참 찾았던 것이 이것이다.
+      {
+        headers: {
+          "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+        },
+      }
     );
   } catch (error) {
     console.error("후기 조회 실패:", error);
