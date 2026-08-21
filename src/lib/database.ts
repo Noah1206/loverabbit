@@ -643,6 +643,8 @@ export async function createPendingTransferOrder(input: {
   readingId: string;
   amount: number;
   depositorCode: string;
+  /** 어느 광고가 팔았는지 등, 주문에 함께 남길 것 */
+  metadata?: Record<string, unknown>;
 }): Promise<TransferOrderRecord | null> {
   const db = getSupabaseAdmin();
   if (!db) return null;
@@ -661,7 +663,7 @@ export async function createPendingTransferOrder(input: {
       status: "pending",
       amount: input.amount,
       depositor_code: input.depositorCode,
-      metadata: { requested_at: now },
+      metadata: { requested_at: now, ...input.metadata },
       updated_at: now,
     })
     .select(TRANSFER_ORDER_COLUMNS)

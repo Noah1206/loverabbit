@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/site";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import AttributionCapture from "@/components/AttributionCapture";
 import AuthCodeRescue from "@/components/AuthCodeRescue";
 import BottomNav from "@/components/BottomNav";
 import ConsentBanner from "@/components/ConsentBanner";
@@ -59,6 +60,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {themeInitScript}
         </Script>
         <ThemeProvider>
+          <AttributionCapture />
           <AuthCodeRescue />
           <div className="app-viewport">{children}</div>
           <BottomNav />

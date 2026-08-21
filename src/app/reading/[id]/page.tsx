@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { readAttribution } from "@/lib/attribution";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ChatSection from "@/components/ChatSection";
@@ -284,6 +285,9 @@ export default function ReadingReportPage() {
           method: "transfer",
           depositorCode,
           userToken: user?.token,
+          // 어느 광고가 팔았는지를 주문에 함께 남긴다. 이 기록이 정본이다 —
+          // Meta 쪽 집계는 픽셀이 막히면 비고, 그럴수록 알 수 없어진다.
+          attribution: readAttribution(),
         }),
       });
       const data = await res.json();

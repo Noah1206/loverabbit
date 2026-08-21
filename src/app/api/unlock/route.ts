@@ -11,6 +11,7 @@ import {
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
+import { normalizeAttribution } from "@/lib/attribution";
 
 // 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
@@ -28,6 +29,8 @@ interface Body {
   paymentKey?: string;
   orderId?: string;
   amount?: number;
+  /** 광고 유입 표시 (utm/fbclid). 주소에서 온 값이라 그대로 믿지 않는다. */
+  attribution?: unknown;
 }
 
 interface SealedReading {
@@ -48,6 +51,10 @@ interface SealedReading {
 
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
+  // 어느 광고가 이 결제를 만들었는가. Meta 집계는 픽셀이 막히거나 동의를 안 받으면
+  // 비므로, 실제로 판 소재를 아는 유일한 정본은 이 주문 기록이다.
+  // normalizeAttribution 이 길이·제어문자·바깥 주소를 걸러 낸다.
+  const attribution = normalizeAttribution(body.attribution);
   if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다. 잠시 후 다시 시도해주세요." }, { status: 503 });
   }
@@ -187,6 +194,7 @@ export async function POST(req: NextRequest) {
             readingId: body.readingId,
             amount: price,
             depositorCode: body.depositorCode,
+            ...(attribution ? { metadata: { attribution } } : {}),
           })
         : null;
       if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
@@ -277,6 +285,7 @@ export async function POST(req: NextRequest) {
           status: "paid",
           amount: price,
           providerOrderId: body.orderId,
+          ...(attribution ? { metadata: { attribution } } : {}),
         });
       }
       const unlocked = await markUnlocked(body.readingId, { method: "toss-pg", at: now }, user.userId);

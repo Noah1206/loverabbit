@@ -10,6 +10,7 @@
 import { hasMarketingConsent } from "@/lib/consent";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import type { LandingType } from "@/lib/landing-types";
+import { attributionParams, readAttribution } from "@/lib/attribution";
 export type { LandingType } from "@/lib/landing-types";
 
 export const META_PIXEL_ID = (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "").trim();
@@ -85,6 +86,7 @@ export function trackInitiateCheckout(input: {
     value: input.value,
     currency: input.currency ?? "KRW",
     landing_type: input.landingType,
+    ...attributionParams(readAttribution()),
   });
 }
 
@@ -120,6 +122,9 @@ export async function trackPurchase(input: {
 
   const eventId = newEventId();
   const currency = input.currency ?? "KRW";
+  // 랜딩이 다섯 개뿐이라 landing_type 만으로는 같은 랜딩에 걸린 소재들이 한 덩어리로
+  // 뭉친다. 링크에 붙여 보낸 utm 을 함께 실어 소재별로 갈라 본다.
+  const attribution = readAttribution();
 
   fire(
     "track",
@@ -129,6 +134,7 @@ export async function trackPurchase(input: {
       currency,
       transaction_id: input.transactionId,
       ...(input.landingType ? { landing_type: input.landingType } : {}),
+      ...attributionParams(attribution),
     },
     eventId
   );
@@ -146,6 +152,7 @@ export async function trackPurchase(input: {
         currency,
         transactionId: input.transactionId,
         landingType: input.landingType,
+        attribution,
       }),
       keepalive: true,
     });

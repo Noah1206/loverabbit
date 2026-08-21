@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { normalizeAttribution } from "@/lib/attribution";
 
 type PendingOrder = {
   id: number;
@@ -13,7 +14,26 @@ type PendingOrder = {
   amount: number;
   depositorCode: string | null;
   createdAt: string;
+  metadata?: Record<string, unknown> | null;
 };
+
+/**
+ * 어느 광고가 이 주문을 만들었는지 한 줄로.
+ *
+ * 랜딩은 다섯 개뿐이라 그것만으로는 같은 랜딩에 걸린 소재들이 한 덩어리가 된다.
+ * 결제 때 함께 적어 둔 utm 을 여기서 읽는다. 광고 없이 들어온 주문에는 아무것도
+ * 없고, 그때는 줄 자체를 그리지 않는다.
+ */
+function adSource(order: PendingOrder): string | null {
+  const attr = normalizeAttribution(
+    order.metadata && typeof order.metadata === "object"
+      ? (order.metadata as Record<string, unknown>).attribution
+      : null
+  );
+  if (!attr) return null;
+  const parts = [attr.source, attr.campaign, attr.content].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
 
 const STORAGE_KEY = "loverabbit_admin_approval_key";
 
@@ -169,6 +189,9 @@ export default function AdminPaymentsPage() {
                 <div><dt>회원</dt><dd>{order.email ?? `회원 #${order.userId}`}</dd></div>
                 <div><dt>상품</dt><dd>{order.category ?? "사주 리딩"}</dd></div>
                 <div><dt>요청시각</dt><dd>{new Date(order.createdAt).toLocaleString("ko-KR")}</dd></div>
+                {adSource(order) && (
+                  <div><dt>유입 광고</dt><dd>{adSource(order)}</dd></div>
+                )}
               </dl>
               <label>
                 운영 메모

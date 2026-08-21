@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LANDING_TYPES } from "@/lib/landing-types";
+import { attributionParams, normalizeAttribution } from "@/lib/attribution";
 
 // Meta Conversions API 중계 — 브라우저에서 Pixel이 차단돼도 전환이 남도록 서버에서 한 번 더 보낸다.
 // 클라이언트가 보낸 eventId를 그대로 써서 Pixel 이벤트와 중복 제거된다.
@@ -17,6 +18,7 @@ interface Body {
   currency?: string;
   transactionId?: string;
   landingType?: string;
+  attribution?: unknown;
 }
 
 const ALLOWED_EVENTS = new Set(["Purchase", "InitiateCheckout"]);
@@ -54,6 +56,10 @@ export async function POST(request: NextRequest) {
   if (body.landingType && ALLOWED_LANDINGS.has(body.landingType)) {
     customData.landing_type = body.landingType;
   }
+  // 어느 소재였는지. normalizeAttribution 이 길이와 제어문자를 다듬고, utm 다섯
+  // 항목 말고는 아무것도 통과시키지 않는다 — 주소에서 온 값이라 그대로 흘려보내면
+  // 위 금지 목록이 무의미해진다.
+  Object.assign(customData, attributionParams(normalizeAttribution(body.attribution)));
 
   const payload = {
     data: [

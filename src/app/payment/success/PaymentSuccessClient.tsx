@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { readAttribution } from "@/lib/attribution";
 import { useEffect, useRef, useState } from "react";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { landingTypeForProduct, trackPurchase } from "@/lib/meta-events";
@@ -40,6 +41,7 @@ export default function PaymentSuccessClient({
             readingId,
             method: "toss-pg",
             userToken: user.token,
+            attribution: readAttribution(),
             paymentKey,
             orderId,
             amount,
