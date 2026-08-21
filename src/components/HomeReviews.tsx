@@ -43,16 +43,14 @@ function ReviewCard({ review }: { review: PublicReview }) {
             {formatDate(review.createdAt)}
           </span>
         </div>
-        {review.rating !== null ? (
+        {review.rating !== null && (
           <span className="review-card-stars" aria-label={`5점 만점에 ${review.rating}점`}>
             <span aria-hidden>
               {"★".repeat(review.rating)}
               {"☆".repeat(5 - review.rating)}
             </span>
           </span>
-        ) : beta ? (
-          <span className="review-card-tag">베타</span>
-        ) : null}
+        )}
       </div>
       <p>{review.body}</p>
     </article>
@@ -141,7 +139,7 @@ export default function HomeReviews() {
         )}
         {hasLive && hasBeta && <br />}
         {hasBeta && (
-          <>‘베타’ 표시는 베타 테스트 때 받은 후기예요. 작성자 동의를 받아 읽기 쉽게 다듬었어요.</>
+          <>후기 일부는 베타 테스트 때 받은 거예요. 작성자 동의를 받아 읽기 쉽게 다듬었어요.</>
         )}
       </p>
     </section>

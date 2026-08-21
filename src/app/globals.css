@@ -986,18 +986,6 @@ label {
   opacity: 0.7;
 }
 
-/* 베타 후기 표시. 별점 자리에 대신 들어간다 — 원본에 별점이 없기 때문이다. */
-.review-card-tag {
-  margin-left: auto;
-  padding: 3px 8px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--text-dim);
-  font-size: 0.66rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
 /* ── 후기 폼 ── 리딩을 끝까지 읽은 사람에게만 나온다 */
 .review-prompt {
   margin-top: 16px;
