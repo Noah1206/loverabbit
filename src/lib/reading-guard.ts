@@ -216,7 +216,10 @@ function splitFactEntry(entry: string): { path: string; value: string } | null {
 
 function resolvePath(root: unknown, path: string): unknown {
   let cursor: unknown = root;
-  for (const segment of path.split(".")) {
+  // "luckContext.upcoming[0]" 처럼 첨자를 쓰는 것도 받는다. 모델이 자연스럽게 쓰는
+  // 표기이고, 못 읽으면 맞는 근거가 "그런 경로가 없다" 로 잡힌다.
+  for (const segment of path.replace(/\[(\d+)\]/g, ".$1").split(".")) {
+    if (!segment) continue;
     if (cursor === null || typeof cursor !== "object") return undefined;
     cursor = (cursor as Record<string, unknown>)[segment];
   }
@@ -245,8 +248,9 @@ function valueMatches(resolved: unknown, expected: string): boolean {
     // 맞는 근거가 위반으로 잡히고 그 리포트는 고칠 것이 없는데도 다시 만들어진다.
     // 원소 안에 쉼표가 들어 있는 배열(예: "사신형=일지,연지,월운")은 조각으로 갈라
     // 견줄 수 없다. 통째로 이어 붙인 꼴을 먼저 본다.
-    if (resolved.map(String).join(",") === expected) return true;
-    if (resolved.map(String).join(", ") === expected) return true;
+    const bare = expected.trim().replace(/^\[|\]$/g, "");
+    if (resolved.map(String).join(",") === bare) return true;
+    if (resolved.map(String).join(", ") === bare) return true;
     if (sameList(resolved.map(String), expected)) return true;
     return resolved.some((item) => String(item) === expected || String(item).includes(expected));
   }

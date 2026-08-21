@@ -25,11 +25,11 @@
 | 관계 bundle 수 | 없음 (합·충 2건과 형 2건이 각각 따로) | 2묶음 — 사신(연지,일지)=사신합+사신형(부분) / 축미(월지,시지)=축미충+축미형(부분) | 고침 |
 | 명식에 없는 글자 언급 (fixture) | jaehoe 10회 / sokgunghap 8회 | 새 가드가 전건 차단 (jaehoe 0건 차단, sokgunghap 0건 차단) | 차단 |
 | matched rule 수 | jaehoe 9 / sokgunghap 4 | jaehoe 15 / sokgunghap 12 | 15·12 |
-| section별 unique rule (jaehoe) | 세지 않았음 | 15종 / 15절, 최다 P-LUCK-INSEONG 10절 | 계량됨 |
+| section별 unique rule (jaehoe) | 세지 않았음 | 15종 / 15절, 최다 P-DOMINANT-TENGOD 8절 | 계량됨 |
 | section별 unique rule (sokgunghap) | 세지 않았음 | 12종 / 12절, 최다 SELF-WOOD-WEAK 6절 | 계량됨 |
 | partner 근거 없는 문장 | 검사 없음 | jaehoe 0건, sokgunghap 0건 | 차단 |
 | 6개월 시기 coverage | 이번 달 1개 | 6개월 + 2027년 | 고침 |
-| facts_used 경로 오류 | 검사 없음 | jaehoe 0건, sokgunghap 0건 | 차단 |
+| facts_used 경로 오류 | 검사 없음 | jaehoe 1건, sokgunghap 0건 | 차단 |
 | 근거만 올리고 안 쓴 관계 | 2건 (본문 대조로만 확인) | jaehoe 0건, sokgunghap 0건 | 차단 |
 | 같은 자리 이중 계상 | 검사 없음 | jaehoe 0건, sokgunghap 0건 | 차단 |
 
@@ -39,12 +39,19 @@
 
 ### 재회 사주 (`.reading-preview.jaehoe.json`)
 
-- 절 15개 · 위반 12건 (막는 것 0건)
+- 절 15개 · 위반 15건 (막는 것 2건)
 
 | 코드 | 건수 | 막는가 |
 | --- | --- | --- |
-| 용어(코드 없음) | 10 | 아니오 |
+| 용어(코드 없음) | 11 | 아니오 |
 | 강조(코드 없음) | 2 | 아니오 |
+| GUARD-FACT-PATH-MISMATCH | 1 | 예 |
+| ADV-SEASON-OVERUSED | 1 | 예 |
+
+막는 위반 예시:
+
+- `sections[1].facts_used` "luckContext.monthly=8 병신 상관" — 계산값은 {"month":8,"pillar":"병신","tenGod":"상관"} 이다
+- `sections` 계절을 21번 말했다 — 3번까지. 무대는 한 번 세우면 되고, 매 절 다시 세우면 말버릇이 된다
 
 ### 속궁합 사주 (`.reading-preview.sokgunghap.json`)
 

@@ -344,15 +344,43 @@ describe("축이 갈리면 고르지 않는다", () => {
 
 // ── 7. 기본값에서 아무것도 안 나간다 ─────────────────────────
 
-describe("evidence_only 에서는 사용자 글이 바뀌지 않는다", () => {
-  it("기본 모드가 evidence_only 다", () => {
-    assert.equal(ME.advanced.mode, "evidence_only");
-    assert.equal(ME.advanced.readerVisible, false);
+describe("칸마다 따로 열린다", () => {
+  it("기본 모드는 policy_preview 다", () => {
+    assert.equal(ME.advanced.mode, "policy_preview");
   });
 
-  it("프롬프트 입력에 advanced 가 실리지 않는다", () => {
-    assert.equal(advancedForPrompt(ME.advanced), null);
-    assert.equal("advanced" in (slimFacts(ME) as Record<string, unknown>), false);
+  it("계절만 열려 있다 — 판본이 필요 없는 유일한 칸이다", () => {
+    assert.deepEqual(ME.advanced.visible, {
+      seasonalContext: true,
+      johu: false,
+      gyeokguk: false,
+      yongsin: false,
+    });
+  });
+
+  it("프롬프트에 계절만 실린다", () => {
+    const payload = advancedForPrompt(ME.advanced) as Record<string, unknown>;
+    assert.ok(payload, "계절 칸이 열렸는데 아무것도 안 갔다");
+    assert.deepEqual(Object.keys(payload), ["season"]);
+    const season = payload.season as Record<string, string>;
+    assert.equal(season.month_branch, "축");
+    assert.equal(season.climate, "한랭·습함");
+    assert.ok(season.term.includes("소한"));
+    assert.equal(season.source, "SRC-INTERNAL-CLIMATE");
+  });
+
+  it("조후·격국·용신은 모델에게 가지 않는다 — 보면 쓴다", () => {
+    const payload = advancedForPrompt(ME.advanced) as Record<string, unknown>;
+    for (const key of ["johu", "gyeokguk", "yongsin"]) {
+      assert.equal(key in payload, false, `${key} 가 승인 없이 모델에게 갔다`);
+    }
+  });
+
+  it("evidence_only 로 내리면 통째로 닫힌다", () => {
+    const off = buildAdvancedFacts(CHART, "신약", "evidence_only");
+    assert.equal(off.readerVisible, false);
+    assert.equal(advancedForPrompt(off), null);
+    assert.deepEqual(Object.values(off.visible), [false, false, false, false]);
   });
 
   it("고급 층이 강약 라벨을 건드리지 않는다", () => {
@@ -367,19 +395,17 @@ describe("evidence_only 에서는 사용자 글이 바뀌지 않는다", () => {
     }
   });
 
-  it("모드를 올려도 승인이 없으면 여전히 안 나간다", () => {
-    for (const mode of ["policy_preview", "policy_enabled"] as const) {
-      const advanced = buildAdvancedFacts(CHART, "신약", mode);
-      assert.equal(advanced.readerVisible, false, `${mode}: 승인 없이 문이 열렸다`);
-      assert.ok(advanced.suppressionReasons.length > 0);
-      assert.equal(advancedForPrompt(advanced), null);
-    }
+  it("policy_enabled 로 올려도 판본 없는 칸은 안 열린다 — 차단은 모드가 아니라 출처가 한다", () => {
+    const full = buildAdvancedFacts(CHART, "신약", "policy_enabled");
+    assert.equal(full.visible.johu, false, "판본 없이 조후가 열렸다");
+    assert.equal(full.visible.gyeokguk, false, "판본 없이 격 이름이 열렸다");
+    assert.equal(full.visible.yongsin, false, "축이 갈렸는데 용신이 열렸다");
   });
 
-  it("왜 안 나가는지가 적혀 있다", () => {
+  it("닫힌 칸마다 왜 닫혔는지가 적혀 있다", () => {
     const reasons = ME.advanced.suppressionReasons.join(" ");
-    assert.ok(reasons.includes("evidence_only"));
     assert.ok(reasons.includes("조후"));
+    assert.ok(reasons.includes("격국"));
     assert.ok(reasons.includes("CR-BOTH-WITH-SCOPE"));
   });
 
@@ -424,28 +450,41 @@ function reportSaying(text: string): StructuredReport {
 const codes = (text: string) => checkAdvanced(reportSaying(text), ME.advanced).map((v) => v.code);
 
 describe("고급 해석이 새면 막는다", () => {
-  it("evidence_only 에서 고급 용어가 본문에 있으면 막힌다", () => {
-    assert.ok(codes("당신의 조후를 보면 온기가 필요해요").includes("ADV-POLICY-MODE-LEAK"));
-    assert.ok(codes("용신은 화예요").includes("ADV-POLICY-MODE-LEAK"));
-    assert.ok(codes("이 명식은 편재격이에요").includes("ADV-POLICY-MODE-LEAK"));
+  it("승인 없이 용신을 단정하면 막힌다", () => {
+    const found = codes("당신의 용신은 화예요");
+    assert.ok(found.includes("ADV-NO-SOURCE-TRACE"), found.join(", "));
+    assert.ok(found.includes("ADV-CONFLICT-UNRESOLVED"), found.join(", "));
+    assert.ok(found.includes("ADV-CANDIDATE-AS-FACT"), found.join(", "));
+  });
+
+  it("승인 없이 조후를 말하면 막힌다", () => {
+    assert.ok(codes("당신의 조후를 보면 온기가 필요해요").includes("ADV-NO-SOURCE-TRACE"));
+  });
+
+  it("격 이름을 부르면 막힌다 — 순서는 승인됐어도 이름은 아니다", () => {
+    assert.ok(codes("이 명식은 편재격이에요").includes("ADV-UNSUPPORTED-GYEOKGUK"));
+    assert.ok(codes("구조로 보면 편인격에 가까워요").includes("ADV-UNSUPPORTED-GYEOKGUK"));
+  });
+
+  it("계절은 말해도 된다 — 판본이 필요 없는 칸이다", () => {
+    assert.deepEqual(codes("한겨울, 소한이 지나고 보름 넘은 자리에 나셨어요"), []);
+    assert.deepEqual(codes("굳어 있는 계절에 난 사람이에요"), []);
+  });
+
+  it("계절에서 결론으로 넘어가면 막힌다", () => {
+    // "겨울이다" 는 계산이고 "그래서 화가 필요하다" 는 조후용신이다. 판본이 있어야 한다.
+    const found = codes("한겨울에 나셨으니 조후로 보면 불이 필요해요");
+    assert.ok(found.includes("ADV-NO-SOURCE-TRACE"), found.join(", "));
   });
 
   it("고급 용어를 안 쓰면 아무것도 안 걸린다", () => {
     assert.deepEqual(codes("가까울수록 같은 대목에 걸리는 자리예요"), []);
   });
 
-  it("모드를 올려도 승인 없으면 다른 코드로 막힌다", () => {
-    const preview = buildAdvancedFacts(CHART, "신약", "policy_preview");
-    const found = checkAdvanced(reportSaying("당신의 용신은 화예요"), preview).map((v) => v.code);
-    assert.ok(found.includes("ADV-NO-SOURCE-TRACE"), found.join(", "));
-    assert.ok(found.includes("ADV-CONFLICT-UNRESOLVED"), found.join(", "));
-    assert.ok(found.includes("ADV-CANDIDATE-AS-FACT"), found.join(", "));
-  });
-
-  it("모호한 격을 이름으로 부르면 막힌다", () => {
-    const preview = buildAdvancedFacts(CHART, "신약", "policy_preview");
-    const found = checkAdvanced(reportSaying("구조로 보면 편인격에 가까워요"), preview).map((v) => v.code);
-    assert.ok(found.includes("ADV-UNSUPPORTED-GYEOKGUK"), found.join(", "));
+  it("evidence_only 로 내리면 고급 용어 자체가 막힌다", () => {
+    const off = buildAdvancedFacts(CHART, "신약", "evidence_only");
+    const found = checkAdvanced(reportSaying("용신은 화예요"), off).map((v) => v.code);
+    assert.ok(found.includes("ADV-POLICY-MODE-LEAK"), found.join(", "));
   });
 
   it("고급 코드가 배포 차단 목록에 들어 있다", () => {
@@ -539,11 +578,17 @@ describe("회귀 세트", () => {
     }
   });
 
-  it("모든 명식에서 고급 해석이 사용자에게 안 나간다", () => {
+  it("모든 명식에서 조후·격국·용신이 사용자에게 안 나간다", () => {
+    // 계절은 열려 있다. 나머지 셋은 서른두 건 어디서도 열리면 안 된다.
     for (const input of FIXTURE_INPUTS) {
       const facts = buildSajuFacts(input.birthInput, NOW);
-      assert.equal(facts.advanced.readerVisible, false, `${input.id}: 문이 열렸다`);
-      assert.equal(advancedForPrompt(facts.advanced), null, `${input.id}: 모델에게 갔다`);
+      const v = facts.advanced.visible;
+      assert.equal(v.seasonalContext, true, `${input.id}: 계절이 닫혔다`);
+      assert.equal(v.johu, false, `${input.id}: 조후가 열렸다`);
+      assert.equal(v.gyeokguk, false, `${input.id}: 격 이름이 열렸다`);
+      assert.equal(v.yongsin, false, `${input.id}: 용신이 열렸다`);
+      const payload = advancedForPrompt(facts.advanced) as Record<string, unknown>;
+      assert.deepEqual(Object.keys(payload), ["season"], `${input.id}: 계절 밖의 것이 모델에게 갔다`);
     }
   });
 
@@ -558,9 +603,15 @@ describe("회귀 세트", () => {
 describe("관리 화면", () => {
   it("모드와 승인 순서를 낸다", () => {
     const board = buildPolicyBoard(NOW);
-    assert.equal(board.mode, "evidence_only");
+    assert.equal(board.mode, "policy_preview");
     assert.equal(board.approvalOrder.length, 6);
     assert.equal(board.approvalOrder[0].done, true, "계절 계산은 이미 확정된 층이다");
+  });
+
+  it("승인된 넷과 남은 둘을 가른다", () => {
+    const board = buildPolicyBoard(NOW);
+    const done = board.approvalOrder.filter((s) => s.done).map((s) => s.step);
+    assert.deepEqual(done, [1, 2, 3, 5], "승인 상태가 달라졌다");
   });
 
   it("승인이 필요한 것이 아직 남아 있다고 말한다", () => {

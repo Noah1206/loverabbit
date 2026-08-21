@@ -45,9 +45,26 @@ export interface AdvancedMyeongriFacts {
   yongsin: YongsinAssessment;
   conflicts: AdvancedConflict[];
   trace: AdvancedTrace[];
-  /** 이 명식에서 고급 해석이 사용자 글에 닿을 수 있는가 */
+  /**
+   * 칸마다 따로 연다.
+   *
+   * 처음에는 전부 아니면 전무였다. 그러면 조후용신 표 하나가 막혔다는 이유로
+   * 판본이 필요 없는 계절 계산까지 함께 막힌다 — 서로 다른 근거를 가진 것들이
+   * 한 스위치에 묶여 있으면, 가장 약한 칸이 나머지를 다 끌어내린다.
+   */
+  visible: {
+    /** 계절·한난조습. 1단계 승인. 고전 판본이 필요 없는 계산층이다. */
+    seasonalContext: boolean;
+    /** 조후 후보. 궁통보감 판본이 있어야 열린다. */
+    johu: boolean;
+    /** 격 이름. 자평진전 판본이 있어야 열린다. */
+    gyeokguk: boolean;
+    /** 단일 용신. 축이 갈리면 영영 안 열린다(CR-BOTH-WITH-SCOPE). */
+    yongsin: boolean;
+  };
+  /** 한 칸이라도 열려 있는가 */
   readerVisible: boolean;
-  /** 닿지 못한다면 왜인가 — 관리 화면과 감사 리포트가 그대로 쓴다 */
+  /** 닫힌 칸마다 왜 닫혔는지 — 관리 화면과 감사 리포트가 그대로 쓴다 */
   suppressionReasons: string[];
 }
 
@@ -146,6 +163,13 @@ export function buildAdvancedFacts(
     });
   }
 
+  const reaches = mode !== "evidence_only";
+  const visible = {
+    seasonalContext: reaches,
+    johu: reaches && johu.appliedCandidates.length > 0,
+    gyeokguk: reaches && gyeokguk.determination === "determined" && gyeokguk.status === "approved",
+    yongsin: reaches && yongsin.finalOutput.status === "policy_selected",
+  };
   const suppressionReasons = collectSuppression(mode, johu, gyeokguk, conflicts);
 
   return {
@@ -159,7 +183,8 @@ export function buildAdvancedFacts(
     yongsin,
     conflicts,
     trace,
-    readerVisible: suppressionReasons.length === 0,
+    visible,
+    readerVisible: Object.values(visible).some(Boolean),
     suppressionReasons,
   };
 }
@@ -173,6 +198,7 @@ function collectSuppression(
   const out: string[] = [];
   if (mode === "evidence_only") {
     out.push("ADVANCED_MYEONGRI_MODE=evidence_only — 계산만 하고 사용자 글은 바꾸지 않는다");
+    return out;
   }
   if (johu.appliedCandidates.length === 0) {
     out.push(`조후 후보 ${johu.candidates.length}개가 전부 승인 전이다 (${johu.policyVersion})`);
@@ -194,16 +220,59 @@ function collectSuppression(
   return out;
 }
 
-/** 리포트 입력에 실을 요약 — policy_preview 이상에서만 채워진다 */
+const CLIMATE_WORD: Record<string, string> = {
+  cold: "한랭", cool: "서늘", balanced: "고름", warm: "온화", hot: "무더움",
+  dry: "메마름", wet: "습함",
+};
+
+const SEASON_WORD: Record<string, string> = {
+  spring: "봄", summer: "여름", autumn: "가을", winter: "겨울",
+};
+
+/**
+ * 진술축미는 사계(四季)라 "계절이 바뀌는 자리" 로만 적었더니 모델이 쓰지 못했다.
+ * 문장으로 옮길 수 없는 말은 안 준 것과 같다. 어느 계절의 끝인지까지 적어 준다.
+ */
+const TRANSITION_WORD: Record<string, string> = {
+  축: "겨울의 끝", 진: "봄의 끝", 미: "여름의 끝", 술: "가을의 끝",
+};
+
+/**
+ * 리포트 입력에 실을 것.
+ *
+ * 열린 칸만 담는다. 닫힌 칸은 아예 넣지 않는다 — 모델에게 보여 주고 쓰지 말라고
+ * 하는 것보다 안 보여 주는 편이 확실하다. 후보를 보면 쓴다.
+ */
 export function advancedForPrompt(advanced: AdvancedMyeongriFacts) {
   if (!advanced.readerVisible) return null;
-  return {
-    seasonal: `${advanced.seasonalContext.monthBranch}월 · ${advanced.seasonalContext.climateAxes.temperature}/${advanced.seasonalContext.climateAxes.moisture}`,
-    johu: advanced.johu.appliedCandidates.map((c) => `${c.candidateElement}=${c.role}`),
-    gyeokguk: advanced.gyeokguk.primary?.pattern ?? null,
-    // 승인된 trace 만 넘긴다. 후보는 모델이 볼 이유가 없다 — 보면 쓴다.
-    trace: advanced.trace
-      .filter((t) => t.verdict === "applied")
-      .map((t) => `${t.ruleId}@${t.sourceIds.join(",")}`),
-  };
+
+  const payload: Record<string, unknown> = {};
+
+  if (advanced.visible.seasonalContext) {
+    const c = advanced.seasonalContext;
+    payload.season = {
+      month_branch: c.monthBranch,
+      season:
+        SEASON_WORD[c.solarTermWindow.season] ??
+        TRANSITION_WORD[c.monthBranch] ??
+        c.solarTermWindow.season,
+      climate: `${CLIMATE_WORD[c.climateAxes.temperature]}·${CLIMATE_WORD[c.climateAxes.moisture]}`,
+      // 절입 심천 — "한겨울 한복판" 과 "겨울이 막 시작된 자리" 는 다르다.
+      term: `${c.solarTermWindow.birthSolarTerm} 이후 ${c.solarTermWindow.daysIntoTerm}일`,
+      ...(c.solarTermWindow.beforeOrAfterTerm
+        ? { boundary: `절입 경계에 가깝다 (${c.solarTermWindow.beforeOrAfterTerm})` }
+        : {}),
+      source: "SRC-INTERNAL-CLIMATE",
+    };
+  }
+  if (advanced.visible.johu) {
+    payload.johu = advanced.johu.appliedCandidates.map((c) => `${c.candidateElement}=${c.role}`);
+  }
+  if (advanced.visible.gyeokguk) {
+    payload.gyeokguk = advanced.gyeokguk.primary?.pattern ?? null;
+  }
+  if (advanced.visible.yongsin) {
+    payload.yongsin = advanced.yongsin.finalOutput.selected?.map((c) => c.element) ?? [];
+  }
+  return payload;
 }

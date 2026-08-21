@@ -17,7 +17,7 @@
 | 억부 후보 | 없음 (강약 라벨만) | 수(primary) 목(secondary) | 수(primary) 목(secondary) | not_run |
 | 조후 후보 | 없음 | 화(primary) 화(secondary) 목(supporting) · 전부 candidate | 화(primary) 화(secondary) 목(supporting) · 승인 0건 | not_run |
 | 충돌 상태 | 계산 안 됨 | CONFLICT-EOKBU-JOHU-수화 · policy_resolved | CONFLICT-EOKBU-JOHU-수화 · policy_resolved | not_run |
-| 사용자 리포트 결론 변경 | — | 안 바뀜 | 안 바뀜 | not_run |
+| 사용자 리포트 결론 변경 | — | 안 바뀜 | 바뀜 | not_run |
 | blocking/major/advisory | — | blocking 0 · major 1 · advisory 0 | 같음 | not_run |
 
 `policy_enabled` 이 `not_run` 인 것이 정상이다 — 고정 명식 32건 중 32건이 아직 전문가 검토 전이고(advanced-fixtures-v1-computation-2026-08), 그것이 이 모드의 문지기다.
@@ -83,9 +83,6 @@
 ### 사용자에게 안 나가는 이유
 
 - ADVANCED_MYEONGRI_MODE=evidence_only — 계산만 하고 사용자 글은 바꾸지 않는다
-- 조후 후보 3개가 전부 승인 전이다 (johu-candidates-v1-draft)
-- 격국이 determined·source_attached 라 단일 격으로 서술할 수 없다
-- 축이 갈린다 (CONFLICT-EOKBU-JOHU-수화) — CR-BOTH-WITH-SCOPE 에 따라 단일 용신 결론을 내지 않는다
 
 프롬프트 입력에 실린 advanced: `null`
 

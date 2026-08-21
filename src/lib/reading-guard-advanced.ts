@@ -46,6 +46,19 @@ function bodyOf(report: StructuredReport): { where: string; text: string }[] {
   return out.filter((x) => x.text);
 }
 
+/**
+ * 계절을 몇 번이나 말했는가.
+ *
+ * 계절 칸을 연 뒤 모델이 "겨울의 끝, 소한이 지나 열여드레" 를 열 절 넘게 되풀이했다.
+ * 안 쓰느니만 못한 상태다 — 무대는 한 번 세우면 되고, 매 절 다시 세우면 그건 무대가
+ * 아니라 말버릇이 된다. 프롬프트로 한 번 잡았지만 프롬프트는 흘러내리므로 여기서 센다.
+ */
+const SEASON_MENTION =
+  /(한겨울|한여름|겨울의 끝|여름의 끝|봄의 끝|가을의 끝|소한|대한|입춘|경칩|청명|입하|망종|소서|입추|백로|한로|입동|대설)/g;
+
+/** 리포트 하나에 계절을 몇 번까지 — 본인과 상대 각각 한 번씩이면 넉넉하다 */
+const SEASON_BUDGET = 3;
+
 export function checkAdvanced(
   report: StructuredReport,
   advanced: AdvancedMyeongriFacts | undefined
@@ -54,6 +67,7 @@ export function checkAdvanced(
   const out: GuardViolation[] = [];
   const add = (v: GuardViolation) => out.push(v);
 
+  // 모드가 아니라 **칸**을 본다. 계절이 열렸다고 조후가 열린 것은 아니다.
   const reaches = advancedReachesReader(advanced.mode);
   // 규칙이 **돌았다**는 것과 그 규칙이 **문장을 허락한다**는 것은 다르다.
   //
@@ -102,6 +116,10 @@ export function checkAdvanced(
     if (used.length === 0) continue;
 
     // ── 승인된 trace 없이 고급 해석을 썼다 ──
+    //
+    // 계절 칸은 여기서 재지 않는다. 그 칸의 근거는 고전 출처가 아니라 계산이고
+    // (SRC-INTERNAL-CLIMATE), 아래 ADVANCED_TERMS 에 계절 낱말이 없으므로
+    // "한겨울에 나셨어요" 같은 문장은 애초에 이 검사에 걸리지 않는다.
     if (licensingRuleIds.size === 0) {
       add({
         kind: "명리",
@@ -168,6 +186,25 @@ export function checkAdvanced(
     }
   }
 
+  // ── 계절을 되풀이하지 않았는가 ──
+  if (advanced.visible.seasonalContext) {
+    const whole = bodyOf(report)
+      .map((x) => x.text)
+      .join(" ");
+    const mentions = (whole.match(SEASON_MENTION) ?? []).length;
+    if (mentions > SEASON_BUDGET) {
+      add({
+        kind: "명리",
+        code: "ADV-SEASON-OVERUSED",
+        where: "sections",
+        blocking: true,
+        detail:
+          `계절을 ${mentions}번 말했다 — ${SEASON_BUDGET}번까지. ` +
+          `무대는 한 번 세우면 되고, 매 절 다시 세우면 말버릇이 된다`,
+      });
+    }
+  }
+
   return out;
 }
 
@@ -179,4 +216,5 @@ export const ADVANCED_BLOCKING_CODES = [
   "ADV-CANDIDATE-AS-FACT",
   "ADV-POLICY-MODE-LEAK",
   "ADV-SOURCE-STATUS-INVALID",
+  "ADV-SEASON-OVERUSED",
 ] as const;
