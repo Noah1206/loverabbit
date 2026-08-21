@@ -32,6 +32,8 @@ interface PolicyRow {
   status: string;
   scenario: string;
   priorityOrder: YongsinAxis[];
+  /** "no_selection_both_axes" 면 승자를 정하지 않고 둘 다 남긴다 */
+  outcome?: string;
   applicability: string;
   sourceIds: string[];
   requiredFacts: string[];
@@ -101,6 +103,19 @@ function resolve(
   const approved = approvedResolutionPolicies();
   const pair = new Set([a, b]);
 
+  // 고르지 않기로 한 정책이 먼저다. 이것이 승인돼 있으면 어느 축 쌍이든 여기서 끝난다.
+  const noSelection = approved.find((p) => p.outcome === "no_selection_both_axes");
+  if (noSelection) {
+    return {
+      status: "policy_resolved",
+      policyId: noSelection.policyId,
+      explanation:
+        `${withJosa(axisLabel(a), "와과")} ${axisLabel(b)}가 다른 곳을 가리킨다. ` +
+        `${noSelection.policyId} 에 따라 **고르지 않는다** — 둘 다 남기고 단일 용신 결론을 내지 않는다. ` +
+        `축이 갈린다는 사실 자체가 이 명식의 성질이므로, 한 줄로 좁히면 두 얼굴 중 하나가 사라진다.`,
+    };
+  }
+
   const hit = approved.find((p) => {
     const ordered = p.priorityOrder.filter((axis) => pair.has(axis));
     return ordered.length === 2;
@@ -126,9 +141,19 @@ function resolve(
   };
 }
 
-/** 충돌이 하나라도 있으면 고급 결론을 내지 않는다 */
+/**
+ * 축이 갈린 채로 고급 결론을 내면 안 되는가.
+ *
+ * 승인된 정책이 "고르지 않는다"이므로, 충돌이 **처리됐다**는 것과 **단일 용신을
+ * 말해도 된다**는 것은 다른 말이 됐다. 전자는 policy_resolved 이고 후자는 영원히 아니다.
+ */
 export function shouldSuppressAdvanced(conflicts: AdvancedConflict[]): boolean {
   return conflicts.some((c) => c.resolutionStatus !== "policy_resolved");
+}
+
+/** 단일 용신을 말해도 되는가 — 갈린 축이 하나라도 있으면 안 된다 */
+export function mayNameSingleYongsin(conflicts: AdvancedConflict[]): boolean {
+  return conflicts.length === 0;
 }
 
 export const CONFLICT_POLICY_VERSION = POLICY.policyVersion;

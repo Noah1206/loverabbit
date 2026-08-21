@@ -74,7 +74,9 @@ export interface SealedScore extends SajuScore {
  * 배합표·인자가 바뀌면 올린다. 옛 리딩의 봉인에 옛 판이 그대로 남으므로,
  * "이 숫자는 어느 규칙으로 나온 값인가"를 나중에도 답할 수 있다.
  */
-export const SCORE_ENGINE = "score-2026-08";
+// 2026-08-21: 강약 판정이 strength-v1 표로 바뀌었다. 같은 명식이 다른 강약을 내므로
+// 점수도 달라진다 — 판을 올려 두어야 옛 봉인이 어느 셈법으로 나왔는지 남는다.
+export const SCORE_ENGINE = "score-2026-08b";
 
 type FactorName =
   | "pairHarmony"

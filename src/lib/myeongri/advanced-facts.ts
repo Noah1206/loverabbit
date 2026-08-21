@@ -180,12 +180,16 @@ function collectSuppression(
   if (gyeokguk.status !== "approved") {
     out.push(`격국이 ${gyeokguk.determination}·${gyeokguk.status} 라 단일 격으로 서술할 수 없다`);
   }
-  if (shouldSuppressAdvanced(conflicts)) {
+  if (conflicts.length > 0) {
+    // 승인된 정책이 "고르지 않는다"이므로, 갈린 축이 있으면 단일 결론은 영영 안 나간다.
+    // 이건 미승인 상태가 아니라 승인된 결론이다.
     out.push(
-      conflicts.length > 0
-        ? `축이 갈리는데 우선순위 정책이 승인되지 않았다 (${conflicts.map((c) => c.id).join(", ")})`
-        : "승인된 충돌 우선순위 정책이 없다"
+      `축이 갈린다 (${conflicts.map((c) => c.id).join(", ")}) — ` +
+        `CR-BOTH-WITH-SCOPE 에 따라 단일 용신 결론을 내지 않는다`
     );
+  }
+  if (shouldSuppressAdvanced(conflicts)) {
+    out.push("아직 처리되지 않은 충돌이 있다");
   }
   return out;
 }

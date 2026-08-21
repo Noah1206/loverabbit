@@ -18,6 +18,7 @@ import { hiddenStemsOf, stemElementOf, stemPolarity, type HiddenStemRole } from 
 import { tenGodOf } from "@/lib/saju-facts";
 import { BRANCH_CLASHES, BRANCH_SIX_COMBOS } from "@/lib/saju-facts";
 import { CALCULATION_POLICY_VERSION } from "@/lib/myeongri/policy";
+import PRIORITY from "@/lib/myeongri-policy/gyeokguk-v1.json";
 
 export type GyeokgukFamily = "inner" | "outer" | "follow" | "transformation" | "special";
 export type GyeokgukStatus = "calculated_only" | "source_attached" | "approved";
@@ -137,16 +138,38 @@ export function assessGyeokguk(chart: SajuChart): GyeokgukAssessment {
   ];
 
   const candidates: GyeokgukCandidate[] = [];
+  // 월령의 본기가 격이 될 수 있는 얼굴로 드러났는가. 순서를 가르는 첫 기준이다.
+  //
+  // 본기가 비겁이면 여기서 세지 않는다. 비겁으로는 격을 삼지 않으므로 그 자리는
+  // 비어 있는 것과 같고, 다음 순서(투간한 중기·여기)가 앞으로 나와야 한다.
+  // 이걸 안 가르면 갑인월 을목처럼 본기가 겁재인 명식에서 투간 우선이 통째로 막힌다.
+  const mainExposed = hidden.some(
+    (h) =>
+      h.role === "main" &&
+      INNER_TEN_GODS.has(tenGodOfStem(h.stem)) &&
+      exposed.some((e) => e.stem === h.stem)
+  );
 
   for (const h of hidden) {
     const tenGod = tenGodOfStem(h.stem);
     if (!INNER_TEN_GODS.has(tenGod)) continue;
 
     const isExposed = exposed.some((e) => e.stem === h.stem);
-    // 본기가 투간하면 가장 뚜렷하고, 본기만 있으면 그다음, 중기·여기가 투간 없이
-    // 서는 것은 근거가 얇다. 이 셋을 confidence 로 나눈다 — 점수로 뭉개지 않는다.
+    // 2026-08-21 승인된 순서(myeongri-policy/gyeokguk-v1.json):
+    //   1) 본기가 투간했으면 그것             high
+    //   2) 본기 미투간 + 중기/여기 투간       medium  (중기가 여기보다 앞)
+    //   3) 아무것도 투간 안 함 -> 본기        medium
+    //   그 외(드러나지도 않고 본기도 아님)    low
+    // 승인 전에는 후보가 둘이면 무조건 ambiguous 였고, 그래서 정할 수 있는 자리까지
+    // 모호하다고 덮여 있었다. 모르는 것과 정하지 않은 것은 다르다.
     const confidence: GyeokgukCandidate["confidence"] =
-      h.role === "main" && isExposed ? "high" : h.role === "main" ? "medium" : isExposed ? "medium" : "low";
+      h.role === "main" && isExposed
+        ? "high"
+        : !mainExposed && isExposed
+          ? "medium"
+          : h.role === "main"
+            ? "medium"
+            : "low";
 
     const basis = [
       `월지 ${monthBranch}의 지장간 ${h.stem}(${roleLabel(h.role)})가 일간 ${chart.day.gan}에게 ${tenGod}`,
@@ -182,23 +205,31 @@ export function assessGyeokguk(chart: SajuChart): GyeokgukAssessment {
     });
   }
 
-  // 가장 뚜렷한 후보 하나만 남는가. 둘 이상이 같은 무게로 서면 ambiguous 다.
+  // 무게가 같으면 본기에 가까운 쪽이 앞선다 — 중기가 여기보다 월령의 주인에 가깝다.
+  const TIER_ORDER: HiddenStemRole[] = ["main", "middle", "residual"];
+  const tierOf = (candidate: GyeokgukCandidate) => {
+    const stem = candidate.basis[0].match(/지장간 (.)\(/)?.[1];
+    const found = hidden.find((h) => h.stem === stem);
+    return found ? TIER_ORDER.indexOf(found.role) : TIER_ORDER.length;
+  };
   const ranked = [...candidates].sort(
-    (a, b) => weight(b.confidence) - weight(a.confidence) || a.pattern.localeCompare(b.pattern)
+    (a, b) => weight(b.confidence) - weight(a.confidence) || tierOf(a) - tierOf(b)
   );
-  const top = ranked[0] ?? null;
-  const tiedAtTop = ranked.filter((c) => c.confidence === top?.confidence);
 
-  let determination: GyeokgukAssessment["determination"];
-  if (!top) {
-    determination = "unsupported";
-  } else if (tiedAtTop.length > 1 || top.confidence === "low") {
-    // 정책이 우선순위를 승인하기 전에는 동률을 임의로 깨지 않는다.
-    determination = "ambiguous";
-  } else if (disturbed.length > 0 && top.confidence !== "high") {
-    determination = "ambiguous";
-  } else {
-    determination = "determined";
+  // 판정은 강등 **전** 무게로 낸다.
+  //
+  // 월지가 충을 맞은 것은 격이 손상됐다는 뜻이지 어느 격인지 모른다는 뜻이 아니다.
+  // 강등이 판정까지 뒤집으면, 충 하나로 멀쩡히 선 격이 전부 "모호"가 된다.
+  // 파격(破格)인지 성격(成格)인지는 상신 표가 있어야 답할 수 있는 다른 물음이다.
+  const top = ranked[0] ?? null;
+  const determination: GyeokgukAssessment["determination"] = !top
+    ? "unsupported"
+    : top.confidence === "low"
+      ? "ambiguous"
+      : "determined";
+
+  if (disturbed.some((d) => d.kind === "충")) {
+    for (const candidate of ranked) candidate.confidence = demote(candidate.confidence);
   }
 
   return {
@@ -207,14 +238,19 @@ export function assessGyeokguk(chart: SajuChart): GyeokgukAssessment {
     candidates: ranked,
     exclusions,
     monthlyCommand,
-    // 출처가 metadata_only 뿐이라 계산까지다. source-registry 가 이 상태를 정한다.
-    status: "calculated_only",
+    // 후보 사이의 **순서**는 승인됐다(gyeokguk-v1). 다만 격 이름을 사용자에게 부르는
+    // 것은 별개이고, SRC-JAPYEONG 이 metadata_only 인 동안 그쪽은 막혀 있다.
+    status: PRIORITY.userFacing.allowed ? "approved" : "source_attached",
     calculationPolicyVersion: CALCULATION_POLICY_VERSION,
   };
 }
 
 function weight(c: GyeokgukCandidate["confidence"]): number {
   return c === "high" ? 3 : c === "medium" ? 2 : 1;
+}
+
+function demote(c: GyeokgukCandidate["confidence"]): GyeokgukCandidate["confidence"] {
+  return c === "high" ? "medium" : c === "medium" ? "low" : "low";
 }
 
 function roleLabel(role: HiddenStemRole): string {

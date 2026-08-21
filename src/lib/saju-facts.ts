@@ -31,7 +31,12 @@ import {
 import { buildRelationBundles, type RelationBundle } from "@/lib/myeongri/relation-bundle";
 import { hiddenStemsOf, stemElementOf } from "@/lib/myeongri/hidden-stems";
 import { strengthEvidence, type StrengthEvidence } from "@/lib/myeongri/rooting";
-import { strengthPolicyEvidence, type StrengthPolicyEvidence } from "@/lib/myeongri/strength-policy";
+import {
+  strengthFromPolicy,
+  strengthPolicyEvidence,
+  strengthPolicyMode,
+  type StrengthPolicyEvidence,
+} from "@/lib/myeongri/strength-policy";
 import { johuEvidence, type JohuEvidence } from "@/lib/myeongri/johu";
 import { buildAdvancedFacts, type AdvancedMyeongriFacts } from "@/lib/myeongri/advanced-facts";
 
@@ -251,7 +256,22 @@ function countElements(chart: SajuChart): ElementBalance {
  * 신강·신약 — 일간이 뿌리와 도움을 얼마나 받는지.
  * 득령(월지), 득지(일지), 득세(같은 편의 글자 수) 세 가지로 점수를 낸다.
  */
+/**
+ * 강약.
+ *
+ * 2026-08-21부터 myeongri-policy/strength-v1.json 이 판정한다. 그 전까지 쓰던
+ * 셈법(아래 legacyStrength)은 월지를 오행 4분류로만 봐서 축월 목을 "중립"으로 뒀고,
+ * 설기를 한 점도 감점하지 않았으며, 이미 계산해 둔 통근을 판정에 쓰지 않았다.
+ *
+ * 되돌리려면 STRENGTH_POLICY=legacy. 이미 발급된 리딩의 점수는 발급 시점에
+ * 봉인되므로(lr_readings.score_seal) 이 전환에 영향받지 않는다.
+ */
 function judgeStrength(chart: SajuChart, balance: ElementBalance): StrengthFact {
+  if (strengthPolicyMode() === "applied") return strengthFromPolicy(chart);
+  return legacyStrength(chart, balance);
+}
+
+function legacyStrength(chart: SajuChart, balance: ElementBalance): StrengthFact {
   const dayElement = stemElement(chart.day.ganIdx);
   const supportElements = new Set<Ohaeng>([dayElement]);
   for (const e of ELEMENTS) if (GENERATES[e] === dayElement) supportElements.add(e); // 나를 생하는 인성

@@ -31,6 +31,7 @@ import {
 } from "@/lib/myeongri/strength-policy";
 import { JOHU_POLICY_STATUS, JOHU_OPEN_QUESTIONS } from "@/lib/myeongri/johu";
 import { pendingPartnerRules } from "@/lib/myeongri-policy/partner-rules";
+import GYEOKGUK_POLICY from "@/lib/myeongri-policy/gyeokguk-v1.json";
 import { axisLabel } from "@/lib/myeongri/yongsin";
 
 export interface PolicyBoard {
@@ -105,14 +106,21 @@ export function buildPolicyBoard(now = new Date()): PolicyBoard {
         name: "억부 강약 가중치",
         version: STRENGTH_POLICY_VERSION,
         status: STRENGTH_POLICY_STATUS,
-        note: "왕상휴수사·설기·통근·인성과다. 승인 전이라 strength.label 을 바꾸지 않는다.",
+        note: "왕상휴수사·설기·득세·통근·인성과다. 2026-08-21 승인돼 strength.label 을 낸다. 되돌리려면 STRENGTH_POLICY=legacy.",
         openQuestions: STRENGTH_OPEN_QUESTIONS,
+      },
+      {
+        name: "격국 내격 우선순위",
+        version: GYEOKGUK_POLICY.policyVersion,
+        status: GYEOKGUK_POLICY.status,
+        note: GYEOKGUK_POLICY.scope + " / " + GYEOKGUK_POLICY.userFacing.reason,
+        openQuestions: GYEOKGUK_POLICY.openQuestions,
       },
       {
         name: "축 충돌 우선순위",
         version: CONFLICT_POLICY_VERSION,
         status: CONFLICT_POLICY_STATUS,
-        note: "억부·조후·격국이 갈릴 때 어느 쪽을 먼저 볼 것인가. 승인 전에는 전부 보류.",
+        note: "억부·조후·격국이 갈릴 때. CR-BOTH-WITH-SCOPE(고르지 않는다)만 승인됐고, 누가 이기는지를 정한 셋은 판본 대기다.",
         openQuestions: CONFLICT_OPEN_QUESTIONS,
       },
     ],
@@ -131,9 +139,9 @@ export function buildPolicyBoard(now = new Date()): PolicyBoard {
       },
       {
         step: 2,
-        what: "격국 V1 내격 판정 범위",
-        why: "월지·지장간·투간 근거가 명확한 범위부터 시작할 수 있다",
-        done: false,
+        what: "격국 V1 내격 우선순위",
+        why: "월령 투간 우선. 32건 중 모호가 16건 -> 2건으로 줄었다. 격 이름을 부르는 것은 아직 별개다",
+        done: GYEOKGUK_POLICY.status === "approved",
       },
       {
         step: 3,

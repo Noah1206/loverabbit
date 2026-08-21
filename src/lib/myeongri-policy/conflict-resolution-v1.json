@@ -1,22 +1,65 @@
 {
-  "policyVersion": "conflict-resolution-v1-draft",
-  "status": "draft",
-  "statusNote": "승인된 정책이 하나도 없다. 그래서 모든 충돌은 unresolved 이고, 기존 P0/P1 결론이 그대로 유지된다.",
+  "policyVersion": "conflict-resolution-v1-2026-08",
+  "status": "approved",
+  "statusNote": "승인된 정책은 하나다 — CR-BOTH-WITH-SCOPE. 축이 갈릴 때 **고르지 않기로** 정했다. 어느 축이 이기는지를 정한 정책 셋은 여전히 draft 이고, 판본이 있어야 열린다.",
   "why": [
     "축이 갈릴 때 어느 쪽을 먼저 볼지는 명리에서 가장 크게 갈리는 자리다.",
     "적천수 계열은 억부를 축으로 두고 조후를 보정으로 보는 쪽에 가깝고,",
     "궁통보감 계열은 계절의 한난조습을 먼저 본다. 둘 다 근거가 있다.",
-    "코드가 상수로 정해 버리면 그 선택이 어디서 왔는지 아무도 다시 못 묻는다.",
-    "그래서 파일로 꺼내 두고, 승인 전에는 아무 우선순위도 서지 않게 한다."
+    "",
+    "승인하면서 확인한 것: 고정 명식 32건에서 잡힌 충돌 11건이 **전부** 극단 계절(해자축·사오미)이었다.",
+    "조후 후보표가 cold/hot 에서만 켜지므로 당연한 결과인데, 그래서 '극단 계절에는 조후 우선'을",
+    "승인하면 그것은 사실상 '조후가 억부를 언제나 이긴다'가 된다.",
+    "적천수천미 명조 512개 분석(SRC-ACADEMIC-2025-YONGSHIN)은 억부 단독 38.3%, 조후 8.4%로",
+    "보고한다. 조후를 무조건 앞세우는 것은 그 수치와 어긋난다.",
+    "",
+    "그래서 '누가 이기는가'가 아니라 '고르지 않는다'를 승인했다. 이것은 결정을 미룬 것이 아니라",
+    "출처가 뒷받침하는 유일한 결정이다 — 방법은 병용되는 것이지 배타적인 것이 아니다."
   ],
   "policies": [
+    {
+      "policyId": "CR-BOTH-WITH-SCOPE",
+      "status": "approved",
+      "scenario": "억부·조후·격국 중 둘 이상이 서로 다른 오행을 가리킬 때",
+      "priorityOrder": [],
+      "outcome": "no_selection_both_axes",
+      "applicability": "모든 충돌. 계절·강약·격의 종류를 가리지 않는다.",
+      "sourceIds": [
+        "SRC-ACADEMIC-2025-YONGSHIN",
+        "SRC-INTERNAL-CLIMATE"
+      ],
+      "requiredFacts": [
+        "advanced.yongsin.candidatesByAxis",
+        "advanced.yongsin.consensus"
+      ],
+      "safePhrasing": [
+        "계절이 먼저 필요로 하는 것과 자기 힘을 지키는 것이 서로 다른 자리예요",
+        "같은 기운이 한쪽에서는 덜어 내는 것이고 다른 쪽에서는 녹이는 것이에요",
+        "두 관점이 다른 곳을 가리켜서, 하나로 좁히지 않고 둘 다 두었어요"
+      ],
+      "forbiddenPhrasing": [
+        "당신의 용신은 X다",
+        "희신은 X다",
+        "기신은 X다",
+        "X 운이 오면 반드시 좋아진다",
+        "이 운에는 재회한다"
+      ],
+      "note": "고르지 않는다는 것이 아무 말도 안 한다는 뜻은 아니다. 축이 갈린다는 사실 자체가 그 명식의 성질이다 — 겨울에 난 약한 나무에게 불은 부담이면서 동시에 온기다. 다만 그것을 '용신은 화'라는 한 줄로 좁히는 순간, 두 얼굴 중 하나가 사라진다."
+    },
     {
       "policyId": "CR-JOHU-FIRST-EXTREME-SEASON",
       "status": "draft",
       "scenario": "겨울(해·자·축)·여름(사·오·미) 생에서 조후 후보와 억부 후보가 반대를 가리킬 때",
-      "priorityOrder": ["johu", "eokbu", "gyeokguk"],
+      "priorityOrder": [
+        "johu",
+        "eokbu",
+        "gyeokguk"
+      ],
       "applicability": "월지가 한난의 극에 있고, 조후가 부르는 오행이 억부로는 설기·극인 경우",
-      "sourceIds": ["SRC-GUNGTONG", "SRC-ACADEMIC-2019-JOHU"],
+      "sourceIds": [
+        "SRC-GUNGTONG",
+        "SRC-ACADEMIC-2019-JOHU"
+      ],
       "requiredFacts": [
         "advanced.seasonalContext.climateAxes",
         "advanced.yongsin.candidatesByAxis.eokbu",
@@ -37,31 +80,64 @@
       "policyId": "CR-EOKBU-FIRST-DEFAULT",
       "status": "draft",
       "scenario": "위 조건에 해당하지 않는 일반적인 억부·조후 충돌",
-      "priorityOrder": ["eokbu", "johu", "gyeokguk"],
+      "priorityOrder": [
+        "eokbu",
+        "johu",
+        "gyeokguk"
+      ],
       "applicability": "월지가 한난의 극이 아니거나, 일간의 뿌리가 얕아 힘 자체가 문제인 경우",
-      "sourceIds": ["SRC-CHUNMISO-IM", "SRC-ACADEMIC-2025-YONGSHIN"],
-      "requiredFacts": ["strength.label", "advanced.yongsin.candidatesByAxis"],
-      "safePhrasing": ["지금은 자기 힘을 지키는 쪽이 먼저인 자리예요"],
-      "forbiddenPhrasing": ["당신의 용신은 X다", "기신은 X다"],
+      "sourceIds": [
+        "SRC-CHUNMISO-IM",
+        "SRC-ACADEMIC-2025-YONGSHIN"
+      ],
+      "requiredFacts": [
+        "strength.label",
+        "advanced.yongsin.candidatesByAxis"
+      ],
+      "safePhrasing": [
+        "지금은 자기 힘을 지키는 쪽이 먼저인 자리예요"
+      ],
+      "forbiddenPhrasing": [
+        "당신의 용신은 X다",
+        "기신은 X다"
+      ],
       "blockedBy": "SRC-CHUNMISO-IM 이 metadata_only 다. 그리고 P2 억부 가중치가 아직 policy_proposed 다."
     },
     {
       "policyId": "CR-GYEOKGUK-FIRST",
       "status": "draft",
       "scenario": "격이 뚜렷하고 상신이 명확할 때 격국을 먼저 보는 경우",
-      "priorityOrder": ["gyeokguk", "eokbu", "johu"],
+      "priorityOrder": [
+        "gyeokguk",
+        "eokbu",
+        "johu"
+      ],
       "applicability": "월지 본기가 투간하고 파격 요소가 없는 명식",
-      "sourceIds": ["SRC-JAPYEONG", "SRC-ACADEMIC-2013-WOLJI"],
-      "requiredFacts": ["advanced.gyeokguk.determination", "advanced.gyeokguk.primary"],
-      "safePhrasing": ["구조가 뚜렷해서 그 결을 따라 보는 자리예요"],
-      "forbiddenPhrasing": ["이 격이라 직업은 X다", "이 격이라 부자가 된다"],
+      "sourceIds": [
+        "SRC-JAPYEONG",
+        "SRC-ACADEMIC-2013-WOLJI"
+      ],
+      "requiredFacts": [
+        "advanced.gyeokguk.determination",
+        "advanced.gyeokguk.primary"
+      ],
+      "safePhrasing": [
+        "구조가 뚜렷해서 그 결을 따라 보는 자리예요"
+      ],
+      "forbiddenPhrasing": [
+        "이 격이라 직업은 X다",
+        "이 격이라 부자가 된다"
+      ],
       "blockedBy": "상신 표가 없다. 격국 V1은 격의 존재까지만 낸다."
     }
   ],
   "openQuestions": [
-    "겨울·여름의 '극'을 월지로만 자를 것인가, 절입 심천까지 볼 것인가.",
-    "억부와 조후가 같은 오행을 다른 이유로 부를 때(둘 다 화) 그것을 합의로 셀 것인가.",
-    "격국이 ambiguous 일 때 격국 축을 아예 빼는 것과 낮은 무게로 두는 것 중 무엇이 맞는가.",
-    "충돌이 풀리지 않을 때 사용자에게 '축이 갈린다'는 사실 자체를 말해도 되는가, 아니면 조용히 기존 해석을 유지하는가."
-  ]
+    "고르지 않기로 한 것을 사용자에게 어떻게 말할 것인가. 지금은 아무 말도 안 한다(조후가 승인 전이라).",
+    "겨울·여름의 '극'을 월지로만 자를 것인가, 절입 심천까지 볼 것인가. — 누가 이기는지를 정할 때 다시 물을 것.",
+    "억부와 조후가 같은 오행을 다른 이유로 부를 때(둘 다 화) 그것을 합의로 셀 것인가. 지금은 합의로 센다.",
+    "격국이 ambiguous 일 때 격국 축을 아예 빼는 것과 낮은 무게로 두는 것 중 무엇이 맞는가."
+  ],
+  "approvedBy": "운영자 승인 (2026-08-21 대화)",
+  "approvedAt": "2026-08-21",
+  "regressionSuiteVersion": "advanced-fixtures-v1-pending"
 }

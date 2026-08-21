@@ -15,6 +15,7 @@ import type { StructuredReport } from "@/lib/reading-prompt";
 import type { AdvancedMyeongriFacts } from "@/lib/myeongri/advanced-facts";
 import { advancedReachesReader } from "@/lib/myeongri/advanced-mode";
 import { canBackUserFacingClaim } from "@/lib/myeongri-policy/source-registry";
+import { mayNameSingleYongsin } from "@/lib/myeongri/advanced-conflict";
 
 /** 고급 해석에서만 쓰는 낱말 — 본문에 나오면 그 문장은 이 층을 밟은 것이다 */
 const ADVANCED_TERMS = [
@@ -54,15 +55,32 @@ export function checkAdvanced(
   const add = (v: GuardViolation) => out.push(v);
 
   const reaches = advancedReachesReader(advanced.mode);
-  // 승인돼서 실제로 쓸 수 있는 규칙만 모은다. 지금은 비어 있는 것이 정상이다.
-  const appliedRuleIds = new Set(
-    advanced.trace.filter((t) => t.verdict === "applied").map((t) => t.ruleId)
+  // 규칙이 **돌았다**는 것과 그 규칙이 **문장을 허락한다**는 것은 다르다.
+  //
+  // CR-BOTH-WITH-SCOPE 는 승인돼 실제로 적용되지만, 그것이 허락하는 것은
+  // "고르지 않는 것"이다. 이걸 허락 목록에 넣으면 정책 하나 승인한 순간
+  // ADV-NO-SOURCE-TRACE 가 통째로 꺼진다.
+  //
+  // 허락은 출처가 한다. 쓸 수 있는 출처가 받치는 규칙만 문장을 열 수 있다.
+  const licensingRuleIds = new Set(
+    advanced.trace
+      .filter(
+        (t) =>
+          t.verdict === "applied" &&
+          t.sourceIds.length > 0 &&
+          t.sourceIds.every(canBackUserFacingClaim)
+      )
+      .map((t) => t.ruleId)
   );
   const approvedGyeokguk =
     advanced.gyeokguk.determination === "determined" && advanced.gyeokguk.status === "approved"
       ? advanced.gyeokguk.primary?.pattern
       : null;
-  const conflicted = advanced.conflicts.some((c) => c.resolutionStatus !== "policy_resolved");
+  // 충돌이 **처리됐다**는 것과 **단일 용신을 말해도 된다**는 것은 다른 말이다.
+  // 승인된 정책(CR-BOTH-WITH-SCOPE)이 "고르지 않는다"이므로, 갈린 축이 있으면
+  // policy_resolved 여도 단정은 여전히 막아야 한다. resolutionStatus 로 재면
+  // 정책을 승인한 순간 이 검사가 통째로 꺼진다.
+  const conflicted = !mayNameSingleYongsin(advanced.conflicts);
 
   for (const { where, text } of bodyOf(report)) {
     // "편인격" 에는 위 목록의 낱말이 하나도 없다. 격 이름 자체가 이 층을 밟은
@@ -84,7 +102,7 @@ export function checkAdvanced(
     if (used.length === 0) continue;
 
     // ── 승인된 trace 없이 고급 해석을 썼다 ──
-    if (appliedRuleIds.size === 0) {
+    if (licensingRuleIds.size === 0) {
       add({
         kind: "명리",
         code: "ADV-NO-SOURCE-TRACE",
@@ -103,7 +121,7 @@ export function checkAdvanced(
         blocking: true,
         detail:
           `축이 갈려 있는데(${advanced.conflicts.map((c) => c.subject).join(" / ")}) ` +
-          `용신을 확정하는 문장을 썼다`,
+          `용신을 확정하는 문장을 썼다 — 승인된 정책은 고르지 않는 것이다`,
       });
     }
 
@@ -136,7 +154,7 @@ export function checkAdvanced(
 
     // ── 승인되지 않은 출처로 결론을 만들었다 ──
     const usedSources = advanced.trace
-      .filter((t) => appliedRuleIds.has(t.ruleId))
+      .filter((t) => licensingRuleIds.has(t.ruleId))
       .flatMap((t) => t.sourceIds);
     const bad = [...new Set(usedSources)].filter((id) => !canBackUserFacingClaim(id));
     if (bad.length > 0) {

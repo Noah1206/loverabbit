@@ -1,8 +1,12 @@
-// P2 정책 — 켜져 있든 꺼져 있든 **지금 판정을 건드리지 않는다**.
+// P2 정책 — 강약은 승인돼 켜졌고, 조후는 아직 아니다.
 //
-// 이 파일이 지키는 것은 하나다. 강약과 조후는 기능이 아니라 해석 정책이라,
-// 가중치와 출처를 정하지 않은 채 기본 결론이 바뀌면 그것이 곧 불투명한 엔진이다.
-// 산 사람의 리딩이 배포 한 번으로 소급해 달라져서도 안 된다.
+// 이 파일이 지키는 것은 두 가지다.
+//   1) 강약 표(2026-08-21 승인)가 실제로 판정하고, legacy 로 되돌릴 길이 살아 있다
+//   2) 조후는 출처가 없어 여전히 사용자에게 안 나간다
+//
+// 강약과 조후를 같이 승인하지 않은 이유가 이 파일에 남아 있다. 강약의 가중치는
+// 고정 명식 32건으로 분포를 재고 정할 수 있었지만, 조후용신은 판본이 있어야 한다.
+// 잴 수 있는 것과 없는 것이 다르면 승인 시점도 달라야 한다.
 
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
@@ -13,6 +17,7 @@ import {
   seasonalPhaseOf,
   strengthPolicyEvidence,
   STRENGTH_POLICY_STATUS,
+  STRENGTH_POLICY_VERSION,
 } from "@/lib/myeongri/strength-policy";
 import { johuEvidence, johuApproved, JOHU_POLICY_STATUS } from "@/lib/myeongri/johu";
 import { slimFacts } from "@/lib/reading-prompt";
@@ -22,26 +27,31 @@ const BIRTH = { year: 1993, month: 1, day: 24, hour: 14 } as const;
 const ME = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW);
 const CHART = computeSaju(BIRTH);
 
-describe("P2 는 아직 승인 전이다", () => {
-  it("두 표 다 policy_proposed 다", () => {
-    assert.equal(STRENGTH_POLICY_STATUS, "policy_proposed");
+describe("강약은 승인됐고 조후는 아직이다", () => {
+  it("강약 표는 approved, 조후는 아직 아니다", () => {
+    assert.equal(STRENGTH_POLICY_STATUS, "approved");
     assert.equal(JOHU_POLICY_STATUS, "policy_proposed");
     assert.equal(johuApproved(), false);
   });
 
-  it("기본값에서 강약 라벨이 그대로다", () => {
+  it("승인된 표가 실제로 판정한다", () => {
     assert.equal(ME.strength.label, "신약");
-    assert.equal(ME.strength.score, 36);
-    assert.equal(ME.strengthPolicy.appliedToLabel, false);
+    assert.equal(ME.strength.score, 30);
+    assert.equal(ME.strengthPolicy.appliedToLabel, true);
   });
 
-  it("정책을 켜도 라벨은 그대로다 — 증거만 늘어난다", () => {
-    process.env.STRENGTH_POLICY = "evidence";
-    const again = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW);
+  it("legacy 로 되돌리면 옛 판정이 돌아온다", () => {
+    // 가중치가 갈리는 층이라 되돌릴 길이 막히면 안 된다.
+    process.env.STRENGTH_POLICY = "legacy";
+    const back = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW);
     delete process.env.STRENGTH_POLICY;
-    assert.equal(again.strength.label, ME.strength.label);
-    assert.equal(again.strength.score, ME.strength.score);
-    assert.equal(again.strengthPolicy.appliedToLabel, false);
+    assert.equal(back.strength.label, "신약");
+    assert.equal(back.strength.score, 36);
+    assert.equal(back.strengthPolicy.appliedToLabel, false);
+  });
+
+  it("승인 흔적이 표에 남아 있다", () => {
+    assert.ok(STRENGTH_POLICY_VERSION.includes("2026-08"));
   });
 
   it("조후는 프롬프트에 실리지 않는다", () => {
@@ -58,12 +68,16 @@ describe("P2 는 아직 승인 전이다", () => {
 });
 
 describe("왕상휴수사", () => {
-  it("축월 목은 수(囚)다 — 지금 판정이 중립으로 두는 자리", () => {
+  it("축월 목은 수(囚)다 — 옛 판정이 중립으로 두던 자리", () => {
     assert.equal(seasonalPhaseOf("목", "축"), "수");
-    // 지금 판정의 근거 문구가 실제로 그렇게 말하고 있다.
-    assert.ok(ME.strength.reasonCodes.some((code) => code.includes("월지는 중립")));
     assert.equal(ME.strengthPolicy.monthCommand.seasonalPhase, "수");
     assert.ok(ME.strengthPolicy.monthCommand.scoreDelta < 0);
+    // 옛 셈법은 이 자리를 중립으로 뒀다. 그게 이 표를 만든 이유다.
+    process.env.STRENGTH_POLICY = "legacy";
+    const back = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW);
+    delete process.env.STRENGTH_POLICY;
+    assert.ok(back.strength.reasonCodes.some((code) => code.includes("월지는 중립")));
+    assert.ok(ME.strength.reasonCodes.some((code) => code.includes("실령")));
   });
 
   it("다섯 자리가 다 나온다", () => {
@@ -83,10 +97,15 @@ describe("지금 판정이 0점으로 두던 것들이 증거로 나온다", () 
     assert.ok(drain!.scoreDelta < 0);
   });
 
-  it("통근이 계산되고, 반영되지 않았다고 명시된다", () => {
+  it("통근이 계산되고 판정에 실제로 들어간다", () => {
     const roots = ME.strengthPolicy.rooting;
     assert.ok(roots.length > 0, "을목이 미(未)에 둔 뿌리가 안 잡혔다");
-    assert.equal(roots.every((r) => r.applied === "not_applied"), true);
+    assert.ok(ME.strength.reasonCodes.some((code) => code.startsWith("통근")));
+  });
+
+  it("득세가 점수에 들어간다 — 처음 표에서 통째로 빠져 있던 축이다", () => {
+    assert.ok(ME.strengthPolicy.support.length > 0, "인성·비겁이 한 자리도 안 잡혔다");
+    assert.ok(ME.strength.reasonCodes.some((code) => code.startsWith("득세")));
   });
 
   it("인성과다가 잡힌다 — 수 셋에 비겁 없음", () => {
@@ -94,8 +113,8 @@ describe("지금 판정이 0점으로 두던 것들이 증거로 나온다", () 
     assert.equal(excess?.triggered, true, "수다목부 자리인데 임계가 안 걸렸다");
   });
 
-  it("제안 점수에는 정책 판이 찍혀 있다", () => {
-    assert.equal(ME.strengthPolicy.policyVersion, "strength-v1-proposed");
+  it("점수에는 정책 판이 찍혀 있다", () => {
+    assert.equal(ME.strengthPolicy.policyVersion, "strength-v1-2026-08");
   });
 });
 

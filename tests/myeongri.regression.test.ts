@@ -8,6 +8,14 @@
 // 어느 쪽으로 기본값이 움직여도 나머지 한쪽이 조용히 무너지지 않게 한다.
 //
 // 이 테스트가 깨지면 기대값을 고치지 말고 왜 달라졌는지부터 밝혀야 한다.
+//
+// 2026-08-21 — 강약 판정이 strength-v1 표로 바뀌었다. 그래서 아래 strength/score 는
+// **옛 셈법(STRENGTH_POLICY=legacy)의 값**이고, 한 글자도 고치지 않았다. 대신 그 값을
+// legacy 모드에서 재고, 새 표의 값은 STRENGTH_APPLIED 에 따로 받아 적었다.
+// 두 표를 둘 다 못박아 두면, 어느 쪽으로 기본값이 움직여도 나머지 한쪽이 조용히
+// 무너지지 않는다 — 지지 음양 모드에 대해 이미 하고 있던 것과 같은 방식이다.
+//
+// 이 전환에서 사주·십성·신살은 한 건도 달라지지 않았다. 계산층은 그대로다.
 
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
@@ -130,6 +138,8 @@ function checkBaseline(mode: "body" | "main_hidden_stem", baselines: Baseline[])
   for (const b of baselines) {
     it(b.label, () => {
       process.env.BRANCH_YIN_YANG_MODE = mode;
+      // 아래 strength/score 는 옛 셈법의 값이다. 새 표의 값은 STRENGTH_APPLIED 가 잡는다.
+      process.env.STRENGTH_POLICY = "legacy";
       const f = buildSajuFacts(b.birth);
       const pillars = [f.fourPillars.year, f.fourPillars.month, f.fourPillars.day, f.fourPillars.hour]
         .map((p) => (p ? p.stem + p.branch : "—"))
@@ -141,6 +151,7 @@ function checkBaseline(mode: "body" | "main_hidden_stem", baselines: Baseline[])
       assert.equal(f.shinsal.map((s) => s.name).join(","), b.shinsal, "신살이 달라졌다");
       assert.equal(f.policy.branchYinYangMode, mode, "정책 표식이 실제 모드와 다르다");
       delete process.env.BRANCH_YIN_YANG_MODE;
+      delete process.env.STRENGTH_POLICY;
     });
   }
 }
@@ -189,8 +200,45 @@ describe("새로 붙인 것이 기존 필드를 건드리지 않는다", () => {
     assert.equal(f.xingLuck.every((x) => x.scope === "luck"), true);
   });
 
-  it("통근 증거가 있어도 강약 점수는 그대로다", () => {
-    // 통근·투간은 증거일 뿐 점수에 반영되지 않는다. 반영하려면 정책이 정해져야 한다.
-    assert.equal(f.strength.score, BASELINE_BODY[0].score);
+  it("통근이 이제 판정에 실제로 쓰인다", () => {
+    // 2026-08-21 이전에는 통근·투간이 증거일 뿐 점수에 반영되지 않았다. 이 테스트는
+    // 그 사실을 지키고 있었고, 정책이 승인되면서 지켜야 할 것이 뒤집혔다.
+    // 뒤집힌 것을 지우지 않고 방향만 바꿔 둔다 — 무엇이 언제 바뀌었는지가 여기 남는다.
+    assert.ok(f.strengthEvidence.rooting.length > 0, "이 명식에 통근이 없다 — 전제가 깨졌다");
+    assert.ok(
+      f.strength.reasonCodes.some((code) => code.startsWith("통근")),
+      "통근이 판정 근거에 안 나온다"
+    );
+  });
+
+  it("legacy 로 돌리면 옛 점수가 그대로 돌아온다", () => {
+    // 되돌릴 길이 살아 있는지 재는 자리다. 가중치가 갈리는 층이라 이 길이 막히면 안 된다.
+    process.env.STRENGTH_POLICY = "legacy";
+    const back = buildSajuFacts(BASELINE_BODY[0].birth);
+    delete process.env.STRENGTH_POLICY;
+    assert.equal(back.strength.score, BASELINE_BODY[0].score);
+    assert.equal(back.strength.label, BASELINE_BODY[0].strength);
+  });
+
+  it("표를 바꿔도 사주·십성·신살은 한 글자도 안 움직인다", () => {
+    // 강약은 해석이고 사주는 계산이다. 해석을 바꾸면서 계산이 따라 움직이면
+    // 그건 층이 새고 있다는 뜻이다.
+    process.env.STRENGTH_POLICY = "legacy";
+    const legacy = buildSajuFacts(BASELINE_BODY[0].birth);
+    delete process.env.STRENGTH_POLICY;
+    const applied = buildSajuFacts(BASELINE_BODY[0].birth);
+    const pillars = (x: typeof applied) =>
+      [x.fourPillars.year, x.fourPillars.month, x.fourPillars.day, x.fourPillars.hour]
+        .map((q) => (q ? q.stem + q.branch : "—"))
+        .join(" ");
+    assert.equal(pillars(applied), pillars(legacy));
+    assert.deepEqual(
+      applied.tenGods.map((t) => `${t.position}=${t.tenGod}`),
+      legacy.tenGods.map((t) => `${t.position}=${t.tenGod}`)
+    );
+    assert.deepEqual(
+      applied.shinsal.map((x) => x.name),
+      legacy.shinsal.map((x) => x.name)
+    );
   });
 });

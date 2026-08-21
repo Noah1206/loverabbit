@@ -38,6 +38,14 @@ export interface StrengthPolicyEvidence {
   };
   draining: ScoredEvidence[];
   controlling: ScoredEvidence[];
+  /**
+   * 득세 — 일간을 돕는 글자.
+   *
+   * 처음 표에는 이 축이 없었다. 인성·비겁이 점수에 한 칸도 없어서 뿌리와 곁이
+   * 많은 명식이 계절 하나로 신약이 됐다. 현행 판정은 allies 비율로 이미 이 축을
+   * 보고 있으므로, 빼면 새 표가 옛 표보다 나빠진다.
+   */
+  support: ScoredEvidence[];
   rooting: Array<{
     branch: string;
     hiddenStemTier: "main" | "middle" | "residual";
@@ -56,24 +64,27 @@ export interface StrengthPolicyEvidence {
 }
 
 /**
- * 확장된 강약 정책을 쓸 것인가.
+ * 강약을 어느 표로 낼 것인가.
  *
- * "off"      증거만 낸다. 라벨은 지금 판정 그대로. **기본값.**
- * "evidence" 같음. 다만 proposed 값을 프롬프트·리포트 도구에 노출한다.
+ * "applied" strength-v1 표가 판정한다. **기본값.** 2026-08-21 승인.
+ * "legacy"  옛 판정(득령·득지·득세 3항)으로 되돌린다.
  *
- * 라벨을 실제로 갈아 끼우는 값은 아직 없다. 그것은 명리 검수가 승인한 뒤에
- * strength-v1.json 의 status 를 approved 로 바꾸면서 여는 문이다.
+ * 되돌릴 길을 남겨 두는 이유: 이 표는 유파가 갈리는 자리의 가중치를 담고 있어서,
+ * 나중에 명리 검수가 다른 결론을 내면 배포 없이 돌려세울 수 있어야 한다.
+ *
+ * 이미 발급된 리딩은 이 값과 무관하다. 점수는 발급 시점에 봉인되고
+ * (lr_readings.score_seal) 읽을 때 다시 계산하지 않는다.
  */
-export type StrengthPolicyMode = "off" | "evidence";
+export type StrengthPolicyMode = "applied" | "legacy";
 
-export const DEFAULT_STRENGTH_POLICY: StrengthPolicyMode = "off";
+export const DEFAULT_STRENGTH_POLICY: StrengthPolicyMode = "applied";
 
 export function strengthPolicyMode(): StrengthPolicyMode {
   const raw = process.env.STRENGTH_POLICY;
-  if (raw === "off" || raw === "evidence") return raw;
+  if (raw === "applied" || raw === "legacy") return raw;
   if (raw) {
     console.warn(
-      `STRENGTH_POLICY="${raw}" 는 알 수 없는 값입니다. off | evidence 중 하나여야 합니다. ` +
+      `STRENGTH_POLICY="${raw}" 는 알 수 없는 값입니다. applied | legacy 중 하나여야 합니다. ` +
         `기본값 "${DEFAULT_STRENGTH_POLICY}" 로 진행합니다.`
     );
   }
@@ -100,6 +111,35 @@ export function seasonalPhaseOf(dayElement: Ohaeng, monthBranch: string): Season
   return "사";
 }
 
+/** 이 표가 낸 판정 — saju-facts 의 judgeStrength 가 그대로 쓴다 */
+export function strengthFromPolicy(chart: SajuChart): {
+  label: "신강" | "중화" | "신약";
+  score: number;
+  reasonCodes: string[];
+} {
+  const e = strengthPolicyEvidence(chart);
+  const sum = (list: ScoredEvidence[]) => list.reduce((acc, item) => acc + item.scoreDelta, 0);
+  const codes = [e.monthCommand.reason];
+
+  if (e.support.length > 0) {
+    codes.push(`득세: 일간 편에 선 자리 ${e.support.length}곳 (${sum(e.support)}점, 상한 적용)`);
+  }
+  if (e.rooting.length > 0) {
+    codes.push(`통근: ${e.rooting.map((r) => `${r.branch}(${r.hiddenStemTier})`).join(", ")}`);
+  }
+  if (e.draining.length > 0) {
+    codes.push(`설기: ${e.draining.map((d) => d.source).join(", ")} (${sum(e.draining)}점)`);
+  }
+  if (e.controlling.length > 0) {
+    codes.push(`극: ${e.controlling.map((c) => c.source).join(", ")} (${sum(e.controlling)}점)`);
+  }
+  for (const excess of e.supportExcess) {
+    if (excess.triggered) codes.push(`${excess.type}: ${excess.reason}`);
+  }
+
+  return { label: e.proposedLabel, score: e.proposedScore, reasonCodes: codes };
+}
+
 export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence {
   const dayElement = CHEONGAN_ELEMENT[chart.day.ganIdx];
   const monthBranch = chart.month.ji;
@@ -122,6 +162,7 @@ export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence
   // ── 설기·극: 지금 판정이 0점으로 두는 자리들 ──
   const draining: ScoredEvidence[] = [];
   const controlling: ScoredEvidence[] = [];
+  const support: ScoredEvidence[] = [];
   const slots: { where: string; element: Ohaeng }[] = [];
   const pillars = [
     { name: "연", pillar: chart.year },
@@ -137,6 +178,7 @@ export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence
 
   const drainTable = POLICY.draining.scoreDeltaPerOccurrence as Record<string, number>;
   const controlTable = POLICY.controlling.scoreDeltaPerOccurrence as Record<string, number>;
+  const supportTable = POLICY.support.scoreDeltaPerOccurrence as Record<string, number>;
   const axisCount: Record<string, number> = {};
   for (const slot of slots) {
     const axis = tenGodAxis(dayElement, slot.element);
@@ -157,7 +199,19 @@ export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence
         reason: `${slot.where}의 ${slot.element}이 일간을 누른다`,
       });
     }
+    if (axis === "인성" || axis === "비겁") {
+      support.push({
+        source: slot.where,
+        tenGod: axis,
+        scoreDelta: supportTable[axis] ?? 0,
+        reason: `${slot.where}의 ${slot.element}이 일간 편에 선다`,
+      });
+    }
   }
+  const supportTotal = Math.min(
+    POLICY.support.maxTotal,
+    support.reduce((sum, item) => sum + item.scoreDelta, 0)
+  );
 
   // ── 통근: 이미 계산돼 있던 것을 처음으로 점수 자리에 놓는다 ──
   const rootTable = POLICY.rooting.scoreDeltaByLevel as Record<string, number>;
@@ -221,6 +275,7 @@ export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence
           phaseDelta +
           draining.reduce((sum, d) => sum + d.scoreDelta, 0) +
           controlling.reduce((sum, c) => sum + c.scoreDelta, 0) +
+          supportTotal +
           rootTotal +
           exposure.reduce((sum, e) => sum + e.scoreDelta, 0) +
           supportExcess
@@ -237,14 +292,14 @@ export function strengthPolicyEvidence(chart: SajuChart): StrengthPolicyEvidence
     monthCommand,
     draining,
     controlling,
+    support,
     rooting,
     exposure,
     supportExcess,
     policyVersion: POLICY.policyVersion,
     proposedScore,
     proposedLabel: proposedScore >= 62 ? "신강" : proposedScore <= 42 ? "신약" : "중화",
-    // 승인 전이다. 어떤 모드에서도 라벨은 지금 판정이 낸다.
-    appliedToLabel: false,
+    appliedToLabel: strengthPolicyMode() === "applied",
   };
 }
 

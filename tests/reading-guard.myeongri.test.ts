@@ -77,7 +77,8 @@ describe("기준 명식의 계산 결과는 그대로다", () => {
     assert.equal(`${p.day.stem}${p.day.branch}`, "을사");
     assert.equal(`${p.hour!.stem}${p.hour!.branch}`, "계미");
     assert.equal(ME.strength.label, "신약");
-    assert.equal(ME.strength.score, 36);
+    // 2026-08-21 강약 표 전환. 옛 셈법은 36이었다 (myeongri.regression.test.ts 가 잠근다).
+    assert.equal(ME.strength.score, 30);
   });
 
   it("상대 명식도 그대로다", () => {
@@ -86,7 +87,7 @@ describe("기준 명식의 계산 결과는 그대로다", () => {
     assert.equal(`${p.month.stem}${p.month.branch}`, "을미");
     assert.equal(`${p.day.stem}${p.day.branch}`, "기묘");
     assert.equal(`${p.hour!.stem}${p.hour!.branch}`, "갑술");
-    assert.equal(PARTNER.strength.label, "중화");
+    assert.equal(PARTNER.strength.label, "신강");
   });
 });
 
@@ -207,7 +208,7 @@ describe("근거가 실제 계산값과 같은지 본다", () => {
   });
 
   it("상대. 접두어를 알아본다", () => {
-    const found = codes(reportWith({ factsUsed: ["상대.strength.label=중화"] }));
+    const found = codes(reportWith({ factsUsed: ["상대.strength.label=신강"] }));
     assert.equal(found.includes("GUARD-FACT-PATH-MISMATCH"), false, found.join(", "));
   });
 

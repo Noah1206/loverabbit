@@ -17,7 +17,12 @@ import { assessGyeokguk, OUTER_PATTERN_NOTE } from "@/lib/myeongri/gyeokguk";
 import { assessJohu } from "@/lib/myeongri/johu-assessment";
 import { assessYongsin } from "@/lib/myeongri/yongsin";
 import { buildAdvancedFacts, advancedForPrompt } from "@/lib/myeongri/advanced-facts";
-import { detectConflicts, approvedResolutionPolicies } from "@/lib/myeongri/advanced-conflict";
+import {
+  detectConflicts,
+  approvedResolutionPolicies,
+  shouldSuppressAdvanced,
+  mayNameSingleYongsin,
+} from "@/lib/myeongri/advanced-conflict";
 import { checkAdvanced } from "@/lib/reading-guard-advanced";
 import { checkReport } from "@/lib/reading-guard";
 import { matchRules } from "@/lib/reading-rules";
@@ -29,7 +34,11 @@ import {
   canTransition,
   blockersFor,
 } from "@/lib/myeongri-policy/source-registry";
-import { FIXTURE_INPUTS, fixtureReviewSummary } from "@/lib/myeongri-policy/advanced-fixtures";
+import {
+  FIXTURE_INPUTS,
+  REVIEWED_FIXTURES,
+  fixtureReviewSummary,
+} from "@/lib/myeongri-policy/advanced-fixtures";
 import { buildPolicyBoard } from "@/lib/myeongri-policy/policy-board";
 
 const NOW = new Date("2026-08-21T12:00:00+09:00");
@@ -146,11 +155,36 @@ describe("격국은 월지에서 서고, 모르면 모른다고 한다", () => {
     assert.ok(g.monthlyCommand.disturbed.some((d) => d.kind === "충" && d.with === "미"));
   });
 
-  it("후보가 동률이면 하나로 정하지 않는다", () => {
+  it("승인된 순서로 대표를 고른다 — 월령 투간 우선", () => {
+    // 2026-08-21 이전에는 후보가 둘이면 무조건 ambiguous 였다. 32건 중 16건이 그랬는데
+    // 그 절반은 동률이라서가 아니라 고를 규칙이 없어서였다.
     const g = assessGyeokguk(CHART);
-    assert.equal(g.determination, "ambiguous");
-    assert.equal(g.primary, null, "ambiguous 인데 대표 격이 정해졌다");
-    assert.ok(g.candidates.length >= 2);
+    assert.equal(g.determination, "determined");
+    assert.equal(g.primary?.pattern, "편재격", "월지 축의 본기 기토가 대표여야 한다");
+    assert.ok(g.candidates.length >= 2, "다른 후보도 함께 남아 있어야 한다");
+  });
+
+  it("본기가 비겁이면 건너뛰고 투간한 것을 본다", () => {
+    // 갑인월 을목: 본기 갑이 겁재라 격이 안 선다. 그때 투간 우선이 막히면 안 된다.
+    const g = assessGyeokguk(computeSaju({ year: 1988, month: 2, day: 20, hour: 10 }));
+    assert.equal(g.determination, "determined");
+    assert.equal(g.primary?.family, "inner");
+  });
+
+  it("정할 수 없는 자리는 여전히 ambiguous 다", () => {
+    // 순서를 세웠다고 모든 명식이 정해지는 것은 아니다. 본기가 비겁이고 투간도 없으면
+    // 남는 것은 중기·여기뿐이라 근거가 얇다.
+    const thin = assessGyeokguk(computeSaju({ year: 1992, month: 5, day: 10, hour: 23 }));
+    assert.equal(thin.determination, "ambiguous");
+    assert.equal(thin.primary, null);
+  });
+
+  it("월지가 충을 맞아도 판정이 뒤집히지 않는다", () => {
+    // 충은 격이 손상됐다는 뜻이지 어느 격인지 모른다는 뜻이 아니다.
+    const g = assessGyeokguk(CHART);
+    assert.ok(g.monthlyCommand.disturbed.some((d) => d.kind === "충"));
+    assert.equal(g.determination, "determined");
+    assert.equal(g.primary?.confidence, "low", "충을 맞았으면 무게는 낮아져야 한다");
   });
 
   it("외격·종격·화기격은 V1에서 판정하지 않는다", () => {
@@ -166,8 +200,10 @@ describe("격국은 월지에서 서고, 모르면 모른다고 한다", () => {
     }
   });
 
-  it("격은 계산까지고 승인 상태가 아니다", () => {
-    assert.equal(assessGyeokguk(CHART).status, "calculated_only");
+  it("순서는 승인됐지만 격 이름은 아직 사용자에게 못 나간다", () => {
+    // 후보 사이의 순서와, 그 이름을 불러도 되는지는 다른 물음이다.
+    // SRC-JAPYEONG 이 metadata_only 인 동안 뒤쪽은 막혀 있다.
+    assert.equal(assessGyeokguk(CHART).status, "source_attached");
   });
 
   it("상신과 순역은 표가 없어 비어 있다", () => {
@@ -261,17 +297,28 @@ describe("용신은 하나로 고르지 않는다", () => {
 
 // ── 6. 충돌 ──────────────────────────────────────────────
 
-describe("축이 갈리면 아무것도 하지 않는다", () => {
-  it("승인된 우선순위 정책이 없다", () => {
-    assert.deepEqual(approvedResolutionPolicies(), []);
+describe("축이 갈리면 고르지 않는다", () => {
+  it("승인된 정책은 '고르지 않는다' 하나뿐이다", () => {
+    const approved = approvedResolutionPolicies();
+    assert.equal(approved.length, 1);
+    assert.equal(approved[0].policyId, "CR-BOTH-WITH-SCOPE");
+    // 누가 이기는지를 정한 정책들은 여전히 draft 다 — 판본이 있어야 열린다.
+    assert.equal(approved.some((p) => p.priorityOrder.length > 0), false);
   });
 
-  it("기준 명식의 충돌은 content_suppressed 다", () => {
+  it("기준 명식의 충돌은 정책으로 처리되되 승자가 없다", () => {
     const conflicts = ME.advanced.conflicts;
     assert.equal(conflicts.length, 1);
-    assert.equal(conflicts[0].resolutionStatus, "content_suppressed");
+    assert.equal(conflicts[0].resolutionStatus, "policy_resolved");
+    assert.equal(conflicts[0].resolutionPolicyId, "CR-BOTH-WITH-SCOPE");
     assert.deepEqual(conflicts[0].axes, ["eokbu", "johu"]);
-    assert.equal(conflicts[0].resolutionPolicyId, undefined);
+    assert.ok(conflicts[0].explanation.includes("고르지 않는다"));
+  });
+
+  it("처리됐다고 해서 단정해도 되는 것은 아니다", () => {
+    // 이 둘을 같은 값으로 재면, 정책을 승인한 순간 단정 검사가 통째로 꺼진다.
+    assert.equal(shouldSuppressAdvanced(ME.advanced.conflicts), false);
+    assert.equal(mayNameSingleYongsin(ME.advanced.conflicts), false);
   });
 
   it("충돌이 없으면 억지로 만들지 않는다", () => {
@@ -308,10 +355,16 @@ describe("evidence_only 에서는 사용자 글이 바뀌지 않는다", () => {
     assert.equal("advanced" in (slimFacts(ME) as Record<string, unknown>), false);
   });
 
-  it("강약 라벨이 그대로다", () => {
-    assert.equal(ME.strength.label, "신약");
-    assert.equal(ME.strength.score, 36);
-    assert.equal(PARTNER.strength.label, "중화");
+  it("고급 층이 강약 라벨을 건드리지 않는다", () => {
+    // 강약은 P2 표가 정한다. 고급 층(조후·격국·용신)은 그 값을 읽기만 한다.
+    const before = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW).strength;
+    for (const mode of ["policy_preview", "policy_enabled"] as const) {
+      process.env.ADVANCED_MYEONGRI_MODE = mode;
+      const after = buildSajuFacts({ ...BIRTH, gender: "F" }, NOW).strength;
+      delete process.env.ADVANCED_MYEONGRI_MODE;
+      assert.equal(after.label, before.label, `${mode}: 고급 모드가 강약을 바꿨다`);
+      assert.equal(after.score, before.score, `${mode}: 고급 모드가 강약을 바꿨다`);
+    }
   });
 
   it("모드를 올려도 승인이 없으면 여전히 안 나간다", () => {
@@ -327,11 +380,16 @@ describe("evidence_only 에서는 사용자 글이 바뀌지 않는다", () => {
     const reasons = ME.advanced.suppressionReasons.join(" ");
     assert.ok(reasons.includes("evidence_only"));
     assert.ok(reasons.includes("조후"));
-    assert.ok(reasons.includes("격국"));
+    assert.ok(reasons.includes("CR-BOTH-WITH-SCOPE"));
   });
 
-  it("trace 에 applied 가 하나도 없다", () => {
-    assert.equal(ME.advanced.trace.filter((t) => t.verdict === "applied").length, 0);
+  it("사용자 글을 허락하는 규칙이 하나도 없다", () => {
+    // 돌아간 규칙은 있다 — 충돌 정책은 승인돼 실제로 적용된다. 다만 그것이 허락하는
+    // 것은 "고르지 않는 것"이라 문장을 열지 않는다. 문장을 여는 것은 쓸 수 있는 출처다.
+    const licensing = ME.advanced.trace.filter(
+      (t) => t.verdict === "applied" && t.sourceIds.length > 0 && t.sourceIds.every(canBackUserFacingClaim)
+    );
+    assert.deepEqual(licensing, [], `허락된 규칙이 생겼다: ${licensing.map((t) => t.ruleId)}`);
     assert.ok(ME.advanced.trace.length > 0, "계산은 했는데 흔적이 없다");
   });
 });
@@ -436,11 +494,49 @@ describe("회귀 세트", () => {
     }
   });
 
-  it("기대값을 지어내지 않았다 — 전부 전문가 검토 대기다", () => {
+  it("계산 칸은 서른두 건 다 받아 적혔다", () => {
     const summary = fixtureReviewSummary();
-    assert.equal(summary.reviewed, 0);
-    assert.equal(summary.pending, FIXTURE_INPUTS.length);
+    assert.equal(summary.computationReviewed, FIXTURE_INPUTS.length);
+    assert.equal(REVIEWED_FIXTURES.length, FIXTURE_INPUTS.length);
+  });
+
+  it("판단 칸은 지어내지 않았다 — 그래서 policy_enabled 가 막혀 있다", () => {
+    const summary = fixtureReviewSummary();
+    assert.equal(summary.reviewed, 0, "전문가 검토 없이 reviewed 가 생겼다");
     assert.equal(summary.gatesPolicyEnabled, true);
+    for (const f of REVIEWED_FIXTURES) {
+      assert.deepEqual(f.approvedPolicyAssertions, [], `${f.id}: 판단 칸이 채워져 있다`);
+    }
+  });
+
+  it("받아 적은 계산값이 지금 계산과 같다 — 이게 자물쇠다", () => {
+    for (const f of REVIEWED_FIXTURES) {
+      const facts = buildSajuFacts(f.birthInput, NOW);
+      const p = facts.fourPillars;
+      const a = facts.advanced;
+      assert.equal(`${p.year.stem}${p.year.branch}`, f.expectedFourPillars.year, `${f.id}: 연주`);
+      assert.equal(`${p.month.stem}${p.month.branch}`, f.expectedFourPillars.month, `${f.id}: 월주`);
+      assert.equal(`${p.day.stem}${p.day.branch}`, f.expectedFourPillars.day, `${f.id}: 일주`);
+      assert.equal(
+        p.hour ? `${p.hour.stem}${p.hour.branch}` : null,
+        f.expectedFourPillars.hour,
+        `${f.id}: 시주`
+      );
+      assert.equal(a.seasonalContext.monthBranch, f.expectedSeasonalContext.monthBranch, `${f.id}: 월지`);
+      assert.equal(a.seasonalContext.solarTermWindow.season, f.expectedSeasonalContext.season, `${f.id}: 계절`);
+      assert.equal(
+        a.seasonalContext.climateAxes.temperature,
+        f.expectedSeasonalContext.temperature,
+        `${f.id}: 한난`
+      );
+      assert.equal(
+        a.seasonalContext.climateAxes.moisture,
+        f.expectedSeasonalContext.moisture,
+        `${f.id}: 조습`
+      );
+      assert.equal(a.gyeokguk.determination, f.expectedGyeokgukStatus, `${f.id}: 격국 판정`);
+      assert.equal(a.yongsin.consensus.kind, f.expectedConflictKind, `${f.id}: 축 합의`);
+    }
   });
 
   it("모든 명식에서 고급 해석이 사용자에게 안 나간다", () => {
