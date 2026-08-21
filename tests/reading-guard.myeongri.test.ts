@@ -267,6 +267,16 @@ describe("괄호 설명 판정", () => {
     assert.ok(result.violations.some((v) => v.detail.includes("괄호 설명이 없다")));
   });
 
+  it("한자 병기는 설명이 아니다", () => {
+    // "소한(小寒)" 을 읽고 나서 독자가 아는 것은 하나도 늘지 않는다.
+    // Gemini 로 한 번 돌렸더니 이 꼴로 검사를 통과했다.
+    const result = checkReport(
+      reportWith({ paragraphs: ["사신형(巳申刑)이 걸려 있어요."] }),
+      OPTIONS
+    );
+    assert.ok(result.violations.some((v) => v.detail.includes("괄호 설명이 없다")));
+  });
+
   it("멀리 떨어진 남의 괄호를 제 것으로 삼지 않는다", () => {
     const result = checkReport(
       reportWith({ paragraphs: ["사신형이 있고 그래서 편인(기대는 자리)이 커요."] }),

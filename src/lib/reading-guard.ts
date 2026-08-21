@@ -198,7 +198,16 @@ function isGlossed(text: string, term: string): boolean {
   // 창 안에 문장이 끝나거나 다른 강조가 시작되면 그 괄호는 남의 것이다.
   const stop = after.search(/[.!?\n]|\[\[/);
   const window = stop >= 0 ? after.slice(0, stop) : after;
-  return /^[^(]{0,6}\(/.test(window);
+  const opens = window.indexOf("(");
+  if (opens < 0 || /[^\s가-힣,·]/.test(window.slice(0, opens))) return false;
+
+  // 괄호가 붙었다고 다 설명은 아니다. "소한(小寒)" 은 한자 병기이지 풀이가 아니다 —
+  // 그 괄호를 읽고 나서도 독자가 아는 것이 하나도 늘지 않는다. 한자만 든 괄호는
+  // 설명으로 세지 않는다. (Gemini 로 한 번 돌렸더니 이 꼴로 검사를 통과했다.)
+  const rest = text.slice(at + term.length + opens + 1);
+  const close = rest.indexOf(")");
+  const gloss = close >= 0 ? rest.slice(0, close) : rest.slice(0, 24);
+  return /[가-힣]/.test(gloss);
 }
 
 // ── 명식을 받아야만 할 수 있는 검사 ──────────────────────────
@@ -487,9 +496,18 @@ function myeongriChecks(report: StructuredReport, options: GuardOptions): GuardV
         });
         continue;
       }
-      const partner = parsed.path.startsWith("상대.");
+      // 모델은 입력 JSON 의 키를 그대로 적기도 한다 — "saju_facts.strength.label".
+      // 프롬프트는 접두어 없이 적으라고 하지만, 그건 표기 규약이지 값의 문제가 아니다.
+      // 여기서 막으면 맞는 근거가 "그런 경로가 없다"로 잡힌다. Gemini 로 한 번 돌렸더니
+      // 위반 78건 중 스물몇 건이 이것이었다.
+      const raw = parsed.path;
+      const partner =
+        raw.startsWith("상대.") || raw.startsWith("partner_saju_facts.");
       const root = partner ? partnerSlim : slim;
-      const path = partner ? parsed.path.slice("상대.".length) : parsed.path;
+      const path = raw
+        .replace(/^상대\./, "")
+        .replace(/^partner_saju_facts\./, "")
+        .replace(/^saju_facts\./, "");
       if (!root) {
         add({
           kind: "근거",
