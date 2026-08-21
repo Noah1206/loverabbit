@@ -76,7 +76,11 @@ if (command === "permission") {
 }
 
 if (command === "generate") {
-  const count = Number(argOf("count") ?? 20);
+  const daily = has("daily");
+  // 기본 편성 수는 배치마다 다르다. --daily 는 "그날의 두 자리"라서 2 다.
+  // 여기서 20 을 그대로 넘기면 buildDailyPlan 이 min(20, 쓸 수 있는 칸) 을 잡아
+  // 그날 쓸 수 있는 칸을 통째로 뱉는다. 매일 열세 건이 나오고, 회전도 무의미해진다.
+  const count = Number(argOf("count") ?? (daily ? 2 : 20));
   const force = has("force");
   const reuse = argOf("batch") === "reuse";
   // --daily 는 기준일이 곧 "오늘"이다. 배치가 날짜를 계산해 넘기게 하면 배치마다
@@ -95,18 +99,22 @@ if (command === "generate") {
   type Slot = { input: ReuseSlot["input"]; note: string; reuseMode?: AuthorizedReuseMode; sourcePostIds?: string[] };
   // --daily 는 그날 쓸 칸만 골라 온다. ID 에 날짜가 붙어 매일 새 초안이 된다.
   // 이게 없으면 스무 칸이 다 찬 다음 날부터 생성기가 전부 "이미 있음"으로 넘긴다.
-  const daily = has("daily");
   let plan: Slot[] = daily
     ? buildDailyPlan({ date: start, count })
     : reuse
       ? buildReusePlan(start)
       : buildPlan(start);
 
+  // --daily 초안의 ID 는 앞에 날짜가 붙는다 (2026-08-22-inner-정관).
+  // 사람이 부르는 이름은 날짜 없는 쪽이고, CLAUDE.md 도 그렇게 안내한다.
+  // 그래서 --only 와 재작성 요청 키를 맞출 때는 날짜를 떼고 본다.
+  const bareId = (id: string) => id.replace(/^d{4}-d{2}-d{2}-/, "");
+
   // --only 는 재작성용이다. 계획 전체를 돌리지 않고 지목한 초안만 다시 쓴다.
   const only = argOf("only");
   if (only) {
     const wanted = only.split(",").map((s) => s.trim().replace(/^draft-/, ""));
-    plan = plan.filter((slot) => wanted.includes(slot.input.id));
+    plan = plan.filter((slot) => wanted.includes(slot.input.id) || wanted.includes(bareId(slot.input.id)));
     if (plan.length === 0) {
       console.error(`--only ${only} 에 맞는 칸이 계획에 없다.`);
       process.exit(2);
@@ -135,7 +143,11 @@ if (command === "generate") {
   for (const slot of plan) {
     const id = `draft-${slot.input.id}`;
     const existing = queue.find((d) => d.id === id);
-    const rewrite = rewrites[slot.input.id] ?? rewrites[id] ?? null;
+    // 어느 키로 걸렸는지 기억한다. 읽기만 느슨하게 하고 지울 때 원래 키를 쓰면,
+    // 요청이 영영 안 지워져 같은 지적이 매번 다시 걸린다.
+    const rewriteKey =
+      [slot.input.id, id, bareId(slot.input.id)].find((key) => key in rewrites) ?? null;
+    const rewrite = rewriteKey ? rewrites[rewriteKey] : null;
     // 재작성 요청이 있으면 --force 없이도 다시 쓴다. 그 요청 자체가 덮으라는 뜻이다.
     if (existing && !force && !rewrite && !only) {
       console.log(`· ${slot.note} — 이미 있음 (${existing.status})`);
@@ -162,7 +174,7 @@ if (command === "generate") {
 
     // 반영했으면 요청을 지운다. 안 지우면 다음 실행에서 같은 지적이 또 걸리고,
     // 이미 반영된 것을 또 반영하려다 문장이 한쪽으로 계속 밀린다.
-    if (rewrite) clearRewrite(slot.input.id);
+    if (rewriteKey) clearRewrite(rewriteKey);
 
     const chars = result.draft.posts.map((p) => p.charCount).join("+");
     const spans = result.draft.directCopySpans.length;
