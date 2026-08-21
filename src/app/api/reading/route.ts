@@ -12,7 +12,7 @@ import { chatComplete, isAiConfigured } from "@/lib/ai";
 import { demoReport, hasDemoReport } from "@/lib/reading-demo";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
-import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
+import { hasPaidReadingOrder, isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { lunarToSolar } from "@/lib/lunar";
 import { computeSajuScore, sealScore } from "@/lib/saju-score";
@@ -228,7 +228,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const offer = body.offerId ? resolveAdOffer(body.category, body.offerId) : null;
+  let offer = body.offerId ? resolveAdOffer(body.category, body.offerId) : null;
   if (body.offerId && !offer) {
     return NextResponse.json({ error: "유효하지 않은 광고 오퍼입니다." }, { status: 400 });
   }
@@ -238,6 +238,18 @@ export async function POST(req: NextRequest) {
       { error: "회원 정보를 연결하지 못했어요. 다시 로그인해주세요.", needSignup: true },
       { status: 401 }
     );
+  }
+
+  // 광고 오퍼는 첫 구매 전까지만. 오퍼 id 는 광고 URL 에 실리는 공개값이라,
+  // 이 검사가 없으면 링크를 아는 누구든 언제까지고 990원에 산다.
+  // 확인이 안 되면 오퍼를 살려 둔다 — DB 가 잠깐 흔들렸다고 광고에서 온
+  // 사람의 전환을 잃는 쪽이 990원 몇 번 더 파는 것보다 비싸다.
+  if (offer) {
+    try {
+      if (await hasPaidReadingOrder(user.userId)) offer = null;
+    } catch (error) {
+      console.error("오퍼 자격 확인 실패:", error);
+    }
   }
 
   try {

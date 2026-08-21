@@ -1077,6 +1077,28 @@ function mapReview(row: Record<string, unknown>): ReviewRecord {
   };
 }
 
+/**
+ * 리딩을 결제해 본 적이 있는가 — 광고 오퍼(990원 미끼)의 자격 검사.
+ *
+ * 미끼는 첫 구매 전까지만이다 (운영자 결정, 2026-08-22: 광고 보고 온 유저
+ * 한정, 유저별 한 번). 오퍼 id 는 광고 URL 에 그대로 실리는 공개값이라,
+ * 이 검사가 없으면 링크를 아는 누구든 언제까지고 990원에 산다.
+ * 대화권만 산 사람은 아직 리딩 첫 구매 전이므로 미끼 대상으로 남긴다.
+ */
+export async function hasPaidReadingOrder(userId: number): Promise<boolean> {
+  const db = getSupabaseAdmin();
+  if (!db) return false;
+  const { count, error } = await db
+    .from("lr_orders")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("kind", "reading")
+    .eq("status", "paid")
+    .limit(1);
+  if (error) throw databaseError("첫 구매 확인", error);
+  return (count ?? 0) > 0;
+}
+
 /** 이 사람이 결제를 끝낸 주문 수 — 후기의 "N번 구매" 로 굳어진다. */
 async function countPaidOrders(userId: number): Promise<number> {
   const db = getSupabaseAdmin();
