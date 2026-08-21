@@ -452,6 +452,57 @@ export async function restoreChatCredit(userId: number): Promise<number | null> 
   return changeChatCredits(userId, 1);
 }
 
+// ── 신당 대화 이력 ─────────────────────────────────────────────
+// 서버가 정본이다. 답이 만들어지는 순간 문답을 남겨서, 클라이언트가 답을 못
+// 받아도(응답 중 새로고침·이탈) 질문권 쓴 대화가 사라지지 않게 한다.
+
+export interface ShrineHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export async function appendShrineMessages(
+  userId: number,
+  characterId: string,
+  messages: ShrineHistoryMessage[]
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db || messages.length === 0) return;
+  const { error } = await db.from("lr_shrine_messages").insert(
+    messages.map((message) => ({
+      user_id: userId,
+      character_id: characterId,
+      role: message.role,
+      content: message.content,
+    }))
+  );
+  if (error) throw databaseError("신당 대화 저장", error);
+}
+
+export async function listShrineMessages(
+  userId: number,
+  characterId: string,
+  limit = 200
+): Promise<ShrineHistoryMessage[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+  // 최신 limit 개를 뽑아 시간순으로 돌려준다. 오름차순으로 자르면 대화가
+  // 길어졌을 때 잘려 나가는 쪽이 최근 대화가 된다.
+  const { data, error } = await db
+    .from("lr_shrine_messages")
+    .select("role,content,created_at,id")
+    .eq("user_id", userId)
+    .eq("character_id", characterId)
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) throw databaseError("신당 대화 조회", error);
+  return ((data ?? []) as { role: string; content: string }[])
+    .reverse()
+    .map((row) => ({
+      role: row.role === "assistant" ? ("assistant" as const) : ("user" as const),
+      content: String(row.content),
+    }));
+}
 export async function claimReferralReward(input: {
   referredUserId: number;
   referralCode?: string;

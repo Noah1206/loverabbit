@@ -84,7 +84,31 @@ export default function ShrineChatPage() {
     if (new URLSearchParams(window.location.search).get("payment") === "approved") {
       setPaymentNotice("결제가 완료됐어요. 끊긴 대화부터 이어서 말해보세요.");
     }
-    setUser(getUser());
+    const account = getUser();
+    setUser(account);
+
+    // 서버 이력이 정본이다. 로컬을 먼저 그려 바로 보이게 하고, 서버에 남은
+    // 대화가 있으면 그걸로 바꿔 끼운다 — 답이 오는 중에 새로고침한 사람이
+    // 여기서 그 답을 만나고(질문권 쓴 대화가 증발하지 않는다), 기기를 바꿔도
+    // 대화가 따라온다. 서버가 비어 있으면(이력 저장 이전 대화) 로컬을 그대로 둔다.
+    if (!account) return;
+    let alive = true;
+    fetch("/api/shrine-chat/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: account.token, characterId: ch.id }),
+    })
+      .then((res) => (res.ok ? res.json() : { messages: [] }))
+      .then((data: { messages?: ShrineMessage[] }) => {
+        if (!alive || !data.messages || data.messages.length === 0) return;
+        setMsgs([{ role: "assistant", content: ch.greeting }, ...data.messages]);
+      })
+      .catch(() => {
+        // 이력을 못 불러온 것뿐이다. 로컬 대화로 계속 쓰게 둔다.
+      });
+    return () => {
+      alive = false;
+    };
   }, [ch]);
 
   // 도착 연출은 한 번만 — 끝나면 무대에서 걷어낸다

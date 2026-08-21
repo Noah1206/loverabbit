@@ -4,6 +4,7 @@ import { FREE_CHAT_TURNS } from "@/lib/chat-products";
 import { CHARACTERS } from "@/lib/characters";
 import {
   FREE_TURNS_UNTRACKED,
+  appendShrineMessages,
   restoreChatCredit,
   restoreFreeChatTurn,
   useChatCredit,
@@ -102,7 +103,19 @@ export async function POST(req: NextRequest) {
         freeTurnsRemaining,
       });
     }
-    return NextResponse.json({ answer: result.text.trim(), creditsRemaining, freeTurnsRemaining });
+    const answer = result.text.trim();
+    // 문답을 서버에 남긴다 — 여기가 지나면 클라이언트가 답을 못 받아도(응답 중
+    // 새로고침·이탈) 다시 열 때 이력에서 만난다. 질문권 쓴 대화가 증발하지 않는다.
+    // 저장 실패는 대화를 막지 않는다. 답은 이미 만들어졌고, 그걸 주는 게 먼저다.
+    try {
+      await appendShrineMessages(user.userId, character.id, [
+        { role: "user", content: body.question.trim() },
+        { role: "assistant", content: answer },
+      ]);
+    } catch (persistError) {
+      console.error("신당 대화 저장 실패:", persistError);
+    }
+    return NextResponse.json({ answer, creditsRemaining, freeTurnsRemaining });
   } catch (e) {
     // 답을 못 받았으면 방금 깎은 무료 턴/대화권을 돌려준다.
     if (creditUserId) {
