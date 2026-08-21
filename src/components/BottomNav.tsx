@@ -4,24 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type CSSProperties, useEffect, useState } from "react";
 
+// 아이콘은 전부 24 격자에 stroke 로만 그린다 (fill="none" 은 svg 쪽에 걸려 있다).
+// 홈만 예외로 .tabbar-home-shape 가 채운다 — 그래서 홈 도형은 안쪽을 파지 않는다.
+// 겹치는 조각은 채워질 때 하나로 합쳐지므로 굴뚝을 따로 그려도 된다.
 const NAV_ITEMS = [
   {
     href: "/",
     label: "홈",
     matches: (path: string) => path === "/",
+    // 처마가 넓은 지붕 + 굴뚝
     icon: (
-      <path className="tabbar-home-shape" d="M3 10.75 12 3l9 7.75v8.5A1.75 1.75 0 0 1 19.25 21h-14.5A1.75 1.75 0 0 1 3 19.25v-8.5ZM9 21v-6.5h6V21" />
+      <>
+        <path className="tabbar-home-shape" d="M12 2.9 1.9 11.4h2.9v7.9c0 .95.77 1.72 1.72 1.72h11c.95 0 1.72-.77 1.72-1.72v-7.9h2.9L12 2.9Z" />
+        <path className="tabbar-home-shape" d="M16.4 4.3h2.2v4.6h-2.2Z" />
+      </>
     ),
   },
   {
     href: "/reading",
     label: "내 사주",
     matches: (path: string) => path.startsWith("/reading") || path.startsWith("/product") || path.startsWith("/payment"),
+    // 초승달 + 반짝임
     icon: (
       <>
-        <circle cx="12" cy="10" r="6.5" />
-        <path d="M7.5 17h9M6.5 21h11M8 17l-1.5 4M16 17l1.5 4" />
-        <path d="M8.5 7.5c.9-1.8 2.5-2.8 4.5-2.8" />
+        <path d="M20.3 14.9A8.1 8.1 0 0 1 9.6 4.2a8.4 8.4 0 1 0 10.7 10.7Z" />
+        <path d="M17.6 2.9l.62 1.72 1.72.62-1.72.62-.62 1.72-.62-1.72-1.72-.62 1.72-.62.62-1.72Z" />
       </>
     ),
   },
@@ -29,9 +36,11 @@ const NAV_ITEMS = [
     href: "/my",
     label: "내 상담",
     matches: (path: string) => path.startsWith("/my"),
+    // 둥근 말풍선 + 말줄임 (점은 linecap=round 라 선분 없이 점으로 찍힌다)
     icon: (
       <>
-        <path d="M4 4.5h16v12H9l-5 4v-16Z" />
+        <path d="M20.4 12.1c0 3.9-3.76 7.05-8.4 7.05-1.02 0-2-.15-2.9-.43L4.2 20.5l1.45-3.6C4.4 15.62 3.6 13.96 3.6 12.1c0-3.9 3.76-7.05 8.4-7.05s8.4 3.15 8.4 7.05Z" />
+        <path d="M8.7 12.1h.01M12 12.1h.01M15.3 12.1h.01" />
       </>
     ),
   },
@@ -39,10 +48,11 @@ const NAV_ITEMS = [
     href: "/rewards",
     label: "보상",
     matches: (path: string) => path.startsWith("/rewards"),
+    // 리본 달린 메달
     icon: (
       <>
-        <path d="M3 9h18v4H3V9ZM5 13h14v8H5v-8ZM12 9v12" />
-        <path d="M12 9H8.25A2.25 2.25 0 1 1 10.5 6.75C10.5 8 12 9 12 9Zm0 0h3.75A2.25 2.25 0 1 0 13.5 6.75C13.5 8 12 9 12 9Z" />
+        <circle cx="12" cy="8.9" r="5.5" />
+        <path d="M8.5 13.7 6.9 20.6l5.1-2.85 5.1 2.85-1.6-6.9" />
       </>
     ),
   },
@@ -50,10 +60,12 @@ const NAV_ITEMS = [
     href: "/profile",
     label: "마이",
     matches: (path: string) => path.startsWith("/profile"),
+    // 원 안에 든 사람
     icon: (
       <>
-        <circle cx="12" cy="7.5" r="4" />
-        <path d="M4.5 21v-2.25A5.75 5.75 0 0 1 10.25 13h3.5a5.75 5.75 0 0 1 5.75 5.75V21h-15Z" />
+        <circle cx="12" cy="12" r="8.9" />
+        <circle cx="12" cy="9.8" r="3.05" />
+        <path d="M5.95 18.7a6.6 6.6 0 0 1 12.1 0" />
       </>
     ),
   },
