@@ -87,8 +87,25 @@ const RETRY_DELAY_MS = 1200;
  * 결제 전 화면이 실제로 보여주는 절 수 (/api/reading의 preview).
  * 첫 절은 읽히고 둘째 절은 흐려지며 끊긴다. 그 뒤는 제목만 목차에 남으므로
  * 결제 전에 만들 이유가 없다.
+ *
+ * **원가의 아홉 할이 여기서 나간다.** 결제하지 않는 사람에게도 이만큼은 만들어
+ * 주기 때문이다. 광고에서 들어온 사람은 표지에서 끊기므로 첫 절의 두 문장만 본다 —
+ * 그 길만 보면 1로도 충분하다.
+ *
+ *   READING_PREVIEW_SECTIONS=1
+ *
+ * **켜고 끄는 시점에 주의한다.** 이 값이 묶음 경계를 정하고, 결제 뒤 이어 만들 때
+ * 그 경계로 "어디까지 만들었는지"를 센다. 미리보기를 2로 만들어 두고 1로 바꾸면
+ * 이어 만들기가 절을 건너뛴다. 만들다 만 리딩이 없을 때 바꾼다.
  */
-export const PREVIEW_SECTIONS = 2;
+export function previewSections(): number {
+  const raw = Number(process.env.READING_PREVIEW_SECTIONS);
+  if (!Number.isInteger(raw) || raw < 1 || raw > 4) return 2;
+  return raw;
+}
+
+/** 예전 이름. 상수처럼 쓰던 자리가 있어 남겨 둔다 — 값은 위 함수가 정한다. */
+export const PREVIEW_SECTIONS = previewSections();
 
 /** 미리보기 절 수를 채우는 데 필요한 묶음 수 */
 export function previewBatchCount(outline: string[]): number {
@@ -140,7 +157,7 @@ export function chaptersOf(outline: string[]): Batch[] {
     보고 정해지므로, 결제 뒤 이어 만들 때도 같은 경계가 나온다 — 경계가 달라지면
     이미 만든 절을 다시 만들거나 건너뛴다.
   */
-  push(Math.min(PREVIEW_SECTIONS, outline.length), 0);
+  push(Math.min(previewSections(), outline.length), 0);
 
   const rest = outline.length - cursor;
   if (rest > 0) {
@@ -299,6 +316,15 @@ export async function composeReport(
     while (skipBatches < all.length && counted < options.doneSections) {
       counted += all[skipBatches].items.length;
       skipBatches += 1;
+    }
+    // 묶음 경계와 이미 만든 절 수가 안 맞으면 그만큼이 통째로 사라진다.
+    // READING_PREVIEW_SECTIONS 를 만들다 만 리딩이 있는 채로 바꾸면 이렇게 된다.
+    if (counted > options.doneSections) {
+      console.error(
+        `이어 만들기 경계가 어긋났습니다: 만든 절 ${options.doneSections}개인데 ` +
+          `묶음 경계는 ${counted}개입니다. ${counted - options.doneSections}개 절이 비게 됩니다. ` +
+          `READING_PREVIEW_SECTIONS 를 바꾼 뒤 옛 리딩을 이어 만들면 이렇게 됩니다.`
+      );
     }
   }
   const resuming = skipBatches > 0;

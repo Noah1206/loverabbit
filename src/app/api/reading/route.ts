@@ -19,7 +19,7 @@ import { computeSajuScore, sealScore } from "@/lib/saju-score";
 import { checkReport, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
 import { scopeOutline } from "@/lib/reading-scope";
-import { composeReport, previewBatchCount, PREVIEW_SECTIONS } from "@/lib/reading-compose";
+import { composeReport, previewBatchCount, previewSections } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
@@ -382,7 +382,7 @@ export async function POST(req: NextRequest) {
           blocking.map((v) => `${v.where} ${v.detail}`).join(" / ")
         );
         // 미리보기에 필요한 절도 못 만들었다면 팔 수 없다. 표현 문제는 기록만 남기고 내보낸다.
-        if (report.sections.length < Math.min(PREVIEW_SECTIONS, outline.length) && isAiConfigured())
+        if (report.sections.length < Math.min(previewSections(), outline.length) && isAiConfigured())
           generationFailed = true;
       }
       ({ teaser, full } = reportToText(report));
@@ -455,11 +455,11 @@ export async function POST(req: NextRequest) {
   // 목차 문구를 그대로 옮겨 적게 돼 있어 결과가 같다.
   const preview = report
     ? {
-        sections: report.sections.slice(0, PREVIEW_SECTIONS).map((section) => ({
+        sections: report.sections.slice(0, previewSections()).map((section) => ({
           title: section.title,
           excerpt: section.summary.slice(0, 360),
         })),
-        lockedTitles: outline.slice(PREVIEW_SECTIONS),
+        lockedTitles: outline.slice(previewSections()),
       }
     : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
 
