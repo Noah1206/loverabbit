@@ -1,8 +1,13 @@
 // 리딩 한 건을 실제로 만들어 .reading-preview.json 에 남긴다.
 // /dev/reading-preview 가 그걸 읽어 실제 결과 페이지 디자인으로 보여준다.
 //
-//   npx tsx --env-file=.env scripts/reading-preview.mts            글만 (약 $0.20)
-//   npx tsx --env-file=.env scripts/reading-preview.mts --images   글 + 삽화 (장당 +$0.07)
+//   npm run reading:preview -- --product jaehoe            글만
+//   npm run reading:preview -- --product jaehoe --images   글 + 삽화
+//
+// **--env-file 은 .env.local 을 먼저 읽어야 한다.** GEMINI_API_KEY 가 거기 있는데
+// .env 만 읽으면 그 키를 못 보고 키 우선순위가 유료 제공사로 떨어진다. 실제로 그렇게
+// OpenAI 잔액이 나갔다. npm 스크립트를 쓰면 이 순서가 이미 박혀 있다.
+// 확실히 하려면 AI_PROVIDER=gemini 로 못 박는다.
 //   글이 이미 있으면 --images 는 그림만 만든다. 글부터 다시 하려면 --force.
 //   --product ibyeol / --job "프리랜서 디자이너" 로 조건을 바꾼다.
 //

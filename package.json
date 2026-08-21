@@ -15,13 +15,14 @@
     "myeongri:audit:branch-yinyang": "tsx scripts/audit-branch-yinyang.mts",
     "threads:benchmark:validate": "tsx scripts/threads-benchmark.mts validate",
     "threads:benchmark:analyze": "tsx scripts/threads-benchmark.mts analyze",
-    "threads:drafts:generate": "tsx --env-file=.env scripts/threads-drafts.mts generate",
+    "threads:drafts:generate": "tsx --env-file=.env.local --env-file=.env scripts/threads-drafts.mts generate",
     "threads:drafts:review": "tsx scripts/threads-drafts.mts review",
     "threads:drafts:preview": "tsx scripts/threads-drafts.mts preview",
-    "threads:drafts:reuse": "tsx --env-file=.env scripts/threads-drafts.mts generate --batch reuse",
+    "threads:drafts:reuse": "tsx --env-file=.env.local --env-file=.env scripts/threads-drafts.mts generate --batch reuse",
     "threads:permission:status": "tsx scripts/threads-drafts.mts permission",
     "reading:audit": "tsx scripts/reading-audit.mts",
-    "myeongri:audit:advanced": "tsx scripts/advanced-audit.mts"
+    "myeongri:audit:advanced": "tsx scripts/advanced-audit.mts",
+    "reading:preview": "tsx --env-file=.env.local --env-file=.env scripts/reading-preview.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

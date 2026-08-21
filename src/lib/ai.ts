@@ -224,6 +224,30 @@ export function isAiConfigured(): boolean {
   return Boolean(ANTHROPIC_API_KEY || GEMINI_API_KEY || OPENAI_API_KEY);
 }
 
+/**
+ * 쓸 제공사를 못 박는다.
+ *
+ * 아래 우선순위(ANTHROPIC -> GEMINI -> OPENAI)는 "키가 있는 곳으로 알아서 간다"는
+ * 편의인데, 그 편의가 **돈이 있는 곳으로 알아서 가는** 편의이기도 하다. 실제로
+ * CLI 스크립트가 .env 만 읽어 GEMINI_API_KEY 를 못 보고 유료 키로 떨어진 적이 있다.
+ * 잔액이 없는 동안에는 그 길을 아예 막아 두는 편이 낫다.
+ *
+ *   AI_PROVIDER=gemini   이것만 쓴다. 키가 없으면 그냥 실패한다.
+ *
+ * 안 주면 예전처럼 우선순위대로 고른다.
+ */
+export function pinnedProvider(): Provider | null {
+  const raw = process.env.AI_PROVIDER;
+  if (raw === "anthropic" || raw === "gemini" || raw === "openai") return raw;
+  if (raw) {
+    console.warn(
+      `AI_PROVIDER="${raw}" 는 알 수 없는 값입니다. anthropic | gemini | openai 중 하나여야 합니다. ` +
+        `못 박지 않고 키 우선순위대로 고릅니다.`
+    );
+  }
+  return null;
+}
+
 export async function chatComplete(
   system: string,
   messages: ChatMsg[],
@@ -233,6 +257,8 @@ export async function chatComplete(
   const thinking = options.thinking !== false;
   const json = options.json === true;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
+  // 부르는 쪽이 지목하지 않았으면 환경이 못 박은 것을 따른다.
+  options = options.provider ? options : { ...options, provider: pinnedProvider() ?? undefined };
 
   // 제공사를 지목한 경우 — 키 우선순위를 건너뛴다. 모델을 바꿔가며 재는 쪽에서 쓴다.
   // 지목한 제공사의 키가 없으면 조용히 다른 곳으로 새지 않고 그냥 실패한다.
