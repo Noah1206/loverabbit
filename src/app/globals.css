@@ -3476,6 +3476,18 @@ label {
   text-align: center;
 }
 
+.tabbar-dock {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  z-index: 59;
+  width: min(100%, var(--app-max-width));
+  height: calc(88px + env(safe-area-inset-bottom));
+  pointer-events: none;
+  background: var(--bg);
+  transform: translateX(-50%);
+}
+
 .tabbar {
   --active-index: 0;
   --nav-count: 4;
@@ -7239,4 +7251,133 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 @media (prefers-reduced-motion: reduce) {
   .rv-gauge-meter span { animation: none; }
+}
+
+/* ── 계좌이체 결제 — 앱 두 개 나란히, 계좌줄 + 복사, 확인 버튼 ── */
+.transfer-pay-apps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.transfer-pay-app {
+  display: grid;
+  gap: 2px;
+  padding: 13px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-card2);
+  text-align: center;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.transfer-pay-app:active {
+  transform: scale(0.97);
+  border-color: var(--accent);
+}
+
+.transfer-pay-app strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.transfer-pay-app span {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.transfer-pay-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+
+.transfer-pay-account p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+  word-break: keep-all;
+}
+
+/* 복사는 아이콘 하나짜리 작은 버튼. 누르면 '복사됨' 글자로 잠깐 바뀌어
+   눌렸다는 것을 스스로 말한다 - 아이콘만 있는 버튼은 피드백이 없으면 죽은 버튼같다. */
+.transfer-pay-copy {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 30px;
+  padding: 0 7px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: color 200ms ease, border-color 200ms ease;
+}
+
+.transfer-pay-copy:active {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.transfer-pay-copy svg {
+  width: 14px;
+  height: 14px;
+}
+
+.transfer-pay-memo {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  word-break: keep-all;
+}
+
+.transfer-pay-memo strong {
+  color: var(--gold);
+}
+
+/* 확인 버튼. 흰 알약(.btn)과 일부러 다르게 - 금색 실선에 화살표가 있는
+   문장형 버튼이라 '기계가 만든 결제 버튼' 냄새를 뺀다. */
+.transfer-pay-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--gold);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--gold) 9%, transparent);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.transfer-pay-confirm:active {
+  transform: scale(0.98);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+.transfer-pay-confirm:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.transfer-pay-confirm span {
+  color: var(--gold);
 }

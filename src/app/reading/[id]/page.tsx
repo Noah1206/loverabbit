@@ -163,6 +163,46 @@ export default function ReadingReportPage() {
     };
     if (!found && stored) void restore();
 
+    // 잠긴 리딩을 열 때는 서버 해금 상태를 한 번 확인한다.
+    //
+    // 입금 확인 흐름의 구멍이었다: 승인 폴링은 /payment/pending 만 하는데,
+    // 유저는 이체하러 은행 앱으로 떠났다가 그 페이지가 아니라 리딩으로 돌아온다.
+    // 관리자가 승인해서 DB 는 열렸는데(lr_readings.unlocked) 이 기기 보관함의
+    // full 은 null 그대로라, 돈 낸 사람이 잠긴 화면을 계속 봤다.
+    const syncUnlock = async () => {
+      try {
+        const res = await fetch("/api/my-readings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userToken: stored?.token, readingId: id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.reading?.unlocked) return; // 아직 승인 전 - 그대로 둔다
+        const unlockRes = await fetch("/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ readingId: id, blob: found?.blob || undefined, userToken: stored?.token }),
+        });
+        const unlockData = await unlockRes.json().catch(() => ({}));
+        if (!alive || !unlockRes.ok || typeof unlockData.full !== "string") return;
+        const patch = {
+          full: unlockData.full as string,
+          score: unlockData.score ?? null,
+          scoreBand: unlockData.scoreBand ?? null,
+          scoreFactors: unlockData.scoreFactors ?? [],
+          scoreAsOf: unlockData.scoreAsOf ?? null,
+          report: unlockData.report ?? null,
+          pendingOrderId: undefined,
+        };
+        updateArchive(id, patch);
+        setEntry((now) => (now ? { ...now, ...patch } : now));
+        setNotice("입금이 확인됐어요. 전문이 모두 열렸어요.");
+      } catch {
+        // 확인에 실패한 것뿐이다. 다음에 열 때 다시 확인한다.
+      }
+    };
+    if (found && !found.full && stored) void syncUnlock();
+
     if (Number.isInteger(wanted) && wanted > 0) {
       setPage(wanted);
     } else if (found) {

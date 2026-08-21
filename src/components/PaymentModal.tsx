@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
+const KAKAOBANK_LINK = "kakaobank://";
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
@@ -40,6 +42,8 @@ export default function PaymentModal({
   const [ready, setReady] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
+  // 계좌번호 복사 버튼의 짧은 피드백 - 아이콘만 있는 버튼이라 눌렸는지 보여야 한다
+  const [copied, setCopied] = useState(false);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT && depositorCode && onTransferSubmitted);
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${price}&origin=linkgen`;
 
@@ -134,28 +138,56 @@ export default function PaymentModal({
             <p className="toss-payment-config-error">
               계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 전문이 열립니다.
             </p>
-            <div className="card transfer-payment-account">
-              <p><strong>{BANK_NAME}</strong> {BANK_ACCOUNT}</p>
-              {BANK_HOLDER && <p>예금주 {BANK_HOLDER}</p>}
-              <p>입금 메모 <strong>{depositorCode}</strong></p>
+            {/* 이체 앱 두 개를 가로로 나란히. 토스는 계좌·금액까지 채워 열리고,
+                카카오뱅크는 이체 딥링크가 공개돼 있지 않아 앱만 연다 - 대신 누르는
+                순간 계좌번호를 클립보드에 실어 두어 앱에서 붙여넣으면 된다. */}
+            <div className="transfer-pay-apps">
+              <a className="transfer-pay-app" href={tossLink}>
+                <strong>토스</strong>
+                <span>계좌이체</span>
+              </a>
+              <a
+                className="transfer-pay-app"
+                href={KAKAOBANK_LINK}
+                onClick={() => void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {})}
+              >
+                <strong>카카오뱅크</strong>
+                <span>계좌이체</span>
+              </a>
             </div>
-            <a className="btn toss-payment-submit" href={tossLink}>토스로 이체하기</a>
+            <div className="transfer-pay-account">
+              <p>
+                <strong>{BANK_NAME}</strong> {BANK_ACCOUNT}
+                {BANK_HOLDER && <> · {BANK_HOLDER}</>}
+              </p>
+              <button
+                type="button"
+                className="transfer-pay-copy"
+                aria-label="계좌번호 복사"
+                onClick={() => {
+                  void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {});
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1600);
+                }}
+              >
+                {copied ? (
+                  "복사됨"
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <p className="transfer-pay-memo">입금 메모에 <strong>{depositorCode}</strong> 를 꼭 적어주세요</p>
             <button
-              className="btn btn-ghost toss-payment-submit"
-              onClick={() => {
-                void navigator.clipboard.writeText(
-                  `${BANK_NAME} ${BANK_ACCOUNT} ${price}원 (메모: ${depositorCode})`
-                );
-              }}
-            >
-              계좌정보 복사
-            </button>
-            <button
-              className="btn toss-payment-submit"
+              className="transfer-pay-confirm"
               onClick={onTransferSubmitted}
               disabled={transferSubmitting}
             >
-              {transferSubmitting ? "승인 요청 중…" : "이체했어요 · 입금 확인 요청"}
+              {transferSubmitting ? "확인 요청 보내는 중…" : "입금을 마쳤어요"}
+              <span aria-hidden>→</span>
             </button>
           </div>
         ) : TOSS_CLIENT_KEY ? (
