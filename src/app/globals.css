@@ -1383,17 +1383,43 @@ label {
 }
 
 .product-score-meter span {
+  position: relative;
   display: block;
   width: 73%;
   height: 100%;
+  overflow: hidden;
   border-radius: inherit;
   background: linear-gradient(90deg, #65bf65 0%, #e2df55 39%, var(--product-c2, #f54c8b) 74%, var(--product-c1, #cf3cff) 100%);
   box-shadow: 0 0 15px var(--product-glow, rgba(207, 60, 255, 0.44));
   transform-origin: 0 50%;
 }
 
+/* 채워진 뒤에도 죽지 않는다. 카드가 화면 상단이라 차오르는 900ms 는 대개 보기
+   전에 끝나고, 그러면 이 바는 그냥 그림이 된다. 발광이 얕게 숨 쉬고(3초),
+   빛줄기가 이따금 지나가게(4초 주기, 대부분은 정지) 해서 "지금 재고 있는 기운"
+   처럼 보이게 한다. 홈 그리드의 인기 배지와 달리 여기는 화면에 이 요소가
+   하나뿐이라 계속 움직여도 소란스럽지 않다. */
 .product-reveal-ready .product-score-card.is-visible .product-score-meter span {
-  animation: product-score-meter-fill 900ms 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation:
+    product-score-meter-fill 900ms 180ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    product-score-meter-breathe 3s 1.3s ease-in-out infinite;
+}
+
+.product-score-meter span::after {
+  content: "";
+  position: absolute;
+  inset: -40% -30%;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 60%
+  );
+  transform: translateX(-150%);
+}
+
+.product-reveal-ready .product-score-card.is-visible .product-score-meter span::after {
+  animation: product-score-meter-sheen 4s 1.3s ease-in-out infinite;
 }
 
 @keyframes product-score-meter-fill {
@@ -1401,8 +1427,19 @@ label {
   to { transform: scaleX(1); }
 }
 
+@keyframes product-score-meter-breathe {
+  0%, 100% { box-shadow: 0 0 12px var(--product-glow, rgba(207, 60, 255, 0.44)); }
+  50% { box-shadow: 0 0 24px var(--product-glow, rgba(207, 60, 255, 0.44)); }
+}
+
+@keyframes product-score-meter-sheen {
+  0%, 58% { transform: translateX(-150%); }
+  88%, 100% { transform: translateX(150%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .product-reveal-ready .product-score-card.is-visible .product-score-meter span {
+  .product-reveal-ready .product-score-card.is-visible .product-score-meter span,
+  .product-reveal-ready .product-score-card.is-visible .product-score-meter span::after {
     animation: none;
     transform: none;
   }
