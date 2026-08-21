@@ -32,14 +32,6 @@ const FALLBACK: ReadingConcept = {
 };
 
 export const READING_CONCEPTS: Record<string, ReadingConcept> = {
-  // 평생 연애운 — 입문 리포트. 항목 하나가 곧 한 장이라 다섯 장짜리.
-  pyeongsaeng: {
-    seal: "平生",
-    cover: "태어난 순간에 이미 그려진 줄기",
-    chapters: [],
-    epilogue: "마지막 정리",
-  },
-
   // 속궁합 — 두 사람의 온도. 화린도령의 불꽃.
   sokgunghap: {
     seal: "相合",

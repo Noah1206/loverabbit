@@ -8,7 +8,7 @@ export const AD_PARTICIPANT_COUNTS = {
 } as const;
 
 export const PRODUCT_PARTICIPANT_COUNTS: Record<string, number> = {
-  pyeongsaeng: 216, sokgunghap: 482, jaehoe: 637, bamgijil: 391, baramgi: 524,
+  sokgunghap: 482, jaehoe: 637, bamgijil: 391, baramgi: 524,
   gyeolhon: 308, gwontaegi: 447, hwanseung: 572, sseom: 286, jjak: 619,
   bimil: 355, ibyeol: 704, dohwasal: 438, insun: 261, yeonae: 587,
 };

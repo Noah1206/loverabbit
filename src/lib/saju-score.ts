@@ -258,8 +258,6 @@ const DEFAULT_RECIPE: Recipe = {
 };
 
 const RECIPES: Record<string, Recipe> = {
-  // 평생 인연 총량 — 도화와 관성이 평생의 만남 밀도를 만든다
-  pyeongsaeng: { subject: "me", base: 50, weights: { dohwaLoad: 1.0, officialStar: 0.7, stability: 0.6, luckFavor: 0.5 } },
   // 속궁합 — 두 일주의 당김이 전부
   sokgunghap: { subject: "me", base: 50, weights: { pairHarmony: 1.2, elementFlow: 0.9, dohwaLoad: 0.4 } },
   // 재회 — 남은 인력 + 지금 운이 열렸는가
