@@ -25,6 +25,7 @@
     "reading:preview": "tsx --env-file=.env.local --env-file=.env scripts/reading-preview.mts",
     "demo:fixture": "tsx --env-file=.env.local --env-file=.env scripts/demo-fixture.mts",
     "reading:cost": "tsx scripts/reading-cost.mts",
+    "reading:sweep": "tsx scripts/reading-sweep.mts",
     "ai:doctor": "tsx --env-file=.env.local --env-file=.env scripts/ai-doctor.mts"
   },
   "dependencies": {
