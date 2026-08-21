@@ -12,7 +12,7 @@ import {
   trackResultUnlockClicked,
 } from "@/lib/meta-events";
 import SignupModal from "@/components/SignupModal";
-import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
+import { listArchive, saveToArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { DEMO_SOURCE_NOTE } from "@/lib/reading-demo";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
@@ -83,7 +83,10 @@ export default function ReadingReportPage() {
     setUser(stored);
     const found = listArchive().find((item) => item.readingId === id) ?? null;
     setEntry(found);
-    setStatus(found ? "ready" : "missing");
+    // 보관함에 없어도 바로 "찾을 수 없음"으로 보내지 않는다. 보관함은 기기
+    // 하나에 갇혀 있어서, 폰으로 결제한 사람이 PC 에서 열면 여기가 비어 있다.
+    // 로그인돼 있으면 DB 에서 복원을 시도하고, 그동안은 로딩으로 둔다.
+    setStatus(found ? "ready" : stored ? "loading" : "missing");
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "approved") {
@@ -91,6 +94,75 @@ export default function ReadingReportPage() {
     }
     // 주소에 쪽 번호가 있으면 그 장부터 — 공유한 링크가 같은 자리를 연다
     const wanted = Number(params.get("p"));
+
+    let alive = true;
+    const restore = async () => {
+      try {
+        const res = await fetch("/api/my-readings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userToken: stored?.token, readingId: id }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.reading) throw new Error(data.error ?? "복원 실패");
+        const detail = data.reading as {
+          readingId: string; category: string; label: string; teaser: string;
+          chart: { me: string; partner: string | null }; price: number;
+          scoreLabel: string | null; unlocked: boolean; createdAt: string;
+        };
+        const rebuilt: ArchiveEntry = {
+          readingId: detail.readingId,
+          // blob 은 이 기기에 없다. DB 가 붙은 운영에서는 서버가 정본이라 없어도 된다.
+          blob: "",
+          category: detail.category,
+          label: detail.label,
+          characterId: "",
+          teaser: detail.teaser,
+          full: null,
+          chart: detail.chart,
+          price: detail.price,
+          createdAt: Date.parse(detail.createdAt) || Date.now(),
+          previewSections: [],
+          // 발급 때의 미리보기 조각은 DB 에 없다. 잠긴 장 제목은 상품 목차로 세운다 —
+          // 목차가 곧 발급 때 쓴 윤곽이라 같은 제목이 나온다.
+          lockedSectionTitles: detail.unlocked ? [] : (PRODUCT_MAP[detail.category]?.toc ?? []),
+          scoreLabel: detail.scoreLabel,
+        };
+        if (detail.unlocked) {
+          // 전문은 해금 검증을 거치는 /api/unlock 으로만 받는다. 이미 해금된
+          // 리딩이라 재결제 없이 전문이 온다.
+          const unlockRes = await fetch("/api/unlock", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ readingId: id, userToken: stored?.token }),
+          });
+          const unlockData = await unlockRes.json().catch(() => ({}));
+          if (unlockRes.ok && typeof unlockData.full === "string") {
+            rebuilt.full = unlockData.full;
+            rebuilt.score = unlockData.score ?? null;
+            rebuilt.scoreBand = unlockData.scoreBand ?? null;
+            rebuilt.scoreFactors = unlockData.scoreFactors ?? [];
+            rebuilt.scoreAsOf = unlockData.scoreAsOf ?? null;
+            rebuilt.report = unlockData.report ?? null;
+          } else if (!alive) {
+            return;
+          } else {
+            // 결제는 돼 있는데 전문을 못 받았다(준비 중 등). 리딩 자체는 세우고
+            // 사정을 밝힌다 — 여기서 "찾을 수 없음"을 내면 산 사람이 더 놀란다.
+            setNotice(unlockData.error ?? "전문을 준비 중이에요. 잠시 후 다시 열어주세요.");
+          }
+        }
+        if (!alive) return;
+        saveToArchive(rebuilt);
+        setEntry(rebuilt);
+        setStatus("ready");
+        setPage(Number.isInteger(wanted) && wanted > 0 ? wanted : 1);
+      } catch {
+        if (alive) setStatus("missing");
+      }
+    };
+    if (!found && stored) void restore();
+
     if (Number.isInteger(wanted) && wanted > 0) {
       setPage(wanted);
     } else if (found) {
@@ -115,6 +187,9 @@ export default function ReadingReportPage() {
         readingUnlocked: false,
       });
     }
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
   const unlocked = Boolean(entry?.full);

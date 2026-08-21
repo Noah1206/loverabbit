@@ -128,6 +128,52 @@ export async function saveReading(r: StoredReading): Promise<void> {
   await fs.writeFile(f, JSON.stringify(r), "utf8");
 }
 
+/**
+ * 내 리딩 목록 — 계정으로 묶인 리딩을 DB 에서 읽는다.
+ *
+ * 보관함(localStorage)은 기기 하나에 갇힌다. 폰으로 결제한 사람이 PC 에서 열거나
+ * 브라우저 데이터를 지우면 돈 낸 리딩이 "찾을 수 없음"이 됐다. DB 가 정본이다.
+ *
+ * full_text 는 여기서 절대 선택하지 않는다. 목록은 미결제 리딩도 담는데,
+ * 전문이 실리는 순간 결제 전에 풀 리딩이 새는 구멍이 된다. 전문은 해금 검증을
+ * 거치는 /api/unlock 한 곳으로만 나간다.
+ */
+export interface ReadingListItem {
+  id: string;
+  category: string;
+  teaser: string;
+  chart: StoredReading["chart"];
+  price: number;
+  scoreLabel: string | null;
+  unlocked: boolean;
+  createdAt: string;
+}
+
+export async function listReadingsByUser(userId: number, limit = 50): Promise<ReadingListItem[]> {
+  const db = getSupabaseAdmin();
+  // 파일 폴백에는 사용자별 색인이 없다. 로컬 개발은 로컬 보관함으로 충분하다.
+  if (!db) return [];
+  const { data, error } = await db
+    .from("lr_readings")
+    .select("id,category,teaser,chart,price,score_label,unlocked,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw databaseError("내 리딩 목록 조회", error);
+  return ((data ?? []) as {
+    id: string; category: string; teaser: string; chart: StoredReading["chart"];
+    price: number; score_label: string | null; unlocked: boolean; created_at: string;
+  }[]).map((row) => ({
+    id: row.id,
+    category: row.category,
+    teaser: row.teaser,
+    chart: row.chart,
+    price: row.price,
+    scoreLabel: row.score_label,
+    unlocked: row.unlocked === true,
+    createdAt: row.created_at,
+  }));
+}
 export async function getReading(id: string): Promise<StoredReading | null> {
   const f = fileOf(id);
   if (!f) return null;
