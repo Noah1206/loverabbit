@@ -232,6 +232,19 @@ function resolvePath(root: unknown, path: string): unknown {
   for (const segment of path.replace(/\[(\d+)\]/g, ".$1").split(".")) {
     if (!segment) continue;
     if (cursor === null || typeof cursor !== "object") return undefined;
+    // 이름=값 꼴로 접어 둔 배열은 이름으로도 찾는다.
+    //   xingLuck = ["사신형=일지,연지,월운", ...]  ->  xingLuck.사신형
+    // 우리가 배열로 접어 놓고 모델에게는 이름으로 부르라고 한 셈이라, 이름으로
+    // 짚는 것을 "그런 경로가 없다"로 막으면 맞는 근거가 위반이 된다.
+    if (Array.isArray(cursor)) {
+      const hit = cursor.find(
+        (item) => typeof item === "string" && item.startsWith(`${segment}=`)
+      );
+      if (hit !== undefined) {
+        cursor = (hit as string).slice(segment.length + 1);
+        continue;
+      }
+    }
     cursor = (cursor as Record<string, unknown>)[segment];
   }
   return cursor;
@@ -259,15 +272,21 @@ function valueMatches(resolved: unknown, expected: string): boolean {
     // 맞는 근거가 위반으로 잡히고 그 리포트는 고칠 것이 없는데도 다시 만들어진다.
     // 원소 안에 쉼표가 들어 있는 배열(예: "사신형=일지,연지,월운")은 조각으로 갈라
     // 견줄 수 없다. 통째로 이어 붙인 꼴을 먼저 본다.
+    // 통째로 JSON 으로 옮겨 적은 것 — 값이 정확히 같다.
+    if (JSON.stringify(resolved) === expected.trim()) return true;
     const bare = expected.trim().replace(/^\[|\]$/g, "");
     if (resolved.map(String).join(",") === bare) return true;
     if (resolved.map(String).join(", ") === bare) return true;
     if (sameList(resolved.map(String), expected)) return true;
     return resolved.some((item) => String(item) === expected || String(item).includes(expected));
   }
-  // 경로가 값이 아니라 묶음을 가리키면 그것은 근거가 아니다 —
-  // "luckContext=..." 로는 무엇을 짚었는지 알 수 없다.
-  if (typeof resolved === "object") return false;
+  // 묶음을 가리킬 때는 **통째로 정확히** 옮겨 적었을 때만 근거로 본다.
+  //
+  //   elementBalance={"목":3,"화":0,"토":4,"금":1,"수":0}   맞다 — 값이 다 들어 있다
+  //   luckContext=2026년 8월 병신,상관                      아니다 — 무엇을 짚었는지 모른다
+  //
+  // 처음에는 묶음이면 무조건 막았는데, 그러면 앞의 것처럼 정확히 옮긴 근거까지 잡힌다.
+  if (typeof resolved === "object") return JSON.stringify(resolved) === expected.trim();
   return String(resolved) === expected;
 }
 

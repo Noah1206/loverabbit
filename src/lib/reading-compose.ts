@@ -20,6 +20,7 @@ import { extraPlanFor, parseExtra } from "@/lib/reading-extra";
 import { chapterNumbersFromToc } from "@/lib/reading-chapters";
 import {
   buildReadingInput,
+  seasonBrief,
   parseStructuredReport,
   READING_SYSTEM_PROMPT,
   type ReadingInput,
@@ -198,7 +199,7 @@ ${inputJson}
 ${outline.join(" / ")}`;
 }
 
-function chapterPrompt(inputJson: string, chapter: Batch, outline: string[]): string {
+function chapterPrompt(inputJson: string, chapter: Batch, outline: string[], season: string): string {
   // 어떤 모양(extra)을 얹을지는 서버가 정해서 알려준다. 묶음마다 따로 생성되므로
   // 모델에게 고르라고 맡기면 옆 묶음이 뭘 골랐는지 몰라 결국 한 가지로 몰린다.
   const shape = (item: string) => {
@@ -212,7 +213,7 @@ ${inputJson}
 지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
 대괄호 안의 extra 지정을 그대로 따른다.
 ${chapter.items.map((item, i) => `${i + 1}. ${item}${shape(item)}`).join("\n")}
-${outlineBrief(outline, chapter.items)}`;
+${season ? `${season}\n` : ""}${outlineBrief(outline, chapter.items)}`;
 }
 
 /**
@@ -354,8 +355,16 @@ export async function composeReport(
     }
   };
 
-  const batchCalls = chapters.map((chapter) =>
-    run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
+  // 계절은 첫 묶음의 지시문에만 붙는다. 나머지 조각은 그 줄을 못 보므로 쓸 수 없다 —
+  // "전체에서 한 번"을 조각 하나가 지킬 수 없으니, 서버가 정해서 한 조각에만 준다.
+  // 이어 만들기(resuming)일 때는 첫 묶음이 이미 만들어졌으므로 아무에게도 안 준다.
+  const season = resuming ? "" : seasonBrief(input.facts);
+  const batchCalls = chapters.map((chapter, index) =>
+    run(
+      chapter.label,
+      chapterPrompt(inputJson, chapter, input.outline, index === 0 ? season : ""),
+      chapterBudget(chapter.items.length)
+    )
   );
   // 이어 만들 때는 머리가 이미 있다. 다시 만들면 헤드라인과 요약 카드가 바뀌어,
   // 결제 전에 본 화면과 결제 후에 보는 화면이 달라진다.
@@ -391,7 +400,7 @@ export async function composeReport(
         const target: Batch = missing.length > 0 ? { label: chapter.label, items: missing } : chapter;
         return run(
           `${chapter.label} 재시도`,
-          chapterPrompt(inputJson, target, input.outline),
+          chapterPrompt(inputJson, target, input.outline, index === 0 ? season : ""),
           chapterBudget(target.items.length),
           true
         ).then((text) => ({ text, target }));

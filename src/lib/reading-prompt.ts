@@ -173,15 +173,17 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 입력의 advanced 에는 **열린 칸만** 들어 있다. 없는 칸은 아직 아무도 승인하지 않은 것이라
 계산은 됐어도 네게 오지 않는다. 있는 것만 쓰고, 없는 것은 짐작하지 않는다.
 
-## advanced.season 이 있을 때 — 계절
+## 지시에 "계절"이 딸려 왔을 때
+**그 줄이 없으면 계절을 한 글자도 말하지 않는다.** 다른 조각이 이미 썼다는 뜻이다.
+있으면 아래대로 한 번만 쓴다.
+
 이 칸은 계산이다. 축월에 났다는 것, 소한이 지나고 열여드레가 됐다는 것, 그 달이 한랭하고
 습하다는 것은 학설이 갈리지 않는다. 그래서 **써도 된다.**
-- **리포트 전체에서 딱 한 번 쓴다. 첫 장에서.** 그 사람이 어느 계절의 어디쯤에 났는지를
+- **이 지시 안에서 딱 한 번, 첫 절에 쓴다.** 그 사람이 어느 계절의 어디쯤에 났는지를
   한 문장에 넣는다. 사주를 여덟 글자로만 말하면 추상이 되는데, 계절은 몸으로 아는 것이라
   글이 땅에 닿는다.
-  **두 번째 절부터는 계절을 다시 꺼내지 않는다.** 무대는 한 번 세우면 되고, 매 절 다시
+  **둘째 절부터는 계절을 다시 꺼내지 않는다.** 무대는 한 번 세우면 되고, 매 절 다시
   세우면 그건 무대가 아니라 말버릇이다. 절기 이름(소한·입춘…)도 그 한 문장에서만 쓴다.
-  상대의 계절까지 말해야 하면 그것도 같은 첫 장 안에서 끝낸다.
 - 무대를 세우는 데 쓴다. "한겨울 한복판에 난 사람" 과 "겨울이 막 시작된 자리" 는 다르다.
   term 의 날수가 그 차이를 말해 준다.
 - **거기서 결론으로 넘어가지 않는다.** 계절이 무엇을 필요로 하는지(조후용신)는 다른 물음이고,
@@ -191,9 +193,8 @@ export const READING_SYSTEM_PROMPT = `# ROLE
     나쁨: "한랭한 명식이라 화 운이 오면 좋아져요"   <- 같은 자리. 더 나쁘다.
 - 계절을 말할 때도 **조후·억부·용신 같은 낱말은 쓰지 않는다.** 쉬운 말로 쓴다.
 
-## 그 밖의 advanced 칸
-advanced.johu / advanced.gyeokguk / advanced.yongsin 이 **있을 때만** 그 범위까지 쓴다.
-없으면 아래 낱말을 한 번도 쓰지 않는다.
+## 조후·격국·용신
+지시에 따로 딸려 오지 않는 한 아래 낱말을 한 번도 쓰지 않는다.
   용신 희신 기신 구신 한신 격국 조후 억부 상신 통관 병약
   정관격·편재격 같은 격 이름, 종격·화기격·건록격·양인격
 이것들은 계산은 되어 있지만 **아직 아무도 승인하지 않은 판단**이다. 근거가 없어서가
@@ -416,9 +417,14 @@ export function slimFacts(facts: SajuFacts) {
           },
         }
       : {}),
-    // 고급 해석은 승인된 trace 가 있을 때만 채워진다. evidence_only 에서는 null 이고,
-    // 모델은 위 ADVANCED 절에 따라 그 낱말을 아예 쓰지 않는다.
-    ...(advancedForPrompt(facts.advanced) ? { advanced: advancedForPrompt(facts.advanced) } : {}),
+    // 고급 해석은 여기 싣지 않는다.
+    //
+    // 조각마다 같은 JSON 이 가므로, 계절을 여기 실으면 조각 다섯이 각자 계절로
+    // 글을 연다. "리포트 전체에서 한 번"은 조각 하나가 지킬 수 없는 지시다 —
+    // 옆 조각이 이미 썼는지 알 길이 없기 때문이다. 실제로 gpt-5.6 이 열한 번 썼다.
+    //
+    // 그래서 서버가 정해서 **첫 묶음의 지시문에만** 붙인다(seasonBrief).
+    // 덤으로 이 JSON 이 조각마다 같아져서 프롬프트 캐시가 통째로 먹는다.
     // 매번 같은 계산 주석(표준시·진태양시·절기)은 뺀다. confidence_note에 반영해야 할
     // 한계(시각 미상, 음력 변환)만 남긴다.
     limits: facts.calculationNotes.filter((n) => LIMIT_NOTE.test(n)),
@@ -431,6 +437,24 @@ export function slimFacts(facts: SajuFacts) {
  */
 function xingLines(relations: XingRelation[]): string[] {
   return completeXing(relations).map(xingLine);
+}
+
+/**
+ * 첫 묶음에만 붙일 계절 한 줄.
+ *
+ * 열린 칸이 없으면 빈 문자열이다. 그때 모델은 계절을 아예 못 본다 — 보면 쓴다.
+ */
+export function seasonBrief(facts: SajuFacts): string {
+  const advanced = advancedForPrompt(facts.advanced) as
+    | { season?: Record<string, string> }
+    | null;
+  const season = advanced?.season;
+  if (!season) return "";
+  return (
+    `계절(이 리포트에서 한 번만, 첫 절에): ${season.season} · ${season.month_branch}월 · ` +
+    `${season.climate} · ${season.term}` +
+    (season.boundary ? ` · ${season.boundary}` : "")
+  );
 }
 
 /** confidence_note에 반영해야 할 한계만 골라내는 표시 */
