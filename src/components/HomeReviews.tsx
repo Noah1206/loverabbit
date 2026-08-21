@@ -34,9 +34,11 @@ function ReviewCard({ review }: { review: PublicReview }) {
         <div className="review-card-who">
           <strong>{review.name}</strong>
           <span>
+            {/* 베타 후기의 횟수는 베타 플랫폼에서 산 횟수다. 어디서 산 것인지를
+                빼고 적으면 러브레빗에서 그만큼 샀다는 말이 된다. */}
             {review.purchaseCount !== null &&
               review.purchaseCount > 1 &&
-              `${review.purchaseCount.toLocaleString()}번 구매 · `}
+              `${beta ? "베타에서 " : ""}${review.purchaseCount.toLocaleString()}번 구매 · `}
             {review.productLabel && `${review.productLabel} · `}
             {formatDate(review.createdAt)}
           </span>

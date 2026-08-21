@@ -8,8 +8,9 @@
  * 않는다 — 특히 별점. 베타 때는 별점을 받지 않았고, 5점으로 채워 넣으면 홈에
  * 걸리는 평균이 거짓말이 된다.
  *
- * 상품명과 구매 횟수도 붙이지 않는다. 베타 때 상품 이름은 그것 자체가 다른
- * 점술가·다른 서비스를 가리키고, 구매 횟수는 그 플랫폼에서 산 횟수다.
+ * 상품명은 붙이지 않는다. 베타 때 상품 이름은 그것 자체가 다른 점술가·다른
+ * 서비스를 가리킨다. 구매 횟수는 실제 있었던 숫자라 넣되, 화면이 '베타에서
+ * N번 구매'로 어디서 산 것인지 밝혀 적는다.
  *
  * 넣는 코드가 여기 있고 src/lib 에 없는 것은 의도다. 앱 코드에 "후기를 만들어
  * 넣는 함수"가 있으면 언젠가 요청 핸들러가 그걸 부른다. 이 길은 사람이 손으로
@@ -27,6 +28,8 @@ import { createClient } from "@supabase/supabase-js";
 
 interface RawReview {
   name: string;
+  /** 베타 때 그 사람이 그 플랫폼에서 구매한 횟수. 여기서 산 횟수가 아니다. */
+  betaUses: number;
   body: string;
   /** "2026-08-21 17:51" — KST. 원본에서 잘려 모르면 null 이고, 그건 건너뛴다. */
   at: string | null;
@@ -62,6 +65,7 @@ interface Entry {
   import_key: string;
   display_name: string;
   body: string;
+  purchase_count: number;
   created_at: string;
 }
 
@@ -76,6 +80,7 @@ function load(): { entries: Entry[]; total: number; undated: RawReview[]; duplic
       import_key: importKey(review),
       display_name: review.name.trim(),
       body: review.body.trim(),
+      purchase_count: Math.max(Number(review.betaUses) || 1, 1),
       created_at: parseKst(review.at as string),
     }));
 
@@ -173,7 +178,7 @@ async function main() {
     if (
       row.body !== entry.body ||
       row.product_label !== null ||
-      row.purchase_count !== null ||
+      Number(row.purchase_count) !== entry.purchase_count ||
       row.import_key !== entry.import_key
     ) {
       stale.push({ row, entry });
@@ -187,7 +192,7 @@ async function main() {
         body: entry.body,
         product_label: null,
         product_id: null,
-        purchase_count: null,
+        purchase_count: entry.purchase_count,
         import_key: entry.import_key,
         updated_at: new Date().toISOString(),
       })
@@ -205,7 +210,6 @@ async function main() {
         source: "beta",
         product_id: null,
         product_label: null, // 베타 상품명은 다른 서비스를 가리킨다. 붙이지 않는다.
-        purchase_count: null, // 베타 플랫폼에서 산 횟수다. 여기 붙일 근거가 없다.
         rating: null, // 원본에 없다. 채우지 마라.
         status: "published",
       }))

@@ -121,6 +121,15 @@ describe("베타 후기 원본", () => {
     );
   });
 
+  it("베타 이용 횟수는 1 이상의 정수다", () => {
+    for (const review of raw.reviews) {
+      assert.ok(
+        Number.isInteger(review.betaUses) && (review.betaUses as number) >= 1,
+        `betaUses 가 이상하다: ${JSON.stringify(review)}`
+      );
+    }
+  });
+
   it("모든 후기에 작성자와 본문이 있다", () => {
     for (const review of raw.reviews) {
       for (const field of ["name", "body"]) {
@@ -162,15 +171,16 @@ describe("베타 후기 원본", () => {
   });
 
   it("이름·시각·본문 말고는 아무것도 들고 있지 않다", () => {
-    // 별점·상품명·구매 횟수는 전부 여기서 셀 근거가 없는 값이라 필드째로 없앴다.
-    // 편의로 되살리는 순간 홈에 사실이 아닌 말이 걸린다.
-    const ALLOWED = new Set(["name", "at", "body", "note"]);
+    // 별점과 상품명은 여기서 셀 근거가 없는 값이라 필드째로 없앴다.
+    // betaUses 는 베타 플랫폼에서 실제로 산 횟수라 남기되, 화면이 '베타에서'를
+    // 붙여 어디서 산 것인지 밝힌다.
+    const ALLOWED = new Set(["name", "at", "body", "betaUses", "note"]);
     for (const review of raw.reviews) {
       const extra = Object.keys(review).filter((key) => !ALLOWED.has(key));
       assert.deepEqual(
         extra,
         [],
-        `베타 후기에 없어야 할 값이 붙었다: ${extra.join(", ")} — 별점·상품명·구매 횟수는 만들지 마라.`
+        `베타 후기에 없어야 할 값이 붙었다: ${extra.join(", ")} — 별점·상품명은 만들지 마라.`
       );
     }
   });
