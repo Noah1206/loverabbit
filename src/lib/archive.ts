@@ -20,7 +20,11 @@ export interface ArchiveEntry {
   price: number;
   createdAt: number;
   // 기사형 리포트(/reading/[id])에서 잠금 상태를 그대로 재현하기 위한 정보
-  previewSections?: { title: string; excerpt: string }[];
+  /**
+   * 결제 전에 보여 줄 몫. excerpt 는 그 절의 요약이고, paragraphs 는 첫 절에만
+   * 하나 더 붙는다 — 광고에서 들어온 사람이 표지에서 끊기기 때문이다.
+   */
+  previewSections?: { title: string; excerpt: string; paragraphs?: string[] }[];
   lockedSectionTitles?: string[];
   scoreLabel?: string | null;
   score?: number | null;

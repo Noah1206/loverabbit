@@ -5342,35 +5342,30 @@ body:has(.product-page[data-landing]) .consent-banner {
 }
 
 /* ── 명식 판 ── */
-.rv-chart {
-  display: grid;
-  gap: 9px;
+/* ── 지수 한 줄 ──
+   명식(사주 네 글자)이 여기 함께 있었는데 뺐다. 한 줄로 쓰면 글자 뭉치였고,
+   네 기둥 표로 그렸더니 여덟 글자 자리에 배경이 너무 많았다. */
+.rv-chart-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 18px;
-  padding: 15px 17px;
-  border: 1px solid color-mix(in srgb, var(--rv-ink) 26%, var(--line));
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 88% 4%, color-mix(in srgb, var(--rv-ink) 12%, transparent), transparent 46%),
-    var(--bg-card2);
+  padding: 13px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
   font-size: 0.85rem;
 }
 
-.rv-chart div {
-  display: flex;
-  gap: 12px;
-}
-
-/* 명식 라벨 — 금색이었다. 여기만 색이 튀어서 눈이 값보다 라벨로 먼저 갔다. */
-.rv-chart dt {
-  flex: 0 0 78px;
+.rv-chart-score span {
   color: var(--text-dim);
-  font-weight: 800;
+  font-weight: 700;
   word-break: keep-all;
 }
 
-.rv-chart dd {
-  margin: 0;
-  color: var(--text-dim);
+.rv-chart-score strong {
+  color: var(--text);
+  font-weight: 600;
 }
 
 /* ── 한눈에 보기 ── */
@@ -5588,11 +5583,11 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 /* ── 결제 유도 ── */
 /* ── 맛보기 ──
-   광고에서 들어온 사람에게 첫 장의 앞부분을 몇 줄 흘려 준다.
+   광고에서 들어온 사람에게 첫 절을 두 덩어리까지 보여 주고 거기서 흐린다.
 
-   글자를 아래로 갈수록 흐리게 지운다. 잘라 놓기만 하면 "짧은 글"로 읽히고,
-   흐려 놓으면 "이어지는 글"로 읽힌다. 살 이유는 뒤쪽에 있으므로 뒤쪽이 이어져
-   있다는 느낌이 남아야 한다.
+   글자를 지우지 않고 **덮는다.** 잘라 놓기만 하면 "짧은 글"로 읽히고, 덮어 놓으면
+   "이어지는 글"로 읽힌다. 살 이유는 뒤쪽에 있으므로 뒤쪽이 이어져 있다는 느낌이
+   남아야 한다.
 
    가려 두고 스크롤을 잠그는 방식은 쓰지 않는다. 아래에 아무것도 안 그리므로
    스크롤이 그 자리에서 끝난다 — 막는 것이 아니라 없는 것이다. 화면을 읽는
@@ -5608,20 +5603,15 @@ body:has(.product-page[data-landing]) .consent-banner {
   color: var(--text);
 }
 
-.rv-taste-body {
-  position: relative;
-  max-height: 8.4em;
-  overflow: hidden;
-  /* 마지막 두 줄이 배경으로 녹아든다. 잘린 자리가 눈에 안 보이게. */
-  -webkit-mask-image: linear-gradient(180deg, #000 46%, rgba(0, 0, 0, 0.16) 88%, transparent);
-  mask-image: linear-gradient(180deg, #000 46%, rgba(0, 0, 0, 0.16) 88%, transparent);
-}
-
 .rv-taste-body p {
   font-size: 15px;
   line-height: 1.78;
-  color: var(--text-dim, var(--text));
-  margin: 0;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+.rv-taste-body p:last-of-type {
+  margin-bottom: 0;
 }
 
 /* 데모 글이라는 사실을 숨기지 않는다. 숨기면 "내 얘기가 아닌 것 같다" 는
@@ -5635,6 +5625,53 @@ body:has(.product-page[data-landing]) .consent-banner {
   line-height: 1.6;
   color: var(--text-dim, var(--text));
   opacity: 0.86;
+}
+
+/* ── 잠금 ──
+   글이 이어지다 흐려지고, 그 흐려진 자리에 버튼이 앉는다.
+
+   앞 글 위로 끌어올려 덮는다(margin-top 음수). 그래서 "여기서 끝" 이라는 말을
+   따로 하지 않아도 끝난 자리가 보인다. 무엇을 못 보는지가 보이면 파는 말이
+   따로 필요 없다.
+
+   backdrop-filter 를 못 쓰는 브라우저에서도 배경 그러데이션만으로 같은 뜻이
+   전해진다. 버튼은 베일 위에 있으므로 흐려지지 않는다. */
+.rv-gate {
+  position: relative;
+  margin-top: -132px;
+  padding-top: 132px;
+  pointer-events: none;
+}
+
+.rv-gate-veil {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 148px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 38%);
+  mask-image: linear-gradient(180deg, transparent, #000 38%);
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--bg) 58%, transparent) 42%,
+    var(--bg) 92%
+  );
+}
+
+.rv-gate-cta {
+  position: relative;
+  pointer-events: auto;
+  padding-bottom: 6px;
+}
+
+.rv-gate-cta .btn {
+  width: 100%;
+  background: var(--accent);
+  color: #101014;
+  box-shadow: none;
 }
 
 .rv-paywall {

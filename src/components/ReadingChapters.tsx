@@ -338,44 +338,41 @@ export interface ScoreAsOfView {
 }
 
 /** 명식 카드 — 스크린샷의 "약한 부위 / 주의 시기" 판때기에 해당하는 자리 */
+/**
+ * 표지의 지수 한 줄.
+ *
+ * 원래 여기에 명식(사주 네 글자)이 함께 있었다. 한 줄로 쓰면 글자 뭉치라 아무것도
+ * 전해지지 않았고, 네 기둥 표로 그렸더니 여덟 글자짜리 자리에 배경과 테두리가
+ * 너무 많았다. 두 번 고치고 나서 뺐다 — 표지는 "이게 내 얘기구나"를 알려 주는
+ * 자리이고 그 일은 요약 카드가 이미 한다. 명식은 그 위에 얹힌 장식이었다.
+ *
+ * 이름은 그대로 둔다. 부르는 자리가 둘이고, 이름을 바꾸는 것이 이 변경의 요지가
+ * 아니다. chart 는 계속 받되 쓰지 않는다 — 되돌릴 때 호출부를 다시 안 고치려고.
+ */
 export function ChartPanel({
-  chart,
   scoreLabel,
   score,
   scoreBand,
 }: {
-  chart: { me: string; partner: string | null };
+  chart?: { me: string; partner: string | null };
   scoreLabel?: string | null;
   score?: number | null;
   scoreBand?: string | null;
 }) {
+  if (!scoreLabel) return null;
   return (
-    <dl className="rv-chart">
-      <div>
-        <dt>내 명식</dt>
-        <dd>{chart.me}</dd>
-      </div>
-      {chart.partner && (
-        <div>
-          <dt>그 사람</dt>
-          <dd>{chart.partner}</dd>
-        </div>
-      )}
-      {scoreLabel && (
-        <div>
-          <dt>{scoreLabel}</dt>
-          <dd>
-            {typeof score === "number" ? (
-              <>
-                상위 {100 - score}%{scoreBand ? ` · ${scoreBand}` : ""}
-              </>
-            ) : (
-              "상위 ??% 🔒"
-            )}
-          </dd>
-        </div>
-      )}
-    </dl>
+    <div className="rv-chart-score">
+      <span>{scoreLabel}</span>
+      <strong>
+        {typeof score === "number" ? (
+          <>
+            상위 {100 - score}%{scoreBand ? ` · ${scoreBand}` : ""}
+          </>
+        ) : (
+          "상위 ??% 🔒"
+        )}
+      </strong>
+    </div>
   );
 }
 

@@ -32,6 +32,7 @@ import {
   ScoreBreakdown,
   Seal,
   type IndexItem,
+  Marked,
 } from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
 import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
@@ -384,55 +385,62 @@ export default function ReadingReportPage() {
    * 광고에서 들어온 사람에게는 표지가 곧 끝이다.
    *
    * 목차만 보여 주면 "무엇이 들었는지"는 알아도 "어떻게 쓰였는지"는 모른다. 그래서
-   * 첫 장의 앞부분을 몇 줄 흘려 보여 주고 거기서 끊는다. 아래로 더 내려갈 것이
-   * 없으니 스크롤이 그 자리에서 멈춘다 — 막는 것이 아니라 없는 것이다.
+   * 첫 절을 **두 덩어리까지** 보여 주고 거기서 흐린다. 요약 한 덩어리만으로는
+   * 이 글이 어떤 결인지 전해지지 않고, 세 덩어리부터는 살 이유가 줄어든다.
    *
-   * 가려 놓고 억지로 스크롤을 잠그면 화면을 읽는 도구들이 먼저 부서진다. 안 그리면
-   * 그런 일이 아예 안 생긴다.
+   * 아래로 더 내려갈 것이 없으니 스크롤이 그 자리에서 멈춘다 — 막는 것이 아니라
+   * 없는 것이다. 가려 놓고 억지로 스크롤을 잠그면 화면을 읽는 도구가 먼저 부서진다.
    */
-  const tasteText = (() => {
+  const tasteBlocks = (() => {
     const first = entry.previewSections?.[0];
-    if (!first) return "";
-    const raw = [first.excerpt ?? ""].join(" ").replace(/\s+/g, " ").trim();
-    // 두어 문장이면 결이 전해진다. 더 주면 살 이유가 줄고, 덜 주면 무슨 글인지 모른다.
-    const sentences = raw.match(/[^.!?]+[.!?]/g) ?? [raw];
-    return sentences.slice(0, 2).join(" ").trim();
+    if (!first) return [];
+    const clean = (text: string) => text.replace(/\s+/g, " ").trim();
+    return [first.excerpt, ...(first.paragraphs ?? [])].map(clean).filter(Boolean).slice(0, 2);
   })();
 
-  const gated = !unlocked && Boolean(entry.offerId) && Boolean(tasteText);
+  const gated = !unlocked && Boolean(entry.offerId) && tasteBlocks.length > 0;
 
   const taste = gated && (
     <section className="rv-taste" aria-label="리딩 맛보기">
       <h2>{entry.previewSections?.[0]?.title ?? "첫 장"}</h2>
       <div className="rv-taste-body">
-        <p>{tasteText}</p>
+        {tasteBlocks.map((block, index) => (
+          <p key={index}>
+            <Marked text={block} />
+          </p>
+        ))}
       </div>
     </section>
   );
 
+  /**
+   * 잠금.
+   *
+   * 예전에는 글 아래에 상자 하나가 따로 서서 "무료 운명 미리보기는 여기까지예요"
+   * 라고 알렸다. 사는 사람에게 파는 말을 먼저 들려주는 꼴이라 너무 곧았다.
+   *
+   * 지금은 글이 이어지다 흐려지고, 그 흐려진 자리에 버튼이 앉는다. 끊긴 자리를
+   * 말로 알리지 않고 눈으로 보여 준다 — 무엇을 못 보는지가 보이면 파는 말이
+   * 따로 필요 없다.
+   *
+   * 앞 글을 위로 겹쳐 덮으므로 표지에서도 본문에서도 같은 모양이 된다.
+   */
   const paywall = !unlocked && (
-    <div className="rv-paywall">
-      <strong>
-        {entry.offerId ? "무료 운명 미리보기는 여기까지예요" : "결론·정확한 시기·행동 가이드는 전문에 있어요"}
-      </strong>
-      <p>
-        {entry.offerId
-          ? "결론·정확한 시기·행동 가이드까지 끝까지 보고 싶을 때만 990원을 결제하세요."
-          : `${total}개 장 전부가 한 번의 결제로 열리고, 이 기기에 계속 보관돼요.`}
-      </p>
-      {entry.pendingOrderId ? (
-        <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
-          입금 승인 상태 확인 →
-        </Link>
-      ) : (
-        <button className="btn" onClick={startUnlock} disabled={paying}>
-          {paying
-            ? "결제 준비 중…"
-            : user
-              ? `${entry.price.toLocaleString()}원으로 끝까지 보기`
-              : `로그인 후 ${entry.price.toLocaleString()}원으로 끝까지 보기`}
-        </button>
-      )}
+    <div className="rv-gate">
+      <div className="rv-gate-veil" aria-hidden />
+      <div className="rv-gate-cta">
+        {entry.pendingOrderId ? (
+          <Link className="btn" href={`/payment/pending?orderId=${entry.pendingOrderId}`}>
+            입금 승인 상태 확인 →
+          </Link>
+        ) : (
+          <button className="btn" onClick={startUnlock} disabled={paying}>
+            {paying
+              ? "결제 준비 중…"
+              : `🔒 ${entry.price.toLocaleString()}원으로 끝까지 운명보기`}
+          </button>
+        )}
+      </div>
     </div>
   );
 

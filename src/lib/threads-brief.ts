@@ -17,11 +17,19 @@
 import fs from "node:fs";
 import path from "node:path";
 
+/**
+ * 지시문이 사는 폴더.
+ *
+ * 이 저장소 밖에 둔다. 콘텐츠 방향을 적으려고 웹사이트 코드가 든 폴더를 열 이유가
+ * 없고, 열면 Claude 에게 "여기 있는 건 다 네 일"처럼 보인다. 운영자가 만지는 것과
+ * 코드가 사는 곳을 갈라 두면 둘 다 안전해진다.
+ */
+export const CONTENT_DIR = process.env.THREADS_CONTENT_DIR ?? "../loverabbit-content";
 export const BRIEF_PATH = "content-brief.md";
 export const REWRITE_PATH = "rewrite-requests.json";
 
 function resolve(rel: string): string {
-  return path.resolve(process.cwd(), rel);
+  return path.isAbsolute(rel) ? rel : path.resolve(process.cwd(), CONTENT_DIR, rel);
 }
 
 /**

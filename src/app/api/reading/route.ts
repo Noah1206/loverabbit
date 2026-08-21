@@ -455,9 +455,15 @@ export async function POST(req: NextRequest) {
   // 목차 문구를 그대로 옮겨 적게 돼 있어 결과가 같다.
   const preview = report
     ? {
-        sections: report.sections.slice(0, previewSections()).map((section) => ({
+        sections: report.sections.slice(0, previewSections()).map((section, index) => ({
           title: section.title,
           excerpt: section.summary.slice(0, 360),
+          // 첫 절만 문단 하나를 더 준다. 광고에서 들어온 사람은 표지에서 끊기는데,
+          // 요약 한 덩어리만 보고는 이 글이 어떤 결인지 알 수 없다. 두 덩어리는
+          // 보여 주고 거기서 흐려진다. 나머지 문단은 결제 전에 내려보내지 않는다.
+          ...(index === 0 && section.paragraphs[0]
+            ? { paragraphs: [section.paragraphs[0]] }
+            : {}),
         })),
         lockedTitles: outline.slice(previewSections()),
       }
