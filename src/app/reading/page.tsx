@@ -35,17 +35,23 @@ const CATEGORIES = PRODUCTS.map((p) => ({
 }));
 
 type CategorySelectionMode = "loading" | "fixed" | "picker";
+// 순서가 바뀌었다 (2026-08-22, 운영자 결정): 사주 선택이 맨 앞이 아니라 맨 뒤다.
+// 자기 정보와 고민을 먼저 적고, 마지막에 그에 맞는 리딩을 고른다. 상대 정보가
+// 필요한지는 상품이 정하는데 상품을 아직 안 골랐으므로, 혼자 볼지 함께 볼지를
+// 먼저 묻는 mode 단계가 그 자리를 대신한다.
 type ReadingStep =
   | "category"
   | "meBirth"
   | "meDetails"
   | "partnerBirth"
   | "partnerDetails"
+  | "mode"
   | "concern"
   | "ready";
 
 const READING_STEP_LABELS: Record<ReadingStep, string> = {
   category: "리딩 선택",
+  mode: "함께 볼 사람",
   meBirth: "내 생년월일",
   meDetails: "내 출생 정보",
   partnerBirth: "그 사람 생년월일",
@@ -373,6 +379,8 @@ export default function ReadingPage() {
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [step, setStep] = useState<ReadingStep>("category");
   const [hasChosenCategory, setHasChosenCategory] = useState(false);
+  // 혼자/함께 를 골랐는가. withPartner 의 기본값(true)과 "골랐다"는 별개라 따로 든다.
+  const [modeChosen, setModeChosen] = useState(false);
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
@@ -424,9 +432,12 @@ export default function ReadingPage() {
       setWithPartner(found.needsPartner);
     }
     setOfferId(offer?.id);
-    setCategorySelectionMode("picker");
-    setStep("category");
+    // 광고·홈 카드로 들어와 상품이 정해져 있으면(found) 선택·mode 단계를 아예
+    // 건너뛴다 — fixed 흐름. 아니면 picker 흐름으로 맨 뒤에서 고른다.
+    setCategorySelectionMode(found ? "fixed" : "picker");
+    setStep("meBirth");
     setHasChosenCategory(Boolean(found));
+    setModeChosen(Boolean(found));
 
     const stored = getUser();
     setUser(stored);
@@ -442,6 +453,7 @@ export default function ReadingPage() {
       setOccupation(draft.occupation ?? "");
       setCategorySelectionMode("fixed");
       setHasChosenCategory(true);
+      setModeChosen(true);
       // 자동 재개는 로그인 복귀 초안만. 생성 화면이 뒤로가기 대비로 되돌려 둔
       // 초안(autoResume: false)까지 자동으로 다시 돌리면, 뒤로가기가 곧 재제출이
       // 되어 생성 화면과 폼이 서로를 계속 부른다. 값만 복원하고 확인 화면에 세운다.
@@ -523,8 +535,10 @@ export default function ReadingPage() {
     그러면 화면에는 선택지가 없는데 상태는 "상대 없음" 인 채로 제출된다.
   */
   useEffect(() => {
-    if (selectedCategory?.needsPartner) setWithPartner(true);
-  }, [selectedCategory?.needsPartner]);
+    // 고르기 전에는 건드리지 않는다 — category 의 초기값이 우연히 커플 상품이라,
+    // 이 효과가 마운트에서 돌면 mode 단계에서 고른 "혼자"가 덮인다.
+    if (hasChosenCategory && selectedCategory?.needsPartner) setWithPartner(true);
+  }, [hasChosenCategory, selectedCategory?.needsPartner]);
   const activeOffer = resolveAdOffer(category, offerId);
 
   const moveTo = (nextStep: ReadingStep) => {
@@ -547,8 +561,9 @@ export default function ReadingPage() {
 
   const confirmCategory = () => {
     if (!hasChosenCategory) return;
-    setCategorySelectionMode("fixed");
-    moveTo("meBirth");
+    // fixed 로 바꾸지 않는다 — fixed 는 "입구에서 상품이 정해져 온" 흐름의 표시다.
+    // 여기서 바꾸면 뒤로가기에서 선택 단계가 사라진다.
+    moveTo("ready");
     const params = new URLSearchParams(window.location.search);
     params.set("c", category);
     if (activeOffer) {
@@ -560,15 +575,21 @@ export default function ReadingPage() {
   };
 
   const advanceStep = () => {
-    if (step === "category") {
-      confirmCategory();
-      return;
-    }
     if (step === "meBirth") {
       if (!showBirthError(me, "내", true)) moveTo("meDetails");
       return;
     }
     if (step === "meDetails") {
+      // 입구에서 상품이 정해진 흐름은 상품이 상대 필요 여부를 이미 정했다.
+      // 고르는 흐름은 mode 단계가 그걸 묻는다.
+      if (categorySelectionMode === "fixed") {
+        moveTo(withPartner ? "partnerBirth" : "concern");
+      } else {
+        moveTo("mode");
+      }
+      return;
+    }
+    if (step === "mode") {
       moveTo(withPartner ? "partnerBirth" : "concern");
       return;
     }
@@ -581,15 +602,24 @@ export default function ReadingPage() {
       return;
     }
     if (step === "concern") {
-      moveTo("ready");
+      moveTo(categorySelectionMode === "fixed" ? "ready" : "category");
+      return;
+    }
+    if (step === "category") {
+      confirmCategory();
       return;
     }
     submit();
   };
 
-  const workflowSteps: readonly ReadingStep[] = withPartner
-    ? ["category", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
-    : ["category", "meBirth", "meDetails", "concern", "ready"];
+  const workflowSteps: readonly ReadingStep[] =
+    categorySelectionMode === "fixed"
+      ? withPartner
+        ? ["meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
+        : ["meBirth", "meDetails", "concern", "ready"]
+      : withPartner
+        ? ["meBirth", "meDetails", "mode", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
+        : ["meBirth", "meDetails", "mode", "concern", "category", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
   const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
   // 헤더의 < 버튼. 첫 단계에서는 흐름을 벗어나 홈으로 돌아간다.
@@ -606,7 +636,10 @@ export default function ReadingPage() {
   // 고민 단계도 머리글을 띄운다. 다른 입력 단계와 달리 무엇을 왜 적는지가
   // 컨트롤만 봐서는 드러나지 않는 자리다.
   const showIntroHeader =
-    categorySelectionMode === "loading" || step === "category" || step === "concern";
+    categorySelectionMode === "loading" ||
+    step === "meBirth" ||
+    step === "category" ||
+    step === "concern";
   const isDataEntryStep = step === "meBirth"
     || step === "meDetails"
     || step === "partnerBirth"
@@ -614,6 +647,8 @@ export default function ReadingPage() {
     || step === "concern";
   const isStepComplete = step === "category"
     ? hasChosenCategory
+    : step === "mode"
+    ? modeChosen
     : step === "meBirth"
       ? hasValidBirth(me, true)
       : step === "meDetails"
@@ -652,6 +687,15 @@ export default function ReadingPage() {
             <>
               <h1>당신의 속마음을 말해주세요.</h1>
               <p>자세하면 자세할 수록 좋아요!</p>
+            </>
+          ) : step === "meBirth" ? (
+            <>
+              <h1>당신의 사주부터 세워볼게요.</h1>
+              <p>
+                {activeOffer
+                  ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요. 전체 리포트는 원할 때만 990원이에요."
+                  : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
+              </p>
             </>
           ) : (
             <>
@@ -698,10 +742,45 @@ export default function ReadingPage() {
             // 제목 요소가 없으므로 영역 이름은 여기서 직접 준다.
             aria-label={READING_STEP_LABELS[step]}
           >
+            {step === "mode" && (
+              <>
+                <p className="reading-step-note">
+                  혼자 보면 내 흐름을 깊게, 함께 보면 두 명식을 맞대어 합과 충까지 읽어요.
+                  다음에 나올 리딩 목록이 이 선택에 맞춰 갈려요.
+                </p>
+                <div className="reading-category-grid">
+                  <button
+                    type="button"
+                    className={"reading-category-option" + (modeChosen && !withPartner ? " is-selected" : "")}
+                    aria-pressed={modeChosen && !withPartner}
+                    onClick={() => {
+                      setWithPartner(false);
+                      setModeChosen(true);
+                    }}
+                  >
+                    <strong>혼자 볼 거예요</strong>
+                  </button>
+                  <button
+                    type="button"
+                    className={"reading-category-option" + (modeChosen && withPartner ? " is-selected" : "")}
+                    aria-pressed={modeChosen && withPartner}
+                    onClick={() => {
+                      setWithPartner(true);
+                      setModeChosen(true);
+                    }}
+                  >
+                    <strong>그 사람과 함께 볼 거예요</strong>
+                  </button>
+                </div>
+              </>
+            )}
+
             {step === "category" && (
               <>
                 <div className="reading-category-grid">
-                  {CATEGORIES.map((item) => (
+                  {/* 혼자/함께 선택에 맞는 상품만 보여준다. 여기서 커플 상품을 고르게
+                      두면 상대 정보 없이 궁합을 사게 된다 — meDetails 주석의 그 사고다. */}
+                  {CATEGORIES.filter((item) => item.needsPartner === withPartner).map((item) => (
                     <button
                       key={item.id}
                       type="button"
@@ -751,7 +830,7 @@ export default function ReadingPage() {
 
                   혼자 보는 상품에서는 그대로 고를 수 있게 둔다.
                 */}
-                {selectedCategory?.needsPartner ? (
+                {categorySelectionMode !== "fixed" ? null : selectedCategory?.needsPartner ? (
                   <p className="reading-step-note">
                     <strong>{selectedCategory.label}</strong>은 두 사람의 명식을 맞대어 보는
                     리포트예요. 다음 화면에서 그 사람의 정보도 받을게요.
