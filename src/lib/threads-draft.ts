@@ -35,6 +35,8 @@ export interface GenerateOptions {
   maxAttempts?: number;
   /** 이 초안이 원문을 어디까지 쓸 것인가. 없으면 pattern_only */
   reuseMode?: AuthorizedReuseMode;
+  /** 운영자 지시 블록. 비어 있으면 예전과 같다. */
+  operator?: string;
 }
 
 export interface GenerateResult {
@@ -132,7 +134,7 @@ export async function generateDraft(options: GenerateOptions): Promise<GenerateR
   const maxAttempts = options.maxAttempts ?? 2;
 
   let messages: ChatMsg[] = [
-    { role: "user", content: buildThreadsInput(input, pattern, corpus, mode) },
+    { role: "user", content: buildThreadsInput(input, pattern, corpus, mode, options.operator ?? "") },
   ];
   let guard: ThreadGuardResult | null = null;
   let attempts = 0;

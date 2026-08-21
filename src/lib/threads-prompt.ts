@@ -152,7 +152,9 @@ export function buildThreadsInput(
   input: LoveRabbitContentInput,
   pattern: SajushibaPattern,
   rows: CorpusRow[],
-  mode: AuthorizedReuseMode
+  mode: AuthorizedReuseMode,
+  /** 운영자 지시 — 표현에만 닿는다. threads-brief.ts 가 경계까지 함께 적어 준다. */
+  operator = ""
 ): string {
   const payload = {
     LOVE_RABBIT_CONTENT_INPUT: {

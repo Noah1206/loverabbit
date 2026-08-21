@@ -24,6 +24,12 @@ import type {
 } from "../src/lib/threads-content.ts";
 import { registryReport } from "../src/content/reference/sajushiba/permission-registry.ts";
 import { loadQueue, previewOf, saveQueue, upsert } from "../src/lib/threads-queue.ts";
+import {
+  clearRewrite,
+  loadBrief,
+  loadRewrites,
+  operatorBlock,
+} from "../src/lib/threads-brief.ts";
 
 const REUSE_JSON = "data/generated/love-rabbit-authorized-reuse-drafts-v1.json";
 const REUSE_DOC = "docs/content/love-rabbit-authorized-reuse-drafts-v1.md";
@@ -82,9 +88,20 @@ if (command === "generate") {
   const library = loadLibrary();
 
   type Slot = { input: ReuseSlot["input"]; note: string; reuseMode?: AuthorizedReuseMode; sourcePostIds?: string[] };
-  const plan: Slot[] = reuse
-    ? buildReusePlan(start).slice(0, count)
-    : buildPlan(start).slice(0, count);
+  let plan: Slot[] = reuse ? buildReusePlan(start) : buildPlan(start);
+
+  // --only 는 재작성용이다. 계획 전체를 돌리지 않고 지목한 초안만 다시 쓴다.
+  const only = argOf("only");
+  if (only) {
+    const wanted = only.split(",").map((s) => s.trim().replace(/^draft-/, ""));
+    plan = plan.filter((slot) => wanted.includes(slot.input.id));
+    if (plan.length === 0) {
+      console.error(`--only ${only} 에 맞는 칸이 계획에 없다.`);
+      process.exit(2);
+    }
+  } else {
+    plan = plan.slice(0, count);
+  }
 
   const report = registryReport();
   console.log(`모드 ${publishMode()} / 원문 재사용 스위치 ${allowDirectCopy() ? "켜짐" : "꺼짐"}`);
@@ -93,13 +110,22 @@ if (command === "generate") {
   );
   console.log(`편성 ${plan.length}칸 (${reuse ? "원문 재사용 배치" : "기본 배치"}), 기준일 ${start}\n`);
 
+  const brief = loadBrief();
+  const rewrites = loadRewrites();
+  if (brief) console.log("운영자 브리프 있음 — 표현·구성에만 적용된다");
+  const pending = Object.keys(rewrites).length;
+  if (pending > 0) console.log(`재작성 요청 ${pending}건`);
+  console.log("");
+
   let queue = loadQueue();
   const bodies: string[] = queue.flatMap((d) => d.posts.map((p) => p.body));
 
   for (const slot of plan) {
     const id = `draft-${slot.input.id}`;
     const existing = queue.find((d) => d.id === id);
-    if (existing && !force) {
+    const rewrite = rewrites[slot.input.id] ?? rewrites[id] ?? null;
+    // 재작성 요청이 있으면 --force 없이도 다시 쓴다. 그 요청 자체가 덮으라는 뜻이다.
+    if (existing && !force && !rewrite && !only) {
       console.log(`· ${slot.note} — 이미 있음 (${existing.status})`);
       continue;
     }
@@ -110,6 +136,7 @@ if (command === "generate") {
       corpus: corpus.rows,
       previousBodies: bodies,
       reuseMode: slot.reuseMode,
+      operator: operatorBlock(brief, rewrite),
     });
 
     if (result.unavailable) {
@@ -120,6 +147,10 @@ if (command === "generate") {
     queue = upsert(queue, result.draft);
     bodies.push(...result.draft.posts.map((p) => p.body));
     saveQueue(queue);
+
+    // 반영했으면 요청을 지운다. 안 지우면 다음 실행에서 같은 지적이 또 걸리고,
+    // 이미 반영된 것을 또 반영하려다 문장이 한쪽으로 계속 밀린다.
+    if (rewrite) clearRewrite(slot.input.id);
 
     const chars = result.draft.posts.map((p) => p.charCount).join("+");
     const spans = result.draft.directCopySpans.length;

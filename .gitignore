@@ -29,3 +29,6 @@ data/reading-images/
 
 # 예약 발행 러너 로그
 .threads-publish.log
+
+# 워커 실행 로그
+worker/worker.log
