@@ -9,6 +9,7 @@ import {
 import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
 import { chatComplete, isAiConfigured } from "@/lib/ai";
+import { demoReport, hasDemoReport } from "@/lib/reading-demo";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { isDatabaseConfigured, saveUserSajuProfile } from "@/lib/database";
@@ -55,6 +56,15 @@ interface PreviewSection {
   title: string;
   excerpt: string;
 }
+
+/**
+ * 데모일 때 생성 블록을 건너뛰는 신호.
+ *
+ * 조건문으로 감싸지 않고 예외로 빠져나오는 이유: 생성 블록이 try 안에서 100줄 가까이
+ * 이어지고 중간에 재시도·가드·폴백이 얽혀 있다. 그걸 통째로 들여쓰기 한 칸 밀면
+ * 무엇이 바뀌었는지 diff 로 못 읽는다. 이 예외는 아래 catch 에서 조용히 지나간다.
+ */
+class SkipGeneration extends Error {}
 
 function mockReading(category: string): { teaser: string; full: string } {
   const label = PRODUCT_MAP[category]?.promptLabel ?? "연애운";
@@ -298,8 +308,10 @@ export async function POST(req: NextRequest) {
     now,
   };
 
-  let teaser: string;
-  let full: string;
+  // 데모 분기가 생기면서 흐름이 갈라져, 타입 검사가 대입을 증명하지 못한다.
+  // 빈 값으로 시작하고 아래 갈래가 반드시 채운다.
+  let teaser = "";
+  let full = "";
   let report: StructuredReport | null = null;
   let providerName = "demo";
   // 출고 검사 결과 — 고치지 못한 위반은 blob에 남겨 나중에 되짚을 수 있게 한다
@@ -307,7 +319,21 @@ export async function POST(req: NextRequest) {
   // 생성기가 붙어 있는데도 리포트를 못 만든 경우. 데모 글로 때우면 안 되는 상황이다.
   let generationFailed = false;
 
+  // 데모 모드 — 모델을 부르지 않고 미리 만들어 둔 리포트를 쓴다.
+  //
+  // 무료 티어는 하루 스무 요청이고 리포트 한 편이 아홉 요청쯤 든다. 하루 두 편으로는
+  // 유저 테스트가 안 되는데, 테스트하려는 것 대부분은 글이 아니라 흐름이다.
+  // 명식·지수는 그대로 계산한다 — 계산은 공짜이고, 테스터가 자기 사주 네 글자를
+  // 제대로 봐야 화면이 자기 것으로 읽힌다. 글이 남의 것이라는 사실은 숨기지 않는다.
+  const demo = hasDemoReport(body.category) ? demoReport(body.category) : null;
+
   try {
+    if (demo) {
+      report = demo;
+      providerName = "demo-fixture";
+      ({ teaser, full } = reportToText(report));
+      throw new SkipGeneration();
+    }
     // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
     // 한 번에 다 시키면 목차 10개짜리가 gpt-5.6에서 128초 걸린다 — 토큰이 순서대로
     // 나오기 때문이고, 그건 요청을 나눠 동시에 던지는 것 말고는 줄일 방법이 없다.
@@ -362,9 +388,12 @@ export async function POST(req: NextRequest) {
       ({ teaser, full } = reportToText(report));
     }
   } catch (e) {
-    console.error("AI 호출 실패:", e);
-    generationFailed = true;
-    ({ teaser, full } = mockReading(body.category));
+    // 데모는 오류가 아니다. 생성 블록을 건너뛰려고 던진 신호일 뿐이라 조용히 지나간다.
+    if (!(e instanceof SkipGeneration)) {
+      console.error("AI 호출 실패:", e);
+      generationFailed = true;
+      ({ teaser, full } = mockReading(body.category));
+    }
   }
 
   // 키가 없는 로컬 환경에서는 데모 리딩이 정상이다. 그러나 키가 붙어 있는데 실패한 것은

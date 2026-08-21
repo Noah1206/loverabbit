@@ -5587,6 +5587,56 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-locked span:nth-child(4) { width: 54%; }
 
 /* ── 결제 유도 ── */
+/* ── 맛보기 ──
+   광고에서 들어온 사람에게 첫 장의 앞부분을 몇 줄 흘려 준다.
+
+   글자를 아래로 갈수록 흐리게 지운다. 잘라 놓기만 하면 "짧은 글"로 읽히고,
+   흐려 놓으면 "이어지는 글"로 읽힌다. 살 이유는 뒤쪽에 있으므로 뒤쪽이 이어져
+   있다는 느낌이 남아야 한다.
+
+   가려 두고 스크롤을 잠그는 방식은 쓰지 않는다. 아래에 아무것도 안 그리므로
+   스크롤이 그 자리에서 끝난다 — 막는 것이 아니라 없는 것이다. 화면을 읽는
+   도구도 없는 것은 읽지 않는다. */
+.rv-taste {
+  margin-top: 26px;
+}
+
+.rv-taste h2 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.rv-taste-body {
+  position: relative;
+  max-height: 8.4em;
+  overflow: hidden;
+  /* 마지막 두 줄이 배경으로 녹아든다. 잘린 자리가 눈에 안 보이게. */
+  -webkit-mask-image: linear-gradient(180deg, #000 46%, rgba(0, 0, 0, 0.16) 88%, transparent);
+  mask-image: linear-gradient(180deg, #000 46%, rgba(0, 0, 0, 0.16) 88%, transparent);
+}
+
+.rv-taste-body p {
+  font-size: 15px;
+  line-height: 1.78;
+  color: var(--text-dim, var(--text));
+  margin: 0;
+}
+
+/* 데모 글이라는 사실을 숨기지 않는다. 숨기면 "내 얘기가 아닌 것 같다" 는
+   피드백이 오는데, 그게 사주 로직 문제인지 데모라서인지 구분할 수 없게 된다. */
+.rv-demo-note {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-dim, var(--text));
+  opacity: 0.86;
+}
+
 .rv-paywall {
   margin-top: 24px;
   padding: 20px 18px;

@@ -12,6 +12,7 @@ import {
 } from "@/lib/meta-events";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
+import { DEMO_SOURCE_NOTE } from "@/lib/reading-demo";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
@@ -379,6 +380,36 @@ export default function ReadingReportPage() {
   const createdAt = new Date(entry.createdAt);
   const summaryCards = entry.summaryCards ?? [];
 
+  /**
+   * 광고에서 들어온 사람에게는 표지가 곧 끝이다.
+   *
+   * 목차만 보여 주면 "무엇이 들었는지"는 알아도 "어떻게 쓰였는지"는 모른다. 그래서
+   * 첫 장의 앞부분을 몇 줄 흘려 보여 주고 거기서 끊는다. 아래로 더 내려갈 것이
+   * 없으니 스크롤이 그 자리에서 멈춘다 — 막는 것이 아니라 없는 것이다.
+   *
+   * 가려 놓고 억지로 스크롤을 잠그면 화면을 읽는 도구들이 먼저 부서진다. 안 그리면
+   * 그런 일이 아예 안 생긴다.
+   */
+  const tasteText = (() => {
+    const first = entry.previewSections?.[0];
+    if (!first) return "";
+    const raw = [first.excerpt ?? ""].join(" ").replace(/\s+/g, " ").trim();
+    // 두어 문장이면 결이 전해진다. 더 주면 살 이유가 줄고, 덜 주면 무슨 글인지 모른다.
+    const sentences = raw.match(/[^.!?]+[.!?]/g) ?? [raw];
+    return sentences.slice(0, 2).join(" ").trim();
+  })();
+
+  const gated = !unlocked && Boolean(entry.offerId) && Boolean(tasteText);
+
+  const taste = gated && (
+    <section className="rv-taste" aria-label="리딩 맛보기">
+      <h2>{entry.previewSections?.[0]?.title ?? "첫 장"}</h2>
+      <div className="rv-taste-body">
+        <p>{tasteText}</p>
+      </div>
+    </section>
+  );
+
   const paywall = !unlocked && (
     <div className="rv-paywall">
       <strong>
@@ -472,11 +503,20 @@ export default function ReadingReportPage() {
               <ChapterIndex items={indexItems} current={page} onJump={goto} />
             </section>
 
+            {taste}
+            {entry.demo && <p className="rv-demo-note">{DEMO_SOURCE_NOTE}</p>}
             {paywall}
 
-            <button type="button" className="btn rv-start" onClick={() => goto(1)}>
-              1장부터 읽기 →
-            </button>
+            {/*
+              광고에서 들어온 사람에게는 이 버튼을 두지 않는다. 표지에서 끊기로 한
+              흐름인데 "1장부터 읽기" 가 있으면 눌러 보고 잠긴 화면을 만나게 된다.
+              막힌 문을 두 번 여는 경험은 한 번보다 나쁘다.
+            */}
+            {!gated && (
+              <button type="button" className="btn rv-start" onClick={() => goto(1)}>
+                1장부터 읽기 →
+              </button>
+            )}
           </>
         ) : current ? (
           <>
