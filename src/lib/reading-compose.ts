@@ -252,6 +252,47 @@ export interface ComposeOptions {
  * 확인된 뒤에 이어 만든다(doneSections). 결제하지 않는 사람의 유료 본문을
  * 만들지 않기 위해서다.
  */
+/**
+ * 한 번에 몇 조각까지 부를 것인가.
+ *
+ * 0이면 제한하지 않는다 — **기본값이고, 지금까지의 동작 그대로다.**
+ * 유료 키에서는 조각을 한꺼번에 쏘는 편이 빠르고, 그게 이 구조의 이유였다.
+ *
+ * 그런데 무료 티어에서는 그 병렬성이 곧바로 벽이 된다. Gemini 무료 티어로
+ * 15절짜리를 돌렸더니 조각 아홉이 동시에 나가 429(분당 한도)와 503(과부하)로
+ * 네 조각이 통째로 실패했다. 글이 나빠서가 아니라 못 받아서 없어진 것이다.
+ * 재시도도 다시 병렬로 나가서 같은 벽에 다시 부딪혔다.
+ *
+ *   AI_MAX_CONCURRENCY=1   한 번에 하나씩. 느리지만 무료 티어에서 끝까지 간다.
+ */
+function maxConcurrency(): number {
+  const raw = Number(process.env.AI_MAX_CONCURRENCY);
+  if (!Number.isFinite(raw) || raw < 1) return 0;
+  return Math.floor(raw);
+}
+
+/**
+ * 동시에 limit 개까지만 돌린다. limit 이 0이면 전부 한꺼번에.
+ *
+ * 만드는 쪽을 thunk 로 받는 이유: 배열을 만드는 순간 Promise 가 이미 떠 버리면
+ * 제한이 아무 뜻이 없다. 부를 때가 되어서야 부른다.
+ */
+async function runLimited<T>(tasks: Array<() => Promise<T>>, limit: number): Promise<T[]> {
+  if (limit <= 0 || tasks.length <= limit) return Promise.all(tasks.map((task) => task()));
+
+  const out = new Array<T>(tasks.length);
+  let next = 0;
+  const workers = Array.from({ length: limit }, async () => {
+    while (next < tasks.length) {
+      const index = next;
+      next += 1;
+      out[index] = await tasks[index]();
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 export async function composeReport(
   input: ReadingInput,
   complete: Complete,
@@ -296,13 +337,16 @@ export async function composeReport(
     }
   };
 
-  const batchCalls = chapters.map((chapter) =>
-    run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
+  const limit = maxConcurrency();
+  const batchCalls = chapters.map(
+    (chapter) => () =>
+      run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
   );
   // 이어 만들 때는 머리가 이미 있다. 다시 만들면 헤드라인과 요약 카드가 바뀌어,
   // 결제 전에 본 화면과 결제 후에 보는 화면이 달라진다.
-  const headCall = resuming ? Promise.resolve(null) : run("head", headPrompt(inputJson, input.outline), 2600);
-  const [headText, ...chapterTexts] = await Promise.all([headCall, ...batchCalls]);
+  const headCall = () =>
+    resuming ? Promise.resolve(null) : run("head", headPrompt(inputJson, input.outline), 2600);
+  const [headText, ...chapterTexts] = await runLimited([headCall, ...batchCalls], limit);
 
   // 머리가 없으면 리포트가 성립하지 않는다 (이어 만들기는 애초에 머리를 안 만든다).
   const head = headText ? parseStructuredReport(injectDummySection(headText)) : null;
@@ -325,8 +369,8 @@ export async function composeReport(
     // 부딪히는 일이다. Gemini 무료 티어처럼 분당 요청이 적은 곳에서 특히 그렇다.
     // 한 박자 쉬고 부른다 — 어차피 이 경로는 이미 늦은 요청뿐이다.
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-    const retried = await Promise.all(
-      needsRetry.map(({ chapter, index }) => {
+    const retried = await runLimited(
+      needsRetry.map(({ chapter, index }) => () => {
         // 이미 받아둔 절은 다시 시키지 않는다. 제목이 겹치지 않는 항목만 다시 부른다.
         const done = new Set(parsedByBatch[index].map((section) => section.title));
         const missing = chapter.items.filter((item) => ![...done].some((title) => sameItem(title, item)));
@@ -337,7 +381,8 @@ export async function composeReport(
           chapterBudget(target.items.length),
           true
         ).then((text) => ({ text, target }));
-      })
+      }),
+      limit
     );
     retried.forEach(({ text, target }, order) => {
       const { index, chapter } = needsRetry[order];
