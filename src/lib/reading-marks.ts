@@ -89,6 +89,30 @@ export function stripMarks(text: string): string {
     .join("");
 }
 
+/**
+ * 표기를 틀리게 쓴 것들.
+ *
+ * cleanPlain 이 깨진 표기를 조용히 고쳐서 그린다. 화면이 안 깨지는 것은 좋은데,
+ * 그 덕에 **가드가 영영 못 본다.** 실제로 Gemini 가 열일곱 개를 틀리게 썼는데
+ * 검사에 한 건도 안 잡혔다. 두 가지가 조용히 일어난다.
+ *
+ *   [[초반의 끌림|관계를 붙드는 힘]]   -> 색이 사라지고 글자만 남는다.
+ *                                         모델이 강조하려던 자리가 없어진다.
+ *   [[상대.luckContext.yearly.tenGod]] -> 구분자가 없으면 안쪽을 통째로 살린다.
+ *                                         내부 경로가 화면에 그대로 뜬다.
+ *
+ * 렌더링을 고칠 일이 아니다 — 문장을 잃는 것보다는 낫다. 대신 여기서 센다.
+ */
+export function brokenMarks(text: string): string[] {
+  const out: string[] = [];
+  const all = text.match(/\[\[[^\]]*\]\]/g) ?? [];
+  for (const mark of all) {
+    if (/^\[\[(주의|시기|행동)\|[^\]|]+\]\]$/.test(mark)) continue;
+    out.push(mark);
+  }
+  return out;
+}
+
 /** 한 덩어리에 강조가 몇 개 붙었는지 — 가드가 이 숫자를 본다 */
 export function countMarks(text: string): Record<MarkKind, number> {
   const counts: Record<MarkKind, number> = { 핵심: 0, 주의: 0, 시기: 0, 행동: 0 };

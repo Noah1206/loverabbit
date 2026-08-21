@@ -9,7 +9,7 @@
 // 8000 토큰짜리 생성을 headline이 세 글자 길다고 다시 돌릴 이유는 없다.
 
 import { slimFacts, type StructuredReport } from "@/lib/reading-prompt";
-import { countMarks, stripMarks, totalMarks } from "@/lib/reading-marks";
+import { brokenMarks, countMarks, stripMarks, totalMarks } from "@/lib/reading-marks";
 import { coverageFindings, productCoverage } from "@/lib/reading-coverage";
 import { THREE_XING_GROUP_LABELS, XING_GROUP_LABEL, xingLabel } from "@/lib/myeongri/xing-name";
 import type { SajuFacts } from "@/lib/saju-facts";
@@ -57,6 +57,8 @@ export const DEPLOY_BLOCKING_CODES = new Set([
   "GUARD-FACT-PATH-MISMATCH",
   "GUARD-FACT-CHIP-UNUSED",
   "GUARD-RULE-NOT-MATCHED",
+  "GUARD-PILLAR-DUMP",
+  "GUARD-MARK-MALFORMED",
   "PRODUCT-LOW-RULE-COVERAGE",
   "PRODUCT-REPETITIVE-RULE",
 ]);
@@ -459,6 +461,34 @@ function myeongriChecks(report: StructuredReport, options: GuardOptions): GuardV
       });
     }
 
+    // ── 명식을 그대로 쏟아 놓지 않았는가 ──
+    //
+    // "당신은 임신(정관)과 계축(편인)의 기운을 가지고 있어요" — 간지를 그대로 나열한
+    // 것이다. 독자는 그 글자를 모르고, 알 필요도 없게 하려고 변환표를 만들었다.
+    //
+    // 낱말만으로는 못 잡는다. 임신은 아이를 갖는 일이기도 하고 미·사는 흔한 글자다.
+    // 그래서 **이 명식의 기둥이 한 절에 둘 이상** 나올 때만 본다 — 하나는 우연일 수
+    // 있어도 둘은 명식을 옮겨 적은 것이다.
+    for (const chart of charts) {
+      const pillars = [
+        chart.fourPillars.year,
+        chart.fourPillars.month,
+        chart.fourPillars.day,
+        chart.fourPillars.hour,
+      ]
+        .filter(Boolean)
+        .map((pillar) => `${pillar!.stem}${pillar!.branch}`);
+      const dumped = [...new Set(pillars)].filter((name) => body.includes(name));
+      if (dumped.length < 2) continue;
+      add({
+        kind: "용어",
+        code: "GUARD-PILLAR-DUMP",
+        where,
+        blocking: true,
+        detail: `명식 글자를 그대로 나열했다 (${dumped.join(", ")}) — 독자가 모르는 글자다`,
+      });
+    }
+
     // ── 같은 자리를 두 구조로 세지 않았는가 ──
     //
     // 한 문장 안에서 함께 부른 것은 묶어 읽은 것이다 —
@@ -727,8 +757,28 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
         });
       }
     }
-    // 화면에 대괄호가 그대로 뜨는 것만은 막아야 한다
-    if (stripMarks(marked) !== marked && /\[\[|\]\]/.test(stripMarks(marked))) {
+    // 표기를 틀리게 쓴 것.
+    //
+    // 렌더러(cleanPlain)가 조용히 고쳐 주므로 화면은 안 깨진다. 그래서 오래 못 봤다.
+    // 다만 고쳐 주는 대가로 두 가지가 조용히 일어난다 — 모델이 강조하려던 자리의
+    // 색이 사라지고, 구분자가 없는 것은 안쪽이 통째로 살아 내부 경로가 화면에 뜬다.
+    const broken = brokenMarks(marked);
+    if (broken.length > 0) {
+      const leaks = broken.filter((mark) => !mark.includes("|"));
+      add({
+        kind: "강조",
+        code: "GUARD-MARK-MALFORMED",
+        where,
+        detail:
+          `강조 표기 ${broken.length}개가 틀렸다 (${broken[0].slice(0, 40)}…). ` +
+          `라벨은 주의·시기·행동 셋뿐이고 핵심은 **로 쓴다` +
+          (leaks.length > 0 ? ` — 그중 ${leaks.length}개는 구분자가 없어 안쪽이 그대로 화면에 뜬다` : ""),
+        // 색이 사라지는 것은 되돌릴 수 있지만, 내부 경로가 화면에 뜨는 것은 아니다.
+        blocking: leaks.length > 0,
+      });
+    }
+    // 그래도 대괄호가 남았다면 렌더러도 못 고친 것이다.
+    if (/\[\[|\]\]/.test(stripMarks(marked))) {
       add({
         kind: "강조",
         where,
