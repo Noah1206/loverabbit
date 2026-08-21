@@ -718,24 +718,27 @@ label {
   height: 100%;
 }
 
+/* 카드 그림 위에 그대로 얹히는 알약이라 두 가지를 같이 봐야 한다.
+   - 글자색을 #fff 로 박아두면 안 된다. 다크 테마의 --accent 가 #f2f2f4 라
+     흰 배경에 흰 글씨가 되어 배지가 통째로 사라진다. 실제로 그랬다.
+     --bg 를 쓰면 두 테마 모두 배경과 정반대 명도로 떨어진다.
+   - 밑에 깔린 것이 사진이라 밝은 그림 위에서는 알약 경계가 녹는다.
+     그림자로 띄워 둔다. */
 .fortune-grid-badge {
   position: absolute;
   top: 10px;
   left: 10px;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
-  color: #fff;
-  font-size: 0.63rem;
+  color: var(--bg);
+  font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .fortune-grid-badge-popular {
   background: var(--accent);
-}
-
-.fortune-grid-badge-new {
-  background: var(--violet);
 }
 
 .fortune-grid-copy {
@@ -746,7 +749,7 @@ label {
 }
 
 /* 카드가 절반 폭이 되면서 제목 위 말머리는 읽히지 않고 자리만 먹는다.
-   같은 정보는 인기/NEW 배지와 상세 페이지가 이미 들고 있다. */
+   같은 정보는 인기 배지와 상세 페이지가 이미 들고 있다. */
 .fortune-grid-kicker {
   display: none;
 }

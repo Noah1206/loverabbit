@@ -207,9 +207,6 @@ export default function AppHome() {
                   {p.tags.includes("popular") && (
                     <span className="fortune-grid-badge fortune-grid-badge-popular">인기</span>
                   )}
-                  {p.tags.includes("new") && (
-                    <span className="fortune-grid-badge fortune-grid-badge-new">NEW</span>
-                  )}
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
                     <strong>{p.title}</strong>
