@@ -7069,29 +7069,13 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 /* ── 사주 생성 대기 — 명식이 세워지고 단계가 체크되는 화면 ── */
 
-/* 네 기둥이 년주부터 하나씩 떠오른다. SajuChart 의 DOM 은 시-일-월-년 순서라
-   (만세력 관습, 오른쪽이 년주) 등장 지연은 거꾸로 준다: 마지막 자식(년주)이 0ms.
-   .sj-axis 가 첫 자식이라 셀은 2~5번째다. */
-.reading-generating-chart {
-  max-width: 340px;
-  margin: 0 auto 20px;
-  text-align: initial;
-}
-
-.reading-generating-chart .sj-cell,
-.reading-generating-chart .sj-col-head {
-  opacity: 0;
-  transform: translateY(12px) scale(0.94);
-  animation: reading-pillar-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-.reading-generating-chart .sj-row > :nth-child(5) { animation-delay: 150ms; }
-.reading-generating-chart .sj-row > :nth-child(4) { animation-delay: 700ms; }
-.reading-generating-chart .sj-row > :nth-child(3) { animation-delay: 1250ms; }
-.reading-generating-chart .sj-row > :nth-child(2) { animation-delay: 1800ms; }
-
-@keyframes reading-pillar-rise {
-  to { opacity: 1; transform: translateY(0) scale(1); }
+/* 명식 표는 넣었다 뺐다 (2026-08-22). 화면에 볼 것이 많아 어디를 봐야 할지
+   모르겠다는 피드백 - 이 화면은 체크리스트 하나만 남긴다. */
+.reading-generating-kicker {
+  margin-bottom: 4px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .reading-generating-stages {
@@ -7180,12 +7164,6 @@ body:has(.product-page[data-landing]) .consent-banner {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reading-generating-chart .sj-cell,
-  .reading-generating-chart .sj-col-head {
-    opacity: 1;
-    transform: none;
-    animation: none;
-  }
   .reading-generating-stages li[data-state='active'] .reading-generating-stage-mark,
   .reading-generating-stages li[data-state='done'] .reading-generating-stage-mark,
   .reading-generating-dots i {

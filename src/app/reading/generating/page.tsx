@@ -2,13 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import BrandMark from "@/components/BrandMark";
-import SajuChart from "@/components/SajuChart";
 import { saveToArchive } from "@/lib/archive";
-import { computeSaju } from "@/lib/saju";
-import { lunarToSolar } from "@/lib/lunar";
 import { PRODUCT_MAP } from "@/lib/products";
 import {
   clearReadingDraft,
@@ -22,8 +19,10 @@ import { getUser } from "@/lib/user";
 
 // 단계 문구. 실제 파이프라인(명식 계산 -> 규칙 매칭 -> 문장 생성)을 닮게 적되,
 // 마지막 항목이 "기다리는 자리"다 - 응답이 올 때까지 이 줄에서 점이 돈다.
+// 넷인 것은 의도다. 명식 표를 지우면서 "네 기둥을 세웠어요"도 함께 뺐다 -
+// 화면에 기둥이 없는데 세웠다고 말하면 빈말이 된다. (2026-08-22 운영자 피드백:
+// 볼 것이 많아 어디를 봐야 할지 모르겠다 - 화면을 체크리스트 하나로 줄인다)
 const STAGES = [
-  "네 기둥을 세웠어요",
   "일간의 기질을 읽는 중",
   "합과 충을 맞춰보는 중",
   "흐름을 문장으로 옮기는 중",
@@ -64,37 +63,12 @@ export default function ReadingGeneratingPage() {
   // 단계 전환 시각표. 실제 소요 15~20초에 맞춘 배분이고, 마지막 단계는 멈춰서
   // 응답을 기다린다 - 그래서 시각표는 단계 수보다 하나 적다.
   useEffect(() => {
-    const timers = [2000, 5500, 10000, 15000].map((at, index) =>
+    const timers = [3500, 9000, 15000].map((at, index) =>
       setTimeout(() => setStage((now) => Math.max(now, index + 1)), at)
     );
     return () => timers.forEach(clearTimeout);
   }, [runId]);
 
-  // 명식은 초안에서 바로 계산한다. 음력이면 양력으로 바꾸고, 시각 모름이면
-  // 시주 자리가 "모름"으로 비는 것까지 확인 화면과 같은 규칙이다.
-  const chart = useMemo(() => {
-    const me = draft?.me;
-    if (!me) return null;
-    const year = parseInt(me.year, 10);
-    const month = parseInt(me.month, 10);
-    const day = parseInt(me.day, 10);
-    if ([year, month, day].some(Number.isNaN)) return null;
-    const solar =
-      me.calendar === "lunar"
-        ? lunarToSolar({ year, month, day, leapMonth: me.leapMonth === true })?.solar ?? null
-        : { year, month, day };
-    if (!solar) return null;
-    try {
-      return computeSaju({
-        year: solar.year,
-        month: solar.month,
-        day: solar.day,
-        hour: !me.hour || me.hour === "unknown" ? null : parseInt(me.hour, 10),
-      });
-    } catch {
-      return null;
-    }
-  }, [draft]);
 
   const generate = useCallback(
     async (job: ReadingDraft) => {
@@ -221,14 +195,11 @@ export default function ReadingGeneratingPage() {
         </>
       ) : (
         <>
-          <h1 style={{ marginBottom: 8 }}>{label} 사주를 푸는 중이에요</h1>
-          <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>20초쯤 걸려요.</p>
-
-          {chart && (
-            <div className="reading-generating-chart" key={runId}>
-              <SajuChart chart={chart} />
-            </div>
-          )}
+          {/* 제목은 두 줄로 가른다. 상품명을 h1 에 이어 붙이면 긴 이름 + 이모지가
+              "푸 / 는" 같은 어색한 줄바꿈을 만든다. 상품명은 작게 위에, 본문장은
+              짧게 아래에 - 각자 한 줄로 끝난다. */}
+          <p className="reading-generating-kicker">{label}</p>
+          <h1 style={{ fontSize: "1.15rem", marginBottom: 26 }}>사주를 푸는 중이에요</h1>
 
           {/* role=status: 단계가 바뀔 때 보조기기가 활성 줄을 읽는다 */}
           <ol className="reading-generating-stages" role="status" aria-label="사주 푸는 단계">
