@@ -245,6 +245,11 @@ export default function ReadingReportPage() {
     if (!unlocked || !id) return;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
+    // 서버 작업이 소리 없이 죽으면 pending 이 영영 남는다. 그림 전체가 길어야
+    // 5분이므로, 7분을 넘긴 대기는 실패로 접는다 - 오지 않을 그림을 계속
+    // 기다리게 두지 않는다.
+    const startedAt = Date.now();
+    const GIVE_UP_MS = 7 * 60 * 1000;
 
     const done = (list: ReadingImage[]) =>
       list.length > 0 && list.every((image) => image.status !== "pending");
@@ -262,6 +267,10 @@ export default function ReadingReportPage() {
         const data = (await res.json()) as { images?: ReadingImage[] };
         const list = data.images ?? [];
         if (stopped) return;
+        if (!done(list) && Date.now() - startedAt > GIVE_UP_MS) {
+          setImages(list.map((image) => (image.status === "pending" ? { ...image, status: "failed" as const } : image)));
+          return;
+        }
         setImages(list);
         if (!done(list)) timer = setTimeout(() => void tick(false), 6000);
       } catch {

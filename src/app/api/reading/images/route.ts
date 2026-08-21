@@ -9,6 +9,8 @@
 
 import { NextResponse } from "next/server";
 import { loadImageState } from "@/lib/reading-image-store";
+import { waitUntil } from "@vercel/functions";
+
 import { runImageJob } from "@/lib/reading-image-job";
 import { pickIllustrated, TALISMAN_SLOT } from "@/lib/reading-images";
 import { loadResume } from "@/lib/reading-resume";
@@ -26,6 +28,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 function readable(id: string): boolean {
   return UUID.test(id) || (process.env.NODE_ENV !== "production" && /^preview-[a-z0-9]{1,20}$/.test(id));
 }
+
+// 그림은 다섯 장에 장당 수십 초다. 기본 한도로는 waitUntil 이 붙들어도 모자란다.
+export const maxDuration = 300;
 
 export async function GET(request: Request) {
   const readingId = new URL(request.url).searchParams.get("readingId") ?? "";
@@ -79,8 +84,12 @@ export async function POST(request: Request) {
 
   const resume = await loadResume(readingId).catch(() => null);
 
-  // 던져 두고 곧바로 응답한다. 5분을 기다리게 할 수 없다.
-  void runImageJob({
+  // 곧바로 응답하되, 작업은 waitUntil 로 함수 수명에 묶는다.
+  //
+  // void 로 던지면 로컬에서는 돌지만 Vercel 서버리스에서는 응답을 돌려주는
+  // 순간 함수가 얼어 작업이 죽는다. 그러면 상태가 pending 인 채 영영 남고,
+  // 화면은 오지 않을 그림 자리를 계속 비워 둔다 - 실제로 그랬다.
+  const job = runImageJob({
     readingId,
     chapters,
     occupation: resume?.occupation,
@@ -88,6 +97,12 @@ export async function POST(request: Request) {
     chart: stored.chart?.me,
     label: product?.shortLabel ?? product?.title,
   });
+  try {
+    waitUntil(job);
+  } catch {
+    // Vercel 요청 컨텍스트 밖(로컬 next start 등)에서는 그냥 백그라운드로 돈다.
+    void job;
+  }
 
   // 화면이 어느 장에 그림이 오는지 알아야 그 자리에만 틀을 깐다.
   // 그림 없는 장에 틀을 깔면 오지 않을 것을 기다리게 된다.

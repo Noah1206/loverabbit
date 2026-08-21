@@ -141,7 +141,14 @@ export function ChapterPanel({ chapter }: { chapter: ReadingChapter }) {
 function ChapterArt({ image }: { image?: ReadingImage | null }) {
   if (!image || image.status === "failed") return null;
   if (image.status === "pending") {
-    return <div className="rv-art rv-art-wait" aria-label="그림을 그리는 중이에요" />;
+    // 그림 크기(정사각형)로 자리를 비워 두지 않는다. 그림은 분 단위로 늦게 오고
+    // 영영 안 올 수도 있는데, 화면 하나를 통째로 비워 두면 깨진 페이지로 읽힌다.
+    // 작은 띠 하나가 "오는 중"만 말하고, 도착하면 그때 제 크기로 선다.
+    return (
+      <div className="rv-art-wait" role="status">
+        삽화를 그리는 중이에요
+      </div>
+    );
   }
   return (
     <figure className="rv-art">
