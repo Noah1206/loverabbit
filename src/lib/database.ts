@@ -1167,8 +1167,17 @@ export async function listPublishedReviews(input: {
   const { data, error } = await query;
   if (error) throw databaseError("후기 목록 조회", error);
 
+  // 뽑는 순서와 보여주는 순서를 나눈다.
+  //
+  // 뽑을 때는 최신순이어야 한다. limit 이 걸리는 날 잘려 나가는 쪽은 오래된
+  // 후기여야지, 방금 받은 후기가 아니다. 오름차순으로 질의하면 정확히 반대가
+  // 되어 새 후기가 조용히 사라진다.
+  //
+  // 그렇게 뽑은 것을 뒤집어 내보낸다. 화면은 오래된 것부터 본다.
+  const rows = ((data ?? []) as Record<string, unknown>[]).map(mapReview).reverse();
+
   return {
-    rows: ((data ?? []) as Record<string, unknown>[]).map(mapReview),
+    rows,
     total: all.length,
     average,
     ratedCount: scores.length,
