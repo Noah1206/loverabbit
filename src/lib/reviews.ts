@@ -25,8 +25,8 @@ export interface PublicReview {
   productId: string | null;
   /** 베타 후기에는 상품명이 없다. 그때 이름은 다른 서비스를 가리킨다. */
   productLabel: string | null;
-  /** 이 사람이 지금까지 결제한 횟수 — "3번 구매" */
-  purchaseCount: number;
+  /** 여기서 결제한 횟수 — "3번 구매". 베타 후기는 셀 근거가 없어 비어 있다. */
+  purchaseCount: number | null;
   body: string | null;
   createdAt: string;
 }
@@ -57,6 +57,20 @@ export function maskName(raw: string | null | undefined, fallbackEmail?: string 
   if (chars.length === 1) return "*";
   if (chars.length === 2) return `${chars[0]}*`;
   return `${chars[0]}${"*".repeat(chars.length - 2)}${chars[chars.length - 1]}`;
+}
+
+const HANGUL = /[가-힣]/;
+
+/**
+ * 화면에 내보낼 이름.
+ *
+ * 베타 원본의 마스킹은 'u*6', 's*m', '**' 처럼 한글이 한 글자도 안 남은 것들이
+ * 섞여 있다. 그대로 두면 이름 자리가 깨진 것처럼 보인다. 그렇다고 그럴듯한
+ * 이름을 지어 붙이면 있지도 않은 고객을 만드는 셈이라, 사람 이름인 척하지 않는
+ * '익명'으로 둔다.
+ */
+export function readableName(masked: string): string {
+  return HANGUL.test(masked) ? masked : "익명";
 }
 
 /** 후기 본문 검사 — 별점만 남기는 것도 허용하므로 빈 값은 null 로 통과시킨다. */

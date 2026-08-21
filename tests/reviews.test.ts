@@ -14,6 +14,7 @@ import {
   maskName,
   normalizeRating,
   normalizeReviewBody,
+  readableName,
 } from "@/lib/reviews";
 
 describe("이름 가리기", () => {
@@ -120,7 +121,7 @@ describe("베타 후기 원본", () => {
     );
   });
 
-  it("모든 후기에 작성자·상품·본문이 있다", () => {
+  it("모든 후기에 작성자와 본문이 있다", () => {
     for (const review of raw.reviews) {
       for (const field of ["name", "body"]) {
         const value = review[field];
@@ -129,18 +130,16 @@ describe("베타 후기 원본", () => {
           `${field} 가 비었다: ${JSON.stringify(review)}`
         );
       }
-      assert.ok(
-        Number.isInteger(review.purchaseCount) && (review.purchaseCount as number) >= 1,
-        `purchaseCount 가 이상하다: ${JSON.stringify(review)}`
-      );
     }
   });
 
-  it("이름은 이미 가려진 채로 들어 있다", () => {
+  it("이름은 가려진 채로 있다 — 멀쩡한 이름으로 바꾸지 않는다", () => {
+    // 원본은 이미 가려진 이름으로 왔다. 이걸 그럴듯한 실명으로 바꾸면 후기를
+    // 편집하는 게 아니라 있지도 않은 고객을 만드는 일이 된다.
     for (const review of raw.reviews) {
       assert.ok(
         String(review.name).includes("*"),
-        `가려지지 않은 이름이 있다: ${String(review.name)}`
+        `가려지지 않은 이름이 있다: ${String(review.name)} — 이름을 지어내지 마라.`
       );
     }
   });
@@ -162,12 +161,18 @@ describe("베타 후기 원본", () => {
     }
   });
 
-  it("상품명을 들고 있지 않다", () => {
-    // 베타 때 상품 이름('청월아씨 정통사주', '팩폭점사.zip', '자미두수'…)은 그것
-    // 자체가 다른 점술가·다른 서비스를 가리킨다. 홈에 붙으면 어디서 받은 후기인지가
-    // 드러나서 필드를 아예 없앴다. 누가 되살리면 여기서 걸린다.
-    const withProduct = raw.reviews.filter((review) => "product" in review);
-    assert.deepEqual(withProduct, [], "베타 후기에 상품명을 붙이지 마라.");
+  it("이름·시각·본문 말고는 아무것도 들고 있지 않다", () => {
+    // 별점·상품명·구매 횟수는 전부 여기서 셀 근거가 없는 값이라 필드째로 없앴다.
+    // 편의로 되살리는 순간 홈에 사실이 아닌 말이 걸린다.
+    const ALLOWED = new Set(["name", "at", "body", "note"]);
+    for (const review of raw.reviews) {
+      const extra = Object.keys(review).filter((key) => !ALLOWED.has(key));
+      assert.deepEqual(
+        extra,
+        [],
+        `베타 후기에 없어야 할 값이 붙었다: ${extra.join(", ")} — 별점·상품명·구매 횟수는 만들지 마라.`
+      );
+    }
   });
 
   it("어느 칸에도 점술가 이름이 남아 있지 않다", () => {
@@ -188,6 +193,21 @@ describe("베타 후기 원본", () => {
         body.length >= 1 && body.length <= REVIEW_BODY_MAX,
         `본문이 한도를 벗어난다 (${body.length}자): ${String(review.name)}`
       );
+    }
+  });
+});
+
+describe("깨진 이름 자리", () => {
+  it("한글이 없는 마스킹은 '익명'으로 나간다", () => {
+    // 원본 마스킹에 'u*6', 's*m', '**' 처럼 한글이 한 글자도 안 남은 것들이 섞여 있다.
+    for (const broken of ["**", "u*6", "s*m", "**I", "J*a", "**J"]) {
+      assert.equal(readableName(broken), "익명");
+    }
+  });
+
+  it("읽을 수 있는 이름은 그대로 둔다", () => {
+    for (const fine of ["박*농", "김*환", "**영", "미*팍"]) {
+      assert.equal(readableName(fine), fine);
     }
   });
 });

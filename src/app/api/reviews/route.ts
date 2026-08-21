@@ -10,6 +10,7 @@ import {
 import {
   normalizeRating,
   normalizeReviewBody,
+  readableName,
   type PublicReview,
   type ReviewSummary,
 } from "@/lib/reviews";
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     const reviews: PublicReview[] = rows.map((row) => ({
       id: row.id,
       source: row.source,
-      name: row.displayName,
+      name: readableName(row.displayName),
       rating: row.rating,
       productId: row.productId,
       productLabel: row.productLabel,

@@ -8,8 +8,8 @@
  * 않는다 — 특히 별점. 베타 때는 별점을 받지 않았고, 5점으로 채워 넣으면 홈에
  * 걸리는 평균이 거짓말이 된다.
  *
- * 상품명도 붙이지 않는다. 베타 때 상품 이름은 그것 자체가 다른 점술가·다른
- * 서비스를 가리켜서, 홈에 걸리면 어디서 받은 후기인지가 드러난다.
+ * 상품명과 구매 횟수도 붙이지 않는다. 베타 때 상품 이름은 그것 자체가 다른
+ * 점술가·다른 서비스를 가리키고, 구매 횟수는 그 플랫폼에서 산 횟수다.
  *
  * 넣는 코드가 여기 있고 src/lib 에 없는 것은 의도다. 앱 코드에 "후기를 만들어
  * 넣는 함수"가 있으면 언젠가 요청 핸들러가 그걸 부른다. 이 길은 사람이 손으로
@@ -27,7 +27,6 @@ import { createClient } from "@supabase/supabase-js";
 
 interface RawReview {
   name: string;
-  purchaseCount: number;
   body: string;
   /** "2026-08-21 17:51" — KST. 원본에서 잘려 모르면 null 이고, 그건 건너뛴다. */
   at: string | null;
@@ -63,7 +62,6 @@ interface Entry {
   import_key: string;
   display_name: string;
   body: string;
-  purchase_count: number;
   created_at: string;
 }
 
@@ -78,7 +76,6 @@ function load(): { entries: Entry[]; total: number; undated: RawReview[]; duplic
       import_key: importKey(review),
       display_name: review.name.trim(),
       body: review.body.trim(),
-      purchase_count: Math.max(Number(review.purchaseCount) || 1, 1),
       created_at: parseKst(review.at as string),
     }));
 
@@ -122,7 +119,7 @@ async function main() {
   if (dryRun) {
     console.log("\n[--dry-run] 실제로 넣지 않았습니다. 들어갈 것 미리보기:");
     for (const entry of entries.slice(0, 5)) {
-      console.log(`  ${entry.created_at}  ${entry.display_name}  ${entry.purchase_count}번 구매`);
+      console.log(`  ${entry.created_at}  ${entry.display_name}  "${entry.body.slice(0, 24)}"`);
     }
     if (entries.length > 5) console.log(`  ... 외 ${entries.length - 5}건`);
     console.log("\n별점은 원본에 없어 넣지 않습니다 (rating = null).");
@@ -176,7 +173,7 @@ async function main() {
     if (
       row.body !== entry.body ||
       row.product_label !== null ||
-      Number(row.purchase_count) !== entry.purchase_count ||
+      row.purchase_count !== null ||
       row.import_key !== entry.import_key
     ) {
       stale.push({ row, entry });
@@ -190,7 +187,7 @@ async function main() {
         body: entry.body,
         product_label: null,
         product_id: null,
-        purchase_count: entry.purchase_count,
+        purchase_count: null,
         import_key: entry.import_key,
         updated_at: new Date().toISOString(),
       })
@@ -208,6 +205,7 @@ async function main() {
         source: "beta",
         product_id: null,
         product_label: null, // 베타 상품명은 다른 서비스를 가리킨다. 붙이지 않는다.
+        purchase_count: null, // 베타 플랫폼에서 산 횟수다. 여기 붙일 근거가 없다.
         rating: null, // 원본에 없다. 채우지 마라.
         status: "published",
       }))

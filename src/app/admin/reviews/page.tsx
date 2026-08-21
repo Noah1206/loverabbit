@@ -14,7 +14,7 @@ type Review = {
   /** 베타 후기에는 별점이 없다 */
   rating: number | null;
   body: string | null;
-  purchaseCount: number;
+  purchaseCount: number | null;
   status: "published" | "hidden";
   hiddenReason: string | null;
   importKey: string | null;
@@ -171,9 +171,9 @@ export default function AdminReviewsPage() {
         후기는 결제하고 리딩을 열어 본 분만 쓸 수 있고, 들어오는 즉시 홈에 노출됩니다.
         도배·욕설·개인정보가 담긴 경우에만 사유를 적어 내려주세요.
         <br />
-        <b>출처 &lsquo;베타 테스트&rsquo;</b>는 베타 때 받아 옮겨 담은 후기라 별점도 상품명도
-        없습니다 (<code>npm run reviews:import</code>). 베타 때 상품 이름은 다른 서비스를
-        가리키니 나중에 채워 넣지 마세요.
+        <b>출처 &lsquo;베타 테스트&rsquo;</b>는 베타 때 받아 옮겨 담은 후기라 별점·상품명·구매
+        횟수가 없습니다 (<code>npm run reviews:import</code>). 셋 다 여기서 셀 근거가 없는
+        값이니 나중에 채워 넣지 마세요.
       </p>
 
       <div className="inquiry-chips" style={{ marginBottom: 18 }}>
@@ -225,7 +225,7 @@ export default function AdminReviewsPage() {
               </div>
               <div>
                 <dt>구매 횟수</dt>
-                <dd>{review.purchaseCount}번</dd>
+                <dd>{review.purchaseCount === null ? "-" : `${review.purchaseCount}번`}</dd>
               </div>
               <div>
                 <dt>리딩</dt>
