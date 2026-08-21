@@ -6,11 +6,8 @@
 //
 //   npm run demo:fixture -- --product insun
 //
-// 무료 티어에서 돌릴 때:
-//   AI_PROVIDER=gemini AI_MAX_CONCURRENCY=1 AI_MIN_INTERVAL_MS=13000 npm run demo:fixture -- --product insun
-//
-// 하루 한도(20요청)를 넘으면 그냥 실패한다. 실패한 채로 빈 파일을 남기지 않는다 —
-// 반쯤 만들어진 데모가 커밋되면 그게 사용자에게 나간다.
+// 실패하거나 절이 모자라면 빈 파일을 남기지 않는다 — 반쯤 만들어진 데모가
+// 커밋되면 그게 사용자에게 나간다.
 
 import { writeFileSync, readFileSync, existsSync } from "node:fs";
 
@@ -73,7 +70,7 @@ const composed = await composeReport(
 
 if (!composed.report) {
   console.error(`\n만들지 못했어요: ${composed.failedParts.join(", ") || "불명"}`);
-  console.error("무료 티어라면 하루 한도(20요청)일 수 있어요. 빈 파일은 남기지 않습니다.");
+  console.error("빈 파일은 남기지 않습니다.");
   process.exit(1);
 }
 

@@ -29,11 +29,9 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
   "gpt-4o": { input: 2.5, cachedInput: 1.25, output: 10.0 },
 
   // ── Google ──
-  "gemini-2.5-flash": {
-    input: 0,
-    output: 0,
-    note: "무료 티어에서 쓰는 중 — 하루 20요청, 분당 5요청. 유료로 넘어가면 단가가 붙는다.",
-  },
+  // 견주기용으로 남겨 둔다. 무료 티어는 하루 20요청·분당 5요청이라 상품에는 못 쓴다 —
+  // 한 번 재 봤더니 같은 프롬프트에서 위반 92건, 구조 용어 33회가 나왔다.
+  "gemini-2.5-flash": { input: 0.3, output: 2.5, note: "견주기용. 상품 경로에 쓰지 않는다." },
 
   // ── Anthropic ──
   "claude-sonnet-5": { input: 3.0, cachedInput: 0.3, output: 15.0 },

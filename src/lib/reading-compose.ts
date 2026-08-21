@@ -271,56 +271,6 @@ function maxConcurrency(): number {
   return Math.floor(raw);
 }
 
-/**
- * 요청과 요청 사이에 둘 최소 간격(ms).
- *
- * 동시 실행을 하나로 줄여도 부족했다. Gemini 무료 티어는 **분당 다섯**이라는 한도가
- * 따로 있는데, 한 요청이 10~20초면 1분에 서넛에서 여섯이 나가 그 벽에 닿는다.
- * 동시성은 "몇 개가 겹치는가"이고 이건 "얼마나 자주 나가는가"라서, 둘은 다른 축이다.
- *
- *   AI_MIN_INTERVAL_MS=13000   분당 다섯을 넘지 않는다
- *
- * 안 주면 간격을 두지 않는다 — 유료 경로는 이 값이 없어야 빠르다.
- */
-function minInterval(): number {
-  const raw = Number(process.env.AI_MIN_INTERVAL_MS);
-  if (!Number.isFinite(raw) || raw <= 0) return 0;
-  return Math.floor(raw);
-}
-
-/**
- * 동시에 limit 개까지만 돌린다. limit 이 0이면 전부 한꺼번에.
- *
- * 만드는 쪽을 thunk 로 받는 이유: 배열을 만드는 순간 Promise 가 이미 떠 버리면
- * 제한이 아무 뜻이 없다. 부를 때가 되어서야 부른다.
- */
-async function runLimited<T>(tasks: Array<() => Promise<T>>, limit: number): Promise<T[]> {
-  const interval = minInterval();
-  if (interval <= 0 && (limit <= 0 || tasks.length <= limit)) {
-    return Promise.all(tasks.map((task) => task()));
-  }
-
-  const out = new Array<T>(tasks.length);
-  let next = 0;
-  // 마지막으로 요청을 띄운 시각. 일꾼들이 함께 본다 — 간격은 전체 흐름의 성질이지
-  // 일꾼 하나의 성질이 아니다.
-  let lastStart = 0;
-  const workers = Array.from({ length: Math.max(1, limit) }, async () => {
-    while (next < tasks.length) {
-      const index = next;
-      next += 1;
-      if (interval > 0) {
-        const wait = lastStart + interval - Date.now();
-        if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
-        lastStart = Date.now();
-      }
-      out[index] = await tasks[index]();
-    }
-  });
-  await Promise.all(workers);
-  return out;
-}
-
 export async function composeReport(
   input: ReadingInput,
   complete: Complete,
@@ -365,16 +315,13 @@ export async function composeReport(
     }
   };
 
-  const limit = maxConcurrency();
-  const batchCalls = chapters.map(
-    (chapter) => () =>
-      run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
+  const batchCalls = chapters.map((chapter) =>
+    run(chapter.label, chapterPrompt(inputJson, chapter, input.outline), chapterBudget(chapter.items.length))
   );
   // 이어 만들 때는 머리가 이미 있다. 다시 만들면 헤드라인과 요약 카드가 바뀌어,
   // 결제 전에 본 화면과 결제 후에 보는 화면이 달라진다.
-  const headCall = () =>
-    resuming ? Promise.resolve(null) : run("head", headPrompt(inputJson, input.outline), 2600);
-  const [headText, ...chapterTexts] = await runLimited([headCall, ...batchCalls], limit);
+  const headCall = resuming ? Promise.resolve(null) : run("head", headPrompt(inputJson, input.outline), 2600);
+  const [headText, ...chapterTexts] = await Promise.all([headCall, ...batchCalls]);
 
   // 머리가 없으면 리포트가 성립하지 않는다 (이어 만들기는 애초에 머리를 안 만든다).
   const head = headText ? parseStructuredReport(injectDummySection(headText)) : null;
@@ -397,8 +344,8 @@ export async function composeReport(
     // 부딪히는 일이다. Gemini 무료 티어처럼 분당 요청이 적은 곳에서 특히 그렇다.
     // 한 박자 쉬고 부른다 — 어차피 이 경로는 이미 늦은 요청뿐이다.
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-    const retried = await runLimited(
-      needsRetry.map(({ chapter, index }) => () => {
+    const retried = await Promise.all(
+      needsRetry.map(({ chapter, index }) => {
         // 이미 받아둔 절은 다시 시키지 않는다. 제목이 겹치지 않는 항목만 다시 부른다.
         const done = new Set(parsedByBatch[index].map((section) => section.title));
         const missing = chapter.items.filter((item) => ![...done].some((title) => sameItem(title, item)));
@@ -409,8 +356,7 @@ export async function composeReport(
           chapterBudget(target.items.length),
           true
         ).then((text) => ({ text, target }));
-      }),
-      limit
+      })
     );
     retried.forEach(({ text, target }, order) => {
       const { index, chapter } = needsRetry[order];
