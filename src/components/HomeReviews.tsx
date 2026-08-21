@@ -8,12 +8,13 @@ import type { PublicReview, ReviewSummary } from "@/lib/reviews";
 // 여기 나오는 것은 전부 /api/reviews 가 내려준 것이고, 손으로 채워 넣을 자리는 없다.
 // 출처가 두 가지이고 둘을 구분해서 보여준다:
 //
-//   live  여기서 결제하고 리딩을 열어 본 사람이 남긴 것 — 별점·상품명·구매 횟수가 있다
-//   beta  베타 테스트 때 받은 후기 — 셋 다 없다
+//   live  여기서 결제하고 리딩을 열어 본 사람이 남긴 것 — 별점·상품명이 있다
+//   beta  베타 테스트 때 받은 후기 — 둘 다 없다
 //
 // 없는 자리를 채우지 마라. 별점은 베타 때 받지 않았고, 상품명은 다른 서비스를
-// 가리키고, 구매 횟수는 여기서 산 횟수가 아니다. 후기가 하나도 없으면
-// 섹션 자체가 안 나온다.
+// 가리킨다. 구매 횟수는 아예 그리지 않는다 — 베타 것은 여기서 산 횟수가 아닌데,
+// 어디서 샀는지 밝히지 않고 적으면 러브레빗에서 그만큼 샀다는 말이 된다.
+// 후기가 하나도 없으면 섹션 자체가 안 나온다.
 
 // 처음엔 몇 개만 편다. 나머지는 "전체보기"를 누른 자리에서 그대로 이어 붙는다 —
 // 페이지를 옮기지 않는 것이 핵심이다. 넘어갔다 돌아오면 보던 자리를 잃는다.
@@ -26,7 +27,6 @@ function formatDate(iso: string): string {
 }
 
 function ReviewCard({ review }: { review: PublicReview }) {
-  const beta = review.source === "beta";
   return (
     <article className="review-card">
       <div className="review-card-head">
@@ -34,11 +34,6 @@ function ReviewCard({ review }: { review: PublicReview }) {
         <div className="review-card-who">
           <strong>{review.name}</strong>
           <span>
-            {/* 베타 후기의 횟수는 베타 플랫폼에서 산 횟수다. 어디서 산 것인지를
-                빼고 적으면 러브레빗에서 그만큼 샀다는 말이 된다. */}
-            {review.purchaseCount !== null &&
-              review.purchaseCount > 1 &&
-              `${beta ? "베타에서 " : ""}${review.purchaseCount.toLocaleString()}번 구매 · `}
             {review.productLabel && `${review.productLabel} · `}
             {formatDate(review.createdAt)}
           </span>
@@ -81,7 +76,6 @@ export default function HomeReviews() {
 
   const shown = expanded ? data.reviews : data.reviews.slice(0, INITIAL);
   const rest = data.reviews.length - shown.length;
-  const hasBeta = data.reviews.some((r) => r.source === "beta");
   const hasLive = data.reviews.some((r) => r.source === "live");
 
   return (
@@ -130,18 +124,14 @@ export default function HomeReviews() {
         </button>
       )}
 
-      {/* 후기가 어디서 왔는지 밝히는 자리. 이 문장이 사실이 아니게 되는 변경은 하지 마라. */}
-      <p className="review-verified">
-        {hasLive && (
-          <>
-            <span aria-hidden>✓</span> 결제 후 리딩을 열어 본 분만 후기를 남길 수 있어요.
-          </>
-        )}
-        {hasLive && hasBeta && <br />}
-        {hasBeta && (
-          <>후기 일부는 베타 테스트 때 받은 거예요. 작성자 동의를 받아 읽기 쉽게 다듬었어요.</>
-        )}
-      </p>
+      {/* 후기가 어디서 왔는지 밝히는 자리. 이 문장이 사실이 아니게 되는 변경은 하지 마라.
+          베타 후기 안내는 운영자 요청으로 뺐다. 남은 한 줄은 live 후기가 있을 때만
+          나온다 — 하나도 없는데 띄우면 아무도 안 남긴 것을 남긴 것처럼 말하게 된다. */}
+      {hasLive && (
+        <p className="review-verified">
+          <span aria-hidden>✓</span> 결제 후 리딩을 열어 본 분만 후기를 남길 수 있어요.
+        </p>
+      )}
     </section>
   );
 }
