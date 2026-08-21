@@ -442,7 +442,10 @@ export default function ReadingPage() {
       setOccupation(draft.occupation ?? "");
       setCategorySelectionMode("fixed");
       setHasChosenCategory(true);
-      if (stored) {
+      // 자동 재개는 로그인 복귀 초안만. 생성 화면이 뒤로가기 대비로 되돌려 둔
+      // 초안(autoResume: false)까지 자동으로 다시 돌리면, 뒤로가기가 곧 재제출이
+      // 되어 생성 화면과 폼이 서로를 계속 부른다. 값만 복원하고 확인 화면에 세운다.
+      if (stored && draft.autoResume !== false) {
         startGeneration(draft);
       } else {
         setStep("ready");
