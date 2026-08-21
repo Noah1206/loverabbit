@@ -14,6 +14,7 @@ import path from "node:path";
 
 import { loadCorpus, loadLibrary } from "../src/lib/threads-corpus.ts";
 import { buildPlan, DEFAULT_START } from "../src/lib/threads-plan.ts";
+import { buildDailyPlan } from "../src/lib/threads-daily-plan.ts";
 import { buildReusePlan, REUSE_START, type ReuseSlot } from "../src/lib/threads-reuse-plan.ts";
 import { generateDraft } from "../src/lib/threads-draft.ts";
 import { allowDirectCopy, publishMode } from "../src/lib/threads-content.ts";
@@ -78,7 +79,11 @@ if (command === "generate") {
   const count = Number(argOf("count") ?? 20);
   const force = has("force");
   const reuse = argOf("batch") === "reuse";
-  const start = argOf("start") ?? (reuse ? REUSE_START : DEFAULT_START);
+  // --daily 는 기준일이 곧 "오늘"이다. 배치가 날짜를 계산해 넘기게 하면 배치마다
+  // 그 계산이 하나씩 생기고, 그중 하나는 시간대를 틀린다. 여기서 한 번만 구한다.
+  const todayKst = new Date(Date.now() + 9 * 3600_000).toISOString().slice(0, 10);
+  const start =
+    argOf("start") ?? (has("daily") ? todayKst : reuse ? REUSE_START : DEFAULT_START);
 
   const corpus = loadCorpus();
   if (!corpus.ok) {
@@ -88,7 +93,14 @@ if (command === "generate") {
   const library = loadLibrary();
 
   type Slot = { input: ReuseSlot["input"]; note: string; reuseMode?: AuthorizedReuseMode; sourcePostIds?: string[] };
-  let plan: Slot[] = reuse ? buildReusePlan(start) : buildPlan(start);
+  // --daily 는 그날 쓸 칸만 골라 온다. ID 에 날짜가 붙어 매일 새 초안이 된다.
+  // 이게 없으면 스무 칸이 다 찬 다음 날부터 생성기가 전부 "이미 있음"으로 넘긴다.
+  const daily = has("daily");
+  let plan: Slot[] = daily
+    ? buildDailyPlan({ date: start, count })
+    : reuse
+      ? buildReusePlan(start)
+      : buildPlan(start);
 
   // --only 는 재작성용이다. 계획 전체를 돌리지 않고 지목한 초안만 다시 쓴다.
   const only = argOf("only");
@@ -99,7 +111,7 @@ if (command === "generate") {
       console.error(`--only ${only} 에 맞는 칸이 계획에 없다.`);
       process.exit(2);
     }
-  } else {
+  } else if (!daily) {
     plan = plan.slice(0, count);
   }
 
