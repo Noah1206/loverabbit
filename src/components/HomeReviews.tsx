@@ -136,7 +136,9 @@ export default function HomeReviews() {
           </>
         )}
         {hasLive && hasBeta && <br />}
-        {hasBeta && <>‘베타’ 표시는 베타 테스트 때 받은 후기예요.</>}
+        {hasBeta && (
+          <>‘베타’ 표시는 베타 테스트 때 받은 후기예요. 작성자 동의를 받아 읽기 쉽게 다듬었어요.</>
+        )}
       </p>
     </section>
   );

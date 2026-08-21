@@ -48,11 +48,14 @@ function parseKst(at: string): string {
 }
 
 /**
- * 작성자·시각·본문이 같으면 같은 후기다. 원본에 고유 번호가 없어서 이걸로 대신한다.
- * 표기가 바뀌어도 흔들리지 않는 세 가지만 쓴다.
+ * 작성자와 작성 시각이 같으면 같은 후기다. 원본에 고유 번호가 없어서 이걸로 대신한다.
+ *
+ * 본문은 열쇠에 넣지 않는다. 넣으면 본문을 한 글자만 고쳐도 같은 후기가 낯선
+ * 것이 되어 통째로 다시 들어간다 — 상품명으로 한 번, 본문으로 또 한 번 겪을
+ * 뻔했다. 사람이 나중에 고칠 수 있는 값은 열쇠에 넣지 마라.
  */
 function importKey(review: RawReview): string {
-  const seed = `${review.name}|${review.at}|${review.body}`;
+  const seed = `${review.name}|${review.at}`;
   return `beta:${createHash("sha256").update(seed).digest("hex").slice(0, 32)}`;
 }
 
@@ -78,6 +81,21 @@ function load(): { entries: Entry[]; total: number; undated: RawReview[]; duplic
       purchase_count: Math.max(Number(review.purchaseCount) || 1, 1),
       created_at: parseKst(review.at as string),
     }));
+
+  // (작성자, 시각)이 겹치면 같은 후기로 보고 엉뚱한 행을 덮어쓴다. 먼저 막는다.
+  const pairs = new Map<string, number>();
+  for (const entry of parsed) {
+    const key = `${entry.display_name}|${entry.created_at}`;
+    pairs.set(key, (pairs.get(key) ?? 0) + 1);
+  }
+  const collided = [...pairs.entries()].filter(([, n]) => n > 1);
+  if (collided.length > 0) {
+    throw new Error(
+      `작성자와 시각이 겹치는 후기가 있어요. 같은 후기로 취급돼 하나가 덮어써집니다: ${collided
+        .map(([key]) => key)
+        .join(", ")}`
+    );
+  }
 
   // 원본 안에서 완전히 같은 줄이 겹치면 먼저 걸러낸다.
   const seen = new Set<string>();
@@ -135,13 +153,13 @@ async function main() {
     .limit(1000);
   if (existingError) throw new Error(`기존 베타 후기 확인 실패: ${existingError.message}`);
 
-  const identity = (displayName: string, createdAt: string, body: string) =>
-    `${displayName}|${new Date(createdAt).getTime()}|${body}`;
+  const identity = (displayName: string, createdAt: string) =>
+    `${displayName}|${new Date(createdAt).getTime()}`;
 
   const found = new Map<string, Record<string, unknown>>();
   for (const row of existing ?? []) {
     found.set(
-      identity(String(row.display_name), String(row.created_at), String(row.body ?? "")),
+      identity(String(row.display_name), String(row.created_at)),
       row as Record<string, unknown>
     );
   }
@@ -149,14 +167,14 @@ async function main() {
   const fresh: Entry[] = [];
   const stale: { row: Record<string, unknown>; entry: Entry }[] = [];
   for (const entry of entries) {
-    const row = found.get(identity(entry.display_name, entry.created_at, entry.body));
+    const row = found.get(identity(entry.display_name, entry.created_at));
     if (!row) {
       fresh.push(entry);
       continue;
     }
-    // 이미 있는데 파일과 달라진 것. 베타 후기는 상품명을 갖지 않으므로
-    // 예전에 들어간 이름이 남아 있으면 여기서 걸려 비워진다.
+    // 이미 있는데 파일과 달라진 것. 본문을 다시 쓰거나 상품명을 뗀 경우가 여기 걸린다.
     if (
+      row.body !== entry.body ||
       row.product_label !== null ||
       Number(row.purchase_count) !== entry.purchase_count ||
       row.import_key !== entry.import_key
@@ -169,6 +187,7 @@ async function main() {
     const { error } = await db
       .from("lr_reviews")
       .update({
+        body: entry.body,
         product_label: null,
         product_id: null,
         purchase_count: entry.purchase_count,
@@ -177,8 +196,8 @@ async function main() {
       })
       .eq("id", row.id as number);
     if (error) throw new Error(`후기 #${row.id} 갱신 실패: ${error.message}`);
-    if (row.product_label !== null) {
-      console.log(`  고침 #${row.id}  상품명 '${row.product_label}' 지움`);
+    if (row.body !== entry.body) {
+      console.log(`  고침 #${row.id}  ${entry.display_name}: "${String(row.body).slice(0, 24)}…" -> "${entry.body.slice(0, 24)}…"`);
     }
   }
 
