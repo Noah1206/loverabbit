@@ -10,7 +10,7 @@ type Review = {
   readingId: string | null;
   displayName: string;
   productId: string | null;
-  productLabel: string;
+  productLabel: string | null;
   /** 베타 후기에는 별점이 없다 */
   rating: number | null;
   body: string | null;
@@ -171,8 +171,9 @@ export default function AdminReviewsPage() {
         후기는 결제하고 리딩을 열어 본 분만 쓸 수 있고, 들어오는 즉시 홈에 노출됩니다.
         도배·욕설·개인정보가 담긴 경우에만 사유를 적어 내려주세요.
         <br />
-        <b>출처 &lsquo;베타 테스트&rsquo;</b>는 베타 때 받아 옮겨 담은 후기라 별점이 없습니다
-        (<code>npm run reviews:import</code>). 원본에 없던 별점을 나중에 채워 넣지 마세요.
+        <b>출처 &lsquo;베타 테스트&rsquo;</b>는 베타 때 받아 옮겨 담은 후기라 별점도 상품명도
+        없습니다 (<code>npm run reviews:import</code>). 베타 때 상품 이름은 다른 서비스를
+        가리키니 나중에 채워 넣지 마세요.
       </p>
 
       <div className="inquiry-chips" style={{ marginBottom: 18 }}>
@@ -203,7 +204,7 @@ export default function AdminReviewsPage() {
                 {review.rating === null
                   ? "(별점 없음)"
                   : `${"★".repeat(review.rating)}${"☆".repeat(5 - review.rating)}`}{" "}
-                · {review.productLabel}
+                · {review.productLabel ?? "(상품명 없음)"}
               </strong>
               <small>{new Date(review.createdAt).toLocaleString("ko-KR")}</small>
             </div>

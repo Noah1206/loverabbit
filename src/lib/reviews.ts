@@ -23,7 +23,8 @@ export interface PublicReview {
   /** 베타 후기에는 별점이 없다. 없는 것을 5점으로 치지 마라. */
   rating: number | null;
   productId: string | null;
-  productLabel: string;
+  /** 베타 후기에는 상품명이 없다. 그때 이름은 다른 서비스를 가리킨다. */
+  productLabel: string | null;
   /** 이 사람이 지금까지 결제한 횟수 — "3번 구매" */
   purchaseCount: number;
   body: string | null;

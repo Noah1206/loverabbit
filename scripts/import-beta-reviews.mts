@@ -8,6 +8,9 @@
  * 않는다 — 특히 별점. 베타 때는 별점을 받지 않았고, 5점으로 채워 넣으면 홈에
  * 걸리는 평균이 거짓말이 된다.
  *
+ * 상품명도 붙이지 않는다. 베타 때 상품 이름은 그것 자체가 다른 점술가·다른
+ * 서비스를 가리켜서, 홈에 걸리면 어디서 받은 후기인지가 드러난다.
+ *
  * 넣는 코드가 여기 있고 src/lib 에 없는 것은 의도다. 앱 코드에 "후기를 만들어
  * 넣는 함수"가 있으면 언젠가 요청 핸들러가 그걸 부른다. 이 길은 사람이 손으로
  * 터미널에서 돌릴 때만 열린다.
@@ -25,7 +28,6 @@ import { createClient } from "@supabase/supabase-js";
 interface RawReview {
   name: string;
   purchaseCount: number;
-  product: string;
   body: string;
   /** "2026-08-21 17:51" — KST. 원본에서 잘려 모르면 null 이고, 그건 건너뛴다. */
   at: string | null;
@@ -47,9 +49,7 @@ function parseKst(at: string): string {
 
 /**
  * 작성자·시각·본문이 같으면 같은 후기다. 원본에 고유 번호가 없어서 이걸로 대신한다.
- *
- * 상품명은 열쇠에 넣지 않는다. 표기를 고쳤다는 이유로 같은 후기가 새 후기로
- * 취급되면 안 되기 때문이다 — 실제로 점술가 이름을 떼면서 한 번 겪었다.
+ * 표기가 바뀌어도 흔들리지 않는 세 가지만 쓴다.
  */
 function importKey(review: RawReview): string {
   const seed = `${review.name}|${review.at}|${review.body}`;
@@ -59,7 +59,6 @@ function importKey(review: RawReview): string {
 interface Entry {
   import_key: string;
   display_name: string;
-  product_label: string;
   body: string;
   purchase_count: number;
   created_at: string;
@@ -75,7 +74,6 @@ function load(): { entries: Entry[]; total: number; undated: RawReview[]; duplic
     .map((review) => ({
       import_key: importKey(review),
       display_name: review.name.trim(),
-      product_label: review.product.trim(),
       body: review.body.trim(),
       purchase_count: Math.max(Number(review.purchaseCount) || 1, 1),
       created_at: parseKst(review.at as string),
@@ -99,14 +97,14 @@ async function main() {
   console.log(`원본 ${total}건 · 넣을 것 ${entries.length}건`);
   if (duplicates > 0) console.log(`  - 원본 안 중복 ${duplicates}건 제외`);
   for (const review of undated) {
-    console.log(`  - 건너뜀 (작성 시각 없음): ${review.name} / ${review.product}`);
+    console.log(`  - 건너뜀 (작성 시각 없음): ${review.name} — "${review.body.slice(0, 20)}…"`);
     if (review.note) console.log(`      ${review.note}`);
   }
 
   if (dryRun) {
     console.log("\n[--dry-run] 실제로 넣지 않았습니다. 들어갈 것 미리보기:");
     for (const entry of entries.slice(0, 5)) {
-      console.log(`  ${entry.created_at}  ${entry.display_name}  | ${entry.product_label}`);
+      console.log(`  ${entry.created_at}  ${entry.display_name}  ${entry.purchase_count}번 구매`);
     }
     if (entries.length > 5) console.log(`  ... 외 ${entries.length - 5}건`);
     console.log("\n별점은 원본에 없어 넣지 않습니다 (rating = null).");
@@ -156,9 +154,10 @@ async function main() {
       fresh.push(entry);
       continue;
     }
-    // 이미 있는데 표기가 파일과 달라진 것 — 점술가 이름을 뗀 경우가 여기 걸린다.
+    // 이미 있는데 파일과 달라진 것. 베타 후기는 상품명을 갖지 않으므로
+    // 예전에 들어간 이름이 남아 있으면 여기서 걸려 비워진다.
     if (
-      row.product_label !== entry.product_label ||
+      row.product_label !== null ||
       Number(row.purchase_count) !== entry.purchase_count ||
       row.import_key !== entry.import_key
     ) {
@@ -170,15 +169,16 @@ async function main() {
     const { error } = await db
       .from("lr_reviews")
       .update({
-        product_label: entry.product_label,
+        product_label: null,
+        product_id: null,
         purchase_count: entry.purchase_count,
         import_key: entry.import_key,
         updated_at: new Date().toISOString(),
       })
       .eq("id", row.id as number);
     if (error) throw new Error(`후기 #${row.id} 갱신 실패: ${error.message}`);
-    if (row.product_label !== entry.product_label) {
-      console.log(`  고침 #${row.id}  ${row.product_label} -> ${entry.product_label}`);
+    if (row.product_label !== null) {
+      console.log(`  고침 #${row.id}  상품명 '${row.product_label}' 지움`);
     }
   }
 
@@ -188,6 +188,7 @@ async function main() {
         ...entry,
         source: "beta",
         product_id: null,
+        product_label: null, // 베타 상품명은 다른 서비스를 가리킨다. 붙이지 않는다.
         rating: null, // 원본에 없다. 채우지 마라.
         status: "published",
       }))

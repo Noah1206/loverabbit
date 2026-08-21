@@ -977,7 +977,7 @@ export async function reviewInquiry(
 //         주인인지·해금됐는지 확인을 화면이 아니라 여기서 한다 — 화면 쪽 검사는
 //         요청을 직접 만들면 그냥 지나간다.
 //
-//   beta  베타 테스트 때 받은 후기를 운영자가 옮겨 담은 것. 별점이 없다.
+//   beta  베타 테스트 때 받은 후기를 운영자가 옮겨 담은 것. 별점도 상품명도 없다.
 //         넣는 길은 여기에 없다 — scripts/import-beta-reviews.mts 가 자기 클라이언트로
 //         직접 넣는다. 앱 코드에 넣는 함수를 두면 언젠가 요청 핸들러가 그걸 부른다.
 
@@ -988,7 +988,7 @@ export interface ReviewRecord {
   readingId: string | null;
   displayName: string;
   productId: string | null;
-  productLabel: string;
+  productLabel: string | null;
   rating: number | null;
   body: string | null;
   purchaseCount: number;
@@ -1015,7 +1015,7 @@ function mapReview(row: Record<string, unknown>): ReviewRecord {
     readingId: typeof row.reading_id === "string" ? row.reading_id : null,
     displayName: String(row.display_name),
     productId: typeof row.product_id === "string" ? row.product_id : null,
-    productLabel: String(row.product_label),
+    productLabel: typeof row.product_label === "string" ? row.product_label : null,
     rating: row.rating === null || row.rating === undefined ? null : Number(row.rating),
     body: typeof row.body === "string" ? row.body : null,
     purchaseCount: Number(row.purchase_count ?? 0),
