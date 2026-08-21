@@ -6,6 +6,7 @@ import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
+const KAKAOBANK_LINK = "kakaobank://";
 const CUSTOMER_KEY_STORAGE = "loverabbit_toss_customer_key_v1";
 const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME?.trim() ?? "";
 const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT?.trim() ?? "";
@@ -39,6 +40,8 @@ export default function ChatPaymentModal({
   const [paying, setPaying] = useState(false);
   const [submittedOrderId, setSubmittedOrderId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  // 계좌번호 복사 피드백 - PaymentModal 과 같은 이유, 같은 모양
+  const [copied, setCopied] = useState(false);
   const depositorCode = chatDepositorCode(userToken);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT);
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${product.price}&origin=linkgen`;
@@ -153,21 +156,52 @@ export default function ChatPaymentModal({
           </div>
         ) : transferConfigured ? (
           <div className="transfer-payment-fallback">
-            <p className="toss-payment-config-error">계좌이체는 관리자가 실제 입금을 확인한 뒤 대화권이 지급됩니다.</p>
-            <div className="card transfer-payment-account">
-              <p><strong>{BANK_NAME}</strong> {BANK_ACCOUNT}</p>
-              {BANK_HOLDER && <p>예금주 {BANK_HOLDER}</p>}
-              <p>입금 메모 <strong>{depositorCode}</strong></p>
+            {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
+                두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
+            <p className="toss-payment-config-error">계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
+            <div className="transfer-pay-apps">
+              <a className="transfer-pay-app" href={tossLink}>
+                <strong>토스</strong>
+                <span>계좌이체</span>
+              </a>
+              <a
+                className="transfer-pay-app"
+                href={KAKAOBANK_LINK}
+                onClick={() => void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {})}
+              >
+                <strong>카카오뱅크</strong>
+                <span>계좌이체</span>
+              </a>
             </div>
-            <a className="btn toss-payment-submit" href={tossLink}>토스로 이체하기</a>
-            <button
-              className="btn btn-ghost toss-payment-submit"
-              onClick={() => void navigator.clipboard.writeText(`${BANK_NAME} ${BANK_ACCOUNT} ${product.price}원 (메모: ${depositorCode})`)}
-            >
-              계좌정보 복사
-            </button>
-            <button className="btn toss-payment-submit" onClick={() => void submitTransfer()} disabled={paying}>
-              {paying ? "승인 요청 중…" : "이체했어요 · 입금 확인 요청"}
+            <div className="transfer-pay-account">
+              <p>
+                <strong>{BANK_NAME}</strong> {BANK_ACCOUNT}
+                {BANK_HOLDER && <> · {BANK_HOLDER}</>}
+              </p>
+              <button
+                type="button"
+                className="transfer-pay-copy"
+                aria-label="계좌번호 복사"
+                onClick={() => {
+                  void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {});
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 1600);
+                }}
+              >
+                {copied ? (
+                  "복사됨"
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <rect x="9" y="9" width="11" height="11" rx="2" />
+                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <p className="transfer-pay-memo">입금 메모에 <strong>{depositorCode}</strong> 를 꼭 적어주세요</p>
+            <button className="transfer-pay-confirm" onClick={() => void submitTransfer()} disabled={paying}>
+              {paying ? "확인 요청 보내는 중…" : "입금을 마쳤어요"}
+              <span aria-hidden>→</span>
             </button>
           </div>
         ) : TOSS_CLIENT_KEY ? (
