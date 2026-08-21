@@ -6,10 +6,14 @@ import type { PublicReview, ReviewSummary } from "@/lib/reviews";
 // 홈 맨 아래 후기. 사주 카드를 다 훑고 내려온 사람에게 마지막으로 보이는 자리다.
 //
 // 여기 나오는 것은 전부 /api/reviews 가 내려준 것이고, 손으로 채워 넣을 자리는 없다.
-// 출처가 두 가지이고 둘을 구분해서 보여준다:
+// 출처는 두 가지다 — live(여기서 결제하고 열어 본 사람이 남긴 것)와 beta(베타
+// 테스트 때 받아 옮겨 담은 것). 화면은 둘을 구분하지 않는다. 운영자 요청으로
+// 표시와 안내 문장을 뺐다.
 //
-//   live  여기서 결제하고 리딩을 열어 본 사람이 남긴 것 — 별점·상품명이 있다
-//   beta  베타 테스트 때 받은 후기 — 둘 다 없다
+// 그래서 이 자리에 출처를 두고 어떤 주장도 적으면 안 된다. 목록에 beta 가 섞여
+// 있는데 "결제한 사람만 남길 수 있다" 같은 문장을 페이지에 걸면, live 후기가
+// 하나라도 생기는 순간 그 문장이 거짓이 된다. 실제로 그 직전까지 갔었다.
+// 출처를 다시 말하고 싶으면 문장이 아니라 카드마다 붙는 표시여야 한다.
 //
 // 없는 자리를 채우지 마라. 별점은 베타 때 받지 않았고, 상품명은 다른 서비스를
 // 가리킨다. 구매 횟수는 아예 그리지 않는다 — 베타 것은 여기서 산 횟수가 아닌데,
@@ -76,7 +80,6 @@ export default function HomeReviews() {
 
   const shown = expanded ? data.reviews : data.reviews.slice(0, INITIAL);
   const rest = data.reviews.length - shown.length;
-  const hasLive = data.reviews.some((r) => r.source === "live");
 
   return (
     <section className="review-section" aria-labelledby="review-heading">
@@ -122,15 +125,6 @@ export default function HomeReviews() {
         >
           접기 <b aria-hidden>▴</b>
         </button>
-      )}
-
-      {/* 후기가 어디서 왔는지 밝히는 자리. 이 문장이 사실이 아니게 되는 변경은 하지 마라.
-          베타 후기 안내는 운영자 요청으로 뺐다. 남은 한 줄은 live 후기가 있을 때만
-          나온다 — 하나도 없는데 띄우면 아무도 안 남긴 것을 남긴 것처럼 말하게 된다. */}
-      {hasLive && (
-        <p className="review-verified">
-          <span aria-hidden>✓</span> 결제 후 리딩을 열어 본 분만 후기를 남길 수 있어요.
-        </p>
       )}
     </section>
   );

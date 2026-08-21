@@ -1125,18 +1125,6 @@ label {
 }
 
 /* 후기가 어디서 왔는지 밝히는 한 줄. 이 문장이 사실이 아니게 되는 변경은 하지 마라. */
-.review-verified {
-  margin-top: 12px;
-  color: var(--text-dim);
-  font-size: 0.72rem;
-  line-height: 1.5;
-  text-align: center;
-}
-
-.review-verified span {
-  color: var(--accent);
-  font-weight: 900;
-}
 
 .admin-review-policy {
   margin-bottom: 14px;
