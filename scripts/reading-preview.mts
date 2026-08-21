@@ -22,6 +22,7 @@ import { checkReport } from "../src/lib/reading-guard";
 import { reportToText, type StructuredReport } from "../src/lib/reading-prompt";
 import { chatComplete } from "../src/lib/ai";
 import { PRODUCTS } from "../src/lib/products";
+import { compareCost, costOf } from "../src/lib/ai-pricing";
 import { buildChapters, reportPieces } from "../src/lib/reading-chapters";
 import { conceptFor } from "../src/lib/reading-concepts";
 import { renderImage, writeImagePrompts, pickIllustrated, TALISMAN_SLOT } from "../src/lib/reading-images";
@@ -140,9 +141,10 @@ if (reuseText) {
     }
   }
   const u = composed.usage;
-  const cost = u
-    ? (u.input - (u.cached ?? 0)) * 1.25e-6 + (u.cached ?? 0) * 0.125e-6 + u.output * 10e-6
-    : null;
+  // 단가는 모델마다 다르다. 오래 이 자리에 GPT-5 단가가 박혀 있어서, 어느 모델로
+  // 돌리든 같은 숫자가 찍혔다 — 원가를 보고 모델을 고르는데 그 숫자가 틀리면
+  // 고르는 일 자체가 틀린다(src/lib/ai-pricing.ts).
+  const cost = costOf(composed.model, u);
   const chars = report.sections.reduce(
     (sum, section) => sum + [section.summary, ...section.paragraphs].join("").length,
     0
@@ -152,7 +154,16 @@ if (reuseText) {
   console.log(
     `글 완료 · ${(ms / 1000).toFixed(1)}초 · ${report.sections.length}/${scoped.outline.length}절 · 절당 ${Math.round(chars / report.sections.length)}자`
   );
-  if (cost !== null) console.log(`실비 약 $${cost.toFixed(4)}`);
+  if (cost !== null) {
+    console.log(`실비 약 $${cost.toFixed(4)} (${composed.model ?? "모델 불명"})`);
+    const others = compareCost(u).filter((row) => row.model !== composed.model);
+    if (others.length > 0) {
+      console.log("다른 모델로 돌렸다면:");
+      for (const row of others) console.log(`   ${row.model.padEnd(18)} $${row.cost.toFixed(4)}`);
+    }
+  } else if (composed.model) {
+    console.log(`실비 계산 불가 — ${composed.model} 단가가 ai-pricing.ts 에 없습니다`);
+  }
   console.log(
     `가드 위반 ${guard.violations.length}건${guard.violations.length ? ": " + guard.violations.map((v) => `${v.kind}/${v.where}`).join(", ") : ""}`
   );

@@ -23,7 +23,8 @@
     "reading:audit": "tsx scripts/reading-audit.mts",
     "myeongri:audit:advanced": "tsx scripts/advanced-audit.mts",
     "reading:preview": "tsx --env-file=.env.local --env-file=.env scripts/reading-preview.mts",
-    "demo:fixture": "tsx --env-file=.env.local --env-file=.env scripts/demo-fixture.mts"
+    "demo:fixture": "tsx --env-file=.env.local --env-file=.env scripts/demo-fixture.mts",
+    "reading:cost": "tsx scripts/reading-cost.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
