@@ -8,6 +8,7 @@ import {
   type ReviewRejection,
 } from "@/lib/database";
 import {
+  maskName,
   normalizeRating,
   normalizeReviewBody,
   readableName,
@@ -42,11 +43,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const { rows, total, average, ratedCount } = await listPublishedReviews({ limit, productId });
-    // 이름은 저장할 때 이미 가려서 굳혔다. 여기서 이메일을 다시 볼 일이 없다.
+    // 이름은 나가는 자리에서 한 번 더 가린다. 저장할 때 가리는 길(createReview)만
+    // 믿으면 그 길을 안 거친 행 - 베타 후기처럼 사람이 직접 넣은 것 - 이 실명 그대로
+    // 나간다. 실제로 그랬다. maskName 은 이미 가린 이름에 다시 걸어도 그대로라
+    // (박*농 -> 박*농) 무조건 거는 쪽이 안전하다. 관리자 화면은 식별이 필요해 예외다.
     const reviews: PublicReview[] = rows.map((row) => ({
       id: row.id,
       source: row.source,
-      name: readableName(row.displayName),
+      name: readableName(maskName(row.displayName)),
       rating: row.rating,
       productId: row.productId,
       productLabel: row.productLabel,

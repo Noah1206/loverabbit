@@ -38,6 +38,21 @@ describe("이름 가리기", () => {
     assert.equal(maskName("   ", ""), "**");
   });
 
+  it("이미 가려진 이름에 다시 걸어도 그대로다", () => {
+    // /api/reviews 가 나가는 자리에서 무조건 한 번 건다. 저장할 때 이미 가려진
+    // 이름이 두 번 가려져 뭉개지면 그 방어를 못 넣는다.
+    for (const masked of ["박*농", "남**수", "김*", "**", "u*6", "**영"]) {
+      assert.equal(maskName(masked), masked);
+    }
+  });
+
+  it("저장 경로를 안 거친 실명도 가린다", () => {
+    // 베타 후기는 사람이 직접 DB에 넣어 실명이 그대로 앉아 있었다. 앞뒤 공백까지.
+    assert.equal(maskName("김도윤"), "김*윤");
+    assert.equal(maskName("이서연 "), "이*연");
+    assert.equal(maskName(" 황보라온"), "황**온");
+  });
+
   it("이메일 도메인은 어떤 경우에도 나가지 않는다", () => {
     for (const masked of [
       maskName(null, "someone@gmail.com"),
