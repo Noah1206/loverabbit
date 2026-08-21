@@ -115,23 +115,43 @@ function batchSize(): number {
  */
 export function chaptersOf(outline: string[]): Batch[] {
   const numbers = chapterNumbersFromToc(outline);
-  const size = batchSize();
-  const count = Math.max(1, Math.ceil(outline.length / size));
-  // 마지막 묶음만 홀로 작아지지 않도록 고르게 나눈다 (10개를 3으로 자르면 4/3/3)
-  const base = Math.floor(outline.length / count);
-  const extra = outline.length % count;
-
   const batches: Batch[] = [];
   let cursor = 0;
-  for (let i = 0; i < count; i += 1) {
-    const take = base + (i < extra ? 1 : 0);
+
+  const push = (take: number, index: number) => {
     const items = outline.slice(cursor, cursor + take);
+    if (items.length === 0) return;
     const chapters = numbers.slice(cursor, cursor + take);
-    const from = chapters[0] ?? i + 1;
+    const from = chapters[0] ?? index + 1;
     const to = chapters[chapters.length - 1] ?? from;
     batches.push({ label: from === to ? `${from}장` : `${from}~${to}장`, items });
     cursor += take;
+  };
+
+  /*
+    첫 묶음은 미리보기 몫에 딱 맞춘다.
+
+    예전에는 목차를 고르게 잘랐고(12절 -> 3/3/3/3), 미리보기는 그중 첫 묶음을
+    통째로 만들었다. 그런데 결제 전에 보여 주는 절은 둘뿐이다. 셋을 만들어 하나를
+    버린 셈이고, 그 하나는 **결제하지 않는 사람에게도** 매번 만들어졌다.
+    광고 유입처럼 전환이 낮은 길에서는 그 낭비가 클릭 수만큼 곱해진다.
+
+    첫 묶음만 떼어 내고 나머지는 예전처럼 고르게 나눈다. 자르는 자리는 목차만
+    보고 정해지므로, 결제 뒤 이어 만들 때도 같은 경계가 나온다 — 경계가 달라지면
+    이미 만든 절을 다시 만들거나 건너뛴다.
+  */
+  push(Math.min(PREVIEW_SECTIONS, outline.length), 0);
+
+  const rest = outline.length - cursor;
+  if (rest > 0) {
+    const size = batchSize();
+    const count = Math.max(1, Math.ceil(rest / size));
+    // 마지막 묶음만 홀로 작아지지 않도록 고르게 나눈다 (10개를 3으로 자르면 4/3/3)
+    const base = Math.floor(rest / count);
+    const extra = rest % count;
+    for (let i = 0; i < count; i += 1) push(base + (i < extra ? 1 : 0), i + 1);
   }
+
   return batches;
 }
 
@@ -143,12 +163,22 @@ function outlineBrief(outline: string[], mine: string[]): string {
   return `\n다른 조각이 맡은 항목(겹치게 쓰지 않기 위한 참고, 여기서 쓰지 않는다):\n${others.join(" / ")}\n`;
 }
 
-function headPrompt(inputJson: string, outline: string[]): string {
-  return `지시: 머리. 리포트 전체가 다룰 내용은 아래와 같고, 본문은 다른 조각이 쓴다.
-${outline.join(" / ")}
+/*
+  입력 JSON 을 맨 앞에 둔다.
 
-입력:
-${inputJson}`;
+  프롬프트 캐시는 **앞에서부터 같은 만큼**만 먹는다. 예전에는 조각마다 달라지는
+  지시문이 먼저 오고 입력 JSON 이 뒤에 붙었다. 그러면 캐시가 시스템 프롬프트에서
+  끊기고, 조각마다 똑같은 5,000자짜리 JSON 이 매번 새 값으로 청구된다.
+
+  순서만 바꾸면 시스템 프롬프트 + 입력 JSON 까지가 한 덩어리로 캐시에 얹힌다.
+  모델이 읽는 내용은 한 글자도 안 바뀐다.
+*/
+function headPrompt(inputJson: string, outline: string[]): string {
+  return `입력:
+${inputJson}
+
+지시: 머리. 리포트 전체가 다룰 내용은 아래와 같고, 본문은 다른 조각이 쓴다.
+${outline.join(" / ")}`;
 }
 
 function chapterPrompt(inputJson: string, chapter: Batch, outline: string[]): string {
@@ -158,12 +188,14 @@ function chapterPrompt(inputJson: string, chapter: Batch, outline: string[]): st
     const kind = extraPlanFor(outline.indexOf(item));
     return kind ? ` [extra: ${kind}]` : " [extra 없이]";
   };
-  return `지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
+  // 입력 JSON 이 먼저다 — 캐시가 여기까지 먹는다(headPrompt 위 주석).
+  return `입력:
+${inputJson}
+
+지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
 대괄호 안의 extra 지정을 그대로 따른다.
 ${chapter.items.map((item, i) => `${i + 1}. ${item}${shape(item)}`).join("\n")}
-${outlineBrief(outline, chapter.items)}
-입력:
-${inputJson}`;
+${outlineBrief(outline, chapter.items)}`;
 }
 
 /**
@@ -252,25 +284,6 @@ export interface ComposeOptions {
  * 확인된 뒤에 이어 만든다(doneSections). 결제하지 않는 사람의 유료 본문을
  * 만들지 않기 위해서다.
  */
-/**
- * 한 번에 몇 조각까지 부를 것인가.
- *
- * 0이면 제한하지 않는다 — **기본값이고, 지금까지의 동작 그대로다.**
- * 유료 키에서는 조각을 한꺼번에 쏘는 편이 빠르고, 그게 이 구조의 이유였다.
- *
- * 그런데 무료 티어에서는 그 병렬성이 곧바로 벽이 된다. Gemini 무료 티어로
- * 15절짜리를 돌렸더니 조각 아홉이 동시에 나가 429(분당 한도)와 503(과부하)로
- * 네 조각이 통째로 실패했다. 글이 나빠서가 아니라 못 받아서 없어진 것이다.
- * 재시도도 다시 병렬로 나가서 같은 벽에 다시 부딪혔다.
- *
- *   AI_MAX_CONCURRENCY=1   한 번에 하나씩. 느리지만 무료 티어에서 끝까지 간다.
- */
-function maxConcurrency(): number {
-  const raw = Number(process.env.AI_MAX_CONCURRENCY);
-  if (!Number.isFinite(raw) || raw < 1) return 0;
-  return Math.floor(raw);
-}
-
 export async function composeReport(
   input: ReadingInput,
   complete: Complete,

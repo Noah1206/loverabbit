@@ -17,24 +17,14 @@
 
 import { chatComplete } from "@/lib/ai";
 
-/** 그림 한 장의 상태. 화면은 이 값만 보고 그린다. */
-export type ReadingImageStatus = "pending" | "ready" | "failed";
-
-/**
- * 부적이 앉는 자리. 장 번호와 겹치지 않게 0 을 쓴다 —
- * 장은 1부터 세므로 0 은 비어 있고, 배열 하나로 같이 다닐 수 있다.
- */
-export const TALISMAN_SLOT = 0;
-
-export interface ReadingImage {
-  /** 몇 번째 장인가. 뷰어의 장 번호와 같다. 0 이면 부적이다. */
-  chapter: number;
-  status: ReadingImageStatus;
-  /** 완성된 그림 주소. pending·failed 면 없다. */
-  url?: string;
-  /** 화면 낭독기가 읽을 설명 */
-  alt?: string;
-}
+// 모양은 reading-image-shape.ts 로 옮겼다. 이 파일은 ai.ts 를 부르므로 클라이언트가
+// 여기서 값을 가져가면 제공사 어댑터까지 번들에 딸려 온다. 다시 내보내기만 한다 —
+// 서버 쪽 호출부는 예전 경로 그대로 쓰면 된다.
+export {
+  TALISMAN_SLOT,
+  type ReadingImage,
+  type ReadingImageStatus,
+} from "@/lib/reading-image-shape";
 
 /** 그림을 부탁할 때 넘기는 한 장의 재료 */
 export interface ChapterBrief {

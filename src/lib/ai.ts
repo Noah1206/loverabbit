@@ -3,8 +3,6 @@
 // 키가 하나도 없으면 null 반환 → 호출부가 데모 모드로 폴백한다.
 import Anthropic from "@anthropic-ai/sdk";
 
-import { callClaudeCode } from "@/lib/ai-claude-code";
-
 export type ChatMsg = { role: "user" | "assistant"; content: string };
 
 /**
@@ -277,8 +275,15 @@ export async function chatComplete(
   // 지목한 제공사의 키가 없으면 조용히 다른 곳으로 새지 않고 그냥 실패한다.
   if (options.provider) {
     // 키를 보지 않는다. 구독으로 도는 길이라 확인할 키가 없다.
-    if (options.provider === "claude-code")
+    //
+    // 부를 때가 되어서야 불러온다. 맨 위에서 import 하면 ai-claude-code 가 쓰는
+    // node:child_process·node:fs 가 **클라이언트 번들까지 따라 들어와** next build 가
+    // 통째로 멈춘다 (reading/[id]/page.tsx -> reading-images -> ai 로 이어지는 길).
+    // 서버에서만 도는 길이므로 그 자리에서 부르면 번들 그래프에 안 걸린다.
+    if (options.provider === "claude-code") {
+      const { callClaudeCode } = await import("@/lib/ai-claude-code");
       return callClaudeCode(system, messages, options.model);
+    }
     if (options.provider === "anthropic")
       return ANTHROPIC_API_KEY
         ? callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model)

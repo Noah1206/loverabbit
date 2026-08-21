@@ -57,7 +57,13 @@ console.log(
 );
 console.log("-".repeat(34 + MODELS.length * 14));
 
-const rows: { id: string; price: number | undefined; cost: Record<string, number> }[] = [];
+const rows: {
+  id: string;
+  price: number | undefined;
+  cost: Record<string, number>;
+  previewCost: Record<string, number>;
+  previewSections: number;
+}[] = [];
 
 for (const product of PRODUCTS) {
   const rules = matchRules(me, partner, product.id, Math.max(12, product.toc.length));
@@ -81,11 +87,13 @@ for (const product of PRODUCTS) {
     now: new Date(),
   });
 
-  const chunks = chaptersOf(scoped.outline).length + 1;
+  const batches = chaptersOf(scoped.outline);
+  const chunks = batches.length + 1;
   // 조각마다 시스템 프롬프트와 입력 JSON 이 통째로 다시 나간다. 그게 입력의 거의 전부다.
   const inputTokens = estimateTokens(chunks * (READING_SYSTEM_PROMPT.length + input.length));
-  // 같은 지시가 되풀이되므로 첫 조각을 뺀 나머지는 캐시로 본다.
-  const cached = estimateTokens((chunks - 1) * READING_SYSTEM_PROMPT.length);
+  // 입력 JSON 을 지시문 앞으로 옮긴 뒤로, 시스템 프롬프트 + JSON 까지가 캐시에 얹힌다.
+  const stable = READING_SYSTEM_PROMPT.length + input.length;
+  const cached = estimateTokens((chunks - 1) * stable);
   const out = outputChars(product.id, scoped.outline.length);
   const outputTokens = estimateTokens(out.chars);
 
@@ -93,7 +101,26 @@ for (const product of PRODUCTS) {
   const cost: Record<string, number> = {};
   for (const model of MODELS) cost[model] = costOf(model, usage) ?? 0;
 
-  rows.push({ id: product.id, price: OFFER_PRICE.get(product.id) ?? product.price, cost });
+  // 결제 전에 만드는 몫 — 머리 하나 + 첫 묶음. 전환되지 않으면 그대로 버려진다.
+  const previewSections = batches[0]?.items.length ?? 0;
+  const perSection = outputTokens / Math.max(1, scoped.outline.length);
+  // 머리는 헤드라인·요약 카드·질문뿐이라 한 절보다 짧다.
+  const headTokens = Math.round(perSection * 0.75);
+  const previewUsage = {
+    input: estimateTokens(2 * (READING_SYSTEM_PROMPT.length + input.length)),
+    output: Math.round(headTokens + perSection * previewSections),
+    cached: estimateTokens(stable),
+  };
+  const previewCost: Record<string, number> = {};
+  for (const model of MODELS) previewCost[model] = costOf(model, previewUsage) ?? 0;
+
+  rows.push({
+    id: product.id,
+    price: OFFER_PRICE.get(product.id) ?? product.price,
+    cost,
+    previewCost,
+    previewSections,
+  });
   console.log(
     product.id.padEnd(12) +
       String(scoped.outline.length).padStart(3) +
@@ -119,6 +146,30 @@ for (const row of rows) {
         const share = ((row.cost[m] * KRW_PER_USD) / krw) * 100;
         return `${share.toFixed(1)}%`.padStart(14);
       }).join("")
+  );
+}
+
+console.log("\n결제 전에 버려지는 몫 (머리 + 첫 묶음). 전환되지 않으면 그대로 손실입니다.\n");
+console.log(
+  "상품".padEnd(12) + "미리보기절".padStart(11) + MODELS.map((m) => m.slice(0, 12).padStart(14)).join("")
+);
+console.log("-".repeat(23 + MODELS.length * 14));
+for (const row of rows) {
+  if (!OFFER_PRICE.has(row.id)) continue;
+  console.log(
+    row.id.padEnd(12) +
+      String(row.previewSections).padStart(11) +
+      MODELS.map((m) => `$${row.previewCost[m].toFixed(4)}`.padStart(14)).join("")
+  );
+}
+console.log("\n클릭 1,000회에 전환 3% 라면 (gpt-5.6 기준)\n");
+for (const row of rows) {
+  if (!OFFER_PRICE.has(row.id)) continue;
+  const wasted = row.previewCost["gpt-5.6"] * 970;
+  const earned = row.cost["gpt-5.6"] * 30;
+  console.log(
+    `  ${row.id.padEnd(12)} 버려짐 $${wasted.toFixed(2)} + 완성 $${earned.toFixed(2)} = $${(wasted + earned).toFixed(2)}` +
+      `  (매출 ${(30 * (OFFER_PRICE.get(row.id) ?? 0)).toLocaleString()}원)`
   );
 }
 

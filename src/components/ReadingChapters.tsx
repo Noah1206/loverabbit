@@ -7,7 +7,7 @@ import { COLOR_MARKS, MARK_MEANING, parseMarks, stripMarks } from "@/lib/reading
 import { toFactChip } from "@/lib/reading-fact-label";
 import { artSlotOf } from "@/components/reading-art-slot";
 import type { SectionExtra } from "@/lib/reading-extra";
-import type { ReadingImage } from "@/lib/reading-images";
+import type { ReadingImage } from "@/lib/reading-image-shape";
 
 // 리딩 뷰어의 화면 조각들 — 장(章)마다 한 페이지씩 넘겨 읽는다.
 // 데이터·결제 상태는 전부 /reading/[id]가 들고 있고, 여기는 그리기만 한다.

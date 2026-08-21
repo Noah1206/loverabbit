@@ -34,7 +34,7 @@ import {
   type IndexItem,
 } from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
-import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-images";
+import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
 import Talisman from "@/components/Talisman";
 
 interface ReferralStatus {
