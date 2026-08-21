@@ -228,7 +228,8 @@ async function callOpenAICompat(
  */
 export function isAiConfigured(): boolean {
   // 구독으로 못 박아 두었으면 확인할 키가 없다. 없다고 데모로 떨어지면 안 된다.
-  if (pinnedProvider() === "claude-code") return true;
+  // 다만 서버리스에서는 그 길이 아예 없으므로, 키를 보는 쪽으로 되돌린다.
+  if (pinnedProvider() === "claude-code" && !serverlessHost()) return true;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
   return Boolean(ANTHROPIC_API_KEY || GEMINI_API_KEY || OPENAI_API_KEY);
 }
@@ -245,6 +246,28 @@ export function isAiConfigured(): boolean {
  *
  * 안 주면 예전처럼 우선순위대로 고른다.
  */
+/**
+ * 이 서버에서 구독 경로가 될 수 있는가.
+ *
+ * claude-code 는 로그인된 Claude Code CLI 를 프로세스로 띄운다. 그러려면 실행 파일이
+ * 깔려 있어야 하고, 그 CLI 가 한 번 로그인돼 있어야 한다. 서버리스에는 둘 다 없다 —
+ * 이미지에 전역 npm 설치가 없고, 로그인은 사람이 브라우저로 하는 일이라 무인 환경에서
+ * 만들 수 없다.
+ *
+ * 그래서 여기서 미리 막는다. 안 막으면 배포는 되고, 사용자가 생성 버튼을 누른 뒤에야
+ * 실패한다 — 가장 늦게 알게 되는 자리다.
+ *
+ * fs 를 보지 않고 환경변수만 본다. 이 파일은 클라이언트 번들에 딸려 들어가는 길이
+ * 있어서(reading-images -> ai), node: 모듈을 여기서 만지면 빌드가 멈춘다.
+ */
+export function serverlessHost(): string | null {
+  if (process.env.VERCEL) return "Vercel";
+  if (process.env.AWS_LAMBDA_FUNCTION_NAME) return "AWS Lambda";
+  if (process.env.K_SERVICE) return "Cloud Run";
+  if (process.env.NETLIFY) return "Netlify";
+  return null;
+}
+
 export function pinnedProvider(): Provider | null {
   const raw = process.env.AI_PROVIDER;
   if (raw === "anthropic" || raw === "gemini" || raw === "openai" || raw === "claude-code") {
@@ -281,6 +304,16 @@ export async function chatComplete(
     // 통째로 멈춘다 (reading/[id]/page.tsx -> reading-images -> ai 로 이어지는 길).
     // 서버에서만 도는 길이므로 그 자리에서 부르면 번들 그래프에 안 걸린다.
     if (options.provider === "claude-code") {
+      const host = serverlessHost();
+      if (host) {
+        // 조용히 다른 곳으로 새지 않는다. 구독으로 돌리라고 못 박아 둔 서버가
+        // 몰래 종량과금으로 넘어가면, 그 사실을 청구서에서 알게 된다.
+        throw new Error(
+          `AI_PROVIDER=claude-code 는 ${host} 에서 쓸 수 없습니다. ` +
+            `Claude Code CLI 실행 파일과 로그인된 세션이 필요한데 서버리스에는 둘 다 없습니다. ` +
+            `AI_PROVIDER 를 openai 또는 anthropic 으로 바꾸거나, CLI 를 둘 수 있는 서버에 올리세요.`
+        );
+      }
       const { callClaudeCode } = await import("@/lib/ai-claude-code");
       return callClaudeCode(system, messages, options.model);
     }

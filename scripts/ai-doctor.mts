@@ -9,7 +9,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { chatComplete, isAiConfigured, pinnedProvider } from "../src/lib/ai";
+import { chatComplete, isAiConfigured, pinnedProvider, serverlessHost } from "../src/lib/ai";
 import { previewSections, chaptersOf } from "../src/lib/reading-compose";
 import { demoMode, pendingDemoSlots } from "../src/lib/reading-demo";
 import { PRODUCTS } from "../src/lib/products";
@@ -61,6 +61,14 @@ if (!found && !bin) {
 console.log(`   CLAUDE_CODE_MODEL ${process.env.CLAUDE_CODE_MODEL ?? "sonnet (기본)"}`);
 console.log(`   CLAUDE_CODE_TIMEOUT_MS ${process.env.CLAUDE_CODE_TIMEOUT_MS ?? "180000 (기본)"}`);
 console.log(`${mark(pinned === "claude-code")}이 길로 가는가  ${pinned === "claude-code" ? "예" : "아니오 — AI_PROVIDER=claude-code 로 못 박아야 합니다"}`);
+const host = serverlessHost();
+console.log(
+  `${mark(!host)}여기서 되는가  ${host ? `아니오 — ${host} 에는 CLI 도 로그인 세션도 없습니다` : "예 (내 컴퓨터에서 도는 서버)"}`
+);
+if (host && pinned === "claude-code") {
+  console.log("     이대로 배포하면 사용자가 생성 버튼을 누른 뒤에 실패합니다.");
+  console.log("     AI_PROVIDER 를 openai 로 바꾸세요.");
+}
 
 console.log("\n── 결제 전에 만드는 몫 ───────────────────────────\n");
 
@@ -83,6 +91,14 @@ console.log("\n── 데모 모드 ──────────────�
 console.log(`READING_DEMO_MODE  ${demoMode()}`);
 const pending = pendingDemoSlots();
 console.log(`   아직 안 채운 자리: ${pending.join(", ") || "없음"}`);
+
+console.log("\n── 되돌릴 스위치 ─────────────────────────────────\n");
+console.log("  AI_PROVIDER=openai              종량과금으로. Vercel 은 이것만 됩니다");
+console.log("  AI_PROVIDER=claude-code         구독으로. CLI 가 있는 서버에서만");
+console.log("  OPENAI_MODEL=gpt-4o-mini        원가 10분의 1, 품질 미검증");
+console.log("  READING_PREVIEW_SECTIONS=1      결제 전에 만드는 몫을 절반으로");
+console.log("  READING_DEMO_MODE=on            생성하지 않고 미리 만든 글로");
+console.log("\n  전부 환경변수입니다. 코드를 고치지 않고 배포 설정만 바꾸면 됩니다.");
 
 if (!WANT_CALL) {
   console.log("\n실제로 한 번 불러 보려면 --call 을 붙이세요 (열 토큰).");
