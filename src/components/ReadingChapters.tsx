@@ -1,18 +1,71 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import type { ReadingChapter } from "@/lib/reading-chapters";
 import type { ReadingConcept } from "@/lib/reading-concepts";
+import { COLOR_MARKS, MARK_MEANING, parseMarks, stripMarks } from "@/lib/reading-marks";
+import { toFactChip } from "@/lib/reading-fact-label";
+import { artSlotOf } from "@/components/reading-art-slot";
+import type { SectionExtra } from "@/lib/reading-extra";
+import type { ReadingImage } from "@/lib/reading-images";
 
-// 웹툰형 리딩 뷰어의 화면 조각들.
+// 리딩 뷰어의 화면 조각들 — 장(章)마다 한 페이지씩 넘겨 읽는다.
 // 데이터·결제 상태는 전부 /reading/[id]가 들고 있고, 여기는 그리기만 한다.
-// 분야마다 달라지는 것은 concept 하나뿐 — 구조는 모든 리딩이 같다.
+//
+// 이 화면이 하는 일은 하나다: **긴 글을 끝까지 읽게 하는 것.**
+// 그래서 화자 그림도, 말풍선도, 분야별 색도 없다. 셋 다 본문 앞을 막고
+// 시선을 가져갔지 읽는 데는 보태지 않았다. 남은 것은 제목·본문·근거뿐이다.
 
-export function conceptStyle(concept: ReadingConcept): CSSProperties {
-  return {
-    "--rv-ink": concept.ink,
-    "--rv-ink2": concept.ink2,
-  } as CSSProperties;
+/**
+ * 강조가 들어간 본문 한 덩어리.
+ *
+ * 표기를 조각으로 나눠 그린다. 문자열을 HTML로 밀어 넣지 않으므로,
+ * 모델이 무엇을 써 보내든 태그로 해석될 일이 없다.
+ * data-mark 는 CSS 가 색을 고르는 데 쓰고, title 은 마우스를 올렸을 때 뜻을 보여준다.
+ */
+export function Marked({ text }: { text: string }) {
+  return (
+    <>
+      {parseMarks(text).map((token, index) =>
+        token.kind === "plain" ? (
+          <span key={index}>{token.text}</span>
+        ) : (
+          <mark key={index} className="rv-mark" data-mark={token.kind} title={MARK_MEANING[token.kind]}>
+            {token.text}
+          </mark>
+        )
+      )}
+    </>
+  );
+}
+
+/**
+ * 색이 무슨 뜻인지 알려주는 범례.
+ *
+ * 뜻을 모르는 색은 장식이다. 표지에 한 번 보여주고, 본문에서는 반복하지 않는다 —
+ * 절마다 범례를 달면 그게 더 시끄럽다.
+ */
+export function MarkLegend() {
+  return (
+    <dl className="rv-legend" aria-label="본문 강조가 뜻하는 것">
+      <div>
+        <dt>
+          <b>굵게</b>
+        </dt>
+        <dd>{MARK_MEANING["핵심"]}</dd>
+      </div>
+      {COLOR_MARKS.map((kind) => (
+        <div key={kind}>
+          <dt>
+            <span className="rv-mark" data-mark={kind}>
+              {kind}
+            </span>
+          </dt>
+          <dd>{MARK_MEANING[kind]}</dd>
+        </div>
+      ))}
+    </dl>
+  );
 }
 
 /** 인장 — 화면 곳곳에 찍히는 분야 표식 */
@@ -25,6 +78,7 @@ export function Seal({ concept, size = 34 }: { concept: ReadingConcept; size?: n
   );
 }
 
+/** 상단 바 — 지금 몇 장을 읽고 있는지가 늘 보여야 한다 */
 export function ChapterTopBar({
   concept,
   kicker,
@@ -62,42 +116,153 @@ export function ChapterTopBar({
   );
 }
 
-/** 장 표지 — 화자의 그림 위에 말풍선 하나. 웹툰 컷 자리다. */
-export function ChapterPanel({
-  concept,
-  chapter,
-  hook,
-}: {
-  concept: ReadingConcept;
-  chapter: ReadingChapter;
-  hook: string;
-}) {
+/**
+ * 장 머리 — 몇 장이고 무슨 장인지만 적는다.
+ *
+ * 예전에는 여기에 화자 그림 한 컷과 말풍선이 있었다. 본문에 닿기까지 한 화면을
+ * 더 넘겨야 했고, 정작 그 말풍선은 아래 본문이 할 말을 미리 김빠지게 했다.
+ */
+export function ChapterPanel({ chapter }: { chapter: ReadingChapter }) {
   return (
     <section className="rv-panel">
-      <div className="rv-panel-art" style={{ backgroundImage: `url(${concept.portrait})` }} aria-hidden />
-      <p className="rv-bubble">{hook}</p>
-      <div className="rv-panel-title">
-        <small>
-          {chapter.label} · {concept.narrator}
-        </small>
-        <h1>{chapter.title}</h1>
-      </div>
+      <small>{chapter.label}</small>
+      <h1>{chapter.title}</h1>
     </section>
   );
 }
 
-/** 장 본문 — "1) 소제목 + 본문 카드"가 반복된다 */
-export function ChapterBody({ chapter }: { chapter: ReadingChapter }) {
+/**
+ * 장의 그림 한 장.
+ *
+ * 한 장에 60초가 걸려서 글보다 늦게 도착한다. 그동안 자리를 비워 두면 글이 위아래로
+ * 뛰므로, 같은 크기의 틀을 먼저 깔고 그 안에서 바뀐다.
+ * 실패했으면 **아무것도 그리지 않는다** — 빈 액자나 오류 표시를 남기면 읽는 흐름만 끊긴다.
+ */
+function ChapterArt({ image }: { image?: ReadingImage | null }) {
+  if (!image || image.status === "failed") return null;
+  if (image.status === "pending") {
+    return <div className="rv-art rv-art-wait" aria-label="그림을 그리는 중이에요" />;
+  }
+  return (
+    <figure className="rv-art">
+      {/* 생성 이미지라 next/image 의 최적화 대상이 아니다 — 주소가 매번 다르다 */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={image.url} alt={image.alt ?? ""} loading="lazy" />
+    </figure>
+  );
+}
+
+/**
+ * 절이 이미 말한 것을 다른 꼴로 다시 세운 덩어리.
+ *
+ * 새 내용이 아니다. 같은 모양이 열다섯 번 반복되면 내용과 무관하게 눈이 미끄러지는데,
+ * 그걸 막으려고 절반쯤의 절에만 하나씩 얹는다. 무엇을 얹을지는 그 절을 쓴 모델이 고른다.
+ */
+function SectionExtraBlock({ extra }: { extra?: SectionExtra }) {
+  if (!extra) return null;
+
+  if (extra.kind === "quote") {
+    return (
+      <blockquote className="rv-quote">
+        <Marked text={extra.text} />
+      </blockquote>
+    );
+  }
+
+  if (extra.kind === "contrast") {
+    return (
+      <dl className="rv-contrast">
+        <div>
+          <dt>나</dt>
+          <dd>{extra.mine}</dd>
+        </div>
+        <div>
+          <dt>상대</dt>
+          <dd>{extra.theirs}</dd>
+        </div>
+      </dl>
+    );
+  }
+
+  if (extra.kind === "timeline") {
+    return (
+      <ol className="rv-timeline">
+        {extra.points.map((point, index) => (
+          <li key={index}>
+            <b>{point.when}</b>
+            <span>{point.what}</span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
+  return (
+    <ul className="rv-checklist">
+      {extra.items.map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * 읽기 시작하는 자리에 놓는 목차.
+ *
+ * 결과가 나오면 표지가 아니라 **1장으로 바로 들어간다.** 목차를 먼저 보여주고
+ * 고르게 하면, 아직 무슨 내용인지 모르는 사람에게 선택을 시키는 셈이라 첫 화면에서
+ * 멈춘다. 대신 읽을 글 바로 위에 목차를 펼쳐 둔다 — 다른 장으로 가고 싶으면
+ * 여기서 누르면 되고, 그냥 읽고 싶으면 아래로 내리면 된다.
+ *
+ * 1장에서만 보인다. 장마다 반복하면 그게 더 시끄럽고, 다른 장에서는 상단 바의
+ * 목차 버튼(≡)이 같은 일을 한다.
+ */
+export function ChapterOutline({
+  title,
+  items,
+  current,
+  onJump,
+}: {
+  title: string;
+  items: IndexItem[];
+  current: number;
+  onJump: (page: number) => void;
+}) {
+  return (
+    <nav className="rv-outline" aria-label="목차">
+      <h2>{title}</h2>
+      <ol>
+        {items.map((item, index) => (
+          <li key={`${item.label}-${index}`}>
+            <button
+              type="button"
+              className={index + 1 === current ? "on" : ""}
+              onClick={() => onJump(index + 1)}
+              aria-current={index + 1 === current ? "true" : undefined}
+            >
+              {item.label}. {item.title}
+              {item.locked && <i aria-label="잠김"> 🔒</i>}
+            </button>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
+
+/** 장 본문 — "1) 소제목" 한 줄 + 본문 카드가 반복된다 */
+export function ChapterBody({ chapter, image }: { chapter: ReadingChapter; image?: ReadingImage | null }) {
+  const artSlot = artSlotOf(chapter);
   return (
     <div className="rv-body">
       {chapter.sections.map((section, index) => (
-        <section key={`${section.title}-${index}`} className="rv-sec">
-          {section.title && (
-            <h2>
-              <i aria-hidden>{section.order})</i>
-              {section.title}
-            </h2>
-          )}
+        <Fragment key={`${section.title}-${index}`}>
+        <section className="rv-sec">
+          {/*
+            번호와 제목은 한 덩어리다. 예전에는 번호만 다른 색으로 떼어놨는데,
+            그러면 번호가 먼저 눈에 들어오고 제목이 뒤로 밀렸다.
+          */}
+          {section.title && <h2>{`${section.order}) ${section.title}`}</h2>}
           {section.locked ? (
             <div className="rv-locked" aria-label="결제 후 공개되는 내용">
               <span />
@@ -107,28 +272,52 @@ export function ChapterBody({ chapter }: { chapter: ReadingChapter }) {
             </div>
           ) : (
             <div className="rv-prose">
+              {/*
+                이 절의 답 한 줄. 소제목 다음, 본문보다 먼저 온다.
+                1,200자를 다 읽어야 답이 나오면 그건 답을 미룬 것이다.
+              */}
+              {section.verdict && <p className="rv-verdict">{section.verdict}</p>}
+
               {section.paragraphs.map((paragraph, pIndex) => (
-                <p key={pIndex}>{paragraph}</p>
+                <p key={pIndex}>
+                  <Marked text={paragraph} />
+                </p>
               ))}
 
+              <SectionExtraBlock extra={section.extra} />
+
               {section.watchOut && (
+                // 이 칸은 통째로 '살펴볼 점'이라 안쪽에 색을 또 칠하지 않는다.
+                // 강조 위에 강조를 얹으면 둘 다 강조가 아니게 된다.
                 <p className="rv-watch">
                   <b>살펴볼 점</b>
-                  {section.watchOut}
+                  {stripMarks(section.watchOut)}
                 </p>
               )}
 
               {section.factsUsed.length > 0 && (
                 // 이 절이 명식의 어느 값에 기대고 있는지. 지어낸 문장과 구분되는 자리다.
+                // 오래 `strength.label=신약` 같은 내부 경로를 그대로 내보냈는데,
+                // 본문에서는 구조 용어를 다 걷어내 놓고 그 아래에 원본을 남긴 셈이었다.
                 <ul className="rv-facts" aria-label="이 절이 쓴 명식 근거">
-                  {section.factsUsed.map((fact, fIndex) => (
-                    <li key={fIndex}>{fact}</li>
-                  ))}
+                  {section.factsUsed.map((fact, fIndex) => {
+                    const chip = toFactChip(fact);
+                    return (
+                      <li key={fIndex}>
+                        <b>{chip.label}</b>
+                        {chip.value && <span>{chip.value}</span>}
+                        {chip.gloss && <i>{chip.gloss}</i>}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
           )}
         </section>
+        {/* 여기쯤에서 눈이 쉰다. 다음 절로 넘어가기 전에 한 장. */}
+        {index === artSlot && <ChapterArt image={image} />}
+        </Fragment>
       ))}
     </div>
   );
@@ -364,16 +553,7 @@ export function ChapterNavBar({
   );
 }
 
-export function ChapterShell({
-  concept,
-  children,
-}: {
-  concept: ReadingConcept;
-  children: ReactNode;
-}) {
-  return (
-    <div className="rv" style={conceptStyle(concept)}>
-      {children}
-    </div>
-  );
+/** 뷰어 껍데기. 예전에는 분야별 색을 CSS 변수로 심었는데, 이제 색은 하나다. */
+export function ChapterShell({ children }: { children: ReactNode }) {
+  return <div className="rv">{children}</div>;
 }

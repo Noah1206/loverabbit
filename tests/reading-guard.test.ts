@@ -86,3 +86,49 @@ describe("가정과 인용은 놓아준다", () => {
     assert.equal(found.some((d) => d.includes("반드시")), true, "'반드시' 는 여전히 잡아야 한다");
   });
 });
+
+describe("강조를 센다", () => {
+  const marks = (summary: string) =>
+    checkReport(reportWith(summary), { expectedSections: 1 }).violations.filter((v) => v.kind === "강조");
+
+  it("하나도 없으면 기록에 남는다 — 색 체계를 만든 값을 못 한다", () => {
+    const found = marks("강조가 하나도 없는 밋밋한 요약이에요.");
+    assert.equal(found.some((v) => v.detail.includes("이상")), true);
+  });
+
+  it("알맞게 쓰면 아무 말도 안 한다", () => {
+    const found = marks("**핵심이에요.** [[시기|2026년 8월]]에는 [[주의|같은 자리]]에서 걸리니 [[행동|한 가지만 꺼내세요]].");
+    assert.deepEqual(found, []);
+  });
+
+  it("너무 많으면 기록에 남는다 — 강조가 배경이 된다", () => {
+    const many = Array.from({ length: 9 }, (_, i) => `[[주의|${i}번]]`).join(" ");
+    assert.equal(marks(many).some((v) => v.detail.includes("배경")), true);
+  });
+
+  it("한 종류로 도배하면 색을 나눈 뜻이 없다", () => {
+    const same = "[[시기|1월]] [[시기|2월]] [[시기|3월]] [[시기|4월]] [[시기|5월]]";
+    assert.equal(marks(same).some((v) => v.detail.includes("한 종류가 절을 덮고")), true);
+  });
+
+  it("강조는 어느 것도 문장을 막지 않는다 — 표현 문제일 뿐이다", () => {
+    const found = marks("강조가 하나도 없는 밋밋한 요약이에요.");
+    assert.equal(found.every((v) => !v.blocking), true);
+  });
+});
+
+describe("확정 — 서술어가 되어야 단정이다", () => {
+  const absolute = (t: string) =>
+    checkReport(reportWith(t), { expectedSections: 1 }).violations.filter((v) => v.kind === "단정");
+
+  it("단정으로 쓰면 잡는다", () => {
+    for (const t of ["이건 확정이에요.", "가능성은 확정적이에요.", "재회는 확정입니다."]) {
+      assert.equal(absolute(t).length >= 1, true, `놓쳤다: ${t}`);
+    }
+  });
+
+  it("남의 말투를 묘사하는 '확정적인'은 놓아준다", () => {
+    // 단정의 반대말인데도 걸리고 있었다.
+    assert.deepEqual(absolute("상대는 먼저 확정적인 말을 하기 어려워요."), []);
+  });
+});

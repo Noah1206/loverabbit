@@ -21,16 +21,20 @@ import {
   ChapterBody,
   ChapterIndex,
   ChapterNavBar,
+  ChapterOutline,
   ChapterPanel,
   ChapterShell,
   ChapterTopBar,
   ChartPanel,
   IndexDrawer,
+  MarkLegend,
   ScoreBreakdown,
   Seal,
   type IndexItem,
 } from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
+import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-images";
+import Talisman from "@/components/Talisman";
 
 interface ReferralStatus {
   referralCode: string;
@@ -38,11 +42,18 @@ interface ReferralStatus {
   readingUnlocked: boolean;
 }
 
-// 리딩 결과 뷰어 — 웹툰처럼 장(章)마다 한 페이지씩 넘겨 읽는다.
-//   0쪽: 표지 + 명식 + 한눈에 보기 + 목차
-//   1..N쪽: 각 장 (화자 컷 -> 절별 본문)
-//   마지막 쪽: 화자의 마지막 편지 + 다음 리딩 + 추가 상담
-// 분야별로 달라지는 것은 화자·인장·색·장 제목뿐이고(reading-concepts.ts),
+// 리딩 결과 뷰어 — 장(章)마다 한 페이지씩 넘겨 읽는다.
+//
+//   1쪽(들어오는 자리): 목차 + 강조 범례 + 1장 본문
+//                       아직 안 산 사람에게는 그 위에 명식·요약 카드가 더 붙는다
+//   2..N쪽:             각 장 (머리 -> 절 -> 지루해질 무렵 그림 한 장)
+//   마지막 쪽:          다음 리딩 + 추가 상담
+//   0쪽(표지):          명식·지수·요약·목차. 아래 바의 "표지" 로 언제든 돌아간다
+//
+// **표지가 아니라 1장으로 들어온다.** 목차에서 하나를 고르게 하면, 아직 무슨 내용인지
+// 모르는 사람에게 선택을 시키는 셈이라 첫 화면에서 멈춘다.
+//
+// 분야마다 달라지는 것은 장 제목과 인장뿐이고(reading-concepts.ts),
 // 구조와 잠금 규칙은 모든 리딩이 똑같이 쓴다.
 export default function ReadingReportPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,6 +65,8 @@ export default function ReadingReportPage() {
   const [showPay, setShowPay] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showIndex, setShowIndex] = useState(false);
+  // 장마다 한 장씩 뒤따라 오는 그림. 한 장에 60초라 글보다 늦다.
+  const [images, setImages] = useState<ReadingImage[]>([]);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -74,7 +87,17 @@ export default function ReadingReportPage() {
     }
     // 주소에 쪽 번호가 있으면 그 장부터 — 공유한 링크가 같은 자리를 연다
     const wanted = Number(params.get("p"));
-    if (Number.isInteger(wanted) && wanted > 0) setPage(wanted);
+    if (Number.isInteger(wanted) && wanted > 0) {
+      setPage(wanted);
+    } else if (found) {
+      // 표지가 아니라 **1장으로 바로 들어간다.** 목차에서 하나를 고르게 하면,
+      // 아직 무슨 내용인지 모르는 사람에게 선택을 시키는 셈이라 첫 화면에서 멈춘다.
+      // 목차는 1장 맨 위에 펼쳐 두고, 표지는 아래 바의 '표지'로 언제든 돌아간다.
+      //
+      // 결제 전에도 마찬가지다. 그래서 파는 데 필요한 것(지수·요약 카드·결제)은
+      // 표지에만 두지 않고 1장에도 함께 세운다 — 아래 lockedPitch 참조.
+      setPage(1);
+    }
 
     // 결제하려다 로그인으로 빠졌던 경우, 돌아오자마자 결제창을 다시 띄운다
     const pending = takePendingReading();
@@ -91,6 +114,54 @@ export default function ReadingReportPage() {
   }, [id]);
 
   const unlocked = Boolean(entry?.full);
+
+  /**
+   * 삽화 — 해금된 뒤에 뒤따라 온다.
+   *
+   * 한 장에 60초라 다섯 장이면 5분이다. 그동안 글은 이미 읽히고 있고, 그림은
+   * 도착하는 대로 자리에 앉는다. 다 오면 묻기를 멈춘다 — 완성된 리딩을 다시 열 때
+   * 쓸데없이 계속 두드리지 않기 위해서다.
+   */
+  useEffect(() => {
+    if (!unlocked || !id) return;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const done = (list: ReadingImage[]) =>
+      list.length > 0 && list.every((image) => image.status !== "pending");
+
+    const tick = async (kick: boolean) => {
+      if (stopped) return;
+      try {
+        const res = kick
+          ? await fetch("/api/reading/images", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ readingId: id }),
+            })
+          : await fetch("/api/reading/images?readingId=" + id);
+        const data = (await res.json()) as { images?: ReadingImage[] };
+        const list = data.images ?? [];
+        if (stopped) return;
+        setImages(list);
+        if (!done(list)) timer = setTimeout(() => void tick(false), 6000);
+      } catch {
+        // 그림은 덤이다. 못 물어봤다고 알릴 것까지는 없고, 조금 뒤에 다시 묻는다.
+        if (!stopped) timer = setTimeout(() => void tick(false), 15000);
+      }
+    };
+
+    void tick(true);
+    return () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [unlocked, id]);
+
+  const imageOf = useCallback(
+    (chapter: number) => images.find((image) => image.chapter === chapter) ?? null,
+    [images]
+  );
   const product = PRODUCT_MAP[entry?.category ?? ""];
   const concept = conceptFor(entry?.category);
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
@@ -335,10 +406,11 @@ export default function ReadingReportPage() {
   );
 
   return (
-    <ChapterShell concept={concept}>
+    <ChapterShell>
       <ChapterTopBar
         concept={concept}
-        kicker={page === 0 ? `${concept.shrine} · ${concept.narrator}` : `${entry.label} · ${concept.shrine}`}
+        // 표지에서는 제목이 곧 상품명이라 부제까지 같은 말을 반복할 이유가 없다.
+        kicker={current ? entry.label : `${total}개 장 · 약 ${minutes}분`}
         title={current ? `${current.label}. ${current.title}` : entry.label}
         onOpenIndex={() => setShowIndex(true)}
         onShare={() => void shareReading()}
@@ -351,12 +423,11 @@ export default function ReadingReportPage() {
           <>
             {/* 표지 — 어떤 리딩을 손에 쥐었는지 한 화면에 담는다 */}
             <section className="rv-cover">
-              <div className="rv-cover-art" style={{ backgroundImage: `url(${concept.portrait})` }} aria-hidden />
               <div className="rv-cover-copy">
                 <Seal concept={concept} size={46} />
                 <small>{concept.cover}</small>
                 <h1>{entry.label}</h1>
-                <p>{points[0] ?? concept.shrine}</p>
+                <p>{points[0] ?? concept.cover}</p>
                 <span className="rv-cover-meta">
                   {createdAt.toLocaleDateString("ko-KR")} · 약 {minutes}분 · {total}개 장
                   {unlocked ? " · 🔓 전문" : entry.pendingOrderId ? " · ⏳ 승인 대기" : " · 🔒 미리보기"}
@@ -396,7 +467,7 @@ export default function ReadingReportPage() {
             <section className="rv-toc">
               <h2>
                 <span>목차</span>
-                <small>{concept.narrator}가 읽어주는 {total}개 장</small>
+                <small>{total}개 장</small>
               </h2>
               <ChapterIndex items={indexItems} current={page} onJump={goto} />
             </section>
@@ -409,21 +480,57 @@ export default function ReadingReportPage() {
           </>
         ) : current ? (
           <>
-            <ChapterPanel
-              concept={concept}
-              chapter={current}
-              hook={
-                current.kind === "epilogue"
-                  ? concept.outro
-                  : (concept.hooks[page - 1] ?? concept.outro)
-              }
-            />
-            <ChapterBody chapter={current} />
+            {/*
+              결제 전에 1장으로 바로 들어오면 표지를 지나치게 된다. 표지에는 명식·지수·
+              요약 카드가 있고, 그게 "이 리딩이 내 얘기구나" 를 알려주는 자리다.
+              그래서 아직 안 산 사람에게는 그 셋을 1장 맨 위에 세워 준다.
+              이미 산 사람에게는 안 보인다 — 한 번 본 것을 매번 다시 지나칠 이유가 없고,
+              표지는 아래 바의 '표지'로 언제든 돌아간다.
+            */}
+            {page === 1 && !unlocked && (
+              <>
+                <ChartPanel
+                  chart={entry.chart}
+                  scoreLabel={entry.scoreLabel}
+                  score={entry.score}
+                  scoreBand={entry.scoreBand}
+                />
+                {summaryCards.length > 0 && (
+                  <section className="rv-summary">
+                    <h2>한눈에 보기</h2>
+                    <div className="rv-summary-cards">
+                      {summaryCards.map((card, index) => (
+                        <div key={index}>
+                          <small>{card.label}</small>
+                          <strong>{card.value}</strong>
+                          {card.detail && <p>{card.detail}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+
+            {/* 읽기 시작하는 자리에만 목차를 펼친다. 다른 장에서는 상단 바의 ≡ 가 같은 일을 한다. */}
+            {page === 1 && (
+              <>
+                <ChapterOutline title={entry.label} items={indexItems} current={page} onJump={goto} />
+                {/* 색이 무슨 뜻인지 — 본문을 읽기 전에 한 번만 */}
+                <MarkLegend />
+              </>
+            )}
+
+            <ChapterPanel chapter={current} />
+            <ChapterBody chapter={current} image={imageOf(current.number)} />
 
             {paywall}
 
             {unlocked && page === total && (
               <>
+                {/* 마지막 장 끝 — 다 읽은 사람만 받는다 */}
+                <Talisman image={imageOf(TALISMAN_SLOT)} label={entry.label} />
+
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">
                     <span className="badge">이 리딩 다음에</span>

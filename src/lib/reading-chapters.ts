@@ -8,9 +8,15 @@
 //   3) 그것도 안 되면 마지막 장에 붙인다
 // 어떤 경우에도 문장이 사라지지 않는 것이 이 파일의 계약이다.
 
+import type { SectionExtra } from "@/lib/reading-extra";
+
 export interface ChapterPiece {
   title: string;
+  /** 이 절의 답 한 줄. 본문보다 먼저 읽힌다. */
+  verdict?: string;
   paragraphs: string[];
+  /** 이 절이 이미 말한 것을 다른 꼴로 세운 덩어리 */
+  extra?: SectionExtra;
   /** 이 절에서 짚어둘 주의점 (구조화 리포트에만 있다) */
   watchOut?: string;
   /** 이 절이 근거로 삼은 계산값 — "strength.label=신약" 같은 문자열 */
@@ -21,7 +27,9 @@ export interface ChapterSection {
   /** 장 안에서의 순번 — 화면의 "1)" 표기 */
   order: number;
   title: string;
+  verdict?: string;
   paragraphs: string[];
+  extra?: SectionExtra;
   watchOut?: string;
   factsUsed: string[];
   /** 결제 전이라 본문이 비어 있는 절 */
@@ -122,7 +130,9 @@ export function buildChapters(
       const sections = items.map((piece, order) => ({
         order: orderIn(piece.title, order + 1),
         title: cleanTitle(piece.title),
+        verdict: piece.verdict,
         paragraphs: piece.paragraphs,
+        extra: piece.extra,
         watchOut: piece.watchOut,
         factsUsed: piece.factsUsed ?? [],
         locked: piece.paragraphs.length === 0,
@@ -150,7 +160,9 @@ export function buildChapters(
       sections: epilogue.map((piece, order) => ({
         order: order + 1,
         title: cleanTitle(piece.title),
+        verdict: piece.verdict,
         paragraphs: piece.paragraphs,
+        extra: piece.extra,
         watchOut: piece.watchOut,
         factsUsed: piece.factsUsed ?? [],
         locked: piece.paragraphs.length === 0,
@@ -168,15 +180,25 @@ export function buildChapters(
  * 근거(facts_used)와 주의점(watch_out)이 살아 있다.
  */
 export function reportPieces(report: {
-  sections: { title: string; summary: string; paragraphs: string[]; watchOut?: string; factsUsed: string[] }[];
+  sections: {
+    title: string;
+    verdict?: string;
+    summary: string;
+    paragraphs: string[];
+    watchOut?: string;
+    factsUsed: string[];
+    extra?: SectionExtra;
+  }[];
   actionQuestions: { question: string; whyItMatters: string }[];
   characterNote: { name: string; message: string } | null;
 }): ChapterPiece[] {
   const pieces: ChapterPiece[] = report.sections.map((section) => ({
     title: section.title,
+    verdict: section.verdict,
     paragraphs: [section.summary, ...section.paragraphs].filter(Boolean),
     watchOut: section.watchOut,
     factsUsed: section.factsUsed,
+    extra: section.extra,
   }));
 
   if (report.actionQuestions.length > 0) {

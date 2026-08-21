@@ -57,6 +57,7 @@ export default function ReadingGeneratingPage() {
             me: parsePerson(job.me),
             partner: job.withPartner && job.partner.year ? parsePerson(job.partner) : null,
             question: job.question ?? "",
+            occupation: job.occupation ?? "",
             userToken: user.token,
           }),
         });

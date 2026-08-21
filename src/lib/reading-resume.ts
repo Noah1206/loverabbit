@@ -23,6 +23,8 @@ export interface ResumeInput {
    */
   ruleIds: string[];
   currentScene: string;
+  /** 발급 때 적힌 직업. 나머지 절도 같은 무대에서 써야 앞뒤가 맞는다. */
+  occupation?: string;
   /** 발급 시각 — 대운·세운을 그때 기준으로 다시 잡기 위해 */
   issuedAt: string;
   /** 발급 때 이미 만들어 둔 절 수. 이 다음 항목부터 이어 만든다. */

@@ -16,6 +16,7 @@
 //   대신 한 장이 실패해도 그 장만 다시 시키면 된다.
 
 import { sumUsage, type ChatUsage } from "@/lib/ai";
+import { extraPlanFor, parseExtra } from "@/lib/reading-extra";
 import { chapterNumbersFromToc } from "@/lib/reading-chapters";
 import {
   buildReadingInput,
@@ -151,8 +152,15 @@ ${inputJson}`;
 }
 
 function chapterPrompt(inputJson: string, chapter: Batch, outline: string[]): string {
+  // 어떤 모양(extra)을 얹을지는 서버가 정해서 알려준다. 묶음마다 따로 생성되므로
+  // 모델에게 고르라고 맡기면 옆 묶음이 뭘 골랐는지 몰라 결국 한 가지로 몰린다.
+  const shape = (item: string) => {
+    const kind = extraPlanFor(outline.indexOf(item));
+    return kind ? ` [extra: ${kind}]` : " [extra 없이]";
+  };
   return `지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
-${chapter.items.map((item, i) => `${i + 1}. ${item}`).join("\n")}
+대괄호 안의 extra 지정을 그대로 따른다.
+${chapter.items.map((item, i) => `${i + 1}. ${item}${shape(item)}`).join("\n")}
 ${outlineBrief(outline, chapter.items)}
 입력:
 ${inputJson}`;
@@ -199,20 +207,31 @@ function parseSections(text: string, items: string[]): ReportSectionOut[] {
         id: typeof section.id === "string" ? section.id : "core",
         navLabel: typeof section.nav_label === "string" && section.nav_label.trim() ? section.nav_label : title,
         title,
+        // 한 줄 결론. 없으면 없는 대로 — 옛 리딩에는 이 칸이 없다.
+        verdict: typeof section.verdict === "string" && section.verdict.trim() ? section.verdict.trim() : undefined,
         summary: typeof section.summary === "string" ? section.summary : "",
         paragraphs: strings(section.paragraphs),
         factsUsed: strings(section.facts_used),
         ruleIds: strings(section.rule_ids),
         watchOut: typeof section.watch_out === "string" ? section.watch_out : undefined,
+        // 모양이 어긋나면 버린다 — 덤이라 반쯤 망가진 채로 세우느니 없는 편이 낫다
+        extra: parseExtra(section.extra),
       }));
     if (sections.length > 0) return sections;
   }
   return [];
 }
 
-/** 한 장의 출력 토큰 예산. 한글은 토큰을 많이 먹으므로 항목당 넉넉히 잡는다. */
+/**
+ * 한 묶음에 허용하는 출력 토큰.
+ *
+ * 절 하나가 1,200~1,500자다(reading-prompt.ts 의 본문 계약). 한국어는
+ * 글자당 대략 1토큰이 나가고, 여기에 JSON 껍데기와 facts_used·rule_ids 가 붙는다.
+ * 추론 모델은 **생각한 토큰도 이 예산에서 깎으므로** 그 몫까지 얹어 둔다.
+ * 모자라면 절이 문장 중간에서 잘리고, 잘린 절은 재시도로 다시 돈을 쓴다.
+ */
 function chapterBudget(items: number): number {
-  return 1200 + items * 1200;
+  return 2400 + items * 3600;
 }
 
 export interface ComposeOptions {

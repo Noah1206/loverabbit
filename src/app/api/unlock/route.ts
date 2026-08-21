@@ -10,6 +10,7 @@ import {
 } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
+import type { SealedScore } from "@/lib/saju-score";
 
 // 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
@@ -33,6 +34,8 @@ interface SealedReading {
   id: string;
   full: string;
   price: number;
+  /** 발급 시점에 봉인된 지수 한 덩어리 (DB에 같은 것이 있다 — 이건 사본) */
+  scoreSeal?: SealedScore | null;
   score?: number;
   scoreLabel?: string | null;
   /** 지수가 어느 구간인지 (상품의 meterLabels 문구) */
@@ -64,11 +67,18 @@ export async function POST(req: NextRequest) {
   const fromBlob = sealed && sealed.id === body.readingId ? sealed : null;
   const full = stored?.full ?? fromBlob?.full;
   const price = stored?.price ?? fromBlob?.price;
-  const score = stored?.score ?? fromBlob?.score;
-  const scoreLabel = stored?.scoreLabel ?? fromBlob?.scoreLabel ?? null;
-  // 구간과 근거는 DB에 두지 않고 봉인된 blob에만 있다
-  const scoreBand = fromBlob?.scoreBand ?? null;
-  const scoreFactors = fromBlob?.scoreFactors ?? [];
+
+  // 지수는 절대 다시 계산하지 않는다. 발급 때 봉인한 값을 그대로 읽는다.
+  // 대운·세운이 섞인 값이라 지금 다시 돌리면 다른 숫자가 나오고, 그건 산 사람이
+  // 산 리딩이 아니게 된다. DB의 봉인이 정본이고, 없으면(봉인 이전 리딩) 클라이언트
+  // blob의 사본을, 그것도 없으면 DB에 따로 있던 숫자를 쓴다.
+  const seal = stored?.scoreSeal ?? fromBlob?.scoreSeal ?? null;
+  const score = seal?.value ?? stored?.score ?? fromBlob?.score;
+  const scoreLabel = seal?.label ?? stored?.scoreLabel ?? fromBlob?.scoreLabel ?? null;
+  const scoreBand = seal?.band ?? fromBlob?.scoreBand ?? null;
+  const scoreFactors = seal?.factors ?? fromBlob?.scoreFactors ?? [];
+  // 어느 운을 보고 낸 값인지. 화면에서 "발급 시점 기준"이라고 밝히는 근거가 된다.
+  const scoreAsOf = seal ? { ...seal.asOf, issuedAt: seal.issuedAt } : null;
   const report = fromBlob?.report ?? null;
 
   if (!full || !price) {
@@ -95,11 +105,20 @@ export async function POST(req: NextRequest) {
       });
     } catch (error) {
       console.error("리딩 완성 실패:", error);
-      finished = null;
-    }
-    if (!finished || finished.incomplete) {
       return NextResponse.json(
-        { error: "결제는 확인됐어요. 본문을 마저 준비하는 중이니 잠시 후 다시 열어주세요.", paid: true },
+        {
+          error: "결제는 확인됐어요. 본문을 마저 준비하는 중이니 잠시 후 다시 열어주세요.",
+          paid: true,
+        },
+        { status: 503 }
+      );
+    }
+    if (finished.incomplete) {
+      return NextResponse.json(
+        {
+          error: "결제는 확인됐어요. 본문을 마저 준비하는 중이니 잠시 후 다시 열어주세요.",
+          paid: true,
+        },
         { status: 503 }
       );
     }
@@ -109,6 +128,7 @@ export async function POST(req: NextRequest) {
       scoreLabel,
       scoreBand,
       scoreFactors,
+      scoreAsOf,
       report: finished.report,
       ...extra,
     });

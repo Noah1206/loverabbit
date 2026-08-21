@@ -17,3 +17,15 @@ public/cards-pastel-original/
 
 # 모델 비교 결과 (scripts/model-compare.mts) — 리딩 원문이 들어 있다
 .model-compare.json
+
+# 리딩 미리보기 (scripts/reading-preview.mts) — 유료 본문이 통째로 들어 있다
+.reading-preview.*.json
+public/generated/
+data/reading-images/
+
+# Threads 승인 대기열 (scripts/threads-drafts.mts) — 미승인 초안이 들어 있다.
+# 승인 전 원고가 저장소에 섞이면 어느 것이 나갔는지 구분이 안 된다.
+.threads-drafts.json
+
+# 예약 발행 러너 로그
+.threads-publish.log

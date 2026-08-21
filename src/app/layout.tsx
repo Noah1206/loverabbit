@@ -39,6 +39,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" data-theme="dark" suppressHydrationWarning>
+      <head>
+        {/*
+          Pretendard. globals.css 의 font-family 첫 자리에 오래 적혀 있었지만
+          정작 불러온 적이 없어서, 윈도우에서는 내내 맑은고딕으로 떨어지고 있었다.
+          긴 글을 읽히는 화면이라 글꼴 하나가 가독성을 가장 크게 바꾼다.
+
+          dynamic-subset 은 한글 11,172자를 통째로 받지 않고 페이지에 실제로 쓰인
+          글자만 조각으로 받는다. 한글 웹폰트는 이 방식이 아니면 첫 화면이 늦는다.
+        */}
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+      </head>
       <body>
         <Script id="loverabbit-theme-init" strategy="beforeInteractive">
           {themeInitScript}

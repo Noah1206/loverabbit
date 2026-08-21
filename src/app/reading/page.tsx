@@ -378,6 +378,7 @@ export default function ReadingPage() {
   const [withPartner, setWithPartner] = useState(true);
   // 지금 가장 답답한 것 한 줄 — 선택 입력이지만, 있으면 리포트가 이 장면에 답한다
   const [question, setQuestion] = useState("");
+  const [occupation, setOccupation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState<User | null>(null);
@@ -438,6 +439,7 @@ export default function ReadingPage() {
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
       setQuestion(draft.question ?? "");
+      setOccupation(draft.occupation ?? "");
       setCategorySelectionMode("fixed");
       setHasChosenCategory(true);
       if (stored) {
@@ -479,6 +481,7 @@ export default function ReadingPage() {
       partner,
       withPartner,
       question: question.trim(),
+      occupation: occupation.trim(),
       createdAt: Date.now(),
     };
     if (!user) {
@@ -767,6 +770,27 @@ export default function ReadingPage() {
                   maxLength={80}
                 />
                 <p className="reading-concern-count">{question.length} / 80</p>
+
+                {/*
+                  직업은 명식을 바꾸지 않는다 — 사주는 생년월일시로 정해진다.
+                  다만 같은 흐름이 어떤 장면으로 나타나는지는 하는 일에 따라 달라져서,
+                  이걸 적으면 리포트가 그 사람의 하루에서 장면을 고를 수 있다.
+                  비워도 되는 칸이라 그 점을 안내 문구에 적어 둔다.
+                */}
+                <label className="reading-job">
+                  <span className="reading-job-label">하는 일 (선택)</span>
+                  <input
+                    className="reading-job-input"
+                    value={occupation}
+                    onChange={(event) => setOccupation(event.target.value.slice(0, 30))}
+                    placeholder="예: 3교대 간호사 / 프리랜서 디자이너 / 취업 준비 중"
+                    maxLength={30}
+                  />
+                  <span className="reading-job-help">
+                    사주 자체는 태어난 때로만 봐요. 적어주시면 그 흐름이 실제로 어떤 장면으로
+                    나타나는지까지 짚어드려요.
+                  </span>
+                </label>
               </>
             )}
 
@@ -798,6 +822,12 @@ export default function ReadingPage() {
                     <div>
                       <dt>고민</dt>
                       <dd>{question.trim()}</dd>
+                    </div>
+                  )}
+                  {occupation.trim() && (
+                    <div>
+                      <dt>하는 일</dt>
+                      <dd>{occupation.trim()}</dd>
                     </div>
                   )}
                 </dl>
@@ -835,6 +865,7 @@ export default function ReadingPage() {
               setPartner(draft.partner);
               setWithPartner(draft.withPartner);
               setQuestion(draft.question ?? "");
+              setOccupation(draft.occupation ?? "");
               setCategorySelectionMode("fixed");
               startGeneration(draft);
             }

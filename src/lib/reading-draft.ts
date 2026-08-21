@@ -25,6 +25,14 @@ export interface ReadingDraft {
   withPartner: boolean;
   /** 지금 가장 답답한 것 한 줄 — 리포트가 이 장면에 답하도록 프롬프트로 넘어간다 */
   question: string;
+  /**
+   * 하는 일. 비워도 된다.
+   *
+   * 명식은 생년월일시로 정해지므로 이 값은 **계산에 들어가지 않는다.**
+   * 같은 흐름도 3교대 간호사와 프리랜서에게 다른 장면으로 나타나서,
+   * 이걸 알면 "답장이 늦어요" 대신 그 사람의 하루에서 장면을 고를 수 있다.
+   */
+  occupation?: string;
   createdAt: number;
 }
 
