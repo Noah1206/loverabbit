@@ -181,6 +181,78 @@ export interface ReadingRule {
 //   LUCK-BIGEOP  비겁운은 경쟁·나눔인데, 재회에서 '경쟁자가 있다'로 새기 쉽다.
 // 절 수가 모자란 것과 그 규칙이 그 상품의 답이 되는 것은 다른 문제다.
 
+// ── 이별 부검 도메인 검토 (출시 전 훑기 후속) ────────────
+//
+// 10절짜리인데 규칙이 평균 7~8개만 켜졌다 — 상대가 있어도 80% 조합에서 모자랐다.
+// 절마다 딛을 것이 없으면 모델은 앞 절의 판단을 말만 바꿔 되풀이한다.
+//
+// 새 주장을 만들지 않았다. 이미 승인된 규칙 중 이 상품의 물음에 답이 되는 것을
+// 골라 도메인을 넓혔다. 판단 기준은 하나다 — 이별 부검이 묻는 열 가지 중
+// 어느 줄에 이 규칙이 실제로 닿는가.
+//
+//   REL-YUKHAP        +ibyeol   육합은 묶는 힘이다. "정리해야 할 때도 늦어진다" 는
+//                               이 규칙의 본문이 곧 미련의 구조다(7절).
+//   REL-CHEONHAP      +ibyeol   천간합은 본래 성정이 그대로 안 나오는 자리다.
+//                               "왜 하필 그 사람이었나"(1절)와 "처음부터 있었던 균열"(2절)에 닿는다.
+//   REL-SAMHAP        +ibyeol   한 축으로 모이면 다른 축이 얇아진다. 반복해서 걸리는 지점(6절).
+//   SIN-HWAGAE        +ibyeol   붙어 있는 시간만으로 안 채워지는 결. 균열(2절)이자
+//                               혼자 있는 시간에 정리된다는 회복(8절)의 근거다.
+//                               재회·속궁합에 이미 같은 논리로 넣었다.
+//   XING-SELF         +ibyeol   자형은 밖이 아니라 안에서 흔드는 것이다. 미련의 정체(7절)에
+//                               정확히 닿는다. 속궁합에서 뺐던 이유("짝을 묻는 상품의 답이
+//                               되기 어렵다")가 여기서는 반대로 든다 — 이 상품은 짝이 아니라
+//                               자기를 되짚는다.
+//   XING-LUCK-MONTH   +ibyeol   이달치 형이라는 단서. 회복 시점(8절)에서 "지금 힘든 것이
+//                               이달의 것일 수 있다" 는 제동이 된다.
+//   LUCK-GWAN-F/M     +ibyeol   관운에 관계의 형태가 표면으로 올라온다. 결정적이었던 시기(4절).
+//   LUCK-JAE-F/M      +ibyeol   재운도 같은 자리에서 같은 일을 한다. 재회에 이미 있다.
+//   LUCK-IN           +ibyeol   인성은 나를 생하는 것이라 안으로 정리하는 흐름이다.
+//                               감정이 회복되는 시점(8절)의 직접 근거.
+//   LUCK-SIKSANG      +ibyeol   말이 관계를 움직이는 흐름. 이별의 사인(3절)과 시기(4절).
+//   SPOUSE-STAR-F/M   +ibyeol   일지 배우자성. 왜 그 관계가 삶의 중심이 됐는가(1절).
+//   PAIR-YUKHAP       +ibyeol   두 배우자 자리가 서로 당기는데도 헤어졌다는 것 자체가
+//   PAIR-SAMHAP       +ibyeol   부검의 재료다. 재회에 이미 걸려 있고 축이 같다.
+//   PAIR-GANHAP       +ibyeol   두 일간이 묶이면 둘 앞에서만 다른 사람이 된다 —
+//                               상대 명식에서 본 이별의 이유(5절).
+//
+// ── 넓히지 않기로 한 것 ──────────────────────────────────
+//   TG-PYEONJAE   편재를 이별 부검에 넣으면 "한곳에 안 고여서 헤어졌다" 로 읽힌다.
+//                 부검이 아니라 성격 판정이 된다.
+//   SIN-DOHWA     도화를 이 상품에 넣으면 헤어진 사람에게 "끼가 있어서" 를 말하게 된다.
+//   SIN-HONGYEOM  같은 이유.
+//   SIN-YEOKMA    역마는 이동이다. 이별의 사인과 축이 다르다.
+
+// ── 인연 타이밍 도메인 검토 (같은 훑기) ──────────────────
+//
+// 9절인데 이 상품 몫의 규칙이 12개였고, 솔로 상품이라 상대 규칙이 통째로 죽는다.
+// 64% 조합에서 절 수를 못 채웠다.
+//
+//   SIN-DOHWA         +insun   도화는 사람이 모이는 자리다. 만나게 될 경로(4절)와
+//                              인연을 앞당기는 처방(8절)의 고전적 근거가 여기다.
+//                              솔로 상품에서 이게 빠져 있던 것이 이상하다.
+//   SIN-HONGYEOM      +insun   오래 볼수록 번지는 끌림. 다음 인연의 윤곽(5절).
+//   SIN-HWAGAE        +insun   혼자 있는 시간에 정리되는 결. 지금 솔로인 구간(1절).
+//   SIN-WONJIN        +insun   사건 없이 마음이 멀어지는 구조 — 지난 인연들이
+//                              스쳐간 이유(2절)에 그대로 닿는다.
+//   SPOUSE-PALACE-CHUNG +insun 배우자 자리가 충을 맞으면 자리가 안 잡힌다.
+//   XING-SPOUSE-PALACE  +insun 형도 같은 자리에서 같은 일을 한다. 둘 다 1·2절.
+//   XING-SELF         +insun   혼자 되짚는 시간이 흔든다. 솔로 구간(1절)과 준비(6절).
+//   XING-LUCK-MONTH   +insun   이달치라는 단서. 창이 닫히는 함정 구간(7절)에서
+//                              "이건 이달의 것" 이라는 제동이 된다.
+//   TG-PYEONJAE       +insun   여러 갈래가 들어오고 한곳에 안 고인다 — 스쳐간
+//                              이유(2절) 그 자체다.
+//   TG-SANGGWAN       +insun   틀을 다시 짜려는 결. 지난 인연이 스친 이유(2절).
+//   TG-GEOPJAE        +insun   비교가 끼어들 때 흔들리는 자리. 같은 절.
+//   REL-CHUNG         +insun   같은 지점에서 반복해 걸린다 — 2절의 뼈대.
+//   REL-CHEONHAP      +insun   상대에 따라 다른 사람처럼 보이는 자리. 5절.
+//
+// ── 넓히지 않기로 한 것 ──────────────────────────────────
+//   SIN-YANGIN     밀어붙이는 힘. 솔로에게 옮기면 "네 성격 때문에 혼자" 가 된다.
+//   LUCK-BIGEOP    비겁운을 솔로 상품에 넣으면 "경쟁자가 있다" 로 새기 쉽다.
+//   XING-YINSISHEN 삼형과 형 쌍은 전부 가까운 사이에서 부딪히는 이야기다.
+//   XING-PAIR-*    지금 없는 관계를 두고 말하게 되므로 이 상품의 답이 아니다.
+//   PAIR-*         상대 명식이 있어야 켜진다. 솔로 상품에서는 애초에 안 선다.
+
 export const READING_RULES: ReadingRule[] = [
   // ── 일간 오행 × 강약 ────────────────────────────────────
   // 오행 성정(木 仁·뻗음 / 火 禮·확산 / 土 信·포용 / 金 義·수렴 / 水 智·흐름)에
@@ -413,7 +485,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-PYEONJAE",
     priority: 74,
-    when: { tenGodAny: ["편재"] , domains: ["baramgi", "dohwasal", "hwanseung", "pyeongsaeng", "bamgijil", "sseom", "jaehoe", "sokgunghap"] },
+    when: { tenGodAny: ["편재"] , domains: ["baramgi", "dohwasal", "hwanseung", "pyeongsaeng", "bamgijil", "sseom", "jaehoe", "sokgunghap", "insun"] },
     claim: "인연의 폭이 넓게 열려 여러 갈래가 동시에 들어오고, 그만큼 한곳에 고이지 않는 구조",
     safePhrasing: "그렇게 열려 있는",
     forbidden: ["바람을 피운다"],
@@ -431,7 +503,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-SANGGWAN",
     priority: 74,
-    when: { tenGodAny: ["상관"] , domains: ["baramgi", "ibyeol", "dohwasal", "gwontaegi", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap"] },
+    when: { tenGodAny: ["상관"] , domains: ["baramgi", "ibyeol", "dohwasal", "gwontaegi", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap", "insun"] },
     claim: "정해진 틀을 답답해하고 관계의 규칙을 다시 짜려 해, 상대에게는 반박처럼 들리기 쉬운 경향",
     safePhrasing: "그런 쪽으로 기우는",
     forbidden: ["관계를 반드시 망친다"],
@@ -467,7 +539,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "TG-GEOPJAE",
     priority: 72,
-    when: { tenGodAny: ["겁재"] , domains: ["hwanseung", "baramgi", "ibyeol", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap"] },
+    when: { tenGodAny: ["겁재"] , domains: ["hwanseung", "baramgi", "ibyeol", "pyeongsaeng", "bamgijil", "sseom", "jjak", "jaehoe", "sokgunghap", "insun"] },
     claim: "비교와 경쟁이 개입할 때 관계의 온도가 흔들리고, 가진 것을 나눠야 하는 자리에서 특히 예민해지는 구조",
     safePhrasing: "그렇게 흔들리기 쉬운",
     forbidden: ["빼앗긴다", "삼각관계가 생긴다"],
@@ -480,7 +552,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SPOUSE-STAR-F",
     priority: 86,
-    when: { gender: ["F"], dayBranchTenGod: ["정관", "편관"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap"] },
+    when: { gender: ["F"], dayBranchTenGod: ["정관", "편관"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap", "ibyeol"] },
     claim: "배우자 자리에 배우자를 뜻하는 글자가 앉아, 관계가 삶의 중심으로 들어오기 쉬운 구조",
     safePhrasing: "그렇게 놓인 자리",
     forbidden: ["좋은 남편을 만난다", "반드시 결혼한다"],
@@ -489,7 +561,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SPOUSE-STAR-M",
     priority: 86,
-    when: { gender: ["M"], dayBranchTenGod: ["정재", "편재"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap"] },
+    when: { gender: ["M"], dayBranchTenGod: ["정재", "편재"] , domains: ["gyeolhon", "jaehoe", "insun", "pyeongsaeng", "sokgunghap", "ibyeol"] },
     claim: "배우자 자리에 배우자를 뜻하는 글자가 앉아, 관계가 삶의 중심으로 들어오기 쉬운 구조",
     safePhrasing: "그렇게 놓인 자리",
     forbidden: ["좋은 아내를 만난다", "반드시 결혼한다"],
@@ -498,7 +570,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SPOUSE-PALACE-CHUNG",
     priority: 88,
-    when: { dayBranchClashed: true , domains: ["gyeolhon", "ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil"] },
+    when: { dayBranchClashed: true , domains: ["gyeolhon", "ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "insun"] },
     claim: "배우자 자리가 충을 맞아, 가까운 사이일수록 같은 지점에서 크게 부딪히는 구조",
     safePhrasing: "그 자리가 흔들리는",
     forbidden: ["이혼한다", "결혼하면 안 된다"],
@@ -684,7 +756,7 @@ export const READING_RULES: ReadingRule[] = [
         "you_you_self_xing",
         "hai_hai_self_xing",
       ],
-      domains: ["gwontaegi", "sseom", "jjak", "bimil", "pyeongsaeng", "yeonae"],
+      domains: ["gwontaegi", "sseom", "jjak", "bimil", "pyeongsaeng", "yeonae", "ibyeol", "insun"],
     },
     claim: "밖에서 온 문제보다 혼자 되짚는 시간이 관계를 더 흔드는 구조",
     safePhrasing: "그렇게 안으로 도는",
@@ -696,7 +768,7 @@ export const READING_RULES: ReadingRule[] = [
     priority: 86,
     when: {
       xingAtDayBranch: true,
-      domains: ["gyeolhon", "ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "pyeongsaeng"],
+      domains: ["gyeolhon", "ibyeol", "gwontaegi", "jaehoe", "sokgunghap", "pyeongsaeng", "insun"],
     },
     claim: "배우자 자리가 형에 걸려, 다른 관계에선 안 나오는 문제가 가까운 사이에서만 반복되는 구조",
     safePhrasing: "그 자리에 걸려 있는",
@@ -724,7 +796,7 @@ export const READING_RULES: ReadingRule[] = [
     priority: 70,
     when: {
       xingLuckScope: ["월운"],
-      domains: ["jaehoe", "sseom", "yeonae", "hwanseung"],
+      domains: ["jaehoe", "sseom", "yeonae", "hwanseung", "ibyeol", "insun"],
     },
     claim: "이달만 유독 같은 대목에서 걸리는 흐름이라, 길게 볼 신호로 삼기엔 이른 때",
     safePhrasing: "이달에 겹치는",
@@ -736,7 +808,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SIN-DOHWA",
     priority: 84,
-    when: { shinsal: ["도화"] , domains: ["dohwasal", "baramgi", "sokgunghap", "sseom", "yeonae", "pyeongsaeng", "bamgijil"] },
+    when: { shinsal: ["도화"] , domains: ["dohwasal", "baramgi", "sokgunghap", "sseom", "yeonae", "pyeongsaeng", "bamgijil", "insun"] },
     claim: "사람을 끌어당기는 기운이 명식에 앉아, 의도하지 않아도 눈길이 모이는 자리",
     safePhrasing: "그런 기운이 앉은",
     forbidden: ["바람기가 있다", "이성이 끊이지 않는다"],
@@ -745,7 +817,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SIN-HONGYEOM",
     priority: 82,
-    when: { shinsal: ["홍염"] , domains: ["dohwasal", "baramgi", "sokgunghap", "jjak", "sseom", "pyeongsaeng", "bamgijil"] },
+    when: { shinsal: ["홍염"] , domains: ["dohwasal", "baramgi", "sokgunghap", "jjak", "sseom", "pyeongsaeng", "bamgijil", "insun"] },
     claim: "첫인상보다 오래 볼수록 번지는 색이 있어, 시간이 지나며 끌림이 커지는 결",
     safePhrasing: "그런 색이 도는",
     forbidden: ["유혹을 잘한다"],
@@ -767,7 +839,7 @@ export const READING_RULES: ReadingRule[] = [
     // 이것은 계산 오류가 아니라 화개의 성질이므로 우선순위를 낮추지 않는다.
     // 화면에서 얼마나 앞세울지는 노출 정책의 문제다(docs/myeongri/rule-boundaries.md).
     priority: 76,
-    when: { shinsal: ["화개"] , domains: ["bimil", "gwontaegi", "bamgijil", "pyeongsaeng", "jaehoe", "sokgunghap"] },
+    when: { shinsal: ["화개"] , domains: ["bimil", "gwontaegi", "bamgijil", "pyeongsaeng", "jaehoe", "sokgunghap", "ibyeol", "insun"] },
     claim: "혼자 있는 시간에 기운이 정리되는 편이라, 붙어 있는 시간만으로는 애정이 채워지지 않는 구조",
     safePhrasing: "그런 간격이 필요한",
     forbidden: ["연애를 못 한다"],
@@ -785,7 +857,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "SIN-WONJIN",
     priority: 80,
-    when: { shinsal: ["원진"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "hwanseung", "pyeongsaeng", "bamgijil", "sokgunghap"] },
+    when: { shinsal: ["원진"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "hwanseung", "pyeongsaeng", "bamgijil", "sokgunghap", "insun"] },
     claim: "이유를 대기 어려운 거슬림이 관계 안에 깔려, 사건 없이도 마음이 멀어지는 구조",
     safePhrasing: "그렇게 걸리는 자리",
     forbidden: ["반드시 헤어진다", "악연이다"],
@@ -796,7 +868,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "REL-CHUNG",
     priority: 80,
-    when: { relationKind: ["지지충"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "bimil", "sokgunghap"] },
+    when: { relationKind: ["지지충"] , domains: ["ibyeol", "gwontaegi", "jaehoe", "pyeongsaeng", "bamgijil", "bimil", "sokgunghap", "insun"] },
     claim: "명식 안에 정면으로 부딪히는 자리가 있어, 같은 지점에서 반복해 걸려 넘어지는 구조",
     safePhrasing: "그 자리가 자주 걸리는",
     forbidden: ["관계가 깨진다"],
@@ -805,7 +877,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "REL-YUKHAP",
     priority: 76,
-    when: { relationKind: ["지지육합"] , domains: ["sokgunghap", "gyeolhon", "insun", "pyeongsaeng", "bamgijil", "jjak", "sseom"] },
+    when: { relationKind: ["지지육합"] , domains: ["sokgunghap", "gyeolhon", "insun", "pyeongsaeng", "bamgijil", "jjak", "sseom", "ibyeol"] },
     claim: "붙잡아두는 힘이 있어 한 번 맺은 관계를 길게 유지하고, 정리해야 할 때도 늦어지는 편",
     safePhrasing: "그런 힘이 있는",
     forbidden: ["절대 헤어지지 않는다"],
@@ -814,7 +886,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "REL-SAMHAP",
     priority: 74,
-    when: { relationKind: ["삼합"] , domains: ["sokgunghap", "gyeolhon", "insun", "pyeongsaeng", "bamgijil", "jjak", "sseom"] },
+    when: { relationKind: ["삼합"] , domains: ["sokgunghap", "gyeolhon", "insun", "pyeongsaeng", "bamgijil", "jjak", "sseom", "ibyeol"] },
     claim: "세 글자가 한 방향으로 모여 그 축의 일이 크게 벌어지고, 다른 축은 상대적으로 얇아지는 구조",
     safePhrasing: "그쪽으로 쏠리는",
     forbidden: ["뭐든 이룬다"],
@@ -823,7 +895,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "REL-CHEONHAP",
     priority: 72,
-    when: { relationKind: ["천간합"] , domains: ["sokgunghap", "jjak", "bimil", "pyeongsaeng", "bamgijil", "sseom"] },
+    when: { relationKind: ["천간합"] , domains: ["sokgunghap", "jjak", "bimil", "pyeongsaeng", "bamgijil", "sseom", "ibyeol", "insun"] },
     claim: "천간이 서로 묶여 본래의 성정이 그대로 나오지 못하는 자리가 있어, 상대에 따라 다른 사람처럼 보이는 구조",
     safePhrasing: "그렇게 묶이는",
     forbidden: ["이중인격이다"],
@@ -835,7 +907,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-GWAN-F",
     priority: 90,
-    when: { gender: ["F"], luckTenGodAny: ["정관", "편관"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil"] },
+    when: { gender: ["F"], luckTenGodAny: ["정관", "편관"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil", "ibyeol"] },
     claim: "지금 구간은 배우자성이 들어와 인연과 관계의 형태가 표면으로 올라오는 흐름",
     safePhrasing: "그런 결이 도는 구간",
     forbidden: ["올해 반드시 결혼한다", "곧 인연이 나타난다"],
@@ -844,7 +916,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-GWAN-M",
     priority: 84,
-    when: { gender: ["M"], luckTenGodAny: ["정관", "편관"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil"] },
+    when: { gender: ["M"], luckTenGodAny: ["정관", "편관"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil", "ibyeol"] },
     claim: "지금 구간은 책임과 평가가 커져, 관계보다 자기 위치를 지키는 쪽으로 힘이 쏠리는 흐름",
     safePhrasing: "그런 무게가 실린 구간",
     forbidden: ["연애할 시간이 없다"],
@@ -853,7 +925,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-JAE-M",
     priority: 90,
-    when: { gender: ["M"], luckTenGodAny: ["정재", "편재"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil"] },
+    when: { gender: ["M"], luckTenGodAny: ["정재", "편재"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil", "ibyeol"] },
     claim: "지금 구간은 배우자성이 들어와 만남의 기회가 늘고 선택지가 벌어지는 흐름",
     safePhrasing: "그렇게 열리는 구간",
     forbidden: ["곧 인연이 나타난다", "여러 명을 만난다"],
@@ -862,7 +934,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-JAE-F",
     priority: 84,
-    when: { gender: ["F"], luckTenGodAny: ["정재", "편재"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil"] },
+    when: { gender: ["F"], luckTenGodAny: ["정재", "편재"] , domains: ["jaehoe", "gyeolhon", "insun", "yeonae", "pyeongsaeng", "bamgijil", "ibyeol"] },
     claim: "지금 구간은 바깥일과 활동이 늘어, 관계에 쓸 여력이 줄고 우선순위가 밀리기 쉬운 흐름",
     safePhrasing: "그렇게 바빠지는 구간",
     forbidden: ["돈은 벌지만 사랑은 못 한다"],
@@ -871,7 +943,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-IN",
     priority: 82,
-    when: { luckTenGodAny: ["정인", "편인"] , domains: ["insun", "yeonae", "gwontaegi", "pyeongsaeng", "bamgijil", "jjak", "bimil"] },
+    when: { luckTenGodAny: ["정인", "편인"] , domains: ["insun", "yeonae", "gwontaegi", "pyeongsaeng", "bamgijil", "jjak", "bimil", "ibyeol"] },
     claim: "지금 구간은 밖으로 벌이기보다 안으로 정리하는 쪽에 힘이 실려, 관계도 확장보다 점검에 맞는 흐름",
     safePhrasing: "그런 시기",
     forbidden: ["연애운이 없다"],
@@ -880,7 +952,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "LUCK-SIKSANG",
     priority: 82,
-    when: { luckTenGodAny: ["식신", "상관"] , domains: ["insun", "yeonae", "sseom", "dohwasal", "pyeongsaeng", "bamgijil", "jjak", "bimil", "jaehoe", "sokgunghap"] },
+    when: { luckTenGodAny: ["식신", "상관"] , domains: ["insun", "yeonae", "sseom", "dohwasal", "pyeongsaeng", "bamgijil", "jjak", "bimil", "jaehoe", "sokgunghap", "ibyeol"] },
     claim: "지금 구간은 말과 표현이 관계를 크게 움직여, 한 마디가 평소보다 멀리 가는 흐름",
     safePhrasing: "그런 힘이 실린 구간",
     forbidden: ["말하면 반드시 이루어진다"],
@@ -901,7 +973,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "PAIR-YUKHAP",
     priority: 92,
-    when: { needsPartner: true, pairRelation: ["일지육합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "sseom", "jaehoe", "bimil"] },
+    when: { needsPartner: true, pairRelation: ["일지육합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "sseom", "jaehoe", "bimil", "ibyeol"] },
     claim: "두 사람의 배우자 자리가 서로를 붙잡는 조합이라, 떨어져도 다시 당겨지는 구조",
     safePhrasing: "그렇게 맞물린",
     forbidden: ["천생연분이다", "반드시 이어진다"],
@@ -910,7 +982,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "PAIR-SAMHAP",
     priority: 90,
-    when: { needsPartner: true, pairRelation: ["일지삼합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "sseom", "jaehoe", "bimil"] },
+    when: { needsPartner: true, pairRelation: ["일지삼합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "sseom", "jaehoe", "bimil", "ibyeol"] },
     claim: "두 배우자 자리가 같은 국에 들어 방향이 같은 쪽으로 모이는 구조",
     safePhrasing: "그쪽으로 함께 기우는",
     forbidden: ["운명적인 만남이다"],
@@ -937,7 +1009,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "PAIR-GANHAP",
     priority: 88,
-    when: { needsPartner: true, pairRelation: ["일간합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "bimil", "jaehoe"] },
+    when: { needsPartner: true, pairRelation: ["일간합"] , domains: ["sokgunghap", "gyeolhon", "jjak", "bimil", "jaehoe", "ibyeol"] },
     claim: "두 일간이 묶이는 조합이라 서로 앞에서만 태도가 달라지고, 제3자가 보는 모습과 차이가 나는 구조",
     safePhrasing: "그렇게 반응하는",
     forbidden: ["서로밖에 없다"],
