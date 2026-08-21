@@ -718,27 +718,73 @@ label {
   height: 100%;
 }
 
-/* 카드 그림 위에 그대로 얹히는 알약이라 두 가지를 같이 봐야 한다.
-   - 글자색을 #fff 로 박아두면 안 된다. 다크 테마의 --accent 가 #f2f2f4 라
-     흰 배경에 흰 글씨가 되어 배지가 통째로 사라진다. 실제로 그랬다.
-     --bg 를 쓰면 두 테마 모두 배경과 정반대 명도로 떨어진다.
-   - 밑에 깔린 것이 사진이라 밝은 그림 위에서는 알약 경계가 녹는다.
-     그림자로 띄워 둔다. */
+/* 배지의 자리와 크기만. 색은 아래 -popular 가 전부 들고 있다. */
 .fortune-grid-badge {
   position: absolute;
   top: 10px;
   left: 10px;
-  padding: 4px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px 4px 8px;
   border-radius: 999px;
-  color: var(--bg);
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.03em;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+/* 금박. 색이 테마를 타지 않는 것은 의도다 — 이 알약이 앉는 곳은 페이지
+   배경이 아니라 카드 사진이라, 두 테마에서 같은 금색인 편이 예측이 된다.
+
+   글자색을 #fff 로 두지 마라. 예전에 흰 글자에 배경이 var(--accent) 였고,
+   다크의 --accent 가 #f2f2f4 라 흰 알약에 흰 글씨로 통째로 사라져 있었다.
+   지금 값은 가장 어두운 금색(#c98f2d) 위에서도 명암비 5.95 가 나온다.
+
+   사진 위에 그대로 얹히니 색만으로는 경계가 녹는다. 바깥 발광으로 띄우고
+   안쪽 테두리로 금박의 도드라진 면을 만든다. */
 .fortune-grid-badge-popular {
-  background: var(--accent);
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffe8a3 0%, #f0c65c 45%, #c98f2d 100%);
+  color: #2b1a03;
+  box-shadow:
+    0 2px 10px rgba(232, 184, 75, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1px rgba(255, 244, 214, 0.6);
+}
+
+/* 금박 위를 지나가는 빛. 한 화면에 이 배지가 여럿이라 계속 번쩍이면
+   그리드 전체가 소란스러워진다. 주기의 대부분은 멈춰 있고 끝에 한 번만 훑는다. */
+.fortune-grid-badge-popular::after {
+  content: "";
+  position: absolute;
+  inset: -40% -20%;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.7) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+  pointer-events: none;
+  animation: badge-sheen 3.4s ease-in-out infinite;
+}
+
+@keyframes badge-sheen {
+  0%,
+  62% {
+    transform: translateX(-130%);
+  }
+  88%,
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fortune-grid-badge-popular::after {
+    animation: none;
+    opacity: 0;
+  }
 }
 
 .fortune-grid-copy {

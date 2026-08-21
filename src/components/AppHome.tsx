@@ -205,7 +205,9 @@ export default function AppHome() {
                   <CardArt p={p} className="fortune-grid-art" />
                   <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
                   {p.tags.includes("popular") && (
-                    <span className="fortune-grid-badge fortune-grid-badge-popular">인기</span>
+                    <span className="fortune-grid-badge fortune-grid-badge-popular">
+                      <span aria-hidden>🔥</span>인기
+                    </span>
                   )}
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
