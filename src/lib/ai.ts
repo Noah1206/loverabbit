@@ -3,6 +3,8 @@
 // 키가 하나도 없으면 null 반환 → 호출부가 데모 모드로 폴백한다.
 import Anthropic from "@anthropic-ai/sdk";
 
+import { callClaudeCode } from "@/lib/ai-claude-code";
+
 export type ChatMsg = { role: "user" | "assistant"; content: string };
 
 /**
@@ -29,8 +31,15 @@ export interface ChatResult {
   usage: ChatUsage | null;
 }
 
-/** 어느 제공사로 보낼지 직접 지목할 때 쓴다. 지정하지 않으면 키 우선순위를 따른다. */
-export type Provider = "anthropic" | "gemini" | "openai";
+/**
+ * 어느 제공사로 보낼지 직접 지목할 때 쓴다. 지정하지 않으면 키 우선순위를 따른다.
+ *
+ * claude-code 만 성격이 다르다. API 키가 아니라 이미 로그인된 Claude Code CLI 를
+ * 쓰므로 구독으로 청구되고, 키 우선순위에는 끼지 않는다 — 키가 없다는 이유로
+ * 자동으로 골라지면 안 되고, 반대로 키가 있다는 이유로 밀려나도 안 된다.
+ * 쓰려면 AI_PROVIDER=claude-code 로 못 박아야 한다.
+ */
+export type Provider = "anthropic" | "gemini" | "openai" | "claude-code";
 
 const NO_USAGE: ChatUsage = { input: 0, output: 0, cached: 0, reasoning: 0 };
 
@@ -220,6 +229,8 @@ async function callOpenAICompat(
  * 장애다. 그 둘을 호출부가 구분할 수 있어야 데모 글을 팔지 않는다.
  */
 export function isAiConfigured(): boolean {
+  // 구독으로 못 박아 두었으면 확인할 키가 없다. 없다고 데모로 떨어지면 안 된다.
+  if (pinnedProvider() === "claude-code") return true;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
   return Boolean(ANTHROPIC_API_KEY || GEMINI_API_KEY || OPENAI_API_KEY);
 }
@@ -238,7 +249,9 @@ export function isAiConfigured(): boolean {
  */
 export function pinnedProvider(): Provider | null {
   const raw = process.env.AI_PROVIDER;
-  if (raw === "anthropic" || raw === "gemini" || raw === "openai") return raw;
+  if (raw === "anthropic" || raw === "gemini" || raw === "openai" || raw === "claude-code") {
+    return raw;
+  }
   if (raw) {
     console.warn(
       `AI_PROVIDER="${raw}" 는 알 수 없는 값입니다. anthropic | gemini | openai 중 하나여야 합니다. ` +
@@ -263,6 +276,9 @@ export async function chatComplete(
   // 제공사를 지목한 경우 — 키 우선순위를 건너뛴다. 모델을 바꿔가며 재는 쪽에서 쓴다.
   // 지목한 제공사의 키가 없으면 조용히 다른 곳으로 새지 않고 그냥 실패한다.
   if (options.provider) {
+    // 키를 보지 않는다. 구독으로 도는 길이라 확인할 키가 없다.
+    if (options.provider === "claude-code")
+      return callClaudeCode(system, messages, options.model);
     if (options.provider === "anthropic")
       return ANTHROPIC_API_KEY
         ? callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model)
