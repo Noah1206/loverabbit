@@ -162,6 +162,20 @@ describe("베타 후기 원본", () => {
     }
   });
 
+  it("상품명에 점술가 이름이 붙어 있지 않다", () => {
+    // 베타 원본의 상품명은 '청월아씨 정통사주'처럼 점술가 이름을 달고 왔다.
+    // 러브레빗에 없는 사람 이름이 후기에 붙는 셈이라 리딩 종류만 남기고 뗐다.
+    // 원본을 다시 옮겨 담을 때 이름째로 들어오면 여기서 걸린다.
+    const READERS = [
+      "청월아씨", "홍연아씨", "백월아씨", "흑월도령", "몽월소녀", "연화무녀", "MZ무당",
+    ];
+    for (const review of raw.reviews) {
+      const product = String(review.product);
+      const found = READERS.find((reader) => product.includes(reader));
+      assert.equal(found, undefined, `상품명에 점술가 이름이 남았다: ${product}`);
+    }
+  });
+
   it("본문 길이가 저장 한도 안에 있다", () => {
     for (const review of raw.reviews) {
       const body = String(review.body).trim();

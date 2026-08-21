@@ -12,8 +12,8 @@
  * 넣는 함수"가 있으면 언젠가 요청 핸들러가 그걸 부른다. 이 길은 사람이 손으로
  * 터미널에서 돌릴 때만 열린다.
  *
- * 같은 후기를 두 번 넣지 않는다. 작성자·시각·본문으로 만든 import_key 가 이미
- * 있으면 건너뛴다. 그래서 몇 번을 돌려도 결과가 같다.
+ * 몇 번을 돌려도 DB가 이 파일과 같아진다. 없는 것은 넣고, 이미 있는데 표기가
+ * 달라진 것은 맞춘다. 작성자·시각·본문으로 만든 import_key 로 같은 후기인지 본다.
  */
 
 import { createHash } from "node:crypto";
@@ -45,9 +45,14 @@ function parseKst(at: string): string {
   return parsed.toISOString();
 }
 
-/** 작성자·시각·상품·본문이 같으면 같은 후기다. 원본에 고유 번호가 없어서 이걸로 대신한다. */
+/**
+ * 작성자·시각·본문이 같으면 같은 후기다. 원본에 고유 번호가 없어서 이걸로 대신한다.
+ *
+ * 상품명은 열쇠에 넣지 않는다. 표기를 고쳤다는 이유로 같은 후기가 새 후기로
+ * 취급되면 안 되기 때문이다 — 실제로 점술가 이름을 떼면서 한 번 겪었다.
+ */
 function importKey(review: RawReview): string {
-  const seed = `${review.name}|${review.at}|${review.product}|${review.body}`;
+  const seed = `${review.name}|${review.at}|${review.body}`;
   return `beta:${createHash("sha256").update(seed).digest("hex").slice(0, 32)}`;
 }
 
@@ -120,33 +125,82 @@ async function main() {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 
+  // 이미 들어가 있는 베타 후기를 전부 가져와, 작성자·시각·본문으로 맞춰 본다.
+  //
+  // import_key 로 찾지 않는 것은 의도다. 열쇠 계산식을 한 번이라도 손대면 같은
+  // 후기가 낯선 것이 되어 통째로 다시 들어간다. 사람이 바꿀 수 없는 세 가지로
+  // 맞추면 그런 일이 없다. 중복 자체는 import_key 의 unique 제약이 막는다.
   const { data: existing, error: existingError } = await db
     .from("lr_reviews")
-    .select("import_key")
-    .in("import_key", entries.map((entry) => entry.import_key));
+    .select("id,import_key,product_label,display_name,purchase_count,body,created_at")
+    .eq("source", "beta")
+    .limit(1000);
   if (existingError) throw new Error(`기존 베타 후기 확인 실패: ${existingError.message}`);
 
-  const already = new Set((existing ?? []).map((row) => String(row.import_key)));
-  const fresh = entries.filter((entry) => !already.has(entry.import_key));
+  const identity = (displayName: string, createdAt: string, body: string) =>
+    `${displayName}|${new Date(createdAt).getTime()}|${body}`;
 
-  if (fresh.length === 0) {
-    console.log(`\n이미 ${entries.length}건 모두 들어가 있습니다. 넣을 것이 없어요.`);
-    return;
+  const found = new Map<string, Record<string, unknown>>();
+  for (const row of existing ?? []) {
+    found.set(
+      identity(String(row.display_name), String(row.created_at), String(row.body ?? "")),
+      row as Record<string, unknown>
+    );
   }
 
-  const { error } = await db.from("lr_reviews").insert(
-    fresh.map((entry) => ({
-      ...entry,
-      source: "beta",
-      product_id: null,
-      rating: null, // 원본에 없다. 채우지 마라.
-      status: "published",
-    }))
-  );
-  if (error) throw new Error(`베타 후기 저장 실패: ${error.message}`);
+  const fresh: Entry[] = [];
+  const stale: { row: Record<string, unknown>; entry: Entry }[] = [];
+  for (const entry of entries) {
+    const row = found.get(identity(entry.display_name, entry.created_at, entry.body));
+    if (!row) {
+      fresh.push(entry);
+      continue;
+    }
+    // 이미 있는데 표기가 파일과 달라진 것 — 점술가 이름을 뗀 경우가 여기 걸린다.
+    if (
+      row.product_label !== entry.product_label ||
+      Number(row.purchase_count) !== entry.purchase_count ||
+      row.import_key !== entry.import_key
+    ) {
+      stale.push({ row, entry });
+    }
+  }
 
-  console.log(`\n넣음 ${fresh.length}건 · 이미 있어 건너뜀 ${entries.length - fresh.length}건`);
-  console.log("홈 후기 섹션에서 바로 보입니다. /admin/reviews 에서도 확인할 수 있어요.");
+  for (const { row, entry } of stale) {
+    const { error } = await db
+      .from("lr_reviews")
+      .update({
+        product_label: entry.product_label,
+        purchase_count: entry.purchase_count,
+        import_key: entry.import_key,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", row.id as number);
+    if (error) throw new Error(`후기 #${row.id} 갱신 실패: ${error.message}`);
+    if (row.product_label !== entry.product_label) {
+      console.log(`  고침 #${row.id}  ${row.product_label} -> ${entry.product_label}`);
+    }
+  }
+
+  if (fresh.length > 0) {
+    const { error } = await db.from("lr_reviews").insert(
+      fresh.map((entry) => ({
+        ...entry,
+        source: "beta",
+        product_id: null,
+        rating: null, // 원본에 없다. 채우지 마라.
+        status: "published",
+      }))
+    );
+    if (error) throw new Error(`베타 후기 저장 실패: ${error.message}`);
+  }
+
+  const untouched = entries.length - fresh.length - stale.length;
+  console.log(`
+넣음 ${fresh.length}건 · 고침 ${stale.length}건 · 그대로 ${untouched}건`);
+  if (fresh.length > 0 || stale.length > 0) {
+    console.log("홈 후기 섹션에 바로 반영됩니다. /admin/reviews 에서도 확인할 수 있어요.");
+  }
 }
 
 main().catch((error) => {
