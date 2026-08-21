@@ -45,21 +45,11 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/rewards",
-    label: "보상",
-    matches: (path: string) => path.startsWith("/rewards"),
-    // 리본 달린 메달
-    icon: (
-      <>
-        <circle cx="12" cy="8.9" r="5.5" />
-        <path d="M8.5 13.7 6.9 20.6l5.1-2.85 5.1 2.85-1.6-6.9" />
-      </>
-    ),
-  },
-  {
     href: "/profile",
     label: "마이",
-    matches: (path: string) => path.startsWith("/profile"),
+    // /rewards 는 탭에서 뺐지만 페이지는 남아 있다 (공유 링크가 그리로 간다).
+    // 여기서 받지 않으면 activeIndex 가 못 찾아 0 을 돌려줘 표시가 홈으로 튄다.
+    matches: (path: string) => path.startsWith("/profile") || path.startsWith("/rewards"),
     // 원 안에 든 사람
     icon: (
       <>

@@ -2612,7 +2612,9 @@ label {
 
   .reading-category-grid {
     grid-template-columns: 1fr;
-    max-height: 312px;
+    /* 여기서 높이를 묶지 않는다. 안쪽 스크롤을 걷어낸 뒤로 max-height는 목록의
+       끝을 문서 밖으로 밀어내기만 했다 - 스크롤로 닿을 수 없으니 마지막
+       리딩들을 고를 수가 없었다. */
   }
 
   .reading-birth-grid {
@@ -3439,7 +3441,7 @@ label {
 
 .tabbar {
   --active-index: 0;
-  --nav-count: 5;
+  --nav-count: 4;
   position: fixed;
   /* 페이지 CTA 바(.reading-fixed-action, .product-sticky-shell)와 같은 기준 */
   bottom: calc(22px + env(safe-area-inset-bottom));
