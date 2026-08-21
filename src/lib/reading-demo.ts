@@ -14,16 +14,39 @@
 
 import type { StructuredReport } from "@/lib/reading-prompt";
 import SOKGUNGHAP from "@/content/demo/sokgunghap.json";
+import INSUN from "@/content/demo/insun.json";
+import IBYEOL from "@/content/demo/ibyeol.json";
+
+interface DemoSlot {
+  /** 아직 안 만든 자리는 false. 그 상품은 평소대로 모델을 부른다. */
+  ready: boolean;
+  note?: string;
+  report: unknown;
+}
 
 /**
- * 데모로 쓸 리포트. 상품 id 로 찾는다.
+ * 데모로 쓸 자리. 광고 오퍼가 가리키는 카테고리마다 하나씩 둔다.
  *
- * 없는 상품은 데모가 안 된다 — 그때는 평소대로 모델을 부른다. 아무 상품의 글이나
- * 돌려 쓰면 목차와 본문이 어긋나고, 그건 흐름 테스트도 망친다.
+ * 자리를 미리 만들어 두는 이유: 파일이 없으면 import 가 깨져 빌드가 멈춘다. 그러면
+ * 데모 하나 추가하는 데 코드를 고쳐야 하고, 코드를 고쳐야 하는 일은 언젠가 빠뜨린다.
+ * 자리를 비워 두면 scripts/demo-fixture.mts 가 그 파일만 덮어쓰면 끝난다.
+ *
+ * 없는 상품은 데모가 안 된다 — 아무 상품의 글이나 돌려 쓰면 목차와 본문이 어긋나고,
+ * 그건 흐름 테스트도 망친다.
  */
-const DEMO_REPORTS: Record<string, unknown> = {
-  sokgunghap: SOKGUNGHAP,
+const DEMO_SLOT_MAP: Record<string, DemoSlot> = {
+  sokgunghap: SOKGUNGHAP as DemoSlot,
+  insun: INSUN as DemoSlot,
+  ibyeol: IBYEOL as DemoSlot,
 };
+
+/** 데모가 필요한 상품 목록 — 스크립트가 안내에 쓴다 */
+export const DEMO_SLOTS = Object.keys(DEMO_SLOT_MAP);
+
+/** 아직 안 채운 자리 */
+export function pendingDemoSlots(): string[] {
+  return DEMO_SLOTS.filter((id) => !DEMO_SLOT_MAP[id].ready);
+}
 
 export type DemoMode = "off" | "on";
 
@@ -49,7 +72,7 @@ export function demoMode(): DemoMode {
 
 /** 이 상품을 데모로 낼 수 있는가 */
 export function hasDemoReport(category: string): boolean {
-  return demoMode() === "on" && category in DEMO_REPORTS;
+  return demoMode() === "on" && Boolean(DEMO_SLOT_MAP[category]?.ready);
 }
 
 /**
@@ -57,9 +80,9 @@ export function hasDemoReport(category: string): boolean {
  * 호출부가 절을 잘라 내는데, 그게 원본을 깎으면 다음 요청이 짧은 리포트를 받는다.
  */
 export function demoReport(category: string): StructuredReport | null {
-  const found = DEMO_REPORTS[category];
-  if (!found) return null;
-  return JSON.parse(JSON.stringify(found)) as StructuredReport;
+  const slot = DEMO_SLOT_MAP[category];
+  if (!slot?.ready || !slot.report) return null;
+  return JSON.parse(JSON.stringify(slot.report)) as StructuredReport;
 }
 
 /** 데모 글이 어느 명식에서 나온 것인가 — 화면이 밝히는 데 쓴다 */
