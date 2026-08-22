@@ -46,7 +46,11 @@ export interface PreviewEvidence {
   priority: 1 | 2 | 3;
   /** 코드가 확정한 근거. 90자 이하 */
   basis: string;
-  /** 사용자용 해석 방향. 70자 이하 */
+  /**
+   * 규칙이 정해 둔 안전한 표현. **온전한 문장이 아니라 조각이다** -
+   * "그렇게 흔들리기 쉬운 결" 처럼 문장 안에 끼워 쓰라고 만든 말이다.
+   * 그대로 카드 본문에 넣으면 토막이 나간다. 문장이 필요하면 basis 를 쓴다.
+   */
   allowedMeaning: string;
   forbiddenClaims?: string[];
 }
@@ -209,6 +213,25 @@ function trim(value: string, max: number): string {
   return clean.length <= max ? clean : `${clean.slice(0, max - 1)}…`;
 }
 
+/**
+ * 명사로 끝나는 근거를 문장으로 맺는다.
+ *
+ * 규칙 71개의 claim 이 전부 명사로 끝나고 마침표가 없다 (구조 34, 편 16, 흐름 7...).
+ * 모델에게 넘길 때는 그 편이 낫지만, 사람이 읽을 자리에 그대로 놓으면 말이
+ * 끊긴 것처럼 보인다.
+ *
+ * 받침이 있으면 "이에요", 없으면 "예요". 한글 음절의 받침 유무는
+ * (코드 - 0xAC00) % 28 로 나온다.
+ */
+export function toSentence(text: string): string {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (!clean) return clean;
+  if (/[요다]$/.test(clean) || /[.!?。]$/.test(clean)) return clean;
+  const last = clean.charCodeAt(clean.length - 1);
+  if (last < 0xac00 || last > 0xd7a3) return clean;
+  return clean + ((last - 0xac00) % 28 !== 0 ? "이에요" : "예요");
+}
+
 /** 규칙 id 앞머리로 무엇에 관한 근거인지 가른다 */
 function subjectOf(rule: ReadingRule): PreviewEvidence["subject"] {
   if (/^(REL|PT)-/.test(rule.id)) return "relationship";
@@ -354,20 +377,23 @@ export function validateFreePreview(result: FreePreviewResult, packet: PreviewFa
 
 // ── 폴백 ────────────────────────────────────────────
 //
-// 모델이 실패했을 때 더 비싼 모델로 다시 부르지 않는다. 근거는 이미 손에 있고,
-// 그 근거의 safePhrasing 은 사람이 검수한 문장이다 - 모델 없이도 쓸 수 있다.
-// 화면이 비는 것보다 낫고, 무엇보다 값이 0이다.
+// 모델이 실패했을 때 더 비싼 모델로 다시 부르지 않는다. 근거는 이미 손에 있다.
+//
+// **basis 를 쓴다. allowedMeaning 이 아니다.** 처음에 allowedMeaning 을 썼다가
+// 실제로 뽑아 보고 알았다 - 그건 조각이라 "그 자리에 걸려 있는" 같은 토막이
+// 훅 자리에 그대로 나갔다. 폴백은 모델이 실패할 때마다 나가는 문장이라,
+// 그 상태로 켰으면 실패한 사람 전원이 그 토막을 봤을 것이다.
 export function buildFreePreviewFallback(packet: PreviewFactPacket): FreePreviewResult {
   const top = packet.evidence.slice(0, 3);
   const titleOf = (evidence: PreviewEvidence) =>
     evidence.subject === "timing" ? "지금의 흐름" : evidence.subject === "relationship" ? "둘 사이의 결" : "관계에서의 나";
 
   return {
-    hook: top[0]?.allowedMeaning ?? "관계에서 내 마음을 확인하는 순간이 있어요.",
+    hook: top[0] ? toSentence(top[0].basis) : "관계에서 내 마음을 확인하는 순간이 있어요.",
     summary: "지금의 관계 리듬은 빠른 결론보다, 반응과 표현의 온도를 함께 살피는 쪽이 더 중요해 보여요.",
     cards: top.map((evidence) => ({
       title: titleOf(evidence),
-      body: evidence.allowedMeaning,
+      body: toSentence(evidence.basis),
       evidenceIds: [evidence.sourceRuleId],
       emotionTags: ["망설임" as PreviewEmotion],
     })),

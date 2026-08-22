@@ -9,6 +9,7 @@ import {
   buildPreviewFactPacket,
   checkFreePreviewBudget,
   previewCacheKey,
+  toSentence,
   validateFreePreview,
   type FreePreviewResult,
   type PreviewFactPacket,
@@ -201,5 +202,52 @@ describe("프롬프트", () => {
 
   it("시스템 프롬프트가 규칙 id 노출을 막는다", () => {
     assert.match(FREE_PREVIEW_SYSTEM_PROMPT, /rule IDs/);
+  });
+});
+
+describe("문장 맺기", () => {
+  // 규칙 71개의 claim 이 전부 명사로 끝난다. 그대로 화면에 놓으면 말이 끊긴다.
+  it("받침이 있으면 이에요, 없으면 예요", () => {
+    assert.equal(toSentence("그런 진폭을 가진 편"), "그런 진폭을 가진 편이에요");
+    assert.equal(toSentence("온도가 오르내리는 구조"), "온도가 오르내리는 구조예요");
+    assert.equal(toSentence("말이 앞서는 흐름"), "말이 앞서는 흐름이에요");
+  });
+
+  it("이미 문장이면 그대로 둔다", () => {
+    assert.equal(toSentence("먼저 말하지 못할 때가 있어요"), "먼저 말하지 못할 때가 있어요");
+    assert.equal(toSentence("그런 편이다"), "그런 편이다");
+  });
+
+  it("한글이 아니면 손대지 않는다", () => {
+    assert.equal(toSentence("TG-SANGGWAN"), "TG-SANGGWAN");
+  });
+});
+
+describe("폴백은 토막이 아니라 문장이다", () => {
+  // 실제로 뽑아 보고 알았다. allowedMeaning 은 "그 자리에 걸려 있는" 같은
+  // 조각이라, 그걸 훅에 쓰면 말이 끊긴 채로 나간다. 폴백은 모델이 실패할
+  // 때마다 나가는 문장이라 그 상태로 켰으면 실패한 사람 전원이 그걸 봤다.
+  const packet = buildPreviewFactPacket({
+    rules: [
+      rule("A-1", "마음이 붙는 속도는 빠른데 그 열을 오래 유지하지 못하는 구조"),
+      rule("B-1", "표현이 앞서 나가 상대가 따라오기 전에 먼저 달아오르는 편"),
+      rule("C-1", "자기 요구를 뒤로 미루고 그것이 서운함으로 남는 경향"),
+    ],
+    product: "sokgunghap",
+    relationshipStatus: "dating",
+    dayMasterElement: "수",
+  })!;
+
+  it("훅과 카드가 모두 문장으로 끝난다", () => {
+    const fallback = buildFreePreviewFallback(packet);
+    assert.match(fallback.hook, /(요|다)[.]?$/);
+    for (const card of fallback.cards) assert.match(card.body, /(요|다)[.]?$/);
+  });
+
+  it("조각(allowedMeaning)을 본문에 쓰지 않는다", () => {
+    const fragment = packet.evidence[0].allowedMeaning;
+    const fallback = buildFreePreviewFallback(packet);
+    assert.notEqual(fallback.hook, fragment);
+    assert.notEqual(fallback.cards[0].body, fragment);
   });
 });

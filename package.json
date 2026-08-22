@@ -30,7 +30,8 @@
     "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts",
     "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts",
     "prebuild": "node marketing/video/build-character-motion.mjs",
-    "motion:build": "node marketing/video/build-character-motion.mjs"
+    "motion:build": "node marketing/video/build-character-motion.mjs",
+    "free-preview:once": "tsx --env-file=.env.local --env-file=.env scripts/free-preview-once.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",
