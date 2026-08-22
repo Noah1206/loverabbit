@@ -14,11 +14,9 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { PRODUCTS, type Product } from "@/lib/products";
-import { SITE_URL } from "@/lib/site";
 import InquiryButton from "@/components/InquiryButton";
 import HomeReviews from "@/components/HomeReviews";
 
-const LOCAL_TEST_URL = "http://192.168.219.108:3000/?v=qr-price3";
 
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 로그인하면 신당 대화 5번 무료" },
@@ -57,16 +55,10 @@ export default function AppHome() {
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
-  const [showQr, setShowQr] = useState(false);
-  const [qrTarget, setQrTarget] = useState(SITE_URL);
 
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
-    const host = window.location.hostname;
-    if (host === "localhost" || host === "127.0.0.1" || /^192\.168\./.test(host)) {
-      setQrTarget(LOCAL_TEST_URL);
-    }
     return () => clearInterval(t);
   }, []);
 
@@ -92,14 +84,6 @@ export default function AppHome() {
             {showMatureLabels && <span className="app-header-mature-badge">19+</span>}
           </strong>
           <div className="app-header-actions">
-            <button
-              onClick={() => setShowQr(true)}
-              aria-label="휴대폰 접속 QR 코드 보기"
-              title="휴대폰 접속 QR"
-              className="app-header-action"
-            >
-              ▦ QR
-            </button>
             <AdultToggle />
             <button
               onClick={async () => {
@@ -260,56 +244,6 @@ export default function AppHome() {
           </div>
         </footer>
       </div>
-
-      {showQr && (
-        <div
-          className="app-modal-layer"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="qr-title"
-          onClick={() => setShowQr(false)}
-          style={{
-            position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center",
-            justifyContent: "center", padding: 20, background: "rgba(8,5,14,0.82)",
-            backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
-          }}
-        >
-          <div
-            className="card"
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: "100%", maxWidth: 360, textAlign: "center", position: "relative" }}
-          >
-            <button
-              onClick={() => setShowQr(false)}
-              aria-label="QR 코드 닫기"
-              style={{
-                position: "absolute", top: 10, right: 12, border: 0, background: "none",
-                color: "var(--text-dim)", fontSize: "1.25rem", cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
-            <h2 id="qr-title" style={{ fontSize: "1.2rem", marginBottom: 6 }}>휴대폰으로 러브레빗 열기</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginBottom: 14 }}>
-              휴대폰 카메라로 QR 코드를 비춰주세요.
-            </p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qrTarget === LOCAL_TEST_URL ? "/loverabbit-local-qr.png" : "/loverabbit-qr.png"}
-              alt="러브레빗 모바일 접속 QR 코드"
-              width={260}
-              height={260}
-              style={{ width: "100%", maxWidth: 260, height: "auto", borderRadius: 16, background: "#fff" }}
-            />
-            <a
-              href={qrTarget}
-              style={{ display: "block", marginTop: 12, color: "var(--accent)", fontSize: "0.82rem", wordBreak: "break-all" }}
-            >
-              {qrTarget}
-            </a>
-          </div>
-        </div>
-      )}
 
       {showSignup && (
         <SignupModal
