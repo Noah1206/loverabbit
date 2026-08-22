@@ -19,6 +19,15 @@ const LINKS = [
   { name: "연애운", path: "/saju/romance-timing", offer: "romance_timing_990", category: "insun" },
   { name: "이별", path: "/saju/breakup-decision", offer: "breakup_decision_990", category: "ibyeol" },
   { name: "19금", path: "/saju/mature-compatibility", offer: "mature_compatibility_990", category: "sokgunghap" },
+  // 속마음만 화면 흐름이 다르다 (질문 선택 -> 로그인 -> 이동). CTA 가 <a> 가 아니라
+  // 버튼이라 href 를 못 읽는다. 도착 경로를 여기 적어 두고 그대로 확인한다.
+  {
+    name: "속마음",
+    path: "/saju/inner-mind",
+    offer: "inner_mind_990",
+    category: "sseom",
+    formPath: "/reading?c=sseom&offer=inner_mind_990",
+  },
 ];
 
 const results = [];
@@ -66,10 +75,16 @@ for (const link of LINKS) {
     const a = [...document.querySelectorAll("a")].find((n) => (n.getAttribute("href") ?? "").includes("offer=" + expected));
     return a?.getAttribute("href") ?? null;
   }, link.offer);
-  check("CTA 가 오퍼를 달고 폼으로 간다", !!cta && cta.includes("c=" + link.category), String(cta));
+  // href 를 못 읽는 랜딩은 선언해 둔 도착 경로로 확인한다.
+  const target = cta ?? link.formPath ?? null;
+  check(
+    "CTA 가 오퍼를 달고 폼으로 간다",
+    !!target && target.includes("c=" + link.category) && target.includes("offer=" + link.offer),
+    String(target)
+  );
 
-  if (cta) {
-    await page.goto(BASE + cta, { waitUntil: "domcontentloaded", timeout: 90000 });
+  if (target) {
+    await page.goto(BASE + target, { waitUntil: "domcontentloaded", timeout: 90000 });
     await new Promise((r) => setTimeout(r, 3000));
     const formBody = await page.evaluate(() => document.body.innerText);
     const prices = (formBody.match(/[\d,]+\s*원/g) ?? []).map((s) => s.replace(/[^\d]/g, ""));

@@ -82,6 +82,22 @@ export const AD_OFFERS = {
     loginTitle: "끝낼지 붙잡을지, 기준을 확인해요",
     loginReason: "로그인 후 두 사람 정보를 입력하면 이별 사주 미리보기로 이어져요.",
   },
+  inner_mind_990: {
+    id: "inner_mind_990",
+    category: "sseom",
+    price: 990,
+    landingType: "inner_mind",
+    // 이 랜딩만 화면을 따로 쓴다(InnerMindLandingClient). AdSajuLanding 을 안 거치므로
+    // heroImage 는 실제로 그려지지 않지만, 다른 오퍼와 같은 모양을 유지한다 -
+    // 한 칸만 비면 나중에 이 오퍼가 예외로 남아 조용히 어긋난다.
+    route: "/saju/inner-mind",
+    heroImage: "/ads/saju/compatibility-bg.png",
+    badge: "속마음 사주",
+    headline: "그 사람 속마음, 뭘까?",
+    sub: "말과 행동이 어긋나는 지점과 지금 관계가 어디쯤 와 있는지를 사주 흐름으로 짚습니다.",
+    loginTitle: "그 사람의 속마음을 확인해요",
+    loginReason: "로그인 후 두 사람 정보를 입력하면 속마음 미리보기로 이어져요.",
+  },
 } as const satisfies Record<string, AdOffer>;
 
 export type AdOfferId = keyof typeof AD_OFFERS;

@@ -9,7 +9,10 @@ import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 import { INNER_MIND_PARTICIPANT_COUNT } from "@/lib/participant-counts";
 
 const LANDING = "inner_mind" as const;
-const FORM_PATH = "/reading?c=sseom";
+// 광고에서 들어온 사람은 990원으로 받는다. 다른 네 랜딩과 같은 규칙이다 -
+// 이 자리에 offer 가 없으면 광고는 990원을 말하는데 도착지는 정가라, 광고가
+// 거짓말이 된다. 유저당 한 번만 먹는 것은 서버가 따로 본다.
+const FORM_PATH = "/reading?c=sseom&offer=inner_mind_990";
 
 // 개인화 질문 — 일반적 상황 선택지만 제공한다.
 // 선택값은 이 기기의 sessionStorage에만 남기고, URL·광고 이벤트·로그에 넣지 않는다.
@@ -53,7 +56,9 @@ export default function InnerMindFlow() {
   };
 
   return (
-    <div className="lp-flow">
+    // data-offer 는 다른 네 랜딩과 같은 표시다. 광고 점검 스크립트가 이걸 보고
+    // "이 랜딩이 어떤 오퍼를 파는지" 를 읽는다.
+    <div className="lp-flow" data-offer="inner_mind_990">
       {stage === "intro" ? (
         <div className="lp-intro">
           {/* 광고 소재가 해월신당·해월도령으로 나가므로 랜딩 첫 화면도 같은 얼굴로 받는다. */}
@@ -82,6 +87,11 @@ export default function InnerMindFlow() {
             >
               안내 건너뛰기
             </button>
+            {/* 광고가 990원을 말했다. 첫 화면에서 그 값이 안 보이면 다음 화면까지
+                반신반의로 걷게 된다 - 확인은 도착 즉시가 가장 싸다. */}
+            <p className="lp-price">
+              미리보기는 무료 · 전체 리포트 <strong>990원</strong> <s>12,900원</s>
+            </p>
           </div>
         </div>
       ) : (
@@ -108,6 +118,13 @@ export default function InnerMindFlow() {
             <button type="button" className="btn lp-cta" onClick={go} disabled={!picked}>
               미리보기로 이동
             </button>
+            {/* 광고가 990원을 말하면 랜딩도 990원을 말해야 한다. 도착지에서만
+                처음 보면 그 순간이 곧 이탈이다. */}
+            <p className="lp-price">
+              미리보기는 무료 · 전체 리포트 <strong>990원</strong>
+              <span aria-hidden> </span>
+              <s>12,900원</s>
+            </p>
           </div>
           <p className="lp-note">고른 항목은 해석에만 쓰이고, 주소창이나 광고 기록에는 남지 않아요.</p>
         </div>
