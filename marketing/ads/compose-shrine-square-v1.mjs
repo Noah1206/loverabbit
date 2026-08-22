@@ -18,11 +18,31 @@ import sharp from "sharp";
 // 그 위에 채운 글자를 겹친다.
 
 const root = process.cwd();
-const charDir = path.join(root, "public", "characters");
-const outDir = path.join(root, "marketing", "ads", "shrine-square-v1");
 const logoPath = path.join(root, "public", "logo.png");
 
 const S = 1080;
+
+// 같은 틀에 배경만 갈아 끼운 두 벌을 뽑는다. 문구도 배치도 한 곳에서만 고치면
+// 두 벌이 같이 따라온다 - 세트를 파일째 복사해 두면 반드시 한쪽만 고쳐진다.
+//
+//   신당 원화   인물이 화면을 채운다. 얼굴을 남겨야 하므로 위쪽 기준으로 자른다.
+//   그리드 카드 홈 화면 상품 카드 그림. 구도가 제각각이라 attention 으로 자른다.
+const ART_SETS = [
+  {
+    out: "shrine-square-v1",
+    dir: path.join(root, "public", "characters"),
+    key: "character",
+    crop: "top",
+    label: "신당 원화",
+  },
+  {
+    out: "card-square-v1",
+    dir: path.join(root, "public", "cards-pastel"),
+    key: "card",
+    crop: "attention",
+    label: "홈 그리드 카드",
+  },
+];
 
 // 노란 박스와 주황 CTA 는 주제가 바뀌어도 그대로 둔다. 이 패턴이 시리즈로
 // 읽히려면 색이 흔들리면 안 된다 - 바뀌는 것은 인물과 세 줄뿐이다.
@@ -42,6 +62,7 @@ const items = [
     id: "01",
     slug: "breakup",
     character: "maehwa.jpg",
+    card: "ibyeol.jpg",
     landing: "/saju/breakup-decision",
     product: "이별 부검 리포트 (ibyeol, 29,900)",
     // 근거: "2장 01. 이별의 진짜 사인 규명", "4장 01. 반복해서 걸려 넘어지는 지점"
@@ -52,6 +73,7 @@ const items = [
     id: "02",
     slug: "compatibility",
     character: "yeonhwa.jpg",
+    card: "gwontaegi.jpg",
     landing: "/saju/compatibility",
     product: "속궁합 사주 (sokgunghap, 9,900)",
     // 근거: "5장 02. 다투게 된다면 반드시 이 지점에서", "5장 01. 관계 온도가 식는 위험 구간"
@@ -62,6 +84,7 @@ const items = [
     id: "03",
     slug: "intimate",
     character: "hongryeon.jpg",
+    card: "sokgunghap.jpg",
     landing: "/saju/intimate-compatibility",
     product: "속궁합 사주 (sokgunghap, 9,900)",
     // 속궁합은 성적 상성이다. 마음이 맞는지가 아니다. 그 뜻이 안 살면 이 광고는
@@ -74,6 +97,11 @@ const items = [
     id: "04",
     slug: "romance-timing",
     character: "haewol.jpg",
+    // insun.jpg 를 쓰고 싶지만 못 쓴다. 실제 그림이 370x1200 이고 나머지는 검은
+    // 여백이라, 정사각으로 자르면 여백만 남거나 좁은 띠를 세 배로 늘리게 된다.
+    // jjak 은 혼자 기다리는 장면이라 "올해도 그냥 지나가는 건가" 와 맞고,
+    // 여섯 장 중 유일하게 밝아서 피드에서 구분된다.
+    card: "jjak.jpg",
     landing: "/saju/romance-timing",
     product: "인연 타이밍 (insun, 14,900)",
     // 근거: "2장 01. 인연의 창이 열리는 시기", "2장 02. 만나게 될 가능성이 높은 경로"
@@ -84,6 +112,7 @@ const items = [
     id: "05",
     slug: "inner-mind",
     character: "bihwa.jpg",
+    card: "sseom.jpg",
     landing: "/saju/inner-mind",
     product: "썸 해부 사주 (sseom, 12,900)",
     // 근거: "1장 02. 브레이크를 밟고 있는 쪽은 누구인가", "2장 01. 밀당인가 진심인가"
@@ -94,6 +123,7 @@ const items = [
     id: "06",
     slug: "mature",
     character: "hwarin.jpg",
+    card: "dohwasal.jpg",
     landing: "/saju/mature-compatibility",
     product: "속궁합 사주 (sokgunghap, 9,900)",
     // 근거: "6장 01. 권태를 피하는 완급 조절법", "5장 01. 관계 온도가 식는 위험 구간"
@@ -164,70 +194,97 @@ function overlay(c) {
   `);
 }
 
-await mkdir(outDir, { recursive: true });
+const logo = await sharp(logoPath).resize(38, 38).png().toBuffer();
 
-for (const c of items) {
-  const art = await sharp(path.join(charDir, c.character))
-    .resize(S, S, { fit: "cover", position: "top" })
-    .png()
-    .toBuffer();
+for (const set of ART_SETS) {
+  const outDir = path.join(root, "marketing", "ads", set.out);
+  await mkdir(outDir, { recursive: true });
 
-  const logo = await sharp(logoPath).resize(38, 38).png().toBuffer();
+  for (const c of items) {
+    const src = path.join(set.dir, c[set.key]);
 
-  const composed = await sharp(art)
-    .composite([
-      { input: overlay(c), top: 0, left: 0 },
-      { input: logo, top: 1014, left: 74 },
-    ])
-    .png()
-    .toBuffer();
+    // 캔버스에 여백이 박힌 그림이 있다. insun.jpg 는 900x1200 인데 실제 그림은
+    // 370x1200 이고 나머지가 검다. 그대로 정사각으로 자르면 여백만 남거나 좁은
+    // 띠를 세 배로 늘려 뭉갠다 - 그런데 결과는 "그냥 좀 이상한 광고" 로 보여서
+    // 뽑아 보기 전엔 모른다. 여기서 세고, 틀리면 멈춘다.
+    const meta = await sharp(src).metadata();
+    const trimmed = await sharp(src).trim({ threshold: 12 }).toBuffer({ resolveWithObject: true });
+    const shrink = Math.min(trimmed.info.width / meta.width, trimmed.info.height / meta.height);
+    if (shrink < 0.85) {
+      throw new Error(
+        `${c[set.key]} 는 캔버스에 여백이 박혀 있다 (실제 그림 ${trimmed.info.width}x${trimmed.info.height} / ` +
+        `캔버스 ${meta.width}x${meta.height}). 정사각 배경으로 못 쓴다 - 다른 그림을 고르거나 여백을 지워라.`
+      );
+    }
 
-  const base = path.join(outDir, `${c.id}-${c.slug}-square-1080x1080`);
-  await Promise.all([
-    sharp(composed).toFile(`${base}.png`),
-    sharp(composed).jpeg({ quality: 94, chromaSubsampling: "4:4:4" }).toFile(`${base}.jpg`),
-  ]);
+    const art = await sharp(src)
+      .resize(S, S, {
+        fit: "cover",
+        position: set.crop === "attention" ? sharp.strategy.attention : set.crop,
+      })
+      .png()
+      .toBuffer();
+
+    const composed = await sharp(art)
+      .composite([
+        { input: overlay(c), top: 0, left: 0 },
+        { input: logo, top: 1014, left: 74 },
+      ])
+      .png()
+      .toBuffer();
+
+    const base = path.join(outDir, `${c.id}-${c.slug}-square-1080x1080`);
+    await Promise.all([
+      sharp(composed).toFile(`${base}.png`),
+      sharp(composed).jpeg({ quality: 94, chromaSubsampling: "4:4:4" }).toFile(`${base}.jpg`),
+    ]);
+  }
+
+  await buildSheet(set, outDir);
 }
+
+console.log(`Created ${items.length} square ads x ${ART_SETS.length} art sets + contact sheets`);
 
 // 대지 - 여섯 장을 한 줄에 놓고 보면 시리즈로 읽히는지가 바로 보인다.
-const cardS = 300;
-const gap = 22;
-const headerH = 138;
-const sheetW = 56 * 2 + cardS * items.length + gap * (items.length - 1);
-const sheetH = headerH + cardS + 96;
+async function buildSheet(set, outDir) {
+  const cardS = 300;
+  const gap = 22;
+  const headerH = 138;
+  const sheetW = 56 * 2 + cardS * items.length + gap * (items.length - 1);
+  const sheetH = headerH + cardS + 96;
 
-const sheetLabels = items.map((c, i) => {
-  const x = 56 + i * (cardS + gap);
-  return `
-    <text class="kr" x="${x}" y="${headerH - 16}" fill="#fff" font-size="22" font-weight="900">${c.id}. ${xml(c.title.replace("사주로 보는 ", ""))}</text>
-    <text class="kr" x="${x}" y="${headerH + cardS + 40}" fill="#b9acc5" font-size="17">${xml(c.character.replace(".jpg", ""))} · ${xml(c.landing)}</text>
-  `;
-}).join("");
+  const sheetLabels = items.map((c, i) => {
+    const x = 56 + i * (cardS + gap);
+    return `
+      <text class="kr" x="${x}" y="${headerH - 16}" fill="#fff" font-size="22" font-weight="900">${c.id}. ${xml(c.title.replace("사주로 보는 ", ""))}</text>
+      <text class="kr" x="${x}" y="${headerH + cardS + 40}" fill="#b9acc5" font-size="17">${xml(c[set.key].replace(".jpg", ""))} · ${xml(c.landing)}</text>
+    `;
+  }).join("");
 
-const sheetBase = Buffer.from(`
-  <svg width="${sheetW}" height="${sheetH}" viewBox="0 0 ${sheetW} ${sheetH}" xmlns="http://www.w3.org/2000/svg">
-    <style>.kr { font-family: 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }</style>
-    <rect width="${sheetW}" height="${sheetH}" fill="#0d0a14"/>
-    <text class="kr" x="56" y="60" fill="#fff" font-size="38" font-weight="900">LOVERABBIT 스크린샷형 ${items.length}종</text>
-    <text class="kr" x="58" y="102" fill="#ffd166" font-size="22" font-weight="800">같은 틀 · 인물과 세 줄만 바뀐다 · 1:1 1080×1080</text>
-    ${sheetLabels}
-  </svg>
-`);
+  const sheetBase = Buffer.from(`
+    <svg width="${sheetW}" height="${sheetH}" viewBox="0 0 ${sheetW} ${sheetH}" xmlns="http://www.w3.org/2000/svg">
+      <style>.kr { font-family: 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }</style>
+      <rect width="${sheetW}" height="${sheetH}" fill="#0d0a14"/>
+      <text class="kr" x="56" y="60" fill="#fff" font-size="38" font-weight="900">LOVERABBIT 스크린샷형 ${items.length}종 — ${xml(set.label)}</text>
+      <text class="kr" x="58" y="102" fill="#ffd166" font-size="22" font-weight="800">같은 틀 · 배경과 세 줄만 바뀐다 · 1:1 1080×1080</text>
+      ${sheetLabels}
+    </svg>
+  `);
 
-const sheetComposites = [{ input: sheetBase, top: 0, left: 0 }];
-for (let i = 0; i < items.length; i += 1) {
-  const c = items[i];
-  const card = await sharp(path.join(outDir, `${c.id}-${c.slug}-square-1080x1080.png`))
-    .resize(cardS, cardS, { fit: "cover" }).png().toBuffer();
-  sheetComposites.push({ input: card, top: headerH, left: 56 + i * (cardS + gap) });
+  const sheetComposites = [{ input: sheetBase, top: 0, left: 0 }];
+  for (let i = 0; i < items.length; i += 1) {
+    const c = items[i];
+    const card = await sharp(path.join(outDir, `${c.id}-${c.slug}-square-1080x1080.png`))
+      .resize(cardS, cardS, { fit: "cover" }).png().toBuffer();
+    sheetComposites.push({ input: card, top: headerH, left: 56 + i * (cardS + gap) });
+  }
+
+  const sheet = await sharp({ create: { width: sheetW, height: sheetH, channels: 4, background: "#0d0a14" } })
+    .composite(sheetComposites).png().toBuffer();
+
+  const name = `${set.out}-preview`;
+  await Promise.all([
+    sharp(sheet).toFile(path.join(outDir, `${name}.png`)),
+    sharp(sheet).jpeg({ quality: 92, chromaSubsampling: "4:4:4" }).toFile(path.join(outDir, `${name}.jpg`)),
+  ]);
 }
-
-const sheet = await sharp({ create: { width: sheetW, height: sheetH, channels: 4, background: "#0d0a14" } })
-  .composite(sheetComposites).png().toBuffer();
-
-await Promise.all([
-  sharp(sheet).toFile(path.join(outDir, "shrine-square-preview.png")),
-  sharp(sheet).jpeg({ quality: 92, chromaSubsampling: "4:4:4" }).toFile(path.join(outDir, "shrine-square-preview.jpg")),
-]);
-
-console.log(`Created ${items.length} square ads + contact sheet in marketing/ads/shrine-square-v1`);

@@ -5,8 +5,9 @@ import path from "node:path";
 //
 //   node marketing/ads/collect-meta-upload.mjs
 //
-// 소재는 세 폴더에 흩어져 있다 - 어두운 세트, 화이트 세트, 스크린샷 세트.
-// 광고 하나를 만들 때마다 세 폴더를 오가며 골라내는 것은 실수가 나기 좋다.
+// 소재는 네 폴더에 흩어져 있다 - 어두운 세트, 화이트 세트, 스크린샷 세트,
+// 그리고 같은 틀에 배경만 홈 그리드 카드로 바꾼 세트. 광고 하나를 만들 때마다
+// 네 폴더를 오가며 골라내는 것은 실수가 나기 좋다.
 // 여기서 광고별로 한 폴더에 모아 두면 폴더째 끌어 올리면 된다.
 //
 // 원본은 건드리지 않고 복사만 한다. 이 폴더는 .gitignore 에 있다 - 같은 그림을
@@ -21,6 +22,8 @@ const outDir = path.join(adsDir, "meta-upload-v1");
 const DARK = "hook-five-v1";
 const WHITE = "white-five-v1";
 const SQUARE = "shrine-square-v1";
+// 같은 틀에 배경만 홈 그리드 카드로 바꾼 벌. 파일 이름이 같아서 접두어를 붙인다.
+const CARD = "card-square-v1";
 
 const ads = [
   {
@@ -34,6 +37,7 @@ const ads = [
       [WHITE, "05-breakup-feed-1080x1350.jpg"],
       [WHITE, "05-breakup-story-1080x1920.jpg"],
       [SQUARE, "01-breakup-square-1080x1080.jpg"],
+      [CARD, "01-breakup-square-1080x1080.jpg", "카드-"],
     ],
   },
   {
@@ -47,19 +51,21 @@ const ads = [
       [WHITE, "01-compatibility-feed-1080x1350.jpg"],
       [WHITE, "01-compatibility-story-1080x1920.jpg"],
       [SQUARE, "02-compatibility-square-1080x1080.jpg"],
+      [CARD, "02-compatibility-square-1080x1080.jpg", "카드-"],
     ],
   },
   {
     dir: "03-속궁합",
     landing: "/saju/intimate-compatibility",
     product: "속궁합 사주 9,900 -> 990",
-    headline: "이 사람 앞에서만 내가 약해진다면",
+    headline: "겉궁합은 좋은데 속궁합은 어떨까",
     sources: [
       [DARK, "02-intimate-compatibility-ad-vertical-1080x1920.jpg"],
       [DARK, "02-intimate-compatibility-ad-horizontal-1200x628.jpg"],
       [WHITE, "02-intimate-feed-1080x1350.jpg"],
       [WHITE, "02-intimate-story-1080x1920.jpg"],
       [SQUARE, "03-intimate-square-1080x1080.jpg"],
+      [CARD, "03-intimate-square-1080x1080.jpg", "카드-"],
     ],
   },
   {
@@ -73,6 +79,7 @@ const ads = [
       [WHITE, "04-romance-timing-feed-1080x1350.jpg"],
       [WHITE, "04-romance-timing-story-1080x1920.jpg"],
       [SQUARE, "04-romance-timing-square-1080x1080.jpg"],
+      [CARD, "04-romance-timing-square-1080x1080.jpg", "카드-"],
     ],
   },
   {
@@ -87,6 +94,7 @@ const ads = [
       [WHITE, "03-mature-feed-1080x1350.jpg"],
       [WHITE, "03-mature-story-1080x1920.jpg"],
       [SQUARE, "06-mature-square-1080x1080.jpg"],
+      [CARD, "06-mature-square-1080x1080.jpg", "카드-"],
       [DARK, "03-mature-night-ad-vertical-1080x1920.jpg", "심의위험-"],
       [DARK, "03-mature-night-ad-horizontal-1200x628.jpg", "심의위험-"],
     ],
@@ -97,9 +105,10 @@ const ads = [
     product: "썸 해부 사주 12,900 -> 990",
     headline: "읽씹은 아닌데 진도가 안 나가",
     // 이 주제는 스크린샷 세트에만 있다. 어두운 세트와 화이트 세트에는 없다.
-    note: "1:1 한 장뿐이다. 다른 두 세트에는 속마음 소재가 없다.",
+    note: "1:1 두 장뿐이다(틀은 같고 배경만 다름). 어두운 세트와 화이트 세트에는 속마음 소재가 없다.",
     sources: [
       [SQUARE, "05-inner-mind-square-1080x1080.jpg"],
+      [CARD, "05-inner-mind-square-1080x1080.jpg", "카드-"],
     ],
   },
 ];
@@ -148,7 +157,7 @@ for (const ad of ads) {
     `소재 ${lines.length}개`,
     ...lines,
     ``,
-    ad.adult ? `만 19세 이상 소재다. "심의위험-" 이 붙은 두 장은 배경이 밀착\n장면이라 성적 암시로 거부될 수 있다. 나머지 세 장으로 먼저 심사를\n통과시킨 뒤에 올려라.` : ``,
+    ad.adult ? `만 19세 이상 소재다. "심의위험-" 이 붙은 두 장은 배경이 밀착\n장면이라 성적 암시로 거부될 수 있다. 나머지 네 장으로 먼저 심사를\n통과시킨 뒤에 올려라.` : ``,
     ad.note ?? ``,
     ``,
   ].filter(Boolean).join("\r\n");
@@ -165,7 +174,7 @@ const index = "﻿" + [
   ...ads.map((a) => `  ${a.dir.padEnd(12)} ${a.sources.length}개   ${a.landing}`),
   ``,
   `이 폴더는 복사본이다. 원본은 hook-five-v1 / white-five-v1 /`,
-  `shrine-square-v1 에 있고, 문구를 고치면 생성기를 다시 돌린 뒤`,
+  `shrine-square-v1 / card-square-v1 에 있고, 문구를 고치면 생성기를 다시 돌린 뒤`,
   `collect-meta-upload.mjs 를 다시 돌려야 여기에도 반영된다.`,
   ``,
   `게시 전에 확인할 것`,
