@@ -63,6 +63,7 @@ const ALT: Record<EmotionTag, string> = {
   그리움: "빗물이 흐르는 창",
   결심: "계단 위로 열린 문",
   회복: "옅은 아침빛이 든 거리",
+  눈물: "불 꺼진 방에 앉은 사람",
 };
 
 function altForScene(tag?: EmotionTag): string {

@@ -27,6 +27,9 @@ export const EMOTION_TAGS = [
   "그리움",
   "결심",
   "회복",
+  // 운영자가 연 결 (2026-08-22). 슬픔을 빈자리로만 말하지 않고 직접 그린다.
+  // 그림이 아직 없으면 컷 위치 기본값으로 떨어지므로 화면은 깨지지 않는다.
+  "눈물",
 ] as const;
 
 export type EmotionTag = (typeof EMOTION_TAGS)[number];
@@ -90,7 +93,7 @@ export function isEmotionTag(value: unknown): value is EmotionTag {
  * 허용된 태그만 남긴다.
  *
  * 모델이 뭘 뱉든 여기서 걸러진다. 목록에 없는 말은 그림을 고르지 못한다 -
- * 그래서 "눈물" 같은 말이 태그로 올라와도 에셋에 닿을 길이 없다.
+ * 자해·폭력·병원 같은 말이 태그로 올라와도 에셋에 닿을 길이 없다.
  */
 export function normalizeEmotionTags(tags: readonly unknown[]): EmotionTag[] {
   return [...new Set(tags.filter(isEmotionTag))];
