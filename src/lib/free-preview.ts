@@ -370,6 +370,14 @@ export function buildFreePreviewFallback(packet: PreviewFactPacket): FreePreview
 // 버전을 빼면 규칙을 고친 날 옛 문장이 계속 나온다.
 export const FREE_PREVIEW_VERSION = "free-preview-v2";
 
+/**
+ * 명식 계산이 바뀌면 올린다.
+ *
+ * 저장소에 따로 있던 값이 아니라 여기서 처음 세운다 - 캐시 열쇠에 넣을 것이
+ * 필요해서다. 만세력이나 십성 판정을 고치면 이 값을 올려야 옛 결과가 비켜난다.
+ */
+export const READING_ENGINE_VERSION = "engine-2026-08";
+
 export function previewCacheKey(input: {
   normalizedBirthInput: string;
   relationshipStatus: RelationshipStatus;

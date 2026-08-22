@@ -24,6 +24,8 @@ import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
 import { scopeOutline } from "@/lib/reading-scope";
 import { composeReport, previewBatchCount, previewSections, rewriteFlagged } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
+import { emotionTagsForAssets, runFreePreview, type FreePreviewOutcome } from "@/lib/free-preview-run";
+import { READING_ENGINE_VERSION } from "@/lib/free-preview";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
 // 여유가 없어, 재시도가 한 번 붙으면 함수가 먼저 끊긴다.
@@ -344,6 +346,8 @@ export async function POST(req: NextRequest) {
   let providerName = "demo";
   // 출고 검사 결과 — 고치지 못한 위반은 blob에 남겨 나중에 되짚을 수 있게 한다
   let guardViolations: GuardViolation[] = [];
+  // 슬림 무료 미리보기 결과. 켜져 있을 때만 채워진다.
+  let freePreview: FreePreviewOutcome | null = null;
   // 생성기가 붙어 있는데도 리포트를 못 만든 경우. 데모 글로 때우면 안 되는 상황이다.
   let generationFailed = false;
 
@@ -360,6 +364,36 @@ export async function POST(req: NextRequest) {
       report = demo;
       providerName = "demo-fixture";
       ({ teaser, full } = reportToText(report));
+      throw new SkipGeneration();
+    }
+
+    // 슬림 무료 미리보기 — 지시문 11,453자를 두 번 보내는 대신 근거 서너 개를
+    // 한 번 보낸다. 입력이 22,000토큰에서 2,000토큰으로 준다.
+    //
+    // 켜면 결제 전에는 유료 본문을 한 절도 만들지 않는다. 그래서 결제 뒤에
+    // 머리부터 새로 만들게 되고, 아래 saveResume 이 report 없이도 반드시 돌아야
+    // 한다 — 그 정보가 없으면 결제한 사람의 리딩을 이어 만들 방법이 사라진다.
+    if (process.env.FREE_PREVIEW_V2 === "1") {
+      freePreview = await runFreePreview({
+        rules: matchedRules,
+        product: body.category,
+        relationshipStatus: partnerFacts ? "dating" : "single",
+        dayMasterElement: myFacts.dayMasterElement as "목" | "화" | "토" | "금" | "수",
+        // 해시로만 남는다. 원문은 열쇠 밖으로 나가지 않는다.
+        normalizedBirthInput: JSON.stringify([myFacts, partnerFacts]),
+        engineVersion: READING_ENGINE_VERSION,
+        ruleSetVersion: matchedRules.map((rule) => rule.id).join(","),
+      });
+      const preview = freePreview.result;
+      teaser = [preview.hook, preview.summary].filter(Boolean).join(" ");
+      full = [
+        preview.hook,
+        preview.summary,
+        ...preview.cards.map((card) => `■ ${card.title}\n${card.body}`),
+        preview.reflectionQuestion,
+        preview.paidTeaser,
+      ].join("\n\n");
+      providerName = freePreview.telemetry.provider ?? `free-preview:${freePreview.telemetry.source}`;
       throw new SkipGeneration();
     }
     // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
@@ -525,11 +559,18 @@ export async function POST(req: NextRequest) {
       const illustrated = pickIllustrated(
         (report?.sections ?? []).map((section, index) => ({ chapter: index + 1, section }))
       );
+      // 슬림 경로에는 절이 없다. 카드의 감정 태그가 그 자리를 대신한다 -
+      // 이게 없으면 그림 자리가 전부 폴백으로 떨어져 여섯 장이 다 같아 보인다.
+      const freeTags = freePreview ? emotionTagsForAssets(freePreview.result) : [];
       await saveImageState(
         id,
         planImagesFor({
-          chapterNumbers: illustrated.map((item) => item.chapter),
-          chapterEmotionTags: illustrated.map((item) => item.section.emotionTags ?? []),
+          chapterNumbers: freePreview
+            ? freeTags.map((_, index) => index + 1)
+            : illustrated.map((item) => item.chapter),
+          chapterEmotionTags: freePreview
+            ? freeTags
+            : illustrated.map((item) => item.section.emotionTags ?? []),
           chart: chart.me,
           label: PRODUCT_MAP[body.category]?.shortLabel ?? PRODUCT_MAP[body.category]?.title,
         })
@@ -565,11 +606,20 @@ export async function POST(req: NextRequest) {
         })),
         lockedTitles: outline.slice(previewSections()),
       }
-    : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
+    : freePreview
+      ? {
+          // 슬림 경로의 카드가 미리보기 자리를 그대로 채운다. 잠긴 제목은 상품
+          // 목차를 그대로 쓴다 - 그 절들은 아직 만들지도 않았다.
+          sections: freePreview.result.cards.map((card) => ({ title: card.title, excerpt: card.body })),
+          lockedTitles: outline,
+        }
+      : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
 
   // 나머지 본문을 결제 후에 이어 만들기 위한 정보. 클라이언트 blob에만 두면
   // 계좌이체처럼 며칠 뒤에 승인되는 경우 기기를 바꾼 사용자에게 못 준다.
-  if (report && report.sections.length < outline.length) {
+  // 슬림 경로에서는 report 가 없다. 그래도 - 아니, 그래서 더욱 - 저장해야 한다.
+  // 결제 전에 한 절도 안 만들었으므로 결제 뒤에 만들 것이 전부다.
+  if (freePreview || (report && report.sections.length < outline.length)) {
     try {
       await saveResume(id, {
         category: body.category,
@@ -581,7 +631,8 @@ export async function POST(req: NextRequest) {
         // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해.
         // 리딩 계산에 쓴 now를 그대로 쓴다(다른 변수에 기대지 않는다).
         issuedAt: now.toISOString(),
-        doneSections: report.sections.length,
+        // 슬림 경로는 0이다. 결제 뒤 머리부터 만든다.
+        doneSections: report?.sections.length ?? 0,
       });
     } catch (e) {
       // 여기서 실패하면 결제 후에 나머지를 만들 방법이 없다. 팔지 않는다.
