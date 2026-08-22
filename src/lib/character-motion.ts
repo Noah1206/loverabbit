@@ -23,6 +23,7 @@ export const CHARACTER_MOTION: Record<string, string[]> = {
 };
 
 export const CHARACTER_MOTION_ADULT: Record<string, string[]> = {
+  jawol: ["tease"],
 };
 
 /**

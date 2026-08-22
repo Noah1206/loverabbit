@@ -99,6 +99,19 @@ const FRAME = {
   camera:
     "Keep the exact framing and shot size of the source image. The camera does not move: no zoom, no push-in, no pan, no crop, no camera shake.",
 
+  // 유령처럼 나오는 것을 막는 줄 (2026-08-22 운영자 지적: "너무 귀신같다").
+  //
+  // 원인이 셋이었다. 눈을 감은 채 끝나는 표정, 젖은 눈 같은 표현, 그리고 어두운
+  // 신당 배경. 셋이 겹치면 매혹이 아니라 공포가 된다. 배경은 원본이라 못 바꾸니
+  // 눈을 뜨게 하고 살빛을 따뜻하게 하는 쪽으로 막는다.
+  human:
+    "Eyes stay open and looking at the camera throughout. Warm, human, appealing expression with healthy skin tone and clear open eyes, lit softly on the face. Not eerie, not creepy, not a ghost or spirit, no horror, no pale grey or waxy skin, no hollow or dead eyes, no blank thousand-yard stare, no eyes rolled back, no distorted or melting face.",
+
+  // 인물 크기 고정. 표정 클립은 대사마다 갈아 끼우므로, 편마다 크기가 다르면
+  // 말할 때마다 화면이 당겨졌다 물러나 컷이 바뀐 것처럼 보인다.
+  size:
+    "The subject stays exactly the same size and in the same position in the frame from the first frame to the last.",
+
   // 금지 목록.
   negative: "No cuts, no new characters, no text, no subtitles, no watermark.",
 
@@ -154,8 +167,10 @@ function compose(characterId, emotion, action) {
     FRAME.subject(person),
     stripBoilerplate(action, emotion),
     FRAME.ambience(person),
+    FRAME.human,
     FRAME.identity,
     FRAME.camera,
+    FRAME.size,
     FRAME.negative,
     FRAME.timing,
   ].join(" ");

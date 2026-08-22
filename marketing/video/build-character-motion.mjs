@@ -29,7 +29,19 @@ const TIERS = [
 ];
 const manifest = path.join(root, "src", "lib", "character-motion.ts");
 
-for (const tier of TIERS) {
+// --tier safe | adult 로 한쪽만 압축할 수 있다. 목록은 어느 쪽을 돌리든 두 폴더를
+// 다 훑어 다시 쓴다 - public 에 있는 것이 곧 나가는 것이라, 한쪽만 보고 쓰면
+// 다른 쪽이 목록에서 사라진다.
+const tierArg = process.argv.includes("--tier")
+  ? process.argv[process.argv.indexOf("--tier") + 1]
+  : null;
+
+for (const [index, tier] of TIERS.entries()) {
+  const name = index === 0 ? "safe" : "adult";
+  if (tierArg && tierArg !== name) {
+    await mkdir(tier.out, { recursive: true });
+    continue;
+  }
   await mkdir(tier.out, { recursive: true });
   if (!existsSync(tier.raw)) continue;
 

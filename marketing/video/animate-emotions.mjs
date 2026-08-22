@@ -91,32 +91,61 @@ const CAST = [
 // 안 보인다. 카메라도 고정이다. 대사마다 갈아 끼우는 클립이라 컷이 튀면 안 된다.
 const EMOTIONS = {
   idle: (p) =>
-    `${p.Subject} looks straight at the camera, calm and composed. Slow breathing, one slow blink, ${p.pos} hair drifting a few millimetres.`,
+    `${p.Subject} looks straight at the camera with a soft, warm, friendly expression. Slow breathing, one natural blink, ${p.pos} hair drifting a few millimetres. ${p.pos_c} eyes stay open and alive the whole time.`,
   shy: (p) =>
-    `${p.Subject} suddenly flushes - cheeks and ears turning pink - and breaks eye contact, glancing down and away, then steals one quick look back at the camera. ${p.Subject} presses ${p.pos} lips together, embarrassed.`,
+    `${p.Subject} suddenly flushes - cheeks and ears turning warm pink - and glances down and away for a moment, then looks back at the camera with a small embarrassed smile. ${p.pos_c} eyes stay soft and open.`,
   laugh: (p) =>
-    `${p.Subject} breaks into a real laugh - eyes crinkling shut, shoulders shaking - then covers ${p.pos} mouth for a moment and looks back at the camera, still smiling.`,
+    `${p.Subject} bursts into a bright, warm, happy laugh, smiling wide with ${p.pos} whole face. ${p.pos_c} shoulders and upper body bounce and rock with the laughter, ${p.pos} head tipping back a little. ${p.pos_c} eyes crinkle at the corners but stay open and on the camera. A cheerful, human laugh.`,
   tease: (p) =>
-    `${p.Subject} tilts ${p.pos} head, lowers ${p.pos} chin and looks up at the camera through ${p.pos} lashes with a slow knowing smile. ${p.Subject} leans a little closer, ${p.pos} lips parting slightly.`,
+    `${p.Subject} tilts ${p.pos} head, lowers ${p.pos} chin and looks up at the camera with a slow, warm, knowing smile. ${p.Subject} leans a little closer, ${p.pos} lips parting slightly. Playful and inviting, never cold.`,
+  // 얼굴을 옆으로 완전히 돌려버려 표정이 안 보이던 것을 3/4 로 묶는다.
   disgust: (p) =>
-    `${p.Subject} recoils slightly, ${p.pos} brows drawing together and lip curling in open distaste, then turns ${p.pos} face away and shakes ${p.pos} head once, refusing to look back.`,
+    `${p.Subject} frowns and pulls back slightly, ${p.pos} brows drawing together and ${p.pos} lip curling in clear distaste. ${p.Subject} turns ${p.pos} face only partly away - staying three-quarters toward the camera so the expression is still fully visible - and shakes ${p.pos} head once. Eyes stay open.`,
   sulk: (p) =>
-    `${p.Subject} pouts and looks pointedly away to the side, ${p.pos} cheeks puffing slightly, arms drawing in. ${p.Subject} sneaks one sideways glance at the camera and looks away again.`,
+    `${p.Subject} pouts and looks pointedly away to the side, cheeks puffing slightly. ${p.Subject} sneaks one sideways glance back at the camera and looks away again, still sulking. Eyes stay open throughout.`,
+  // 놀람이 공포로 나오던 것을 "반가운 놀람" 으로 묶는다. 어두운 배경에서
+  // 눈만 크게 뜨면 겁먹은 얼굴이 되고, 그게 신당에서는 곧 귀신이 된다.
   surprise: (p) =>
-    `${p.Subject} startles - eyes going wide, head lifting sharply, breath caught - and stares straight at the camera, frozen for a beat.`,
+    `${p.Subject} is pleasantly startled - eyes widening, eyebrows lifting, head rising a little, a small caught breath - and looks straight at the camera. Surprised and interested, not frightened, not alarmed, no fear or panic on ${p.pos} face.`,
+  // 슬픔인데 웃는 얼굴로 나온 적이 있다. 웃지 않는다고 못을 박는다.
   sad: (p) =>
-    `${p.Subject} lets ${p.pos} eyes lower and ${p.pos} smile fade, exhaling slowly. ${p.pos_c} eyes shine wet but no tear falls. ${p.Subject} looks back at the camera, quieter than before.`,
+    `${p.Subject} lets ${p.pos} smile fade completely - ${p.pos} mouth closing, the corners turning down a little - and ${p.pos} gaze softens as ${p.Subject.toLowerCase().includes("woman") ? "she" : "he"} exhales. ${p.Subject} is not smiling at any point. ${p.pos_c} eyes glisten but stay open and on the camera. Gentle and sympathetic, never blank.`,
 };
 
 // 여성 캐릭터에는 관능적인 결을 한 겹 더 얹는다 (운영자 방향, 2026-08-22).
 // 옷을 벗기는 것이 아니라 실루엣·호흡·시선으로 간다 - 몸에 붙는 비단, 숨결을 따라
 // 오르내리는 가슴선, 젖은 눈. 그 편이 검열에도 걸리지 않고 오래 본다.
 const FEMALE_ALLURE =
-  "She is filmed as alluring: form-fitting silk that follows her figure, a deep neckline, bare shoulders and collarbones catching the light. Her chest rises and falls visibly with each slow breath and her body sways softly with the movement. Wet, glossy eyes and parted lips.";
+  "She is filmed as alluring: form-fitting silk that follows her figure, a deep neckline, bare shoulders and collarbones catching warm light. Her chest rises and falls visibly with each breath and her body sways softly with the movement. Bright, warm eyes and softly parted lips.";
+
+// 유령처럼 나오는 것을 막는 줄 (2026-08-22 운영자 지적: "너무 귀신같다").
+//
+// 원인이 셋이었다. 프롬프트에 "젖은 눈"을 넣었고, 여러 표정이 눈을 감은 채
+// 끝났고, 배경이 어두운 신당이다. 셋이 겹치면 매혹이 아니라 공포가 된다.
+// 눈을 뜨게 하고, 살빛을 따뜻하게 하고, 무섭게 만들지 말라고 못을 박는다.
+// 두 조각으로 나눈 이유 (2026-08-22, 2차 지적):
+//
+// 처음에는 "따뜻하고 호감 가는 표정" 을 모든 표정에 붙였다. 귀신은 사라졌는데
+// 이번엔 질색하는 얼굴까지 웃었다. 무섭지 말라는 말이 "항상 웃어라" 로 읽힌 것이다.
+// 그래서 "사람처럼 보이게" 는 전부에, "따뜻하게" 는 긍정 표정에만 붙인다.
+const NOT_CREEPY =
+  "Human, believable face with healthy skin tone and clear open eyes, lit softly. Not eerie, not creepy, not a ghost or spirit, no horror, no pale grey or waxy skin, no hollow or dead eyes, no blank thousand-yard stare, no eyes rolled back, no distorted, melting or twitching face.";
+
+// 긍정 표정에만. 부정 표정에 붙이면 감정을 지워버린다.
+const WARM = "Warm, appealing, inviting expression.";
+
+// 부정 표정에만. 웃지 말라고 못 박지 않으면 위의 "사람답게" 에 끌려 웃는다.
+const NOT_SMILING =
+  "She or he does not smile at any point in the shot - the mouth stays closed or turned down, and the feeling is unmistakably negative, not pleasant.";
+
+const POSITIVE = new Set(["idle", "shy", "laugh", "tease"]);
 
 const GUARD = [
   "Preserve the exact face, hairstyle, hair colour, ornaments, costume and background of the source image.",
   "Anime illustration style, same art style as the source, same colour grading, same framing and shot size.",
+  // 표정 클립은 대사마다 갈아 끼운다. 인물 크기가 편마다 다르면 말할 때마다
+  // 화면이 확 당겨졌다 물러나서, 표정이 아니라 컷이 바뀐 것처럼 보인다.
+  "The subject stays exactly the same size and in the same position in the frame from the first frame to the last.",
   "The camera does not move. No zoom, no push-in, no cuts, no new characters, no text, no watermark.",
 ];
 
@@ -174,6 +203,8 @@ function promptFor(person, emotion) {
   const p = pronouns(person);
   const parts = [EMOTIONS[emotion](p)];
   if (person.female) parts.push(FEMALE_ALLURE);
+  parts.push(NOT_CREEPY);
+  parts.push(POSITIVE.has(emotion) ? WARM : NOT_SMILING);
   parts.push(`The ${person.motif} shift very slightly.`);
   parts.push(...GUARD);
   return parts.join(" ");
