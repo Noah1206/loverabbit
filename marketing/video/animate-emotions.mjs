@@ -90,8 +90,12 @@ const CAST = [
 // 표정. 얼굴에서 일어나는 일만 쓴다 - 자리를 옮기거나 옷이 바뀌면 같은 사람으로
 // 안 보인다. 카메라도 고정이다. 대사마다 갈아 끼우는 클립이라 컷이 튀면 안 된다.
 const EMOTIONS = {
+  // 기본 표정이다. 홈 화면에서 상세로 들어가지 않아도 이게 돈다.
+  //
+  // 웃지 않는다. 신당에 앉은 사람이 처음 보는 손님에게 웃고 있으면 그 자리의
+  // 무게가 사라진다 — 분위기를 잡는 것은 표정이 아니라 눈을 안 피하는 쪽이다.
   idle: (p) =>
-    `${p.Subject} looks straight at the camera with a soft, warm, friendly expression. Slow breathing, one natural blink, ${p.pos} hair drifting a few millimetres. ${p.pos_c} eyes stay open and alive the whole time.`,
+    `${p.Subject} holds the camera's gaze quietly, with a calm and composed expression. Slow breathing, one natural blink, ${p.pos} hair drifting a few millimetres. ${p.pos_c} eyes stay open and alive the whole time, steady on the camera.`,
   shy: (p) =>
     `${p.Subject} suddenly flushes - cheeks and ears turning warm pink - and glances down and away for a moment, then looks back at the camera with a small embarrassed smile. ${p.pos_c} eyes stay soft and open.`,
   laugh: (p) =>
@@ -138,7 +142,16 @@ const WARM = "Warm, appealing, inviting expression.";
 const NOT_SMILING =
   "She or he does not smile at any point in the shot - the mouth stays closed or turned down, and the feeling is unmistakably negative, not pleasant.";
 
-const POSITIVE = new Set(["idle", "shy", "laugh", "tease"]);
+// 기본 표정에만 붙는다. 웃지도 찡그리지도 않는 자리다.
+//
+// WARM 을 붙이면 웃고, NOT_SMILING 을 붙이면 "감정이 분명히 부정적" 이라는 말이
+// 따라와 뚱해진다. 기본은 그 둘 다 아니다 — 아무 일도 일어나지 않는데 자리를
+// 지키는 얼굴이라, 웃음만 빼고 차가워지지도 않게 따로 못 박는다.
+const COMPOSED =
+  "Calm, composed, quietly self-possessed. She or he does not smile at any point - the mouth stays relaxed and closed - but the face is not cold, sullen or unfriendly either. The atmosphere of the scene carries the shot, not the expression.";
+
+// idle 은 빠졌다. 아래 조립부에서 COMPOSED 를 따로 받는다.
+const POSITIVE = new Set(["shy", "laugh", "tease"]);
 
 const GUARD = [
   "Preserve the exact face, hairstyle, hair colour, ornaments, costume and background of the source image.",
@@ -204,7 +217,8 @@ function promptFor(person, emotion) {
   const parts = [EMOTIONS[emotion](p)];
   if (person.female) parts.push(FEMALE_ALLURE);
   parts.push(NOT_CREEPY);
-  parts.push(POSITIVE.has(emotion) ? WARM : NOT_SMILING);
+  // idle 은 셋 중 어디에도 안 맞아서 따로 받는다. 웃지도, 부정적이지도 않다.
+  parts.push(emotion === "idle" ? COMPOSED : POSITIVE.has(emotion) ? WARM : NOT_SMILING);
   parts.push(`The ${person.motif} shift very slightly.`);
   parts.push(...GUARD);
   return parts.join(" ");
