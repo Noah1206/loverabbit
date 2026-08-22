@@ -27,6 +27,9 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
     note: "코드 기본값. 경쟁사(폭스바니)가 공개한 단가와 같은 급.",
   },
   "gpt-4o": { input: 2.5, cachedInput: 1.25, output: 10.0 },
+  // 무료 미리보기가 겨냥하는 모델. 단가는 확인하고 넣은 값이 아니라 설계 문서가
+  // 전제한 값이다 - 청구서로 한 번 맞춰 보기 전까지는 어림으로만 쓴다.
+  "gpt-5-mini": { input: 0.25, output: 2.0, note: "무료 미리보기 후보. 단가 미검증." },
 
   // ── Google ──
   // 견주기용으로 남겨 둔다. 무료 티어는 하루 20요청·분당 5요청이라 상품에는 못 쓴다 —
