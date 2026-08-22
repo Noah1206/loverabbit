@@ -207,14 +207,14 @@ describe("프롬프트", () => {
 
 describe("문장 맺기", () => {
   // 규칙 71개의 claim 이 전부 명사로 끝난다. 그대로 화면에 놓으면 말이 끊긴다.
-  it("받침이 있으면 이에요, 없으면 예요", () => {
-    assert.equal(toSentence("그런 진폭을 가진 편"), "그런 진폭을 가진 편이에요");
-    assert.equal(toSentence("온도가 오르내리는 구조"), "온도가 오르내리는 구조예요");
-    assert.equal(toSentence("말이 앞서는 흐름"), "말이 앞서는 흐름이에요");
+  it("받침이 있으면 이야, 없으면 야", () => {
+    assert.equal(toSentence("그런 진폭을 가진 편"), "그런 진폭을 가진 편이야");
+    assert.equal(toSentence("온도가 오르내리는 구조"), "온도가 오르내리는 구조야");
+    assert.equal(toSentence("말이 앞서는 흐름"), "말이 앞서는 흐름이야");
   });
 
   it("이미 문장이면 그대로 둔다", () => {
-    assert.equal(toSentence("먼저 말하지 못할 때가 있어요"), "먼저 말하지 못할 때가 있어요");
+    assert.equal(toSentence("먼저 말하지 못할 때가 있어"), "먼저 말하지 못할 때가 있어");
     assert.equal(toSentence("그런 편이다"), "그런 편이다");
   });
 
@@ -240,8 +240,8 @@ describe("폴백은 토막이 아니라 문장이다", () => {
 
   it("훅과 카드가 모두 문장으로 끝난다", () => {
     const fallback = buildFreePreviewFallback(packet);
-    assert.match(fallback.hook, /(요|다)[.]?$/);
-    for (const card of fallback.cards) assert.match(card.body, /(요|다)[.]?$/);
+    assert.match(fallback.hook, /(야|어|아|지|다)[.]?$/);
+    for (const card of fallback.cards) assert.match(card.body, /(야|어|아|지|다)[.]?$/);
   });
 
   it("조각(allowedMeaning)을 본문에 쓰지 않는다", () => {

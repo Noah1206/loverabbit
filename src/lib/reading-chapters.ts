@@ -12,6 +12,13 @@ import type { SectionExtra } from "@/lib/reading-extra";
 
 export interface ChapterPiece {
   title: string;
+  /**
+   * 목차의 절이 아니라 앞머리 맛보기다. 절 번호를 받지 않는다.
+   *
+   * 받으면 번호가 겹친다 — 맛보기 카드가 1) 2) 3) 을 먹고, 같은 장에 들어온
+   * 잠긴 "1장 01" 이 다시 1) 이 되어 한 화면에 1) 이 두 번 나온다.
+   */
+  intro?: boolean;
   /** 이 절의 답 한 줄. 본문보다 먼저 읽힌다. */
   verdict?: string;
   paragraphs: string[];
@@ -127,8 +134,11 @@ export function buildChapters(
   const chapters: ReadingChapter[] = [...main.entries()]
     .sort((a, b) => a[0] - b[0])
     .map(([number, items], index) => {
-      const sections = items.map((piece, order) => ({
-        order: orderIn(piece.title, order + 1),
+      // 절 번호는 목차에서 온 조각들끼리만 센다. 맛보기는 0 을 받고,
+      // 렌더러가 0 이면 번호를 안 붙인다.
+      let counted = 0;
+      const sections = items.map((piece) => ({
+        order: piece.intro ? 0 : orderIn(piece.title, (counted += 1)),
         title: cleanTitle(piece.title),
         verdict: piece.verdict,
         paragraphs: piece.paragraphs,
@@ -221,12 +231,20 @@ export function reportPieces(report: {
 /** 결제 전 화면용 — 미리보기 발췌와 제목만 남은 잠긴 절을 한 줄기로 세운다 */
 export function previewPieces(
   previewSections: { title: string; excerpt: string }[],
-  lockedTitles: string[]
+  lockedTitles: string[],
+  toc: string[] = []
 ): ChapterPiece[] {
+  // 목차에 있는 제목이면 그 절을 미리 보여주는 것이고, 없으면 앞머리 맛보기다.
+  //
+  // 슬림 무료 미리보기(FREE_PREVIEW_V2)가 만드는 카드 세 장이 후자다. 자유 제목이라
+  // 목차 어디에도 없는데, 그동안 목차 절과 한 덩어리로 번호를 매겼다. 그래서 카드가
+  // 1) 2) 3) 을 먹고 잠긴 "1장 01" 이 다시 1) 이 되어 한 화면에 1) 이 두 번 나왔다.
+  const tocTitles = new Set(toc.map((item) => cleanTitle(item)));
   return [
     ...previewSections.map((section) => ({
       title: section.title,
       paragraphs: section.excerpt ? [section.excerpt] : [],
+      intro: !tocTitles.has(cleanTitle(section.title)),
     })),
     ...lockedTitles.map((title) => ({ title, paragraphs: [] })),
   ];

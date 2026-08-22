@@ -269,7 +269,7 @@ export function ChapterBody({ chapter, image }: { chapter: ReadingChapter; image
             번호와 제목은 한 덩어리다. 예전에는 번호만 다른 색으로 떼어놨는데,
             그러면 번호가 먼저 눈에 들어오고 제목이 뒤로 밀렸다.
           */}
-          {section.title && <h2>{`${section.order}) ${section.title}`}</h2>}
+          {section.title && <h2>{section.order ? `${section.order}) ${section.title}` : section.title}</h2>}
           {section.locked ? (
             <div className="rv-locked" aria-label="결제 후 공개되는 내용">
               <span />

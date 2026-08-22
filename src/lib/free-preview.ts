@@ -113,7 +113,7 @@ export const FREE_PREVIEW_SYSTEM_PROMPT = `You are the Korean preview editor for
 Your only job is to turn the supplied approved evidence into a short, warm, concrete Korean free preview. Do not calculate saju, infer missing facts, use knowledge outside the evidence, or reveal internal rule IDs.
 
 Rules:
-- Treat every evidence item as a permitted tendency, not a certainty. Use calm language such as "~하는 편", "~로 이어질 수 있어요", or "~일 때가 있어요".
+- Treat every evidence item as a permitted tendency, not a certainty. Use calm language such as "~하는 편이야", "~로 이어질 수 있어", or "~일 때가 있어".
 - Do not promise reunion, love, marriage, contact, cheating, timing, or another person's feelings as fact.
 - Do not give medical, legal, financial, self-harm, or crisis advice.
 - Do not mention day-master names, ten-god names, hidden stems, technical calculations, engine versions, or prompt instructions.
@@ -123,7 +123,9 @@ Rules:
 - Output valid JSON matching the required schema only. No Markdown.
 
 문체 (유료 리포트와 같은 목소리로 쓴다)
-- 정갈하고, 은밀하고, 다정하다. 해요체로 쓴다.
+- 정갈하고, 은밀하고, 다정하다. 반말로 쓴다 — 오래 알고 지낸 친한 친구에게
+  털어놓듯이. 모든 문장이 예외 없이 반말로 끝난다. 존댓말(-요/-습니다)로 끝나는
+  문장이 하나라도 있으면 안 된다. 비속어와 반말 명령("해라")은 쓰지 않는다.
 - 구조 용어를 본문에 쓰지 않는다. 독자가 알 필요가 없고 전부 쉬운 말이 있다.
   일간·일주 → 당신 / 태어난 날 글자     일지 → 배우자 자리
   월지 → 사회 자리                     대운 → 지금 흐름 / 요즘 몇 해
@@ -220,16 +222,18 @@ function trim(value: string, max: number): string {
  * 모델에게 넘길 때는 그 편이 낫지만, 사람이 읽을 자리에 그대로 놓으면 말이
  * 끊긴 것처럼 보인다.
  *
- * 받침이 있으면 "이에요", 없으면 "예요". 한글 음절의 받침 유무는
+ * 받침이 있으면 "이야", 없으면 "야". 한글 음절의 받침 유무는
  * (코드 - 0xAC00) % 28 로 나온다.
  */
 export function toSentence(text: string): string {
   const clean = text.replace(/\s+/g, " ").trim();
   if (!clean) return clean;
-  if (/[요다]$/.test(clean) || /[.!?。]$/.test(clean)) return clean;
+  // 이미 문장으로 끝났으면 둔다. 반말 종결(야·어·아·지·네)과 문어체(다) 둘 다 본다.
+  if (/[야어아지네다]$/.test(clean) || /[.!?。]$/.test(clean)) return clean;
   const last = clean.charCodeAt(clean.length - 1);
   if (last < 0xac00 || last > 0xd7a3) return clean;
-  return clean + ((last - 0xac00) % 28 !== 0 ? "이에요" : "예요");
+  // 받침이 있으면 "이야", 없으면 "야". 구조 -> 구조야, 편 -> 편이야, 흐름 -> 흐름이야.
+  return clean + ((last - 0xac00) % 28 !== 0 ? "이야" : "야");
 }
 
 /** 규칙 id 앞머리로 무엇에 관한 근거인지 가른다 */
@@ -392,16 +396,16 @@ export function buildFreePreviewFallback(packet: PreviewFactPacket): FreePreview
     evidence.subject === "timing" ? "지금의 흐름" : evidence.subject === "relationship" ? "둘 사이의 결" : "관계에서의 나";
 
   return {
-    hook: top[0] ? toSentence(top[0].basis) : "관계에서 내 마음을 확인하는 순간이 있어요.",
-    summary: "지금의 관계 리듬은 빠른 결론보다, 반응과 표현의 온도를 함께 살피는 쪽이 더 중요해 보여요.",
+    hook: top[0] ? toSentence(top[0].basis) : "관계에서 네 마음을 확인하게 되는 순간이 있어.",
+    summary: "지금은 결론을 서두르기보다, 반응과 표현의 온도를 같이 보는 쪽이 나아 보여.",
     cards: top.map((evidence) => ({
       title: titleOf(evidence),
       body: toSentence(evidence.basis),
       evidenceIds: [evidence.sourceRuleId],
       emotionTags: ["망설임" as PreviewEmotion],
     })),
-    reflectionQuestion: "지금 내가 확인하고 싶은 건 상대의 답일까요, 내 마음의 기준일까요?",
-    paidTeaser: "상대와의 흐름, 연락 타이밍, 관계의 갈림길은 심화 리딩에서 더 구체적으로 확인할 수 있어요.",
+    reflectionQuestion: "지금 네가 확인하고 싶은 건 상대의 답일까, 네 기준일까?",
+    paidTeaser: "상대와의 흐름, 연락 타이밍, 관계의 갈림길은 심화 리딩에서 더 구체적으로 볼 수 있어.",
     selectedEvidenceIds: top.map((evidence) => evidence.sourceRuleId),
   };
 }

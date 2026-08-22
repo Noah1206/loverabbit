@@ -306,7 +306,7 @@ export default function ReadingReportPage() {
             title: section.title,
             paragraphs: section.paragraphs,
           }))
-        : previewPieces(entry.previewSections ?? [], entry.lockedSectionTitles ?? []);
+        : previewPieces(entry.previewSections ?? [], entry.lockedSectionTitles ?? [], product?.toc ?? []);
     return buildChapters(pieces, {
       toc: product?.toc ?? [],
       chapterTitles: concept.chapters,

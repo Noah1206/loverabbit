@@ -138,11 +138,11 @@ export async function runFreePreview(input: FreePreviewInput): Promise<FreePrevi
   if (!packet) {
     return {
       result: {
-        hook: "아직 이 사주에서 뽑아낼 근거가 넉넉하지 않아요.",
-        summary: "정보를 조금 더 채우면 관계의 결을 더 또렷하게 볼 수 있어요.",
+        hook: "아직 이 사주에서 뽑아낼 근거가 넉넉하지 않아.",
+        summary: "정보를 조금 더 채우면 관계의 결이 더 또렷해져.",
         cards: [],
-        reflectionQuestion: "지금 가장 확인하고 싶은 한 가지는 무엇인가요?",
-        paidTeaser: "생년 정보를 채우면 두 사람의 흐름을 더 구체적으로 볼 수 있어요.",
+        reflectionQuestion: "지금 가장 확인하고 싶은 한 가지가 뭐야?",
+        paidTeaser: "생년 정보를 채우면 두 사람의 흐름을 더 구체적으로 볼 수 있어.",
         selectedEvidenceIds: [],
       },
       packet: null,
