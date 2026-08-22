@@ -50,7 +50,20 @@ async function callAnthropic(
 ): Promise<ChatResult> {
   const client = new Anthropic({ apiKey });
   const model = modelOverride ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
-  const msg = await client.messages.create({ model, max_tokens: maxTokens, system, messages });
+  // 지시문에 캐시 표식을 붙인다.
+  //
+  // 이 지시문은 11,453자(약 8,000토큰)이고 **모든 호출·모든 유저에게 똑같다.**
+  // 리포트 하나가 조각 대여섯이라 그 8,000토큰이 매번 다시 나간다.
+  //
+  // OpenAI 는 같은 앞부분이면 알아서 캐시하지만 Anthropic 은 여기 표식을 붙여야
+  // 한다. 안 붙이면 조용히 정가로 청구된다 - 어디에도 오류가 안 뜨고, 청구서에만
+  // 나타난다. 캐시 단가는 정가의 1/10 이다.
+  const msg = await client.messages.create({
+    model,
+    max_tokens: maxTokens,
+    system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+    messages,
+  });
   return {
     text: msg.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
