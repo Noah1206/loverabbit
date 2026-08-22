@@ -31,7 +31,8 @@
     "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts",
     "prebuild": "node marketing/video/build-character-motion.mjs",
     "motion:build": "node marketing/video/build-character-motion.mjs",
-    "free-preview:once": "tsx --env-file=.env.local --env-file=.env scripts/free-preview-once.mts"
+    "free-preview:once": "tsx --env-file=.env.local --env-file=.env scripts/free-preview-once.mts",
+    "model:routing": "tsx --env-file=.env.local --env-file=.env scripts/model-routing.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

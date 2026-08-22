@@ -192,7 +192,9 @@ async function callOpenAICompat(
   system: string,
   messages: ChatMsg[],
   maxTokens: number,
-  modelOverride?: string
+  json: boolean,
+  modelOverride?: string,
+  jsonSchema?: unknown
 ): Promise<ChatResult> {
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
   const model = modelOverride ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
@@ -211,6 +213,13 @@ async function callOpenAICompat(
     body: JSON.stringify({
       model,
       ...budget,
+      // JSON 을 달라고 했으면 그렇게 말한다.
+      //
+      // Gemini 쪽에는 이 줄이 있는데 여기만 빠져 있었다. 그동안 유료 리포트가
+      // 그럭저럭 돌아간 것은 지시문이 11,453자라 모델이 알아서 지켰기 때문이고,
+      // 지시문을 1,000자로 줄인 무료 경로에서 바로 깨졌다 — 산문이 돌아와
+      // 파싱에 실패하고 전원이 폴백으로 갔다.
+      ...(jsonSchema ? { response_format: jsonSchema } : json ? { response_format: { type: "json_object" } } : {}),
       messages: [{ role: "system", content: system }, ...messages],
     }),
   });
@@ -295,14 +304,46 @@ export function pinnedProvider(): Provider | null {
   return null;
 }
 
+/**
+ * 이 환경이 실제로 부를 제공사.
+ *
+ * 못 박은 것이 있으면 그것, 없으면 키 우선순위(ANTHROPIC -> GEMINI -> OPENAI)를
+ * 그대로 따른다. chatComplete 안의 판단과 같은 규칙이어야 한다 — 여기가 어긋나면
+ * "어느 모델로 나가는가" 를 알려주는 화면이 거짓말을 하게 된다.
+ *
+ * 모델 이름을 지목해서 넘길 때 이걸 먼저 봐야 한다. gpt-5-mini 를 Anthropic 에
+ * 넘기면 그 호출은 실패하고, 무료 미리보기는 통째로 폴백으로 떨어진다.
+ */
+export function effectiveProvider(): Provider | null {
+  const pinned = pinnedProvider();
+  if (pinned) return pinned;
+  if (process.env.ANTHROPIC_API_KEY) return "anthropic";
+  if (process.env.GEMINI_API_KEY) return "gemini";
+  if (process.env.OPENAI_API_KEY) return "openai";
+  return null;
+}
+
 export async function chatComplete(
   system: string,
   messages: ChatMsg[],
   maxTokens = 3000,
-  options: { thinking?: boolean; json?: boolean; provider?: Provider; model?: string } = {}
+  options: {
+    thinking?: boolean;
+    json?: boolean;
+    provider?: Provider;
+    model?: string;
+    /**
+     * 모양까지 못 박는다 (OpenAI json_schema).
+     *
+     * json: true 는 "JSON 으로 줘" 까지만 시킨다. 그러면 모델이 키 이름을 제 맘대로
+     * 짓는다 - 실제로 hook/cards 대신 opening/insights 를 돌려줬고, 파싱은 통과하는데
+     * 우리 타입과 안 맞아 전원이 폴백으로 갔다. 스키마를 실어야 키까지 맞는다.
+     */
+    jsonSchema?: unknown;
+  } = {}
 ): Promise<ChatResult | null> {
   const thinking = options.thinking !== false;
-  const json = options.json === true;
+  const json = options.json === true || options.jsonSchema !== undefined;
   const { ANTHROPIC_API_KEY, GEMINI_API_KEY, OPENAI_API_KEY } = process.env;
   // 부르는 쪽이 지목하지 않았으면 환경이 못 박은 것을 따른다.
   options = options.provider ? options : { ...options, provider: pinnedProvider() ?? undefined };
@@ -339,13 +380,13 @@ export async function chatComplete(
         ? callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model)
         : null;
     return OPENAI_API_KEY
-      ? callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, options.model)
+      ? callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, json, options.model, options.jsonSchema)
       : null;
   }
 
   if (ANTHROPIC_API_KEY) return callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model);
   if (GEMINI_API_KEY) return callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model);
-  if (OPENAI_API_KEY) return callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, options.model);
+  if (OPENAI_API_KEY) return callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, json, options.model, options.jsonSchema);
   return null;
 }
 

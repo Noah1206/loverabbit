@@ -11,10 +11,11 @@
 //   부르기 전에 값을 세고, 넘으면 아예 안 부른다.
 //   같은 사람이 다시 눌러도 다시 부르지 않는다.
 
-import { chatComplete } from "@/lib/ai";
+import { chatComplete, effectiveProvider } from "@/lib/ai";
 import { costOf } from "@/lib/ai-pricing";
 import {
   FREE_PREVIEW_LIMITS,
+  FREE_PREVIEW_SCHEMA,
   FREE_PREVIEW_SYSTEM_PROMPT,
   buildFreePreviewFallback,
   buildFreePreviewPrompt,
@@ -149,7 +150,18 @@ export async function runFreePreview(input: FreePreviewInput): Promise<FreePrevi
     };
   }
 
-  const model = freePreviewModel();
+  // 모델 이름은 제공사마다 다른 말이다. gpt-5-mini 를 Anthropic 에 넘기면 그
+  // 호출은 실패하고, 무료 미리보기가 통째로 폴백으로 떨어진다 - 화면은 멀쩡해
+  // 보이고 문장만 조용히 통조림이 된다. 제공사가 안 맞으면 지목을 버린다.
+  const provider = effectiveProvider();
+  const wanted = freePreviewModel();
+  const model = wanted && provider === "openai" ? wanted : undefined;
+  if (wanted && !model) {
+    console.warn(
+      `FREE_PREVIEW_MODEL="${wanted}" 는 OpenAI 모델 이름인데 지금 제공사는 ${provider ?? "없음"} 입니다. ` +
+        `지목을 무시하고 그 제공사의 기본 모델로 부릅니다.`
+    );
+  }
   const budget = checkFreePreviewBudget(packet, model);
   const evidenceIds = packet.evidence.map((e) => e.sourceRuleId);
 
@@ -185,12 +197,19 @@ export async function runFreePreview(input: FreePreviewInput): Promise<FreePrevi
       FREE_PREVIEW_LIMITS.maxOutputTokens,
       // 생각 토큰을 끈다. 계산은 이미 끝났고 여기서 하는 일은 문장 쓰기다.
       // Gemini 는 생각 토큰도 출력 상한에서 빼가므로, 켜두면 JSON 이 잘린다.
-      { thinking: false, json: true, model }
+      // 스키마를 실어 키 이름까지 못 박는다. json: true 만으로는 모양이 안 맞는다.
+      { thinking: false, json: true, model, jsonSchema: FREE_PREVIEW_SCHEMA }
     );
   } catch (error) {
     failure = error instanceof Error ? error.message : "호출 실패";
   }
 
+  // 왜 못 읽었는지는 원문을 봐야 안다. 폴백은 조용해서, 이 줄이 없으면
+  // "모델이 이상한 걸 줬다" 까지만 알고 무엇을 줬는지는 영원히 모른다.
+  if (process.env.FREE_PREVIEW_DEBUG === "1") {
+    console.log("[free-preview] 원문 " + (raw?.text?.length ?? 0) + "자, 추론 " + (raw?.usage?.reasoning ?? 0) + "토큰");
+    console.log((raw?.text ?? "(없음)").slice(0, 1200));
+  }
   const parsed = raw?.text ? safeParse(raw.text) : null;
   const problems = parsed ? validateFreePreview(parsed, packet).problems : [];
 

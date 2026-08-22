@@ -314,10 +314,13 @@ export function checkFreePreviewBudget(packet: PreviewFactPacket, model?: string
   // 통과시키되, 얼마인지 모른다는 사실을 null 로 남긴다.
   if (!model || !priceOf(model)) return { ...base, ok: true };
 
-  const estimatedUsd = costOf(model, {
-    input: estimatedInputTokens,
-    output: FREE_PREVIEW_LIMITS.maxOutputTokens,
-  });
+  // 추론 모델은 상한 위에 생각 토큰을 얹는다. gpt-5-mini 에 900 을 줬더니
+  // 실제 출력이 1,362 로 나왔다 - 900 으로 재면 게이트가 실제보다 싸게 본다.
+  // ai.ts 가 추론 모델에 max_completion_tokens = 상한 + 2000 을 주므로 같은 값을 쓴다.
+  const REASONING_HEADROOM = 2000;
+  const expectedOutput =
+    FREE_PREVIEW_LIMITS.maxOutputTokens + (/^(gpt-5|o[1-9])/.test(model) ? REASONING_HEADROOM : 0);
+  const estimatedUsd = costOf(model, { input: estimatedInputTokens, output: expectedOutput });
   if (estimatedUsd === null) return { ...base, ok: true };
 
   if (estimatedUsd > FREE_PREVIEW_LIMITS.llmHardUsd) {

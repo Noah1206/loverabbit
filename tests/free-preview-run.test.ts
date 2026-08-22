@@ -37,12 +37,19 @@ const input = (overrides: Partial<Parameters<typeof runFreePreview>[0]> = {}) =>
   ...overrides,
 });
 
-/** 값이 넘어서 반드시 차단되는 모델. 이걸 걸어 두면 호출이 물리적으로 안 나간다. */
+/**
+ * 값이 넘어서 반드시 차단되는 조합. 이걸 걸어 두면 호출이 물리적으로 안 나간다.
+ *
+ * 제공사도 같이 못 박는다 - 모델 지목은 OpenAI 일 때만 살아 있기 때문이다.
+ * (gpt-5-mini 를 Anthropic 에 넘기면 그 호출이 실패하므로 지목을 버린다)
+ */
 function blockCalls() {
-  process.env.FREE_PREVIEW_MODEL = "claude-sonnet-5";
+  process.env.AI_PROVIDER = "openai";
+  process.env.FREE_PREVIEW_MODEL = "gpt-5.6";
 }
 
 afterEach(() => {
+  delete process.env.AI_PROVIDER;
   delete process.env.FREE_PREVIEW_MODEL;
   clearFreePreviewCache();
 });
@@ -66,7 +73,7 @@ describe("예산 차단", () => {
   it("차단된 이유와 추정 금액을 남긴다", async () => {
     blockCalls();
     const { telemetry } = await runFreePreview(input());
-    assert.equal(telemetry.model, "claude-sonnet-5");
+    assert.equal(telemetry.model, "gpt-5.6");
     assert.ok((telemetry.estimatedUsd ?? 0) > 0);
   });
 });
@@ -122,5 +129,18 @@ describe("삽화 연결", () => {
     });
     assert.equal(images.length, 6);
     for (const image of images) assert.equal(image.status, "ready");
+  });
+});
+
+describe("모델 지목은 제공사와 맞을 때만 산다", () => {
+  it("제공사가 OpenAI 가 아니면 지목을 버린다", async () => {
+    // gpt-5-mini 를 Anthropic 에 넘기면 그 호출은 실패하고, 무료 미리보기가
+    // 통째로 폴백으로 떨어진다 - 화면은 멀쩡해 보이고 문장만 통조림이 된다.
+    process.env.AI_PROVIDER = "anthropic";
+    process.env.FREE_PREVIEW_MODEL = "gpt-5.6";
+    const { telemetry } = await runFreePreview(input());
+    // 지목이 살아 있었다면 gpt-5.6 값으로 계산돼 예산에서 막혔을 것이다.
+    assert.notEqual(telemetry.reason, undefined);
+    assert.notEqual(telemetry.model, "gpt-5.6");
   });
 });
