@@ -116,7 +116,17 @@ Rules:
 - Focus on relationship behavior, emotional rhythm, communication, and one actionable reflection question.
 - Use only the evidence supplied. If evidence is weak, preserve uncertainty rather than adding a claim.
 - Keep it premium, direct, and empathetic; avoid generic horoscope cliches, excessive emojis, long disclaimers, and repeated phrases.
-- Output valid JSON matching the required schema only. No Markdown.`;
+- Output valid JSON matching the required schema only. No Markdown.
+
+문체 (유료 리포트와 같은 목소리로 쓴다)
+- 정갈하고, 은밀하고, 다정하다. 해요체로 쓴다.
+- 구조 용어를 본문에 쓰지 않는다. 독자가 알 필요가 없고 전부 쉬운 말이 있다.
+  일간·일주 → 당신 / 태어난 날 글자     일지 → 배우자 자리
+  월지 → 사회 자리                     대운 → 지금 흐름 / 요즘 몇 해
+  세운 → 올해                          신강 → 자기 힘이 센 편
+  신약 → 자기 힘이 여린 편
+  비견·겁재·관성·재성·인성·식상 → 그 기운이 하는 일로 풀어 쓴다
+  (예: '나눠야 하는 자리', '비교가 끼어드는 자리')`;
 
 export function buildFreePreviewPrompt(packet: PreviewFactPacket): string {
   return `Create one Korean free relationship-saju preview from this approved fact packet.

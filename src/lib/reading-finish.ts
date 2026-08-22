@@ -69,11 +69,12 @@ export async function finishReading(params: {
     return { full: storedFull, report: partialReport, incomplete: false, generated: false };
   }
 
-  // 머리는 발급 때 만든 것을 그대로 쓴다. 없으면 이어 붙일 곳이 없다.
-  if (!partialReport) {
-    console.error(`리딩 ${readingId}: 재개 정보는 있는데 부분 리포트가 없어 이어 만들 수 없음`);
-    return { full: storedFull, report: null, incomplete: true, generated: false };
-  }
+  // 부분 리포트가 없을 수 있다. 슬림 무료 미리보기(FREE_PREVIEW_V2)를 켜면
+  // 결제 전에 유료 본문을 한 절도 안 만들기 때문이다. 그때는 머리부터 여기서
+  // 만든다 — 재개 정보가 있으니 만들 재료는 다 있다.
+  //
+  // 예전에는 여기서 포기했다. 그대로 뒀으면 슬림 경로를 켜는 순간 결제한 사람이
+  // 본문을 못 받았을 것이다. 무료가 싸진 대신 유료가 사라지는 맞바꿈이었다.
 
   // 발급 시점에 켜졌던 규칙을 그대로 복원한다. 그 사이 규칙 표현을 고쳤더라도
   // 산 사람이 산 리딩은 발급 때의 해석으로 이어져야 한다.
@@ -102,8 +103,14 @@ export async function finishReading(params: {
 
   const rest = await composeReport(readingInput, complete, { doneSections: done });
 
-  const sections = [...partialReport.sections, ...rest.sections];
-  const report: StructuredReport = { ...partialReport, sections };
+  // 머리는 발급 때 만든 것이 있으면 그것, 없으면 방금 만든 것을 쓴다.
+  const head = partialReport ?? rest.report;
+  if (!head) {
+    console.error(`리딩 ${readingId}: 머리를 만들지 못해 본문을 이을 수 없음`);
+    return { full: storedFull, report: null, incomplete: true, generated: true };
+  }
+  const sections = [...(partialReport?.sections ?? []), ...rest.sections];
+  const report: StructuredReport = { ...head, sections };
   const { full } = reportToText(report);
 
   if (sections.length < outline.length) {
@@ -156,7 +163,8 @@ export async function finishReading(params: {
     }
   }
 
-  await persist(stored, full);
+  // 완성된 리포트에서 티저를 다시 뽑는다 - 이제 머리와 몸이 같은 글에서 나온다.
+  await persist(stored, full, report ? reportToText(report).teaser : undefined);
   await clearResume(readingId);
   return { full, report, incomplete: false, generated: true };
 }
@@ -171,11 +179,16 @@ export async function finishReading(params: {
  * 저장에 실패해도 이번 응답은 내보낸다 — 사용자는 이미 돈을 냈고, 글은 손에 있다.
  * 저장이 안 됐으면 다음 조회에서 다시 만들게 되므로 잃는 것은 비용뿐이다.
  */
-async function persist(stored: StoredReading | null, full: string): Promise<void> {
+async function persist(stored: StoredReading | null, full: string, teaser?: string): Promise<void> {
   if (!stored) return;
   try {
     const current = (await getReading(stored.id)) ?? stored;
-    await saveReading({ ...current, full });
+    // 티저도 같이 갈아 끼운다.
+    //
+    // 무료 미리보기를 슬림 경로로 만들면 그 훅과 요약은 유료 본문과 다른
+    // 프롬프트로 쓴 문장이다. 결제 화면은 본문만 교체하고 티저는 그대로 두므로,
+    // 안 갈면 머리와 몸이 서로 다른 목소리로 한 화면에 남는다.
+    await saveReading({ ...current, full, ...(teaser ? { teaser } : {}) });
   } catch (error) {
     console.error("완성된 리딩 저장 실패:", error);
   }
