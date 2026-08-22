@@ -73,7 +73,11 @@ export const FREE_PREVIEW_LIMITS = {
   minEvidence: 3,
   maxPacketChars: 18_000,
   maxInputTokensEstimated: 7_500,
-  maxOutputTokens: 700,
+  // 700 이 아니라 900 이다. 스키마가 허용하는 최대치를 다 채우면 응답이 922자,
+  // 약 659토큰이 된다 - 700 이면 여유가 41토큰(6%)뿐이고, 한 글자만 넘치면 JSON 이
+  // 잘려 전원이 폴백으로 간다. 200토큰 더 주는 값은 $0.0004 다. 그 값에 비해
+  // 잘렸을 때 잃는 것이 너무 크다.
+  maxOutputTokens: 900,
   llmSoftUsd: 0.01,
   llmHardUsd: 0.03,
   totalHardUsd: 0.2,
