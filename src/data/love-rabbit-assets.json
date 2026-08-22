@@ -1,0 +1,858 @@
+{
+  "schemaVersion": 1,
+  "brand": "Love Rabbit",
+  "artDirection": "Moonlit Rabbit Oracle — original modern Korean romance-fantasy webtoon, thin charcoal linework, clean cel shading, moonlit navy and plum palette, muted gold highlights, cool-blue rim light, and one luminous focal point.",
+  "generationPolicy": {
+    "faces": "allowed",
+    "twoPersonScenes": "allowed",
+    "incidentalText": "allowed; no imposed UI overlay, logo, watermark, or speech bubble",
+    "hardExclusions": [
+      "tears",
+      "crying",
+      "collapsed or fallen body",
+      "unconscious person",
+      "hospital or clinic",
+      "injury",
+      "medical equipment",
+      "death",
+      "self-harm",
+      "violence",
+      "horror",
+      "threat",
+      "restraints",
+      "severe distress"
+    ]
+  },
+  "selectionRules": {
+    "emotionTags": [
+      "설렘",
+      "기다림",
+      "망설임",
+      "끌림",
+      "흔들림",
+      "균열",
+      "단절",
+      "그리움",
+      "결심",
+      "회복"
+    ],
+    "slotBrightness": {
+      "1": "mid",
+      "2": "dark",
+      "3": "dark",
+      "4": "mid",
+      "5": "bright"
+    },
+    "fallbackEmotionBySlot": {
+      "1": "설렘",
+      "2": "망설임",
+      "3": "균열",
+      "4": "결심",
+      "5": "회복"
+    },
+    "talismanByDayMasterElement": {
+      "목": "talisman_wood",
+      "화": "talisman_fire",
+      "토": "talisman_earth",
+      "금": "talisman_metal",
+      "수": "talisman_water"
+    }
+  },
+  "assets": [
+    {
+      "index": 0,
+      "assetId": "scene_thrill_mid",
+      "kind": "scene",
+      "emotionTag": "설렘",
+      "emotionKey": "thrill",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_thrill_mid.png",
+      "path": "scenes/scene_thrill_mid.png",
+      "rawPath": "raw/scene_thrill_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_12bb97ea-fdc2-40f2-8122-4113b488357b.png",
+      "jobId": "12bb97ea-fdc2-40f2-8122-4113b488357b",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 1,
+      "assetId": "scene_waiting_mid",
+      "kind": "scene",
+      "emotionTag": "기다림",
+      "emotionKey": "waiting",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_waiting_mid.png",
+      "path": "scenes/scene_waiting_mid.png",
+      "rawPath": "raw/scene_waiting_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_d2ec5ca4-f72b-4e0f-a3b3-254e04dc08e8.png",
+      "jobId": "d2ec5ca4-f72b-4e0f-a3b3-254e04dc08e8",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 2,
+      "assetId": "scene_hesitation_mid",
+      "kind": "scene",
+      "emotionTag": "망설임",
+      "emotionKey": "hesitation",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_hesitation_mid.png",
+      "path": "scenes/scene_hesitation_mid.png",
+      "rawPath": "raw/scene_hesitation_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_d744ed91-8e77-4cd5-b8b7-8f99112fcc79.png",
+      "jobId": "d744ed91-8e77-4cd5-b8b7-8f99112fcc79",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 3,
+      "assetId": "scene_attraction_mid",
+      "kind": "scene",
+      "emotionTag": "끌림",
+      "emotionKey": "attraction",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_attraction_mid.png",
+      "path": "scenes/scene_attraction_mid.png",
+      "rawPath": "raw/scene_attraction_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_242f5f43-d571-4a6e-adeb-bbe55b4d0b30.png",
+      "jobId": "242f5f43-d571-4a6e-adeb-bbe55b4d0b30",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 4,
+      "assetId": "scene_wavering_mid",
+      "kind": "scene",
+      "emotionTag": "흔들림",
+      "emotionKey": "wavering",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_wavering_mid.png",
+      "path": "scenes/scene_wavering_mid.png",
+      "rawPath": "raw/scene_wavering_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_753ec967-bc4f-4e8a-91b2-93c16e83e412.png",
+      "jobId": "753ec967-bc4f-4e8a-91b2-93c16e83e412",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 5,
+      "assetId": "scene_crack_mid",
+      "kind": "scene",
+      "emotionTag": "균열",
+      "emotionKey": "crack",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_crack_mid.png",
+      "path": "scenes/scene_crack_mid.png",
+      "rawPath": "raw/scene_crack_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_4a90aecd-67e6-4053-90d3-7b36feb9c343.png",
+      "jobId": "4a90aecd-67e6-4053-90d3-7b36feb9c343",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 6,
+      "assetId": "scene_separation_mid",
+      "kind": "scene",
+      "emotionTag": "단절",
+      "emotionKey": "separation",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_separation_mid.png",
+      "path": "scenes/scene_separation_mid.png",
+      "rawPath": "raw/scene_separation_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_61b4c4d8-1432-4d70-90e1-61652d3953f9.png",
+      "jobId": "61b4c4d8-1432-4d70-90e1-61652d3953f9",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 7,
+      "assetId": "scene_longing_mid",
+      "kind": "scene",
+      "emotionTag": "그리움",
+      "emotionKey": "longing",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_longing_mid.png",
+      "path": "scenes/scene_longing_mid.png",
+      "rawPath": "raw/scene_longing_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_7507b1fe-91fb-4d01-8c60-067bc54298b4.png",
+      "jobId": "7507b1fe-91fb-4d01-8c60-067bc54298b4",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 8,
+      "assetId": "scene_resolve_mid",
+      "kind": "scene",
+      "emotionTag": "결심",
+      "emotionKey": "resolve",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_resolve_mid.png",
+      "path": "scenes/scene_resolve_mid.png",
+      "rawPath": "raw/scene_resolve_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_52739e07-1ac0-4163-bb55-7bfba93201b3.png",
+      "jobId": "52739e07-1ac0-4163-bb55-7bfba93201b3",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 9,
+      "assetId": "scene_recovery_mid",
+      "kind": "scene",
+      "emotionTag": "회복",
+      "emotionKey": "recovery",
+      "brightness": "mid",
+      "position": "current",
+      "filename": "scene_recovery_mid.png",
+      "path": "scenes/scene_recovery_mid.png",
+      "rawPath": "raw/scene_recovery_mid.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_8448f66d-07cb-47cb-988c-6798a4cf39ae.png",
+      "jobId": "8448f66d-07cb-47cb-988c-6798a4cf39ae",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 10,
+      "assetId": "scene_thrill_dark",
+      "kind": "scene",
+      "emotionTag": "설렘",
+      "emotionKey": "thrill",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_thrill_dark.png",
+      "path": "scenes/scene_thrill_dark.png",
+      "rawPath": "raw/scene_thrill_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_71e622dc-15ff-499a-9ca8-afb7f8c61242.png",
+      "jobId": "71e622dc-15ff-499a-9ca8-afb7f8c61242",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 11,
+      "assetId": "scene_waiting_dark",
+      "kind": "scene",
+      "emotionTag": "기다림",
+      "emotionKey": "waiting",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_waiting_dark.png",
+      "path": "scenes/scene_waiting_dark.png",
+      "rawPath": "raw/scene_waiting_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051045_cc7f579e-c191-4f77-8482-352c49a04fb7.png",
+      "jobId": "cc7f579e-c191-4f77-8482-352c49a04fb7",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 12,
+      "assetId": "scene_hesitation_dark",
+      "kind": "scene",
+      "emotionTag": "망설임",
+      "emotionKey": "hesitation",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_hesitation_dark.png",
+      "path": "scenes/scene_hesitation_dark.png",
+      "rawPath": "raw/scene_hesitation_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_5248be11-6dcd-4858-a1cf-950e675df8ff.png",
+      "jobId": "5248be11-6dcd-4858-a1cf-950e675df8ff",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 13,
+      "assetId": "scene_attraction_dark",
+      "kind": "scene",
+      "emotionTag": "끌림",
+      "emotionKey": "attraction",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_attraction_dark.png",
+      "path": "scenes/scene_attraction_dark.png",
+      "rawPath": "raw/scene_attraction_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_9d4a024c-9829-42c8-85c5-a95940d73e66.png",
+      "jobId": "9d4a024c-9829-42c8-85c5-a95940d73e66",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 14,
+      "assetId": "scene_wavering_dark",
+      "kind": "scene",
+      "emotionTag": "흔들림",
+      "emotionKey": "wavering",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_wavering_dark.png",
+      "path": "scenes/scene_wavering_dark.png",
+      "rawPath": "raw/scene_wavering_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_a186c6fb-443f-498e-8917-177109142433.png",
+      "jobId": "a186c6fb-443f-498e-8917-177109142433",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 15,
+      "assetId": "scene_crack_dark",
+      "kind": "scene",
+      "emotionTag": "균열",
+      "emotionKey": "crack",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_crack_dark.png",
+      "path": "scenes/scene_crack_dark.png",
+      "rawPath": "raw/scene_crack_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_00fa2f8c-a3c6-4d92-9b77-426c7df127fe.png",
+      "jobId": "00fa2f8c-a3c6-4d92-9b77-426c7df127fe",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 16,
+      "assetId": "scene_separation_dark",
+      "kind": "scene",
+      "emotionTag": "단절",
+      "emotionKey": "separation",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_separation_dark.png",
+      "path": "scenes/scene_separation_dark.png",
+      "rawPath": "raw/scene_separation_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_466e8210-9d2b-48ca-9dae-3ba48cb8cd20.png",
+      "jobId": "466e8210-9d2b-48ca-9dae-3ba48cb8cd20",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 17,
+      "assetId": "scene_longing_dark",
+      "kind": "scene",
+      "emotionTag": "그리움",
+      "emotionKey": "longing",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_longing_dark.png",
+      "path": "scenes/scene_longing_dark.png",
+      "rawPath": "raw/scene_longing_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_62ad3ff7-be9e-43cd-896f-8da498756aa7.png",
+      "jobId": "62ad3ff7-be9e-43cd-896f-8da498756aa7",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 18,
+      "assetId": "scene_resolve_dark",
+      "kind": "scene",
+      "emotionTag": "결심",
+      "emotionKey": "resolve",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_resolve_dark.png",
+      "path": "scenes/scene_resolve_dark.png",
+      "rawPath": "raw/scene_resolve_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_eef25287-ed52-43df-8dbd-241cf6ffe7b3.png",
+      "jobId": "eef25287-ed52-43df-8dbd-241cf6ffe7b3",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 19,
+      "assetId": "scene_recovery_dark",
+      "kind": "scene",
+      "emotionTag": "회복",
+      "emotionKey": "recovery",
+      "brightness": "dark",
+      "position": "root",
+      "filename": "scene_recovery_dark.png",
+      "path": "scenes/scene_recovery_dark.png",
+      "rawPath": "raw/scene_recovery_dark.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_1f395550-499e-4590-8764-73acaaede058.png",
+      "jobId": "1f395550-499e-4590-8764-73acaaede058",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 20,
+      "assetId": "scene_thrill_bright",
+      "kind": "scene",
+      "emotionTag": "설렘",
+      "emotionKey": "thrill",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_thrill_bright.png",
+      "path": "scenes/scene_thrill_bright.png",
+      "rawPath": "raw/scene_thrill_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_37c8c55d-b7d2-464c-95e6-29e4f5db0d55.png",
+      "jobId": "37c8c55d-b7d2-464c-95e6-29e4f5db0d55",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 21,
+      "assetId": "scene_waiting_bright",
+      "kind": "scene",
+      "emotionTag": "기다림",
+      "emotionKey": "waiting",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_waiting_bright.png",
+      "path": "scenes/scene_waiting_bright.png",
+      "rawPath": "raw/scene_waiting_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_9a4d84db-dc54-417d-9d7a-f5b5e98e6a47.png",
+      "jobId": "9a4d84db-dc54-417d-9d7a-f5b5e98e6a47",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 22,
+      "assetId": "scene_hesitation_bright",
+      "kind": "scene",
+      "emotionTag": "망설임",
+      "emotionKey": "hesitation",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_hesitation_bright.png",
+      "path": "scenes/scene_hesitation_bright.png",
+      "rawPath": "raw/scene_hesitation_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_efe94ce6-1c4f-496b-a4cf-9d7c6cf6edf0.png",
+      "jobId": "efe94ce6-1c4f-496b-a4cf-9d7c6cf6edf0",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 23,
+      "assetId": "scene_attraction_bright",
+      "kind": "scene",
+      "emotionTag": "끌림",
+      "emotionKey": "attraction",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_attraction_bright.png",
+      "path": "scenes/scene_attraction_bright.png",
+      "rawPath": "raw/scene_attraction_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051132_d28474c4-6222-4912-a15f-2d006b8f6dd7.png",
+      "jobId": "d28474c4-6222-4912-a15f-2d006b8f6dd7",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 24,
+      "assetId": "scene_wavering_bright",
+      "kind": "scene",
+      "emotionTag": "흔들림",
+      "emotionKey": "wavering",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_wavering_bright.png",
+      "path": "scenes/scene_wavering_bright.png",
+      "rawPath": "raw/scene_wavering_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_a512dafa-0f6c-4142-84ef-bfb074c7169c.png",
+      "jobId": "a512dafa-0f6c-4142-84ef-bfb074c7169c",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 25,
+      "assetId": "scene_crack_bright",
+      "kind": "scene",
+      "emotionTag": "균열",
+      "emotionKey": "crack",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_crack_bright.png",
+      "path": "scenes/scene_crack_bright.png",
+      "rawPath": "raw/scene_crack_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_bbbcc1e7-55e7-4ca2-b940-b8dad8356841.png",
+      "jobId": "bbbcc1e7-55e7-4ca2-b940-b8dad8356841",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 26,
+      "assetId": "scene_separation_bright",
+      "kind": "scene",
+      "emotionTag": "단절",
+      "emotionKey": "separation",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_separation_bright.png",
+      "path": "scenes/scene_separation_bright.png",
+      "rawPath": "raw/scene_separation_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_bf5a2071-2e84-45b8-b070-2def18b8dd1c.png",
+      "jobId": "bf5a2071-2e84-45b8-b070-2def18b8dd1c",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 27,
+      "assetId": "scene_longing_bright",
+      "kind": "scene",
+      "emotionTag": "그리움",
+      "emotionKey": "longing",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_longing_bright.png",
+      "path": "scenes/scene_longing_bright.png",
+      "rawPath": "raw/scene_longing_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_2452c8e4-7ddf-469b-af5b-c80a5c05c3aa.png",
+      "jobId": "2452c8e4-7ddf-469b-af5b-c80a5c05c3aa",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 28,
+      "assetId": "scene_resolve_bright",
+      "kind": "scene",
+      "emotionTag": "결심",
+      "emotionKey": "resolve",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_resolve_bright.png",
+      "path": "scenes/scene_resolve_bright.png",
+      "rawPath": "raw/scene_resolve_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_ef34eb7f-73a2-4e34-96c9-955a9b34ecf5.png",
+      "jobId": "ef34eb7f-73a2-4e34-96c9-955a9b34ecf5",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 29,
+      "assetId": "scene_recovery_bright",
+      "kind": "scene",
+      "emotionTag": "회복",
+      "emotionKey": "recovery",
+      "brightness": "bright",
+      "position": "next",
+      "filename": "scene_recovery_bright.png",
+      "path": "scenes/scene_recovery_bright.png",
+      "rawPath": "raw/scene_recovery_bright.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051323_001d4ad7-0052-4a2d-9421-16010b5a362e.png",
+      "jobId": "001d4ad7-0052-4a2d-9421-16010b5a362e",
+      "model": "soul_location",
+      "generatedSize": {
+        "width": 2048,
+        "height": 2048
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1024
+      }
+    },
+    {
+      "index": 30,
+      "assetId": "talisman_wood",
+      "kind": "talisman",
+      "element": "목",
+      "elementKey": "wood",
+      "filename": "talisman_wood.png",
+      "path": "talismans/talisman_wood.png",
+      "rawPath": "raw/talisman_wood.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051502_d12065f5-3ae7-4354-9d88-c235f724625e.png",
+      "jobId": "d12065f5-3ae7-4354-9d88-c235f724625e",
+      "model": "recraft_v4_1",
+      "generatedSize": {
+        "width": 832,
+        "height": 1280
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "index": 31,
+      "assetId": "talisman_fire",
+      "kind": "talisman",
+      "element": "화",
+      "elementKey": "fire",
+      "filename": "talisman_fire.png",
+      "path": "talismans/talisman_fire.png",
+      "rawPath": "raw/talisman_fire.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051529_0f5b9fda-8f3a-4293-a4de-34dda8e63d4d.png",
+      "jobId": "0f5b9fda-8f3a-4293-a4de-34dda8e63d4d",
+      "model": "recraft_v4_1",
+      "generatedSize": {
+        "width": 832,
+        "height": 1280
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "index": 32,
+      "assetId": "talisman_earth",
+      "kind": "talisman",
+      "element": "토",
+      "elementKey": "earth",
+      "filename": "talisman_earth.png",
+      "path": "talismans/talisman_earth.png",
+      "rawPath": "raw/talisman_earth.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051555_088badd3-4604-40e1-a130-2a41be9c1596.png",
+      "jobId": "088badd3-4604-40e1-a130-2a41be9c1596",
+      "model": "recraft_v4_1",
+      "generatedSize": {
+        "width": 832,
+        "height": 1280
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "index": 33,
+      "assetId": "talisman_metal",
+      "kind": "talisman",
+      "element": "금",
+      "elementKey": "metal",
+      "filename": "talisman_metal.png",
+      "path": "talismans/talisman_metal.png",
+      "rawPath": "raw/talisman_metal.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051621_aa60ab0b-4c1e-43f9-9ac9-9a13b6a88946.png",
+      "jobId": "aa60ab0b-4c1e-43f9-9ac9-9a13b6a88946",
+      "model": "recraft_v4_1",
+      "generatedSize": {
+        "width": 832,
+        "height": 1280
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    },
+    {
+      "index": 34,
+      "assetId": "talisman_water",
+      "kind": "talisman",
+      "element": "수",
+      "elementKey": "water",
+      "filename": "talisman_water.png",
+      "path": "talismans/talisman_water.png",
+      "rawPath": "raw/talisman_water.png",
+      "rawUrl": "https://d8j0ntlcm91z4.cloudfront.net/user_3F40AGdSwm8yT51T7VzAPTQ3AhZ/hf_20260822_051648_9be0c4d8-151a-4183-8d7a-9dc07ad0e80a.png",
+      "jobId": "9be0c4d8-151a-4183-8d7a-9dc07ad0e80a",
+      "model": "recraft_v4_1",
+      "generatedSize": {
+        "width": 832,
+        "height": 1280
+      },
+      "targetSize": {
+        "width": 1024,
+        "height": 1536
+      }
+    }
+  ]
+}

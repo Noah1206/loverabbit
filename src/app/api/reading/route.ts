@@ -6,6 +6,9 @@ import {
   reportToText,
   type StructuredReport,
 } from "@/lib/reading-prompt";
+import { planImagesFor } from "@/lib/reading-asset-plan";
+import { saveImageState } from "@/lib/reading-image-store";
+import { pickIllustrated } from "@/lib/reading-images";
 import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
 import { chatComplete, isAiConfigured } from "@/lib/ai";
@@ -512,6 +515,29 @@ export async function POST(req: NextRequest) {
       scoreSeal,
       unlocked: false,
     });
+
+    // 삽화를 여기서 정해 둔다. 만들지 않고 고른다 - 감정 태그 x 컷 위치 x 일간 오행으로
+    // 미리 그려 둔 것에서 꺼낸다. 그림 생성 API 는 이 경로에서 한 번도 부르지 않는다.
+    //
+    // 발급 시점에 정해 두면 화면은 열리자마자 그림을 갖고 시작한다. 예전에는 열고 나서
+    // 만들기 시작해 분 단위로 빈자리를 띄웠고, 7분이 지나면 포기하는 안전망까지 있었다.
+    try {
+      const illustrated = pickIllustrated(
+        (report?.sections ?? []).map((section, index) => ({ chapter: index + 1, section }))
+      );
+      await saveImageState(
+        id,
+        planImagesFor({
+          chapterNumbers: illustrated.map((item) => item.chapter),
+          chapterEmotionTags: illustrated.map((item) => item.section.emotionTags ?? []),
+          chart: chart.me,
+          label: PRODUCT_MAP[body.category]?.shortLabel ?? PRODUCT_MAP[body.category]?.title,
+        })
+      );
+    } catch (assetError) {
+      // 그림이 없어도 리딩은 나간다. 여기서 막으면 글까지 못 준다.
+      console.error("삽화 계획 저장 실패:", assetError);
+    }
   } catch (e) {
     console.error("리딩 저장 실패:", e);
     if (isDatabaseConfigured() || process.env.NODE_ENV === "production") {

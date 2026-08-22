@@ -49,3 +49,8 @@ marketing/video/actions.json
 
 # 동작 줄(사람이 채우는 원본)
 marketing/video/actions.txt
+
+# src/data 는 코드가 import 하는 기준 데이터다. 위의 data/ 규칙(로컬 저장소)에
+# 걸려 통째로 빠지면 배포 빌드가 깨진다.
+!src/data/
+!src/data/**

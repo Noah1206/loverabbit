@@ -15,6 +15,7 @@
 //   입력 토큰이 (장 수 + 1)배로 늘고, 장 사이의 문맥 연결이 한 번에 쓸 때보다 느슨하다.
 //   대신 한 장이 실패해도 그 장만 다시 시키면 된다.
 
+import { normalizeEmotionTags } from "@/lib/reading-asset-selector";
 import { sumUsage, type ChatUsage } from "@/lib/ai";
 import { extraPlanFor, parseExtra } from "@/lib/reading-extra";
 import { chapterNumbersFromToc } from "@/lib/reading-chapters";
@@ -285,6 +286,8 @@ function parseSections(text: string, items: string[]): ReportSectionOut[] {
         factsUsed: strings(section.facts_used),
         ruleIds: strings(section.rule_ids),
         watchOut: typeof section.watch_out === "string" ? section.watch_out : undefined,
+        // 삽화를 고르는 열쇠. 허용 목록 밖의 말은 여기서 사라진다.
+        emotionTags: normalizeEmotionTags(strings(section.emotion_tags)),
         // 모양이 어긋나면 버린다 — 덤이라 반쯤 망가진 채로 세우느니 없는 편이 낫다
         extra: parseExtra(section.extra),
       }));

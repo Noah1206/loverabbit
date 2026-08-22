@@ -1,0 +1,8 @@
+원본 PNG 와 화면용 WebP 가 같이 있습니다.
+
+  scenes/<이름>.png   원본 (1024x1024) - 다시 뽑을 때의 기준
+  scenes/<이름>.webp  화면에 나가는 것
+
+매니페스트의 path 는 .png 를 가리키고, 선택기가 화면에 낼 때 .webp 로 바꿉니다.
+새 에셋을 넣은 뒤에는 다시 돌리세요:
+  node scripts/optimize-love-rabbit-assets.mjs

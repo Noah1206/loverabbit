@@ -1,3 +1,5 @@
+import { normalizeEmotionTags, type EmotionTag } from "@/lib/reading-asset-selector";
+
 // 사주 리포트 생성 계약 — 프롬프트, 입력 JSON, 출력 스키마, 파서.
 //
 // 역할 분리가 이 파일의 존재 이유다.
@@ -27,6 +29,13 @@ export interface ReportSectionOut {
   /** 이 절이 근거로 삼은 검수 규칙 id */
   ruleIds: string[];
   watchOut?: string;
+  /**
+   * 이 절의 감정 결. 삽화를 고르는 열쇠다.
+   *
+   * 제목으로 그림을 고르지 않는다 - 제목은 리딩마다 달라지고, 문자열을 파일명에
+   * 맞추기 시작하면 제목이 바뀔 때마다 그림이 사라진다. 고정된 태그 열 개만 쓴다.
+   */
+  emotionTags?: EmotionTag[];
   /** 이 절이 이미 말한 것 하나를 다른 꼴로 다시 세운 덩어리. 없어도 된다. */
   extra?: SectionExtra;
 }
@@ -244,10 +253,20 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - character_note.message는 2문장 이하. sections는 만들지 않는다.
 
 ## 지시가 "본문"일 때
-{"sections":[{"n":1,"verdict":"string","summary":"string","paragraphs":["string","string","string"],"facts_used":["string"],"rule_ids":["string"],"watch_out":"string","extra":{...}}]}
+{"sections":[{"n":1,"verdict":"string","summary":"string","paragraphs":["string","string","string"],"facts_used":["string"],"rule_ids":["string"],"watch_out":"string","emotion_tags":["설렘"],"extra":{...}}]}
 
 - sections 길이는 지시받은 항목 수와 정확히 같다. 합치거나 건너뛰지 않는다.
 - n은 지시에 붙은 항목 번호를 그대로 적는다. 제목은 다시 적지 않는다 — 서버가 붙인다.
+
+### emotion_tags — 삽화를 고르는 열쇠
+각 절에 emotion_tags 를 1~3개 넣는다. 허용값은 아래 열 개뿐이며, 다른 말은 무시된다.
+
+  설렘 · 기다림 · 망설임 · 끌림 · 흔들림 · 균열 · 단절 · 그리움 · 결심 · 회복
+
+- 이 태그는 독자의 심리와 장면의 결을 나타낸다. 사주 계산의 근거를 대체하지 않는다.
+- 삽화는 미리 그려 둔 것에서 고른다. 그러니 장면을 묘사하지 말고 결만 고른다.
+- 병원·부상·자해·폭력·죽음·공포·눈물 같은 말을 시각 연출 제안으로 쓰지 않는다.
+  그런 그림은 존재하지 않으며, 감정은 빛·간격·시선·자세·빈자리로만 드러낸다.
 
 ### verdict — 이 절의 답 한 줄
 독자는 소제목을 보고 **"그래서 답이 뭔데"** 를 알고 싶어 한다. 1,200자를 다 읽어야
@@ -491,6 +510,7 @@ type RawSection = {
   facts_used?: unknown;
   rule_ids?: unknown;
   watch_out?: string;
+  emotion_tags?: unknown;
 };
 
 function asStringArray(value: unknown): string[] {
@@ -555,6 +575,8 @@ export function parseStructuredReport(text: string): StructuredReport | null {
           factsUsed: asStringArray(section.facts_used),
           ruleIds: asStringArray(section.rule_ids),
           watchOut: typeof section.watch_out === "string" ? section.watch_out : undefined,
+          // 허용 목록 밖의 말은 여기서 사라진다. 모델이 무엇을 뱉든 그림에 닿지 못한다.
+          emotionTags: normalizeEmotionTags(asStringArray(section.emotion_tags)),
         })),
       actionQuestions: (Array.isArray(raw.action_questions) ? raw.action_questions : [])
         .map((item) => item as Record<string, unknown>)
