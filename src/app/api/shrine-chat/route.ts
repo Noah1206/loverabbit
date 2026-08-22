@@ -6,11 +6,13 @@ import { CHARACTERS } from "@/lib/characters";
 import {
   FREE_TURNS_UNTRACKED,
   appendShrineMessages,
+  getUserSajuProfile,
   restoreChatCredit,
   restoreFreeChatTurn,
   useChatCredit,
   useFreeChatTurn,
 } from "@/lib/database";
+import { sajuBlockFor } from "@/lib/shrine-saju";
 import { resolveUserToken } from "@/lib/tokens";
 
 export const maxDuration = 60;
@@ -84,11 +86,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "대화 이용량을 확인하지 못했어요." }, { status: 503 });
   }
 
+  // 손님의 사주를 손에 쥐여 준다. 지금까지 도령은 "정확한 건 네 사주를 봐야
+  // 안다" 고 말하면서 볼 방법이 없었다 - 생년월일은 저장돼 있었는데 아무도
+  // 읽지 않았기 때문이다. 못 읽어도 대화는 막지 않는다.
+  let sajuBlock = "";
+  let needSaju = false;
+  try {
+    const profile = await getUserSajuProfile(user.userId);
+    needSaju = !profile;
+    sajuBlock = sajuBlockFor(profile);
+  } catch (error) {
+    console.error("신당 사주 조회 실패:", error);
+  }
+
   const history = (body.history ?? []).slice(-MAX_HISTORY);
 
   try {
     const result = await chatComplete(
-      character.persona,
+      character.persona + sajuBlock,
       [...history, { role: "user", content: body.question.trim() }],
       // 지문(표정 묘사)이 붙으면서 답이 길어졌다. 캐릭터 연기에는 추론이 필요 없으므로
       // 사고 토큰을 끄고(=답이 중간에 잘리지 않게) 한도를 넉넉히 준다.
@@ -120,7 +135,7 @@ export async function POST(req: NextRequest) {
     } catch (persistError) {
       console.error("신당 대화 저장 실패:", persistError);
     }
-    return NextResponse.json({ answer, emotion, creditsRemaining, freeTurnsRemaining });
+    return NextResponse.json({ answer, emotion, needSaju, creditsRemaining, freeTurnsRemaining });
   } catch (e) {
     // 답을 못 받았으면 방금 깎은 무료 턴/대화권을 돌려준다.
     if (creditUserId) {

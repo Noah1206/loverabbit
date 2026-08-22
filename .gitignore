@@ -46,3 +46,6 @@ marketing/video/adult-prompts.json
 
 # 동작 줄(사람이 채우는 원본) — 내용은 저장소에 넣지 않는다
 marketing/video/actions.json
+
+# 동작 줄(사람이 채우는 원본)
+marketing/video/actions.txt

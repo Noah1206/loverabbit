@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import ChatPaymentModal from "@/components/ChatPaymentModal";
+import ShrineSajuPrompt from "@/components/ShrineSajuPrompt";
 import ShrineStage from "@/components/ShrineStage";
 import { DEFAULT_EMOTION, inferEmotion, isEmotion, type Emotion } from "@/lib/character-emotions";
 import ShrineTransition from "@/components/ShrineTransition";
@@ -63,6 +64,10 @@ export default function ShrineChatPage() {
   const [msgs, setMsgs] = useState<ShrineMessage[]>([]);
   // 지금 도령이 짓고 있는 표정. 답이 올 때마다 바뀌고, 무대가 그 표정으로 움직인다.
   const [emotion, setEmotion] = useState<Emotion>(DEFAULT_EMOTION);
+  // 도령이 태어난 날을 물을 수 있게 됐으니, 손님이 답할 자리도 있어야 한다.
+  // 서버가 "이 손님은 사주가 없다" 고 알려줄 때만 뜬다.
+  const [needSaju, setNeedSaju] = useState(false);
+  const [sajuDismissed, setSajuDismissed] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
@@ -174,6 +179,7 @@ export default function ShrineChatPage() {
         setUser(nextUser);
         saveUser(nextUser);
       }
+      setNeedSaju(data.needSaju === true);
       setFreeTurnsLeft(typeof data.freeTurnsRemaining === "number" ? data.freeTurnsRemaining : 0);
       setInput("");
       setLimitReached(false);
@@ -291,6 +297,15 @@ export default function ShrineChatPage() {
             ) : (
               <>
                 {paymentNotice && <p style={{ color: "#ffd28a", fontSize: "0.8rem", textAlign: "center", marginBottom: 8 }}>{paymentNotice}</p>}
+                {needSaju && !sajuDismissed && user && (
+                  <ShrineSajuPrompt
+                    theme={ch.theme}
+                    characterName={ch.name}
+                    userToken={user.token}
+                    onSaved={() => { setNeedSaju(false); setSajuDismissed(true); }}
+                    onDismiss={() => setSajuDismissed(true)}
+                  />
+                )}
                 <div style={{ display: "flex", gap: 8 }}>
                   <input
                     placeholder={`${ch.name}에게 말 걸기…`}

@@ -285,6 +285,39 @@ export async function saveUserSajuProfile(
   if (error) throw databaseError("사주 기본 정보 저장", error);
 }
 
+export interface SajuProfile {
+  birthdate: string;
+  birthHour: number | null;
+  birthTimeUnknown: boolean;
+  gender: "F" | "M" | null;
+}
+
+/**
+ * 저장해 둔 사주 기본 정보를 읽는다.
+ *
+ * 지금까지 이 값은 쓰기만 하고 읽는 곳이 없었다. 그래서 신당의 도령은 "정확한
+ * 건 네 사주를 봐야 안다" 고 말하면서도 정작 볼 방법이 없었다. 여기가 그 눈이다.
+ */
+export async function getUserSajuProfile(userId: number): Promise<SajuProfile | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+
+  const { data, error } = await db
+    .from("lr_user_profiles")
+    .select("saju_birthdate,saju_birth_hour,saju_birth_time_unknown,saju_gender")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw databaseError("사주 기본 정보 조회", error);
+  if (!data?.saju_birthdate) return null;
+
+  return {
+    birthdate: String(data.saju_birthdate),
+    birthHour: data.saju_birth_hour === null ? null : Number(data.saju_birth_hour),
+    birthTimeUnknown: Boolean(data.saju_birth_time_unknown),
+    gender: data.saju_gender === "F" || data.saju_gender === "M" ? data.saju_gender : null,
+  };
+}
+
 export async function getReferralStatus(
   userId: number,
   readingId?: string
