@@ -14,6 +14,16 @@ import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
 import { notifyAdmin } from "@/lib/telegram";
 
+// 유료 본문을 여기서 만든다. 이 경로가 이 서비스에서 가장 오래 도는 자리다.
+//
+// 선언이 없어서 그동안 플랫폼 기본값에 기대고 있었다. /api/reading 에는 300 이
+// 박혀 있는데 정작 더 무거운 쪽이 비어 있었다 - 게다가 슬림 무료 미리보기를 켠
+// 뒤로는 결제 전에 한 절도 안 만들므로, 여기서 머리부터 전부 만든다.
+//
+// 여기서 시간이 끊기면 돈은 받고 글은 못 준 상태가 된다. 다시 열면 이어 만들지만,
+// 그 사이의 화면은 사용자가 보기에 그냥 고장이다.
+export const maxDuration = 300;
+
 // 풀 리딩 해금 — 결제 방식 2가지:
 // 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
 // 2) toss-pg: TOSS_SECRET_KEY가 있으면 토스페이먼츠 결제 승인 API로 실결제 검증.
