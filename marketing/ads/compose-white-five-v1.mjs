@@ -19,6 +19,13 @@ const bgDir = path.join(root, "public", "ads", "saju");
 const outDir = path.join(root, "marketing", "ads", "white-five-v1");
 const logoPath = path.join(root, "public", "logo.png");
 
+// 헤드라인은 큰 활자 두 줄이라 따옴표를 못 쓴다 - 줄이 갈리면서 따옴표가 벌어져
+// 디자인이 깨진다. 대신 조건문(-라면)과 1인칭 질문으로 같은 안전장치를 건다.
+// 메타는 광고가 보는 사람의 연애 상태를 안다고 단정하는 것을 금지한다. "당신은
+// 늘 여기서 틀어집니다" 는 거부 사유지만, "틀어진다면" 은 조건이라 걸리지 않는다.
+//
+// sub 는 그 랜딩이 파는 상품의 실제 목차에서 가져온다 (src/lib/products.ts).
+// 광고가 약속한 것과 리포트가 주는 것이 다르면 환불로 돌아온다.
 const campaigns = [
   {
     id: "01",
@@ -26,9 +33,10 @@ const campaigns = [
     title: "궁합 사주",
     background: "compatibility-bg.png",
     badge: "궁합 사주",
-    headline: ["우리 둘,", "잘 맞을까?"],
-    sub: "두 사람의 성향과 관계 온도를 사주 흐름으로 함께 봅니다.",
-    cta: "무료 궁합 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    headline: ["잘 맞다가도", "꼭 여기서 틀어진다면"],
+    sub: "반드시 부딪히는 지점과 식는 구간을 짚습니다.",
+    cta: "부딪히는 지점 보기  →",
     accent: "#ff4d84",
     tint: "#fff3f7",
     ground: "#fffdfc",
@@ -39,9 +47,10 @@ const campaigns = [
     title: "속궁합 사주",
     background: "intimate-compatibility-bg.png",
     badge: "속궁합 사주",
-    headline: ["말보다 먼저", "맞는 온도"],
-    sub: "가까워질수록 드러나는 끌림과 두 사람만의 상성을 읽습니다.",
-    cta: "속궁합 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    headline: ["이 사람 앞에서만", "내가 약해진다면"],
+    sub: "주도권이 어느 쪽인지, 무너지는 순간까지 봅니다.",
+    cta: "주도권 확인하기  →",
     accent: "#e5486d",
     tint: "#fff2f4",
     ground: "#fffdfc",
@@ -52,9 +61,11 @@ const campaigns = [
     title: "19금 사주",
     background: "mature-compatibility-bg.png",
     badge: "19금 사주",
-    headline: ["밤이 되면", "달라지는 궁합"],
-    sub: "두 사람의 끌림과 관계의 완급을 성인 대상 해석으로 살펴봅니다.",
-    cta: "19금 사주 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // "밤" 을 뺐다. 심의에서 걸리는 것은 그 낱말이 밀착 그림과 겹칠 때다.
+    headline: ["가까워질수록", "어긋나는 느낌이라면"],
+    sub: "두 사람의 속도와 완급이 어디서 갈리는지 봅니다.",
+    cta: "속도 차이 보기  →",
     accent: "#c9385f",
     tint: "#fff1f3",
     ground: "#fffdfc",
@@ -66,9 +77,10 @@ const campaigns = [
     title: "연애운 사주",
     background: "romance-timing-bg.png",
     badge: "연애운 사주",
-    headline: ["이번 사랑,", "언제 시작될까?"],
-    sub: "인연의 창이 열리는 시기와 만남의 경로를 확인합니다.",
-    cta: "연애운 보기  →",
+    product: "인연 타이밍 (insun, 14,900)",
+    headline: ["올해도 그냥", "지나가는 걸까"],
+    sub: "인연의 창이 열리는 달과 만날 경로까지 나옵니다.",
+    cta: "인연 오는 달 보기  →",
     accent: "#ef7c3c",
     tint: "#fff6ed",
     ground: "#fffdfa",
@@ -79,9 +91,10 @@ const campaigns = [
     title: "이별 사주",
     background: "breakup-decision-bg.png",
     badge: "이별 사주",
-    headline: ["끝낼까,", "붙잡을까?"],
-    sub: "반복되는 갈등의 원인과 다음 선택의 기준을 정리합니다.",
-    cta: "이별 흐름 보기  →",
+    product: "이별 부검 리포트 (ibyeol, 29,900)",
+    headline: ["내가 뭘", "그렇게 잘못했을까"],
+    sub: "어디서부터 어긋났는지와 반복 패턴을 짚습니다.",
+    cta: "끝난 이유 보기  →",
     accent: "#7b6bd6",
     tint: "#f4f2fe",
     ground: "#fdfdff",
@@ -103,8 +116,23 @@ const svg = (width, height, content) => Buffer.from(`
   </svg>
 `);
 
+// 한글은 글자당 폭이 거의 일정해서 글자 수로 폭을 어림할 수 있다. 어림한 폭이
+// 넘치면 글씨를 줄인다 - 나중에 문구를 늘렸을 때 조용히 잘려 나가는 것을 막는다.
+// 잘린 것은 뽑아 봐야 알고, 그때는 이미 광고가 나간 뒤다.
+function fitSize(text, baseSize, maxWidth, ratio) {
+  const estimated = text.length * baseSize * ratio;
+  return estimated <= maxWidth ? baseSize : Math.floor(baseSize * (maxWidth / estimated));
+}
+
 // 흰 바탕 위의 글자는 그림자를 안 쓴다. 흰 배경에 그림자를 얹으면 때가 탄 것처럼 보인다.
-function whiteZone(c, { width, imageTop, pad, badgeY, headY, headSize, headLine, subGap, ctaY, ctaW, ctaH }) {
+function whiteZone(c, spec) {
+  const { width, imageTop, pad, badgeY, headLine, subGap, ctaY, ctaW, ctaH } = spec;
+  const room = width - pad * 2;
+  // 두 줄이 한 덩어리로 읽혀야 하므로 긴 줄에 맞춰 둘 다 줄인다.
+  const headSize = Math.min(...c.headline.map((line) => fitSize(line, spec.headSize, room, 0.95)));
+  const subSize = fitSize(c.sub, Math.round(spec.headSize * 0.44), room, 0.92);
+  const ctaFont = fitSize(c.cta, Math.round(ctaH * 0.33), ctaW - 48, 0.95);
+  const headY = spec.headY;
   const badgeW = c.badge.length * (headSize * 0.42) + 68;
   const headBottom = headY + headLine * (c.headline.length - 1);
   // 장식 원은 흰 영역 안에서만 산다. 안 자르면 아래 그림 위로 흰 덩어리가 얹힌다.
@@ -129,11 +157,11 @@ function whiteZone(c, { width, imageTop, pad, badgeY, headY, headSize, headLine,
     </text>
 
     <text class="kr" x="${pad}" y="${headBottom + subGap}" fill="${MUTE}"
-          font-size="${headSize * 0.44}" font-weight="600">${xml(c.sub)}</text>
+          font-size="${subSize}" font-weight="600">${xml(c.sub)}</text>
 
     <rect x="${pad}" y="${ctaY}" width="${ctaW}" height="${ctaH}" rx="${ctaH / 2}" fill="${c.accent}"/>
     <text class="kr" x="${pad + ctaW / 2}" y="${ctaY + ctaH * 0.64}" fill="#fff"
-          font-size="${ctaH * 0.33}" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
+          font-size="${ctaFont}" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
   `;
 }
 

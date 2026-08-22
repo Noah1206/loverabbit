@@ -5,14 +5,22 @@ const root = process.cwd();
 const assetDir = path.join(root, "marketing", "ads", "hook-five-v1");
 const logoPath = path.join(root, "public", "logo.png");
 
+// 화이트형 · 스크린샷형과 같은 문구 기준을 쓴다.
+//
+//   1. 헤드라인은 조건문(-라면) 이거나 1인칭 질문이다. 메타는 광고가 보는 사람의
+//      연애 상태를 안다고 단정하는 것을 금지한다 - "당신은 늘 여기서 틀어집니다"
+//      는 거부 사유지만 "틀어진다면" 은 조건이라 걸리지 않는다.
+//   2. CTA 는 그 랜딩이 파는 상품이 실제로 주는 것만 말한다 (src/lib/products.ts).
+//      여기는 sub 자리가 없어서 CTA 가 그 몫까지 진다.
 const campaigns = [
   {
     id: "01",
     slug: "general-compatibility",
     title: "궁합 사주",
     badge: "궁합 사주",
-    headline: ["우리 둘,", "잘 맞을까?"],
-    cta: "무료 궁합 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    headline: ["잘 맞다가도", "꼭 여기서 틀어진다면"],
+    cta: "부딪히는 지점 보기  →",
     accent: "#ff3d7f",
     accent2: "#8b5cf6",
     highlight: "#ff8ab2",
@@ -23,8 +31,9 @@ const campaigns = [
     slug: "intimate-compatibility",
     title: "속궁합 사주",
     badge: "속궁합 사주",
-    headline: ["말보다 먼저", "맞는 온도"],
-    cta: "속궁합 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    headline: ["이 사람 앞에서만", "내가 약해진다면"],
+    cta: "주도권 확인하기  →",
     accent: "#ff315f",
     accent2: "#8b2f6f",
     highlight: "#ff758f",
@@ -35,8 +44,11 @@ const campaigns = [
     slug: "mature-night",
     title: "19금 사주",
     badge: "19금 사주",
-    headline: ["밤이 되면", "달라지는 궁합"],
-    cta: "19금 사주 보기  →",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // "밤" 을 뺐다. 심의에서 걸리는 것은 그 낱말이 밀착 그림과 겹칠 때인데,
+    // 이 소재의 배경이 정확히 그 밀착 그림이다. 셋 중 위험이 가장 높다.
+    headline: ["가까워질수록", "어긋나는 느낌이라면"],
+    cta: "속도 차이 보기  →",
     accent: "#d92758",
     accent2: "#6f214f",
     highlight: "#ff5c72",
@@ -47,8 +59,9 @@ const campaigns = [
     slug: "romance-fortune",
     title: "연애운 사주",
     badge: "연애운 사주",
-    headline: ["이번 사랑,", "언제 시작될까?"],
-    cta: "연애운 보기  →",
+    product: "인연 타이밍 (insun, 14,900)",
+    headline: ["올해도 그냥", "지나가는 걸까"],
+    cta: "인연 오는 달 보기  →",
     accent: "#d94d77",
     accent2: "#8b5cf6",
     highlight: "#f2b066",
@@ -59,8 +72,9 @@ const campaigns = [
     slug: "breakup",
     title: "이별 사주",
     badge: "이별 사주",
-    headline: ["끝낼까,", "붙잡을까?"],
-    cta: "이별 흐름 보기  →",
+    product: "이별 부검 리포트 (ibyeol, 29,900)",
+    headline: ["내가 뭘", "그렇게 잘못했을까"],
+    cta: "끝난 이유 보기  →",
     accent: "#ff3d7f",
     accent2: "#7355dd",
     highlight: "#ff7da8",
@@ -80,6 +94,17 @@ const svg = (width, height, content) => Buffer.from(`
   </svg>
 `);
 
+// 한글은 글자당 폭이 거의 일정해서 글자 수로 폭을 어림할 수 있다. 어림한 폭이
+// 넘치면 글씨를 줄인다 - 문구를 늘렸을 때 조용히 잘려 나가는 것을 막는다.
+// 잘린 것은 뽑아 봐야 알고, 그때는 이미 광고가 나간 뒤다.
+function fitSize(text, baseSize, maxWidth, ratio = 0.95) {
+  const estimated = text.length * baseSize * ratio;
+  return estimated <= maxWidth ? baseSize : Math.floor(baseSize * (maxWidth / estimated));
+}
+
+// 두 줄이 한 덩어리로 읽혀야 하므로 긴 줄에 맞춰 둘 다 줄인다.
+const headFit = (c, base, room) => Math.min(...c.headline.map((line) => fitSize(line, base, room)));
+
 function commonDefs(c) {
   return `
     <defs>
@@ -95,6 +120,8 @@ function commonDefs(c) {
 }
 
 function portraitOverlay(c) {
+  const headSize = headFit(c, 80, 940);
+  const ctaSize = fitSize(c.cta, 37, 650 - 44);
   return svg(1080, 1920, `
     ${commonDefs(c)}
     <defs>
@@ -110,13 +137,13 @@ function portraitOverlay(c) {
     <rect x="70" y="78" width="224" height="64" rx="32" fill="${c.accent}"/>
     <text class="kr" x="182" y="121" fill="#fff" font-size="28" font-weight="900" text-anchor="middle">${xml(c.badge)}</text>
 
-    <text class="kr" x="70" y="266" fill="#fffaf7" font-size="80" font-weight="900" letter-spacing="-4" filter="url(#shadow)">
+    <text class="kr" x="70" y="266" fill="#fffaf7" font-size="${headSize}" font-weight="900" letter-spacing="-4" filter="url(#shadow)">
       <tspan x="70" dy="0">${xml(c.headline[0])}</tspan>
       <tspan x="70" dy="98" fill="${c.highlight}">${xml(c.headline[1])}</tspan>
     </text>
 
     <rect x="70" y="1638" width="650" height="112" rx="56" fill="url(#cta)" filter="url(#shadow)"/>
-    <text class="kr" x="395" y="1710" fill="#fff" font-size="37" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
+    <text class="kr" x="395" y="1710" fill="#fff" font-size="${ctaSize}" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
 
     <text class="kr" x="128" y="1878" fill="#fff" font-size="25" font-weight="900">LOVE<tspan fill="${c.highlight}">RABBIT</tspan></text>
     <text class="kr" x="360" y="1878" fill="#c5b9ca" font-size="19" font-weight="550">오락 목적의 콘텐츠입니다.</text>
@@ -124,6 +151,8 @@ function portraitOverlay(c) {
 }
 
 function landscapeOverlay(c) {
+  const headSize = headFit(c, 54, 1084);
+  const ctaSize = fitSize(c.cta, 26, 350 - 30);
   return svg(1200, 628, `
     ${commonDefs(c)}
     <defs>
@@ -138,13 +167,13 @@ function landscapeOverlay(c) {
     <rect x="58" y="40" width="170" height="48" rx="24" fill="${c.accent}"/>
     <text class="kr" x="143" y="73" fill="#fff" font-size="21" font-weight="900" text-anchor="middle">${xml(c.badge)}</text>
 
-    <text class="kr" x="58" y="169" fill="#fffaf7" font-size="54" font-weight="900" letter-spacing="-3" filter="url(#shadow)">
+    <text class="kr" x="58" y="169" fill="#fffaf7" font-size="${headSize}" font-weight="900" letter-spacing="-3" filter="url(#shadow)">
       <tspan x="58" dy="0">${xml(c.headline[0])}</tspan>
       <tspan x="58" dy="68" fill="${c.highlight}">${xml(c.headline[1])}</tspan>
     </text>
 
     <rect x="58" y="350" width="350" height="74" rx="37" fill="url(#cta)" filter="url(#shadow)"/>
-    <text class="kr" x="233" y="398" fill="#fff" font-size="26" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
+    <text class="kr" x="233" y="398" fill="#fff" font-size="${ctaSize}" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
 
     <text class="kr" x="112" y="548" fill="#fff" font-size="22" font-weight="900">LOVE<tspan fill="${c.highlight}">RABBIT</tspan></text>
     <text class="kr" x="112" y="579" fill="#c5b9ca" font-size="16" font-weight="550">오락 목적의 콘텐츠입니다.</text>
