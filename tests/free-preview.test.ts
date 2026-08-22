@@ -108,7 +108,7 @@ describe("응답 검사", () => {
     summary: "지금은 결론보다 서로의 속도를 확인하는 구간으로 보여요.",
     cards: packet.evidence.slice(0, 3).map((e) => ({
       title: "관계에서의 나",
-      body: "하고 싶은 말이 한 박자 늦게 나오는 편이에요.",
+      paragraphs: ["하고 싶은 말이 한 박자 늦게 나오는 편이야.", "그래서 먼저 꺼내는 쪽이 늘 상대가 되기도 해."],
       evidenceIds: [e.sourceRuleId],
       emotionTags: ["망설임" as const],
     })),
@@ -146,7 +146,7 @@ describe("응답 검사", () => {
     const bad = ok();
     bad.cards = withBan.evidence.slice(0, 3).map((e) => ({
       title: "관계에서의 나",
-      body: "상대에게 바람 기운이 보여요.",
+      paragraphs: ["상대에게 바람 기운이 보여."],
       evidenceIds: [e.sourceRuleId],
       emotionTags: ["망설임" as const],
     }));
@@ -241,13 +241,13 @@ describe("폴백은 토막이 아니라 문장이다", () => {
   it("훅과 카드가 모두 문장으로 끝난다", () => {
     const fallback = buildFreePreviewFallback(packet);
     assert.match(fallback.hook, /(야|어|아|지|다)[.]?$/);
-    for (const card of fallback.cards) assert.match(card.body, /(야|어|아|지|다)[.]?$/);
+    for (const card of fallback.cards) assert.match(card.paragraphs[0], /(야|어|아|지|다)[.]?$/);
   });
 
   it("조각(allowedMeaning)을 본문에 쓰지 않는다", () => {
     const fragment = packet.evidence[0].allowedMeaning;
     const fallback = buildFreePreviewFallback(packet);
     assert.notEqual(fallback.hook, fragment);
-    assert.notEqual(fallback.cards[0].body, fragment);
+    assert.notEqual(fallback.cards[0].paragraphs[0], fragment);
   });
 });

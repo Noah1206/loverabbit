@@ -43,7 +43,8 @@ console.log(`훅   ${r.hook}`);
 console.log(`요약 ${r.summary}\n`);
 for (const c of r.cards) {
   console.log(`· ${c.title}  [${c.emotionTags.join("·")}]  (${c.evidenceIds.join(",")})`);
-  console.log(`  ${c.body}\n`);
+  for (const para of c.paragraphs ?? []) console.log(`  ${para}`);
+  console.log(`  (문단 ${(c.paragraphs ?? []).length}개 · ${(c.paragraphs ?? []).join("").length}자)\n`);
 }
 console.log(`질문 ${r.reflectionQuestion}`);
 console.log(`유료 ${r.paidTeaser}\n`);

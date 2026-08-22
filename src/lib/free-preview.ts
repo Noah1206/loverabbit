@@ -81,7 +81,9 @@ export const FREE_PREVIEW_LIMITS = {
   // 약 659토큰이 된다 - 700 이면 여유가 41토큰(6%)뿐이고, 한 글자만 넘치면 JSON 이
   // 잘려 전원이 폴백으로 간다. 200토큰 더 주는 값은 $0.0004 다. 그 값에 비해
   // 잘렸을 때 잃는 것이 너무 크다.
-  maxOutputTokens: 900,
+  // 900 에서 올렸다. 문단 둘짜리 카드 셋이면 본문만 900자 가까이 되는데,
+  // 900토큰(약 1,260자)으로는 JSON 구조까지 담을 여유가 없어 잘린다.
+  maxOutputTokens: 1800,
   llmSoftUsd: 0.01,
   llmHardUsd: 0.03,
   totalHardUsd: 0.2,
@@ -141,7 +143,7 @@ ${JSON.stringify(packet)}
 
 Editorial target:
 - The opening must make the user feel seen without pretending certainty.
-- Use exactly 3 insight cards in priority order.
+- Use exactly 3 insight cards in priority order. Each card carries 2-3 flowing paragraphs of 110-200 Korean characters - this reads as a saju reading, not a notification card. Do not compress a card into one short line.
 - Each card must be traceable to one or more supplied evidence ids.
 - End with a paid-preview teaser that names one unresolved relationship question, not a guaranteed result.
 - Return emotion tags only from: ${PREVIEW_EMOTIONS.join(", ")}.`;
@@ -168,7 +170,14 @@ export const FREE_PREVIEW_SCHEMA = {
             additionalProperties: false,
             properties: {
               title: { type: "string", description: "17자 이하" },
-              body: { type: "string", description: "90자 이하" },
+              // 90자 한 덩어리였다. 그러면 화면에 두세 줄짜리 상자만 남아서
+              // 사주 리딩이 아니라 알림 카드처럼 보인다. 문단 둘로 늘린다.
+              paragraphs: {
+                type: "array",
+                minItems: 2,
+                maxItems: 3,
+                items: { type: "string", description: "한 문단, 110~200자. 문장 두세 개" },
+              },
               evidenceIds: { type: "array", minItems: 1, maxItems: 2, items: { type: "string" } },
               emotionTags: {
                 type: "array",
@@ -177,7 +186,7 @@ export const FREE_PREVIEW_SCHEMA = {
                 items: { type: "string", enum: [...PREVIEW_EMOTIONS] },
               },
             },
-            required: ["title", "body", "evidenceIds", "emotionTags"],
+            required: ["title", "paragraphs", "evidenceIds", "emotionTags"],
           },
         },
         reflectionQuestion: { type: "string", description: "관계 점검 질문 1개, 52자 이하" },
@@ -191,7 +200,8 @@ export const FREE_PREVIEW_SCHEMA = {
 
 export interface FreePreviewCard {
   title: string;
-  body: string;
+  /** 문단 둘~셋. 한 덩어리로 주면 화면이 알림 카드처럼 보인다. */
+  paragraphs: string[];
   evidenceIds: string[];
   emotionTags: PreviewEmotion[];
 }
@@ -368,7 +378,7 @@ export function validateFreePreview(result: FreePreviewResult, packet: PreviewFa
     if (!allowed.has(id)) problems.push(`선택된 근거 ${id} 가 패킷에 없다`);
   }
 
-  const prose = [result.hook, result.summary, result.reflectionQuestion, result.paidTeaser, ...result.cards.map((c) => c.body)].join(" ");
+  const prose = [result.hook, result.summary, result.reflectionQuestion, result.paidTeaser, ...result.cards.flatMap((c) => c.paragraphs ?? [])].join(" ");
   if (CERTAIN_CLAIM.test(prose)) problems.push("확정 표현이 있다");
   if (OFF_LIMITS.test(prose)) problems.push("의료·법률·투자 영역의 말이 있다");
 
@@ -400,7 +410,7 @@ export function buildFreePreviewFallback(packet: PreviewFactPacket): FreePreview
     summary: "지금은 결론을 서두르기보다, 반응과 표현의 온도를 같이 보는 쪽이 나아 보여.",
     cards: top.map((evidence) => ({
       title: titleOf(evidence),
-      body: toSentence(evidence.basis),
+      paragraphs: [toSentence(evidence.basis)],
       evidenceIds: [evidence.sourceRuleId],
       emotionTags: ["망설임" as PreviewEmotion],
     })),

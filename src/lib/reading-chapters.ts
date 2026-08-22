@@ -230,7 +230,7 @@ export function reportPieces(report: {
 
 /** 결제 전 화면용 — 미리보기 발췌와 제목만 남은 잠긴 절을 한 줄기로 세운다 */
 export function previewPieces(
-  previewSections: { title: string; excerpt: string }[],
+  previewSections: { title: string; excerpt: string; paragraphs?: string[] }[],
   lockedTitles: string[],
   toc: string[] = []
 ): ChapterPiece[] {
@@ -243,7 +243,8 @@ export function previewPieces(
   return [
     ...previewSections.map((section) => ({
       title: section.title,
-      paragraphs: section.excerpt ? [section.excerpt] : [],
+      // 문단이 오면 그대로 쓴다. 한 덩어리로 접으면 화면이 다시 짧아진다.
+      paragraphs: section.paragraphs?.length ? section.paragraphs : section.excerpt ? [section.excerpt] : [],
       intro: !tocTitles.has(cleanTitle(section.title)),
     })),
     ...lockedTitles.map((title) => ({ title, paragraphs: [] })),
