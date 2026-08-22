@@ -48,9 +48,11 @@ const campaigns = [
     background: "intimate-compatibility-bg.png",
     badge: "속궁합 사주",
     product: "속궁합 사주 (sokgunghap, 9,900)",
-    headline: ["이 사람 앞에서만", "내가 약해진다면"],
-    sub: "주도권이 어느 쪽인지, 무너지는 순간까지 봅니다.",
-    cta: "주도권 확인하기  →",
+    // 속궁합은 성적 상성이다. 마음이 맞는지가 아니다. 그 뜻이 안 살면 이 광고는
+    // 01(궁합)과 같은 말을 하게 되고, 두 광고가 서로 예산만 갉아먹는다.
+    headline: ["겉궁합은 좋은데", "속궁합은 어떨까"],
+    sub: "둘의 온도와 호흡, 주도권까지 일주로 읽습니다.",
+    cta: "속궁합 지수 보기  →",
     accent: "#e5486d",
     tint: "#fff2f4",
     ground: "#fffdfc",
