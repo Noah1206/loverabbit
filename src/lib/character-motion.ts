@@ -9,6 +9,17 @@
 // 갈려 있어서, adult 폴더를 통째로 비워도 safe 쪽은 그대로 돈다.
 
 export const CHARACTER_MOTION: Record<string, string[]> = {
+  bihwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  cheongsa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  geumya: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  haewol: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  hongryeon: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  hwarin: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  jawol: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  jeokya: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  maehwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  mukyeon: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  yeonhwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
 };
 
 export const CHARACTER_MOTION_ADULT: Record<string, string[]> = {

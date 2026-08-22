@@ -106,12 +106,53 @@ const FRAME = {
   timing: "The whole action begins and completes within three seconds.",
 };
 
+const norm = (text) => text.replace(/\s+/g, " ").trim();
+
+// 사람이 쓴 줄에서 "내가 넣어둔 안내문" 을 걷어낸다.
+//
+// 틀에 적어둔 [유혹] ... 같은 설명은 무엇을 쓸지 알려주려는 것이지 프롬프트가
+// 아니다. 그게 그대로 남아 실려 나가면 모델이 "이 칸이 가장 세게 쓰이는 자리다"
+// 같은 지시문까지 연기하려 든다. 값 앞에 붙어 있으면 조용히 떼어낸다.
+function stripBoilerplate(text, emotion) {
+  let out = norm(String(text).replace(/<!--[\s\S]*?-->/g, " "));
+  const spec = EMOTION_SPEC[emotion];
+  if (!spec) return out;
+  const full = norm(`[${spec.ko}] ${spec.need}`);
+  const bare = norm(spec.need);
+  if (out.startsWith(full)) out = out.slice(full.length);
+  else if (out.startsWith(bare)) out = out.slice(bare.length);
+  else if (out.startsWith(`[${spec.ko}]`)) out = out.slice(`[${spec.ko}]`.length);
+  return norm(out);
+}
+
+// 조립 전에 한 번 본다. 고쳐주지는 않고, 결과를 망칠 만한 것만 짚는다.
+function review(characterId, emotion, action) {
+  const notes = [];
+  const text = norm(action);
+  if (text.length < 20) notes.push("너무 짧습니다. 무슨 동작인지 모델이 알 수 없습니다");
+  if (text.length > 400) notes.push(`${text.length}자로 깁니다. 뒤쪽 카메라·유지 지시가 묻힙니다`);
+  // 한 칸에 장면이 여럿이면 3초에 다 못 담고 전부 뭉개진다.
+  const beats = (text.match(/[.!?。]\s/g) ?? []).length + 1;
+  if (beats > 3) notes.push(`장면이 ${beats}개로 보입니다. 3초에 담기지 않으니 칸을 나누세요`);
+  // 뼈대와 부딪히는 지시. 사람이 카메라를 움직이라고 쓰면 고정 지시와 싸운다.
+  if (/\b(zoom|push[- ]?in|pan|close[- ]?up|camera|cut to)\b/i.test(text)) {
+    notes.push("카메라 지시가 들어 있습니다. 뼈대의 '카메라 고정' 과 충돌합니다");
+  }
+  if (/\b(anime|illustration|art style|background)\b/i.test(text)) {
+    notes.push("그림체·배경 지시가 들어 있습니다. 뼈대가 이미 붙입니다");
+  }
+  if (/\b(I would like|it would be good|please)\b/i.test(text)) {
+    notes.push("요청문('~하면 좋겠다')입니다. 일어나는 일을 서술문으로 쓰세요");
+  }
+  return notes;
+}
+
 function compose(characterId, emotion, action) {
   const person = CAST[characterId];
   if (!person) throw new Error(`모르는 캐릭터: ${characterId}`);
   return [
     FRAME.subject(person),
-    action.trim(),
+    stripBoilerplate(action, emotion),
     FRAME.ambience(person),
     FRAME.identity,
     FRAME.camera,
@@ -129,6 +170,33 @@ const readValue = (flag) => {
 };
 
 // ── --skeleton ── 채울 틀을 만든다. 칸마다 무엇을 써야 하는지 같이 적는다.
+if (has("--skeleton") && has("--txt")) {
+  const out = readValue("--out") ?? path.join("marketing", "video", "actions.txt");
+  const lines = [
+    "# 동작 줄을 쓰는 곳.",
+    "#",
+    "# [캐릭터.표정] 머리줄 아래에 무슨 일이 일어나는지 씁니다.",
+    "# 여러 줄로 써도 되고, 줄바꿈은 알아서 합쳐집니다. 따옴표도 쉼표도 필요 없습니다.",
+    "# 채우지 않은 칸은 건너뜁니다. 필요한 것만 남기고 나머지는 지워도 됩니다.",
+    "#",
+    "# 쓰지 말 것: 인물·배경·그림체·카메라·길이 지시 (스크립트가 붙입니다)",
+    "#",
+    "# 완성: node marketing/video/make-prompts.mjs --actions marketing/video/actions.txt --out marketing/video/adult-prompts.json",
+    "",
+  ];
+  for (const [id, person] of Object.entries(CAST)) {
+    lines.push(`# ─────────── ${person.name} (${person.female ? "여성" : "남성"}) ───────────`, "");
+    for (const [emotion, spec] of Object.entries(EMOTION_SPEC)) {
+      lines.push(`# [${spec.ko}] ${spec.need}`);
+      lines.push(`[${id}.${emotion}]`, "");
+    }
+  }
+  await writeFile(out, lines.join("\r\n") + "\r\n", "utf8");
+  console.log(`[OK] ${out}`);
+  console.log("머리줄 아래에 그냥 쓰시면 됩니다. 줄바꿈·따옴표 신경 쓰지 않아도 됩니다.");
+  process.exit(0);
+}
+
 if (has("--skeleton")) {
   const out = readValue("--out") ?? path.join("marketing", "video", "actions.example.json");
   const data = {
@@ -167,7 +235,58 @@ if (!existsSync(actionsFile)) {
   process.exit(1);
 }
 
-const actions = JSON.parse(readFileSync(actionsFile, "utf8"));
+// 입력은 두 형식을 받는다.
+//
+//   .txt   [캐릭터.표정] 머리줄 아래에 자유롭게 쓴다. 줄바꿈을 신경 쓸 필요가 없다.
+//   .json  { "캐릭터": { "표정": "..." } }
+//
+// txt 를 먼저 권하는 이유: JSON 문자열 안에는 줄바꿈이 그대로 들어갈 수 없어서,
+// 여러 줄을 붙여넣는 순간 파일이 깨진다. 사람이 글을 쓰는 자리에 그런 규칙을
+// 두면 안 된다. 여러 줄로 쓰면 한 줄로 합쳐서 넘긴다.
+function parseTxt(source) {
+  const result = {};
+  let target = null;
+  let buffer = [];
+  const flush = () => {
+    if (target && buffer.length) {
+      const [id, emotion] = target;
+      (result[id] ??= {})[emotion] = buffer.join(" ").replace(/\s+/g, " ").trim();
+    }
+    buffer = [];
+  };
+  for (const rawLine of source.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    const head = line.match(/^\[\s*([a-z_]+)\s*\.\s*([a-z_]+)\s*\]$/i);
+    if (head) {
+      flush();
+      target = [head[1], head[2]];
+      continue;
+    }
+    if (target) buffer.push(line);
+  }
+  flush();
+  return result;
+}
+
+const raw = readFileSync(actionsFile, "utf8");
+let actions;
+if (actionsFile.toLowerCase().endsWith(".txt")) {
+  actions = parseTxt(raw);
+} else {
+  try {
+    actions = JSON.parse(raw);
+  } catch (error) {
+    console.error(`JSON 을 읽지 못했습니다: ${error.message}`);
+    console.error("");
+    console.error("거의 항상 원인은 하나입니다 - 값 안에 줄바꿈이 그대로 들어갔습니다.");
+    console.error("JSON 문자열은 한 줄이어야 합니다.");
+    console.error("");
+    console.error("가장 쉬운 해결: .txt 형식으로 옮기세요. 줄바꿈을 신경 쓸 필요가 없습니다.");
+    console.error("  node marketing/video/make-prompts.mjs --skeleton --txt");
+    process.exit(1);
+  }
+}
 
 // --print 로 하나만 눈으로 확인
 const printTarget = readValue("--print");
@@ -200,9 +319,16 @@ for (const [id, slots] of Object.entries(actions)) {
       warnings.push(`모르는 표정이라 건너뜀: ${id}.${emotion}`);
       continue;
     }
-    // 사람이 쓴 줄이 너무 길면 뼈대 지시가 묻힌다. 모델이 앞쪽만 보고 만든다.
-    if (action.trim().length > 400) {
-      warnings.push(`${id}.${emotion} - 동작 줄이 깁니다(${action.trim().length}자). 한두 문장으로 줄이면 결과가 안정적입니다.`);
+    const cleaned = stripBoilerplate(action, emotion);
+    if (!cleaned) {
+      warnings.push(`${id}.${emotion} - 안내문만 있고 내용이 없어 건너뜁니다.`);
+      continue;
+    }
+    if (norm(action) !== cleaned) {
+      warnings.push(`${id}.${emotion} - 앞에 붙어 있던 안내문을 걷어냈습니다.`);
+    }
+    for (const note of review(id, emotion, cleaned)) {
+      warnings.push(`${id}.${emotion} - ${note}`);
     }
     (result[id] ??= {})[emotion] = compose(id, emotion, action);
     count += 1;

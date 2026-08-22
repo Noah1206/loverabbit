@@ -42,6 +42,24 @@ const cli = (argv, options = {}) =>
     ? run(process.execPath, [CLI_ENTRY, ...argv], { maxBuffer: 1024 * 1024 * 16, ...options })
     : run("higgsfield", argv, { maxBuffer: 1024 * 1024 * 16, ...options });
 
+// 값을 바꾸지 않는 호출(견적·잔액)만 다시 시도한다. 힉스필드가 가끔 응답을
+// 통째로 흘리는데, 그때마다 편 하나를 포기할 이유가 없다.
+//
+// generate create 는 절대 여기 태우지 않는다. "응답이 없다" 는 주문이 실패했다는
+// 뜻이 아니라 결과를 못 받았다는 뜻이라, 다시 부르면 두 번 결제된다.
+const cliRetry = async (argv, tries = 3) => {
+  let last;
+  for (let attempt = 1; attempt <= tries; attempt += 1) {
+    try {
+      return await cli(argv);
+    } catch (error) {
+      last = error;
+      if (attempt < tries) await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+    }
+  }
+  throw last;
+};
+
 // wan2_7 은 3:4 를 그대로 받는 모델 중 초당 단가가 제일 싸다 (1.5 크레딧/초).
 // 더 싼 seedance mini 는 480p 라 화면을 꽉 채우는 히어로에서 뭉개지고,
 // 3:4 를 못 받는 모델은 두 사람 구도를 한 사람 반으로 잘라 버린다.
@@ -310,7 +328,7 @@ if (targets.length === 0) {
 // ── 견적 ── 단가는 길이·해상도로만 정해지므로 한 번만 물어보고 곱한다.
 let perClip = 0;
 try {
-  const { stdout: costOut } = await cli(["generate", "cost", ...flagsFor(targets[0])]);
+  const { stdout: costOut } = await cliRetry(["generate", "cost", ...flagsFor(targets[0])]);
   perClip = Number.parseFloat(costOut.trim());
 } catch (error) {
   // 견적 호출은 시작 이미지를 올려보므로, 업로드가 죽으면 여기서 먼저 걸린다.
@@ -328,7 +346,7 @@ const total = perClip * targets.length;
 
 let balance = null;
 try {
-  const { stdout } = await cli(["account", "status", "--json"]);
+  const { stdout } = await cliRetry(["account", "status", "--json"]);
   const account = JSON.parse(stdout);
   const found = account?.credits ?? account?.balance ?? account?.data?.credits;
   if (typeof found === "number") balance = found;
