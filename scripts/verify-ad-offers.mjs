@@ -86,10 +86,20 @@ for (const link of LINKS) {
   if (target) {
     await page.goto(BASE + target, { waitUntil: "domcontentloaded", timeout: 90000 });
     await new Promise((r) => setTimeout(r, 3000));
-    const formBody = await page.evaluate(() => document.body.innerText);
-    const prices = (formBody.match(/[\d,]+\s*원/g) ?? []).map((s) => s.replace(/[^\d]/g, ""));
-    check("폼이 990원으로 받는다", prices.includes("990"), prices.slice(0, 5).join(" / ") || "값 없음");
-    // 정가가 같이 보이는 것은 정상(할인 표시). 정가만 있고 990 이 없으면 실패다.
+    // 폼에서는 값을 안 센다.
+    //
+    // 값이 나오는 자리는 입력이 다 끝난 뒤의 결과 화면이다 (잠금 버튼의
+    // "990원으로 끝까지 운명보기"). 입력 도중에 미리 말하지 않는다 - 아직 아무것도
+    // 못 받은 사람에게 값부터 꺼내면 거기서 나간다.
+    //
+    // 그래서 여기서 볼 것은 값이 아니라 **오퍼가 폼까지 살아서 왔는가** 다.
+    // 이게 끊기면 결과 화면이 정가로 계산한다.
+    const kept = await page.evaluate(() => window.location.search);
+    check(
+      "오퍼가 폼까지 살아 있다",
+      kept.includes("offer=" + link.offer) && kept.includes("c=" + link.category),
+      kept || "(빈 쿼리)"
+    );
   }
 
   await page.close();
