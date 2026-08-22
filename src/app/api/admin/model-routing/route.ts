@@ -60,6 +60,13 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     host: host ?? "local",
+    // 지금 돌고 있는 것이 어느 커밋인가.
+    //
+    // 이게 없으면 "배포 됐어?" 에 답할 방법이 없다. 코드를 밀고 나서 화면이 안
+    // 바뀌면 배포가 안 끝난 것인지 고친 것이 틀린 것인지 구분이 안 되는데,
+    // 그 둘은 대응이 정반대다. Vercel 이 넣어 주는 값이라 로컬에서는 비어 있다.
+    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
+    deployedAt: process.env.VERCEL_DEPLOYMENT_ID ? undefined : "(로컬)",
     provider,
     pinned: pinnedProvider(),
     // 값이 아니라 있고 없음만.
