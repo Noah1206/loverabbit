@@ -66,7 +66,7 @@ describe("예산 차단", () => {
   it("차단돼도 화면에 낼 카드 세 장은 나온다", async () => {
     blockCalls();
     const outcome = await runFreePreview(input());
-    assert.equal(outcome.result.cards.length, 3);
+    assert.ok(outcome.result.section.paragraphs.length >= 4);
     assert.ok(outcome.result.paidTeaser.length > 0);
   });
 
@@ -109,7 +109,7 @@ describe("근거가 모자랄 때", () => {
     const outcome = await runFreePreview(input({ rules: [rule("TG-SANGGWAN-01")] }));
     assert.equal(outcome.telemetry.llmCalls, 0);
     assert.equal(outcome.telemetry.reason, "근거 부족");
-    assert.equal(outcome.result.cards.length, 0);
+    assert.equal(outcome.result.section.paragraphs.length, 0);
     assert.equal(outcome.result.selectedEvidenceIds.length, 0);
   });
 });
@@ -119,12 +119,12 @@ describe("삽화 연결", () => {
     blockCalls();
     const outcome = await runFreePreview(input());
     const tags = emotionTagsForAssets(outcome.result);
-    assert.equal(tags.length, 3);
+    assert.equal(tags.length, 2);
 
     // 리딩 화면은 자리 여섯을 쓴다. 태그가 셋이어도 빈칸이 남으면 안 된다.
     const images = planImagesFor({
       chapterNumbers: [1, 2, 3, 4, 5],
-      chapterEmotionTags: [...tags, [], []],
+      chapterEmotionTags: [...tags, [], [], []],
       chart: "임자 갑진 병오 무신",
     });
     assert.equal(images.length, 6);

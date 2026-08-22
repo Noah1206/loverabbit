@@ -139,9 +139,13 @@ export async function runFreePreview(input: FreePreviewInput): Promise<FreePrevi
     return {
       result: {
         hook: "아직 이 사주에서 뽑아낼 근거가 넉넉하지 않아.",
-        summary: "정보를 조금 더 채우면 관계의 결이 더 또렷해져.",
-        cards: [],
-        reflectionQuestion: "지금 가장 확인하고 싶은 한 가지가 뭐야?",
+        section: {
+          title: "조금 더 필요해",
+          verdict: "정보를 조금 더 채우면 관계의 결이 더 또렷해져.",
+          paragraphs: [],
+          evidenceIds: [],
+          emotionTags: [],
+        },
         paidTeaser: "생년 정보를 채우면 두 사람의 흐름을 더 구체적으로 볼 수 있어.",
         selectedEvidenceIds: [],
       },
@@ -266,7 +270,7 @@ function safeParse(text: string): FreePreviewResult | null {
   for (const candidate of attempts) {
     try {
       const raw = JSON.parse(candidate) as FreePreviewResult;
-      if (raw && Array.isArray(raw.cards) && typeof raw.hook === "string") return raw;
+      if (raw && raw.section && Array.isArray(raw.section.paragraphs) && typeof raw.hook === "string") return raw;
     } catch {
       // 다음 후보를 본다
     }
@@ -276,5 +280,8 @@ function safeParse(text: string): FreePreviewResult | null {
 
 /** 카드의 감정 태그를 삽화 선택기가 먹는 모양으로 넘긴다 */
 export function emotionTagsForAssets(result: FreePreviewResult): string[][] {
-  return result.cards.map((card) => [...card.emotionTags]);
+  // 절이 하나라 태그 뭉치도 하나다. 자리는 여섯인데 그 하나를 그대로 쓰면 여섯 장이
+  // 같아 보이므로, 태그를 하나씩 흩어 서로 다른 자리에 놓는다. 남는 자리는
+  // planReadingAssets 의 자리별 기본값이 받는다.
+  return (result.section?.emotionTags ?? []).map((tag) => [tag]);
 }

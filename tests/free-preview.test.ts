@@ -104,16 +104,20 @@ describe("예산 차단선", () => {
 describe("응답 검사", () => {
   const packet = packetOf(RULES)!;
   const ok = (): FreePreviewResult => ({
-    hook: "먼저 말하지 못하고 삼키는 밤이 있어요.",
-    summary: "지금은 결론보다 서로의 속도를 확인하는 구간으로 보여요.",
-    cards: packet.evidence.slice(0, 3).map((e) => ({
+    hook: "먼저 말하지 못하고 삼키는 밤이 있어",
+    section: {
       title: "관계에서의 나",
-      paragraphs: ["하고 싶은 말이 한 박자 늦게 나오는 편이야.", "그래서 먼저 꺼내는 쪽이 늘 상대가 되기도 해."],
-      evidenceIds: [e.sourceRuleId],
-      emotionTags: ["망설임" as const],
-    })),
-    reflectionQuestion: "내가 확인하고 싶은 건 상대의 답일까요, 내 기준일까요?",
-    paidTeaser: "연락의 타이밍과 관계의 갈림길은 심화 리딩에서 더 볼 수 있어요.",
+      verdict: "먼저 꺼내는 쪽이 늘 상대가 되는 구조야",
+      paragraphs: [
+        "하고 싶은 말이 한 박자 늦게 나오는 편이야. 그래서 먼저 꺼내는 쪽이 늘 상대가 되기도 해.",
+        "그 한 박자가 쌓이면 서운함이 뒤늦게 올라와. 말이 아니라 시차가 문제인 셈이야.",
+        "상대 쪽에서는 그 침묵을 다른 뜻으로 읽을 때가 있어. 관심이 식었다고 볼 여지가 생겨.",
+        "지금 할 수 있는 건 하나야. 결론을 미루지 말고 짧게라도 먼저 말을 꺼내 보는 거야.",
+      ],
+      evidenceIds: packet.evidence.slice(0, 2).map((e) => e.sourceRuleId),
+      emotionTags: ["망설임", "흔들림"],
+    },
+    paidTeaser: "연락의 타이밍과 관계의 갈림길은 심화 리딩에서 더 볼 수 있어",
     selectedEvidenceIds: packet.evidence.slice(0, 3).map((e) => e.sourceRuleId),
   });
 
@@ -123,7 +127,7 @@ describe("응답 검사", () => {
 
   it("패킷에 없는 근거를 붙이면 잡는다", () => {
     const bad = ok();
-    bad.cards[0].evidenceIds = ["없는규칙-99"];
+    bad.section.evidenceIds = ["없는규칙-99"];
     const result = validateFreePreview(bad, packet);
     assert.equal(result.ok, false);
     assert.match(result.problems.join(" "), /패킷에 없다/);
@@ -137,29 +141,26 @@ describe("응답 검사", () => {
 
   it("의료·투자 영역의 말을 잡는다", () => {
     const bad = ok();
-    bad.summary = "우울증 진단을 받아보는 편이 좋아요.";
+    bad.section.paragraphs[0] = "우울증 진단을 받아보는 편이 좋아.";
     assert.equal(validateFreePreview(bad, packet).ok, false);
   });
 
   it("그 규칙이 금지한 표현을 잡는다", () => {
     const withBan = packetOf([rule("A-1", "근거", ["바람"]), rule("B-1"), rule("C-1")])!;
     const bad = ok();
-    bad.cards = withBan.evidence.slice(0, 3).map((e) => ({
-      title: "관계에서의 나",
-      paragraphs: ["상대에게 바람 기운이 보여."],
-      evidenceIds: [e.sourceRuleId],
-      emotionTags: ["망설임" as const],
-    }));
+    bad.section.evidenceIds = withBan.evidence.slice(0, 2).map((e) => e.sourceRuleId);
+    bad.section.paragraphs[0] = "상대에게 바람 기운이 보여.";
     bad.selectedEvidenceIds = withBan.evidence.slice(0, 3).map((e) => e.sourceRuleId);
     assert.equal(validateFreePreview(bad, withBan).ok, false);
   });
+
 });
 
 describe("폴백", () => {
   it("모델 없이도 카드 세 장을 만든다", () => {
     const packet = packetOf(RULES)!;
     const fallback = buildFreePreviewFallback(packet);
-    assert.equal((fallback.cards).length, 3);
+    assert.ok(fallback.section.paragraphs.length >= 4);
     assert.equal(validateFreePreview(fallback, packet).ok, true);
   });
 
@@ -238,16 +239,17 @@ describe("폴백은 토막이 아니라 문장이다", () => {
     dayMasterElement: "수",
   })!;
 
-  it("훅과 카드가 모두 문장으로 끝난다", () => {
+  it("훅과 문단이 모두 반말로 끝난다", () => {
     const fallback = buildFreePreviewFallback(packet);
-    assert.match(fallback.hook, /(야|어|아|지|다)[.]?$/);
-    for (const card of fallback.cards) assert.match(card.paragraphs[0], /(야|어|아|지|다)[.]?$/);
+    // 반말 어미는 너무 많아 목록으로 못 센다. 존댓말이 아닌지를 본다.
+    assert.doesNotMatch(fallback.hook, /(요|니다)[.!?]?$/);
+    for (const para of fallback.section.paragraphs) assert.doesNotMatch(para, /(요|니다)[.!?]?$/);
   });
 
   it("조각(allowedMeaning)을 본문에 쓰지 않는다", () => {
     const fragment = packet.evidence[0].allowedMeaning;
     const fallback = buildFreePreviewFallback(packet);
     assert.notEqual(fallback.hook, fragment);
-    assert.notEqual(fallback.cards[0].paragraphs[0], fragment);
+    assert.notEqual(fallback.section.paragraphs[0], fragment);
   });
 });

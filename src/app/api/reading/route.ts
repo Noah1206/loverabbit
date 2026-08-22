@@ -385,12 +385,12 @@ export async function POST(req: NextRequest) {
         ruleSetVersion: matchedRules.map((rule) => rule.id).join(","),
       });
       const preview = freePreview.result;
-      teaser = [preview.hook, preview.summary].filter(Boolean).join(" ");
+      teaser = [preview.hook, preview.section.verdict].filter(Boolean).join(" ");
       full = [
         preview.hook,
-        preview.summary,
-        ...preview.cards.map((card) => `■ ${card.title}\n${card.paragraphs.join("\n\n")}`),
-        preview.reflectionQuestion,
+        `■ ${preview.section.title}`,
+        preview.section.verdict,
+        ...preview.section.paragraphs,
         preview.paidTeaser,
       ].join("\n\n");
       providerName = freePreview.telemetry.provider ?? `free-preview:${freePreview.telemetry.source}`;
@@ -611,11 +611,14 @@ export async function POST(req: NextRequest) {
           // 슬림 경로의 카드가 미리보기 자리를 그대로 채운다. 잠긴 제목은 상품
           // 목차를 그대로 쓴다 - 그 절들은 아직 만들지도 않았다.
           // 문단을 그대로 넘긴다. excerpt 는 문단이 없는 옛 화면을 위한 사본이다.
-          sections: freePreview.result.cards.map((card) => ({
-            title: card.title,
-            excerpt: card.paragraphs[0] ?? "",
-            paragraphs: card.paragraphs,
-          })),
+          sections: [
+            {
+              title: freePreview.result.section.title,
+              excerpt: freePreview.result.section.verdict,
+              // 답 한 줄을 맨 앞에 세운다. 유료 본문의 절도 그 순서라, 같은 모양으로 읽힌다.
+              paragraphs: [freePreview.result.section.verdict, ...freePreview.result.section.paragraphs],
+            },
+          ],
           lockedTitles: outline,
         }
       : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);

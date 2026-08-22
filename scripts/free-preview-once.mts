@@ -40,11 +40,12 @@ console.log(`근거 ${t.evidenceIds.join(", ")}\n`);
 
 const r = outcome.result;
 console.log(`훅   ${r.hook}`);
-console.log(`요약 ${r.summary}\n`);
-for (const c of r.cards) {
-  console.log(`· ${c.title}  [${c.emotionTags.join("·")}]  (${c.evidenceIds.join(",")})`);
-  for (const para of c.paragraphs ?? []) console.log(`  ${para}`);
-  console.log(`  (문단 ${(c.paragraphs ?? []).length}개 · ${(c.paragraphs ?? []).join("").length}자)\n`);
-}
-console.log(`질문 ${r.reflectionQuestion}`);
-console.log(`유료 ${r.paidTeaser}\n`);
+console.log(`
+[${r.section.title}]`);
+console.log(`답   ${r.section.verdict}`);
+console.log(`태그 ${r.section.emotionTags.join("·")}  근거 ${r.section.evidenceIds.join(",")}
+`);
+for (const para of r.section.paragraphs) console.log(`  ${para}
+`);
+console.log(`문단 ${r.section.paragraphs.length}개 · 본문 ${r.section.paragraphs.join("").length}자`);
+console.log(`유료 ${r.paidTeaser}`);

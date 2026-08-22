@@ -128,13 +128,33 @@ Rules:
 - 정갈하고, 은밀하고, 다정하다. 반말로 쓴다 — 오래 알고 지낸 친한 친구에게
   털어놓듯이. 모든 문장이 예외 없이 반말로 끝난다. 존댓말(-요/-습니다)로 끝나는
   문장이 하나라도 있으면 안 된다. 비속어와 반말 명령("해라")은 쓰지 않는다.
+  문어체 종결(-이다/-한다/-쉽다/-랍니다)도 쓰지 않는다 — 글이 아니라 말이다.
+  (나쁨: "얕아서 문제가 되기 쉽다" / 좋음: "얕아서 문제가 되기 쉬워")
 - 구조 용어를 본문에 쓰지 않는다. 독자가 알 필요가 없고 전부 쉬운 말이 있다.
   일간·일주 → 당신 / 태어난 날 글자     일지 → 배우자 자리
   월지 → 사회 자리                     대운 → 지금 흐름 / 요즘 몇 해
   세운 → 올해                          신강 → 자기 힘이 센 편
   신약 → 자기 힘이 여린 편
   비견·겁재·관성·재성·인성·식상 → 그 기운이 하는 일로 풀어 쓴다
-  (예: '나눠야 하는 자리', '비교가 끼어드는 자리')`;
+  (예: '나눠야 하는 자리', '비교가 끼어드는 자리')
+- 다만 **그 사람 명식에만 있는 이름은 남긴다.** 정임합·홍염·묘유충·편관 같은 것.
+  지우면 일반 연애 조언과 구별되지 않는다. 근거에 그런 이름이 있으면 **하나만**
+  골라 첫 등장에 괄호로 풀고 쓴다. (예: '정임합(서로 끌어당기는 짝)으로 묶여')
+
+강조 (화면이 표기마다 다른 이름표를 달아 보여준다. 뜻에 맞게 쓴다)
+  **텍스트**        핵심 — 이 글에서 하나만 가져간다면 이 대목
+  [[주의|텍스트]]   걸리는 자리, 되풀이되는 지점
+  [[시기|텍스트]]   언제인지 — '올해 후반', '지금 몇 해'
+  [[행동|텍스트]]   지금 할 수 있는 것
+- 전체에 3~4개만. 그중 핵심(**)은 1개. 넘기면 강조가 아니라 배경이 된다.
+- **구절 단위**로 감싼다. 문장이나 문단을 통째로 감싸지 않는다.
+- 겹쳐 쓰지 않고, 대괄호와 별표는 이 용도로만 쓴다.
+
+호흡 (유료 본문의 한 절과 같은 순서로 쓴다)
+  판단과 근거 → 내 쪽 장면 → 상대 쪽 장면 → 지금 할 수 있는 것
+- 한 문단은 4~6문장, 한 문장은 35~65자 안팎.
+- 칭찬만 늘어놓지 않는다. 강점과 흔들릴 때의 패턴을 같이 다룬다.
+- 결론을 미루지 않는다. '생각해 봐' 같은 빈 조언을 쓰지 않는다.`;
 
 export function buildFreePreviewPrompt(packet: PreviewFactPacket): string {
   return `Create one Korean free relationship-saju preview from this approved fact packet.
@@ -143,8 +163,8 @@ ${JSON.stringify(packet)}
 
 Editorial target:
 - The opening must make the user feel seen without pretending certainty.
-- Use exactly 3 insight cards in priority order. Each card carries 2-3 flowing paragraphs of 110-200 Korean characters - this reads as a saju reading, not a notification card. Do not compress a card into one short line.
-- Each card must be traceable to one or more supplied evidence ids.
+- Write ONE section, not a list of cards. It must read like the opening section of the paid report: a title, a one-line verdict, then 4-5 flowing paragraphs. The reader should feel the body has started and then been cut off, not that they were handed a summary card.
+- The section must be traceable to the supplied evidence ids.
 - End with a paid-preview teaser that names one unresolved relationship question, not a guaranteed result.
 - Return emotion tags only from: ${PREVIEW_EMOTIONS.join(", ")}.`;
 }
@@ -160,47 +180,46 @@ export const FREE_PREVIEW_SCHEMA = {
       additionalProperties: false,
       properties: {
         hook: { type: "string", description: "사용자가 자신을 알아본다고 느끼는 1문장, 42자 이하" },
-        summary: { type: "string", description: "관계 리듬을 요약한 1문장, 90자 이하" },
-        cards: {
-          type: "array",
-          minItems: 3,
-          maxItems: 3,
-          items: {
-            type: "object",
-            additionalProperties: false,
-            properties: {
-              title: { type: "string", description: "17자 이하" },
-              // 90자 한 덩어리였다. 그러면 화면에 두세 줄짜리 상자만 남아서
-              // 사주 리딩이 아니라 알림 카드처럼 보인다. 문단 둘로 늘린다.
-              paragraphs: {
-                type: "array",
-                minItems: 2,
-                maxItems: 3,
-                items: { type: "string", description: "한 문단, 110~200자. 문장 두세 개" },
-              },
-              evidenceIds: { type: "array", minItems: 1, maxItems: 2, items: { type: "string" } },
-              emotionTags: {
-                type: "array",
-                minItems: 1,
-                maxItems: 2,
-                items: { type: "string", enum: [...PREVIEW_EMOTIONS] },
-              },
+        // 카드 셋이 아니라 절 하나다.
+        //
+        // 카드로 쪼개면 아무리 길게 써도 "요약 카드" 로 읽힌다. 유료 본문이 절 단위로
+        // 흐르는 글이라, 미리보기도 같은 모양이어야 "본문이 시작됐는데 여기서
+        // 막혔다" 가 된다. 쪼개는 순간 다른 물건이 된다.
+        section: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string", description: "이 절의 제목, 20자 이하" },
+            verdict: { type: "string", description: "이 절의 답 한 줄. 설명이 아니라 답. 60자 이하" },
+            paragraphs: {
+              type: "array",
+              minItems: 4,
+              maxItems: 5,
+              items: { type: "string", description: "한 문단, 4~6문장, 140~240자" },
             },
-            required: ["title", "paragraphs", "evidenceIds", "emotionTags"],
+            evidenceIds: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } },
+            emotionTags: {
+              type: "array",
+              minItems: 2,
+              maxItems: 3,
+              items: { type: "string", enum: [...PREVIEW_EMOTIONS] },
+            },
           },
+          required: ["title", "verdict", "paragraphs", "evidenceIds", "emotionTags"],
         },
-        reflectionQuestion: { type: "string", description: "관계 점검 질문 1개, 52자 이하" },
         paidTeaser: { type: "string", description: "유료에서 확인할 미해결 질문 1문장, 80자 이하" },
         selectedEvidenceIds: { type: "array", minItems: 3, maxItems: 5, items: { type: "string" } },
       },
-      required: ["hook", "summary", "cards", "reflectionQuestion", "paidTeaser", "selectedEvidenceIds"],
+      required: ["hook", "section", "paidTeaser", "selectedEvidenceIds"],
     },
   },
 } as const;
 
-export interface FreePreviewCard {
+export interface FreePreviewSection {
   title: string;
-  /** 문단 둘~셋. 한 덩어리로 주면 화면이 알림 카드처럼 보인다. */
+  /** 이 절의 답 한 줄. 설명이 아니라 답이다. */
+  verdict: string;
+  /** 문단 넷~다섯. 유료 본문의 한 절과 같은 호흡으로 흐른다. */
   paragraphs: string[];
   evidenceIds: string[];
   emotionTags: PreviewEmotion[];
@@ -208,9 +227,8 @@ export interface FreePreviewCard {
 
 export interface FreePreviewResult {
   hook: string;
-  summary: string;
-  cards: FreePreviewCard[];
-  reflectionQuestion: string;
+  /** 절 하나. 카드로 쪼개면 아무리 길게 써도 "요약 카드" 로 읽힌다. */
+  section: FreePreviewSection;
   paidTeaser: string;
   selectedEvidenceIds: string[];
 }
@@ -361,24 +379,28 @@ export function validateFreePreview(result: FreePreviewResult, packet: PreviewFa
   const problems: string[] = [];
   const allowed = new Set(packet.evidence.map((e) => e.sourceRuleId));
 
-  if (result.cards.length !== 3) problems.push(`카드가 ${result.cards.length}개다 (3개여야 한다)`);
-
-  for (const [index, card] of result.cards.entries()) {
-    for (const id of card.evidenceIds) {
-      // 패킷에 없는 근거를 붙였다면 그 문장은 어디서 왔는지 알 수 없다.
-      if (!allowed.has(id)) problems.push(`카드 ${index + 1}의 근거 ${id} 가 패킷에 없다`);
-    }
-    for (const tag of card.emotionTags) {
-      if (!(PREVIEW_EMOTIONS as readonly string[]).includes(tag)) {
-        problems.push(`카드 ${index + 1}의 감정 태그 ${tag} 는 허용 목록에 없다`);
-      }
+  const section = result.section;
+  if (!section) {
+    return { ok: false, problems: ["절이 없다"] };
+  }
+  // 문단이 넷도 안 되면 "본문이 시작됐다" 로 안 읽힌다. 그게 이 화면의 전부다.
+  if (section.paragraphs.length < 4) {
+    problems.push(`문단이 ${section.paragraphs.length}개다 (넷 이상이어야 한다)`);
+  }
+  for (const id of section.evidenceIds) {
+    // 패킷에 없는 근거를 붙였다면 그 문장은 어디서 왔는지 알 수 없다.
+    if (!allowed.has(id)) problems.push(`근거 ${id} 가 패킷에 없다`);
+  }
+  for (const tag of section.emotionTags) {
+    if (!(PREVIEW_EMOTIONS as readonly string[]).includes(tag)) {
+      problems.push(`감정 태그 ${tag} 는 허용 목록에 없다`);
     }
   }
   for (const id of result.selectedEvidenceIds) {
     if (!allowed.has(id)) problems.push(`선택된 근거 ${id} 가 패킷에 없다`);
   }
 
-  const prose = [result.hook, result.summary, result.reflectionQuestion, result.paidTeaser, ...result.cards.flatMap((c) => c.paragraphs ?? [])].join(" ");
+  const prose = [result.hook, section.verdict, result.paidTeaser, ...section.paragraphs].join(" ");
   if (CERTAIN_CLAIM.test(prose)) problems.push("확정 표현이 있다");
   if (OFF_LIMITS.test(prose)) problems.push("의료·법률·투자 영역의 말이 있다");
 
@@ -407,14 +429,18 @@ export function buildFreePreviewFallback(packet: PreviewFactPacket): FreePreview
 
   return {
     hook: top[0] ? toSentence(top[0].basis) : "관계에서 네 마음을 확인하게 되는 순간이 있어.",
-    summary: "지금은 결론을 서두르기보다, 반응과 표현의 온도를 같이 보는 쪽이 나아 보여.",
-    cards: top.map((evidence) => ({
-      title: titleOf(evidence),
-      paragraphs: [toSentence(evidence.basis)],
-      evidenceIds: [evidence.sourceRuleId],
-      emotionTags: ["망설임" as PreviewEmotion],
-    })),
-    reflectionQuestion: "지금 네가 확인하고 싶은 건 상대의 답일까, 네 기준일까?",
+    section: {
+      title: top[0] ? titleOf(top[0]) : "관계에서의 나",
+      verdict: "지금은 결론을 서두르기보다, 반응과 표현의 온도를 같이 보는 쪽이 나아 보여.",
+      // 근거 하나에 문단 하나씩. 모델이 쓴 것보다 짧지만, 승인된 문장이라 안전하고
+      // 값이 0이다. 문단 수가 모자라면 마지막에 한 줄을 더해 넷을 맞춘다.
+      paragraphs: [
+        ...top.map((evidence) => toSentence(evidence.basis)),
+        "여기까지는 흐름의 윤곽이야. 어디서 어긋나고 언제 달라지는지는 더 들어가 봐야 보여.",
+      ],
+      evidenceIds: top.map((evidence) => evidence.sourceRuleId),
+      emotionTags: ["망설임", "흔들림"] as PreviewEmotion[],
+    },
     paidTeaser: "상대와의 흐름, 연락 타이밍, 관계의 갈림길은 심화 리딩에서 더 구체적으로 볼 수 있어.",
     selectedEvidenceIds: top.map((evidence) => evidence.sourceRuleId),
   };
