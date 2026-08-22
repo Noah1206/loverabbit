@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { readAttribution } from "@/lib/attribution";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import {
@@ -603,6 +604,7 @@ export default function ReadingReportPage() {
                     event.currentTarget.parentElement?.style.setProperty("display", "none");
                   }}
                 />
+                <CardMotion category={entry.category} objectPosition="center 22%" />
               </div>
               <div className="rv-cover-copy">
                 <Seal concept={concept} size={46} />

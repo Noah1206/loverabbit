@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import CardMotion from "@/components/CardMotion";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
@@ -41,6 +42,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             sizes="(max-width: 640px) 100vw, 640px"
             style={{ objectFit: "cover", objectPosition: "center 18%" }}
           />
+          {/* 그림이 파는 장면을 실제로 일어나게 한다 - 클립이 있는 카드만.
+              정지 그림은 위 <Image> 그대로 남아 LCP 와 무영상 환경을 책임진다. */}
+          <CardMotion category={p.id} objectPosition="center 18%" />
         </div>
         <div aria-hidden className="product-hero-shade" />
         <div className="product-hero-copy">

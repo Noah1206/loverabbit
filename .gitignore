@@ -32,3 +32,7 @@ data/reading-images/
 
 # 워커 실행 로그
 worker/worker.log
+
+# 힉스필드 카드 모션 원본 — 편당 수 MB. 웹에 나가는 것은 압축본
+# public/cards-motion/ 쪽이고, 그건 저장소에 넣는다.
+marketing/video/cards-raw/
