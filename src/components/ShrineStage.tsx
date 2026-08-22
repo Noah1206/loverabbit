@@ -2,7 +2,10 @@
 
 import type { ReactNode } from "react";
 
+import AdultToggle from "@/components/AdultToggle";
+import CharacterMotion from "@/components/CharacterMotion";
 import ShrineAudioToggle from "@/components/ShrineAudioToggle";
+import { DEFAULT_EMOTION, type Emotion } from "@/lib/character-emotions";
 import type { Dorang } from "@/lib/characters";
 
 // 신당 무대 — 입장 화면과 대화 화면이 공유하는 배경·장막·상단 바.
@@ -12,12 +15,14 @@ export default function ShrineStage({
   onBack,
   dim,
   phase,
+  emotion = DEFAULT_EMOTION,
   children,
 }: {
   character: Dorang;
   onBack: () => void;
   dim: boolean; // 대화 중에는 배경을 낮춰 말풍선을 살린다
   phase: "departing" | "arriving" | null; // 전환 중 카메라 방향
+  emotion?: Emotion; // 지금 짓고 있는 표정 — 대사가 바뀔 때마다 갈아탄다
   children: ReactNode;
 }) {
   return (
@@ -58,6 +63,9 @@ export default function ShrineStage({
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 10%" }}
           />
         )}
+        {/* 표정 클립은 배경 루프보다 위에 얹는다. 표정이 있는 신당은 대사에 따라
+            얼굴이 바뀌고, 없는 신당은 기존 배경 루프(또는 정지 이미지) 그대로다. */}
+        <CharacterMotion characterId={character.id} emotion={emotion} objectPosition="center 10%" />
       </div>
 
       <div
@@ -99,7 +107,10 @@ export default function ShrineStage({
           ‹
         </button>
         <strong style={{ color: "#fff", letterSpacing: "0.14em" }}>LOVERABBIT</strong>
-        <ShrineAudioToggle src={character.bgm} shrineName={character.title} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <AdultToggle compact />
+          <ShrineAudioToggle src={character.bgm} shrineName={character.title} />
+        </div>
       </header>
 
       {children}

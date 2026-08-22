@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
+import { DEFAULT_EMOTION, resolveEmotion } from "@/lib/character-emotions";
 import { FREE_CHAT_TURNS } from "@/lib/chat-products";
 import { CHARACTERS } from "@/lib/characters";
 import {
@@ -99,11 +100,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         answer: `*${character.name}이 잠시 향을 바라본다*\n\n[데모 모드] 오늘은 신의 목소리가 들리지 않는 날이군. (.env에 API 키를 넣으면 대화가 시작됩니다)`,
         demo: true,
+        emotion: DEFAULT_EMOTION,
         creditsRemaining,
         freeTurnsRemaining,
       });
     }
-    const answer = result.text.trim();
+    // 표정 꼬리표를 떼어내고 감정만 따로 내려보낸다. 꼬리표는 손님에게 보이면
+    // 안 되고, 저장되는 이력에도 남으면 안 된다 - 다음 턴에 모델이 자기가 쓴
+    // 꼬리표를 대사의 일부로 흉내 내기 시작한다.
+    const { text: answer, emotion } = resolveEmotion(result.text.trim());
     // 문답을 서버에 남긴다 — 여기가 지나면 클라이언트가 답을 못 받아도(응답 중
     // 새로고침·이탈) 다시 열 때 이력에서 만난다. 질문권 쓴 대화가 증발하지 않는다.
     // 저장 실패는 대화를 막지 않는다. 답은 이미 만들어졌고, 그걸 주는 게 먼저다.
@@ -115,7 +120,7 @@ export async function POST(req: NextRequest) {
     } catch (persistError) {
       console.error("신당 대화 저장 실패:", persistError);
     }
-    return NextResponse.json({ answer, creditsRemaining, freeTurnsRemaining });
+    return NextResponse.json({ answer, emotion, creditsRemaining, freeTurnsRemaining });
   } catch (e) {
     // 답을 못 받았으면 방금 깎은 무료 턴/대화권을 돌려준다.
     if (creditUserId) {

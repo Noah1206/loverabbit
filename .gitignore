@@ -36,3 +36,13 @@ worker/worker.log
 # 힉스필드 카드 모션 원본 — 편당 수 MB. 웹에 나가는 것은 압축본
 # public/cards-motion/ 쪽이고, 그건 저장소에 넣는다.
 marketing/video/cards-raw/
+
+# 표정 클립 원본 — 웹에 나가는 것은 public/characters/motion*/ 쪽 압축본
+marketing/video/emotions-raw/
+marketing/video/emotions-raw-adult/
+
+# 성인 등급 프롬프트 — 내용은 저장소에 넣지 않는다 (틀은 example 파일 참조)
+marketing/video/adult-prompts.json
+
+# 동작 줄(사람이 채우는 원본) — 내용은 저장소에 넣지 않는다
+marketing/video/actions.json

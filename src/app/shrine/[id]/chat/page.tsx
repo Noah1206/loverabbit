@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 
 import ChatPaymentModal from "@/components/ChatPaymentModal";
 import ShrineStage from "@/components/ShrineStage";
+import { DEFAULT_EMOTION, inferEmotion, isEmotion, type Emotion } from "@/lib/character-emotions";
 import ShrineTransition from "@/components/ShrineTransition";
 import SignupModal from "@/components/SignupModal";
 import { DEFAULT_CHAT_PRODUCT, FREE_CHAT_TURNS } from "@/lib/chat-products";
@@ -60,6 +61,8 @@ export default function ShrineChatPage() {
   const ch = CHARACTERS[id ?? ""];
 
   const [msgs, setMsgs] = useState<ShrineMessage[]>([]);
+  // 지금 도령이 짓고 있는 표정. 답이 올 때마다 바뀌고, 무대가 그 표정으로 움직인다.
+  const [emotion, setEmotion] = useState<Emotion>(DEFAULT_EMOTION);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
@@ -164,6 +167,8 @@ export default function ShrineChatPage() {
         throw new Error(data.error ?? "대화 실패");
       }
       setMsgs((m) => [...m, { role: "user", content: q }, { role: "assistant", content: data.answer }]);
+      // 서버가 꼬리표에서 읽어준 표정을 쓰고, 없으면 지문에서 직접 추측한다.
+      setEmotion(isEmotion(data.emotion) ? data.emotion : inferEmotion(String(data.answer ?? "")));
       if (typeof data.creditsRemaining === "number" && user) {
         const nextUser = { ...user, chatCredits: data.creditsRemaining };
         setUser(nextUser);
@@ -211,6 +216,7 @@ export default function ShrineChatPage() {
   return (
     <>
       <ShrineStage
+        emotion={emotion}
         character={ch}
         onBack={() => router.push(`/shrine/${ch.id}`, { scroll: false })}
         dim

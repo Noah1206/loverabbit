@@ -28,7 +28,9 @@
     "reading:sweep": "tsx scripts/reading-sweep.mts",
     "ai:doctor": "tsx --env-file=.env.local --env-file=.env scripts/ai-doctor.mts",
     "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts",
-    "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts"
+    "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts",
+    "prebuild": "node marketing/video/build-character-motion.mjs",
+    "motion:build": "node marketing/video/build-character-motion.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

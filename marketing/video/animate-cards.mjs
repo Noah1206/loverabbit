@@ -308,8 +308,22 @@ if (targets.length === 0) {
 }
 
 // ── 견적 ── 단가는 길이·해상도로만 정해지므로 한 번만 물어보고 곱한다.
-const { stdout: costOut } = await cli(["generate", "cost", ...flagsFor(targets[0])]);
-const perClip = Number.parseFloat(costOut.trim());
+let perClip = 0;
+try {
+  const { stdout: costOut } = await cli(["generate", "cost", ...flagsFor(targets[0])]);
+  perClip = Number.parseFloat(costOut.trim());
+} catch (error) {
+  // 견적 호출은 시작 이미지를 올려보므로, 업로드가 죽으면 여기서 먼저 걸린다.
+  // 통째로 뻗지 말고 무엇이 막혔는지 한 줄로 알려준다 - 이 상태로는 생성도 안 된다.
+  const detail = String(error.stderr ?? error.message ?? "").trim().slice(0, 200);
+  console.error("[중단] 힉스필드에 견적을 물어보지 못했습니다.");
+  console.error(detail || "(원인 불명)");
+  console.error("");
+  console.error("업로드/네트워크 문제일 때가 많습니다. 아래로 확인해보세요:");
+  console.error("  higgsfield upload create public/characters/hongryeon.jpg");
+  console.error("이것도 실패하면 힉스필드 쪽 문제입니다. 잠시 뒤 다시 시도하세요.");
+  process.exit(1);
+}
 const total = perClip * targets.length;
 
 let balance = null;

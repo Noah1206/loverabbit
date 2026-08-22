@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
+import AdultToggle from "@/components/AdultToggle";
+import CharacterMotion from "@/components/CharacterMotion";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import SignupModal from "@/components/SignupModal";
 import { getUser, logoutUser, type User } from "@/lib/user";
@@ -98,6 +100,7 @@ export default function AppHome() {
             >
               ▦ QR
             </button>
+            <AdultToggle />
             <button
               onClick={async () => {
                 if (user) {
@@ -166,6 +169,9 @@ export default function AppHome() {
                     sizes="(max-width: 640px) calc(100vw - 40px), 600px"
                     style={{ objectFit: "cover", objectPosition: "center 10%" }}
                   />
+                  {/* 상세에 들어가지 않아도 여기서 이미 움직인다. 화면에 들어온
+                      카드만 재생하므로 가로 스크롤에서 한두 편만 돌아간다. */}
+                  <CharacterMotion characterId={ch.id} objectPosition="center 10%" />
                 </div>
                 <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,10,12,0.95) 85%)" }} />
                 <div className="shrine-card-copy">
