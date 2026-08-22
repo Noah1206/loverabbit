@@ -33,54 +33,71 @@ const CTA = "무료로 미리 알아보기";
 
 // 두 번째 줄은 단정하지 않고 권한다. "사주가 이렇다" 로 쓰면 아직 보지도 않은
 // 사람의 사주를 광고에서 못박는 셈이 된다.
+//
+// 세 줄은 그 랜딩이 파는 상품의 실제 목차에서 가져왔다 (src/lib/products.ts).
+// 광고가 약속한 것과 리포트가 주는 것이 다르면 환불로 돌아온다 - 클릭은 늘고
+// 전환은 남지 않는다. `product` 에 근거가 된 상품을 적어 둔다.
 const items = [
   {
     id: "01",
     slug: "breakup",
     character: "maehwa.jpg",
     landing: "/saju/breakup-decision",
+    product: "이별 부검 리포트 (ibyeol, 29,900)",
+    // 근거: "2장 01. 이별의 진짜 사인 규명", "4장 01. 반복해서 걸려 넘어지는 지점"
     title: "사주로 보는 이별",
-    lines: ['밤마다 "헤어질까 말까" 반복', "답은 두 사람 사주에 있어요."],
+    lines: ["붙잡을지 정리할지 매번 제자리", "어디서 어긋났는지부터 봐요."],
   },
   {
     id: "02",
     slug: "compatibility",
     character: "yeonhwa.jpg",
     landing: "/saju/compatibility",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // 근거: "5장 02. 다투게 된다면 반드시 이 지점에서", "5장 01. 관계 온도가 식는 위험 구간"
     title: "사주로 보는 궁합",
-    lines: ['"우리 잘 맞을까" 매번 같은 질문', "두 사람 사주부터 맞춰봐요."],
+    lines: ['"잘 맞다가 왜 꼭 그 지점에서"', "부딪히는 자리부터 짚어봐요."],
   },
   {
     id: "03",
     slug: "intimate",
     character: "hongryeon.jpg",
     landing: "/saju/intimate-compatibility",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // 근거: "3장 02. 주도권은 누구에게 있는가", "4장 01. 그 사람이 무너지는 순간"
     title: "사주로 보는 속궁합",
-    lines: ['"왜 이 사람한테만 이럴까"', "사주가 그 결을 짚어줘요."],
+    lines: ['"이 사람한테만 유독 약해져요"', "주도권이 어디 있는지 봐요."],
   },
   {
     id: "04",
     slug: "romance-timing",
     character: "haewol.jpg",
     landing: "/saju/romance-timing",
+    product: "인연 타이밍 (insun, 14,900)",
+    // 근거: "2장 01. 인연의 창이 열리는 시기", "2장 02. 만나게 될 가능성이 높은 경로"
     title: "사주로 보는 연애운",
-    lines: ['"언제쯤 좋은 사람 만날까"', "사주가 그 시기를 짚어줘요."],
+    lines: ['"언제쯤 좋은 사람 만날까"', "시기와 만날 자리까지 봐요."],
   },
   {
     id: "05",
     slug: "inner-mind",
     character: "bihwa.jpg",
     landing: "/saju/inner-mind",
+    product: "썸 해부 사주 (sseom, 12,900)",
+    // 근거: "1장 02. 브레이크를 밟고 있는 쪽은 누구인가", "2장 01. 밀당인가 진심인가"
     title: "사주로 보는 속마음",
-    lines: ['"그 사람은 무슨 생각일까"', "사주로 그 마음을 읽어봐요."],
+    lines: ['"밀당일까 관심이 없는 걸까"', "멈춰 선 이유부터 봐요."],
   },
   {
     id: "06",
     slug: "mature",
     character: "hwarin.jpg",
     landing: "/saju/mature-compatibility",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // 근거: "6장 01. 권태를 피하는 완급 조절법", "5장 01. 관계 온도가 식는 위험 구간"
+    // "밤" 을 뺐다. 심의에서 걸리는 것은 그 낱말이 밀착 그림과 겹칠 때다.
     title: "사주로 보는 19금 궁합",
-    lines: ["밤이 되면 달라지는 두 사람", "사주로 먼저 확인해요."],
+    lines: ["가까워질수록 달라지는 온도", "완급이 어디서 어긋나는지 봐요."],
     adult: true,
   },
 ];
