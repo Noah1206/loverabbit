@@ -25,6 +25,7 @@ import { scopeOutline } from "@/lib/reading-scope";
 import { composeReport, previewBatchCount, previewSections, rewriteFlagged } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
 import { emotionTagsForAssets, runFreePreview, type FreePreviewOutcome } from "@/lib/free-preview-run";
+import { recordAiUsage } from "@/lib/ai-usage";
 import { READING_ENGINE_VERSION } from "@/lib/free-preview";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
@@ -394,6 +395,21 @@ export async function POST(req: NextRequest) {
         preview.paidTeaser,
       ].join("\n\n");
       providerName = freePreview.telemetry.provider ?? `free-preview:${freePreview.telemetry.source}`;
+      // 값을 남긴다. 리딩이 아직 저장되기 전이라 readingId 는 비운다 - 그래도
+      // 하루치를 더할 때는 이 줄이 있어야 무료 경로의 몫이 보인다.
+      void recordAiUsage({
+        stage: "free_preview",
+        category: body.category,
+        provider: freePreview.telemetry.provider,
+        model: freePreview.telemetry.model,
+        calls: freePreview.telemetry.llmCalls,
+        usage: {
+          input: freePreview.telemetry.inputTokens ?? 0,
+          output: freePreview.telemetry.outputTokens ?? 0,
+          cached: 0,
+          reasoning: 0,
+        },
+      });
       throw new SkipGeneration();
     }
     // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
@@ -411,6 +427,16 @@ export async function POST(req: NextRequest) {
       // 본문을 만드느라 돈을 태우지 않기 위해서다.
       { batchLimit: previewBatchCount(outline) }
     );
+
+    // 만들어졌든 못 만들었든 값은 나갔다. 실패한 호출을 빼고 세면 청구서와 안 맞는다.
+    void recordAiUsage({
+      stage: "reading",
+      category: body.category,
+      provider: composed.provider,
+      model: composed.model,
+      calls: composed.requestCount,
+      usage: composed.usage,
+    });
 
     if (!composed.report) {
       // 키가 아예 없으면 데모가 정상(로컬 개발), 키가 있는데 못 만들었으면 장애다.

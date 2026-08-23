@@ -16,6 +16,7 @@ import { reportToText, type StructuredReport } from "@/lib/reading-prompt";
 import { checkReport, flaggedSections } from "@/lib/reading-guard";
 import { clearResume, loadResume } from "@/lib/reading-resume";
 import { getReading, saveReading, type StoredReading } from "@/lib/store";
+import { recordAiUsage } from "@/lib/ai-usage";
 
 export interface FinishResult {
   full: string;
@@ -103,6 +104,17 @@ export async function finishReading(params: {
 
   const rest = await composeReport(readingInput, complete, { doneSections: done });
 
+  // 결제 뒤에 만든 몫. 슬림 미리보기를 켠 뒤로는 여기가 리딩 원가의 대부분이다.
+  void recordAiUsage({
+    readingId,
+    stage: "unlock",
+    category,
+    provider: rest.provider,
+    model: rest.model,
+    calls: rest.requestCount,
+    usage: rest.usage,
+  });
+
   // 머리는 발급 때 만든 것이 있으면 그것, 없으면 방금 만든 것을 쓴다.
   const head = partialReport ?? rest.report;
   if (!head) {
@@ -141,6 +153,15 @@ export async function finishReading(params: {
     const flagged = flaggedSections(guard.violations, sections.map((section) => section.title));
     if (flagged.length > 0) {
       const redone = await rewriteFlagged(readingInput, complete, flagged);
+      // 다시 쓴 절도 값이 든다. 이 몫을 안 세면 "왜 청구서가 더 나왔나" 가 안 풀린다.
+      void recordAiUsage({
+        readingId,
+        stage: "rewrite",
+        category,
+        model: rest.model,
+        calls: redone.requestCount,
+        usage: redone.usage,
+      });
       for (const section of redone.sections) {
         const at = sections.findIndex((item) => item.title === section.title);
         if (at >= 0) sections[at] = section;
