@@ -24,11 +24,13 @@ const WHITE = "white-five-v1";
 const SQUARE = "shrine-square-v1";
 // 같은 틀에 배경만 홈 그리드 카드로 바꾼 벌. 파일 이름이 같아서 접두어를 붙인다.
 const CARD = "card-square-v1";
+const APP_CARDS = path.join("..", "..", "public", "cards-pastel");
 
 const ads = [
   {
     dir: "01-이별",
-    landing: "/saju/breakup-decision",
+    landing: "/product/ibyeol",
+    offer: "breakup_decision_990",
     product: "이별 부검 리포트 29,900 -> 990",
     headline: "내가 뭘 그렇게 잘못했을까",
     sources: [
@@ -42,7 +44,8 @@ const ads = [
   },
   {
     dir: "02-궁합",
-    landing: "/saju/compatibility",
+    landing: "/product/sokgunghap",
+    offer: "compatibility_990",
     product: "속궁합 사주 9,900 -> 990",
     headline: "잘 맞다가도 꼭 여기서 틀어진다면",
     sources: [
@@ -56,7 +59,8 @@ const ads = [
   },
   {
     dir: "03-속궁합",
-    landing: "/saju/intimate-compatibility",
+    landing: "/product/sokgunghap",
+    offer: "intimate_compatibility_990",
     product: "속궁합 사주 9,900 -> 990",
     headline: "겉궁합은 좋은데 속궁합은 어떨까",
     sources: [
@@ -70,8 +74,9 @@ const ads = [
   },
   {
     dir: "04-연애운",
-    landing: "/saju/romance-timing",
-    product: "인연 타이밍 14,900 -> 990",
+    landing: "/product/yeonae",
+    offer: "yeonae_990",
+    product: "올해의 연애운 14,900 -> 990",
     headline: "올해도 그냥 지나가는 걸까",
     sources: [
       [DARK, "04-romance-fortune-ad-vertical-1080x1920.jpg"],
@@ -84,7 +89,8 @@ const ads = [
   },
   {
     dir: "05-19금",
-    landing: "/saju/mature-compatibility",
+    landing: "/product/sokgunghap",
+    offer: "mature_compatibility_990",
     product: "속궁합 사주 9,900 -> 990",
     headline: "가까워질수록 어긋나는 느낌이라면",
     adult: true,
@@ -101,7 +107,8 @@ const ads = [
   },
   {
     dir: "06-속마음",
-    landing: "/saju/inner-mind",
+    landing: "/product/sseom",
+    offer: "inner_mind_990",
     product: "썸 해부 사주 12,900 -> 990",
     headline: "읽씹은 아닌데 진도가 안 나가",
     // 이 주제는 스크린샷 세트에만 있다. 어두운 세트와 화이트 세트에는 없다.
@@ -109,6 +116,17 @@ const ads = [
     sources: [
       [SQUARE, "05-inner-mind-square-1080x1080.jpg"],
       [CARD, "05-inner-mind-square-1080x1080.jpg", "카드-"],
+    ],
+  },
+  {
+    dir: "07-도화",
+    landing: "/product/dohwasal",
+    offer: "dohwasal_990",
+    product: "도화살 진단 9,900 -> 990",
+    headline: "나한테 도화살, 진짜 있을까",
+    note: "앱에서 실제로 쓰는 도화살 상품 카드 한 장이다.",
+    sources: [
+      [APP_CARDS, "dohwasal.jpg", "카드-"],
     ],
   },
 ];
@@ -145,14 +163,14 @@ for (const ad of ads) {
   const readme = "﻿" + [
     `[${ad.dir}]`,
     ``,
-    `랜딩   ${BASE}${ad.landing}`,
+    `랜딩   ${BASE}${ad.landing}?offer=${ad.offer}`,
     `상품   ${ad.product}`,
     `헤드라인  ${ad.headline}`,
     ``,
     `웹사이트 URL 에 아래를 통째로 넣는다. URL 매개변수 칸은 비운다`,
     `(넣으면 UTM 이 두 번 붙는다).`,
     ``,
-    `${BASE}${ad.landing}?${UTM}`,
+    `${BASE}${ad.landing}?offer=${ad.offer}&${UTM}`,
     ``,
     `소재 ${lines.length}개`,
     ...lines,

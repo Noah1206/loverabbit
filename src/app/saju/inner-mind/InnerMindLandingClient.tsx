@@ -17,10 +17,10 @@ const FORM_PATH = "/reading?c=sseom&offer=inner_mind_990";
 // 개인화 질문 — 일반적 상황 선택지만 제공한다.
 // 선택값은 이 기기의 sessionStorage에만 남기고, URL·광고 이벤트·로그에 넣지 않는다.
 const SITUATIONS = [
-  "관계가 멀어진 느낌",
-  "연락이 뜸해진 관계",
-  "헤어진 뒤 남은 질문",
-  "말하기 어려운 관계",
+  "몇 달째 진도가 안 나가는 썸",
+  "밀당인지 무관심인지 헷갈리는 관계",
+  "먼저 다가갈지 기다릴지 고민되는 관계",
+  "이 썸을 계속할지 판단이 필요한 관계",
 ] as const;
 
 const SITUATION_KEY = "loverabbit-inner-mind-situation";
@@ -61,24 +61,24 @@ export default function InnerMindFlow() {
     <div className="lp-flow" data-offer="inner_mind_990">
       {stage === "intro" ? (
         <div className="lp-intro">
-          {/* 광고 소재가 해월신당·해월도령으로 나가므로 랜딩 첫 화면도 같은 얼굴로 받는다. */}
+          {/* 광고 소재의 속마음 후킹을 실제 판매 상품인 썸 해부 사주로 이어 준다. */}
           <div className="lp-intro-art">
             <Image
-              src="/characters/haewol.jpg"
-              alt="해월도령"
+              src="/cards-pastel/sseom.jpg"
+              alt="썸 해부 사주"
               fill
               priority
               sizes="(max-width: 640px) 100vw, 480px"
               style={{ objectFit: "cover", objectPosition: "center 22%" }}
             />
-            <span className="lp-intro-art-tag">해월신당</span>
+            <span className="lp-intro-art-tag">썸 해부 사주</span>
           </div>
           <p className="lp-intro-line">
-            말로 다 묻지 못한 것들이 있다면, 하나씩 정리해 볼까요.
+            다정함인지 호감인지 애매했던 신호, 이 썸이 멈춘 진짜 이유부터 확인해 볼까요.
           </p>
           <div className="lp-intro-actions">
             <button type="button" className="btn lp-cta" onClick={() => setStage("situation")}>
-              속마음 미리보기 시작하기
+              이 썸의 속도 무료로 확인하기
             </button>
             <button
               type="button"
@@ -134,7 +134,7 @@ export default function InnerMindFlow() {
         <SignupModal
           title="로그인하고 무료로 시작하기"
           nextPath={FORM_PATH}
-          reason="로그인 후 속마음 사주 입력 화면으로 바로 이어져요."
+          reason="로그인 후 썸 해부 사주 입력 화면으로 바로 이어져요."
           onDone={() => {
             setShowSignup(false);
             setShowReady(true);

@@ -11,6 +11,8 @@ const AD_SAJU_PATHS = new Set([
   "/saju/mature-compatibility",
   "/saju/romance-timing",
   "/saju/breakup-decision",
+  "/saju/inner-mind",
+  "/saju/dohwasal",
 ]);
 
 // 쿠키 동의 배너 — 선택하기 전까지 마케팅 이벤트는 하나도 발송되지 않는다.

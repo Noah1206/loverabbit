@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import CardMotion from "@/components/CardMotion";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
+import { resolveAdOffer } from "@/lib/ad-offers";
 import { PRODUCTS, PRODUCT_MAP } from "@/lib/products";
 import { PRODUCT_PARTICIPANT_COUNTS } from "@/lib/participant-counts";
 
@@ -20,16 +21,27 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   return p ? { title: `${p.title} — ${p.headline}`, description: p.sub } : {};
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+type ProductPageProps = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ offer?: string | string[] }>;
+};
+
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
   const { id } = await params;
+  const query = await searchParams;
   const p = PRODUCT_MAP[id];
   if (!p) notFound();
 
-  const cta = `/reading?c=${p.id}`;
+  const requestedOffer = Array.isArray(query.offer) ? query.offer[0] : query.offer;
+  // 공개 URL의 offer 값은 신뢰하지 않는다. 이 상품에 등록된 오퍼일 때만 CTA와 가격에 반영한다.
+  const activeOffer = resolveAdOffer(p.id, requestedOffer);
+  const ctaParams = new URLSearchParams({ c: p.id });
+  if (activeOffer) ctaParams.set("offer", activeOffer.id);
+  const cta = `/reading?${ctaParams.toString()}`;
   const participantCount = PRODUCT_PARTICIPANT_COUNTS[p.id] ?? 354;
 
   return (
-    <main className="product-page" data-product={p.id}>
+    <main className="product-page" data-product={p.id} data-offer={activeOffer?.id}>
       <ProductRevealObserver />
       {/* ── 히어로 ── */}
       <section className="product-hero">
@@ -139,6 +151,21 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           </div>
         </section>
 
+        {activeOffer ? (
+          <section className="card product-reveal" style={{ padding: 18, textAlign: "center" }}>
+            <span className="badge">광고 특별가</span>
+            <h2 style={{ fontSize: "1.3rem", margin: "12px 0 7px" }}>
+              <s style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginRight: 8 }}>
+                {p.price.toLocaleString("ko-KR")}원
+              </s>
+              <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
+            </h2>
+            <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", lineHeight: 1.6 }}>
+              무료 미리보기를 확인한 뒤, 전체 리포트가 필요할 때만 결제합니다.
+            </p>
+          </section>
+        ) : null}
+
         <p className="product-reveal" style={{ fontSize: "0.75rem", color: "var(--text-dim)", textAlign: "center" }}>
           본 리딩은 오락 목적의 콘텐츠이며, 무료 미리보기 후 결제 여부를 결정할 수 있습니다.
         </p>
@@ -154,7 +181,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>
           <span className="product-sticky-copy">
             <strong>{p.ctaLabel}</strong>
-            <small>결과 일부 공개 · 전체 리포트는 확인 후 선택</small>
+            <small>
+              {activeOffer
+                ? `무료 미리보기 · 전체 리포트 ${activeOffer.price.toLocaleString("ko-KR")}원`
+                : "결과 일부 공개 · 전체 리포트는 확인 후 선택"}
+            </small>
           </span>
           <span className="product-sticky-arrow" aria-hidden>→</span>
         </ProductCtaGate>

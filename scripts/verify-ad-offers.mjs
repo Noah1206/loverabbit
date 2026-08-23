@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer-core";
 
-// 광고 링크 다섯 개가 실제로 990원까지 이어지는지 확인한다.
+// 실제 상품 페이지 광고 링크가 990원까지 이어지는지 확인한다.
 //
 // 확인하는 것은 셋이다.
 //   1. 랜딩이 열리고 990원을 말하는가
@@ -14,20 +14,13 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const UTM = "utm_source=meta&utm_medium=paid&utm_campaign=TEST_CAMPAIGN&utm_content=TEST_AD";
 
 const LINKS = [
-  { name: "궁합", path: "/saju/compatibility", offer: "compatibility_990", category: "sokgunghap" },
-  { name: "속궁합", path: "/saju/intimate-compatibility", offer: "intimate_compatibility_990", category: "sokgunghap" },
-  { name: "연애운", path: "/saju/romance-timing", offer: "romance_timing_990", category: "insun" },
-  { name: "이별", path: "/saju/breakup-decision", offer: "breakup_decision_990", category: "ibyeol" },
-  { name: "19금", path: "/saju/mature-compatibility", offer: "mature_compatibility_990", category: "sokgunghap" },
-  // 속마음만 화면 흐름이 다르다 (질문 선택 -> 로그인 -> 이동). CTA 가 <a> 가 아니라
-  // 버튼이라 href 를 못 읽는다. 도착 경로를 여기 적어 두고 그대로 확인한다.
-  {
-    name: "속마음",
-    path: "/saju/inner-mind",
-    offer: "inner_mind_990",
-    category: "sseom",
-    formPath: "/reading?c=sseom&offer=inner_mind_990",
-  },
+  { name: "궁합", path: "/product/sokgunghap", offer: "compatibility_990", category: "sokgunghap" },
+  { name: "속궁합", path: "/product/sokgunghap", offer: "intimate_compatibility_990", category: "sokgunghap" },
+  { name: "연애운", path: "/product/yeonae", offer: "yeonae_990", category: "yeonae" },
+  { name: "이별", path: "/product/ibyeol", offer: "breakup_decision_990", category: "ibyeol" },
+  { name: "속마음", path: "/product/sseom", offer: "inner_mind_990", category: "sseom" },
+  { name: "도화", path: "/product/dohwasal", offer: "dohwasal_990", category: "dohwasal" },
+  { name: "19금", path: "/product/sokgunghap", offer: "mature_compatibility_990", category: "sokgunghap" },
 ];
 
 const results = [];
@@ -48,7 +41,7 @@ for (const link of LINKS) {
   await page.setViewport({ width: 390, height: 844 });
   await page.evaluateOnNewDocument(() => localStorage.setItem("loverabbit-consent-v1", "denied"));
 
-  const url = BASE + link.path + "?" + UTM;
+  const url = BASE + link.path + "?offer=" + encodeURIComponent(link.offer) + "&" + UTM;
   const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 90000 });
   await new Promise((r) => setTimeout(r, 2500));
 
@@ -75,8 +68,7 @@ for (const link of LINKS) {
     const a = [...document.querySelectorAll("a")].find((n) => (n.getAttribute("href") ?? "").includes("offer=" + expected));
     return a?.getAttribute("href") ?? null;
   }, link.offer);
-  // href 를 못 읽는 랜딩은 선언해 둔 도착 경로로 확인한다.
-  const target = cta ?? link.formPath ?? null;
+  const target = cta;
   check(
     "CTA 가 오퍼를 달고 폼으로 간다",
     !!target && target.includes("c=" + link.category) && target.includes("offer=" + link.offer),
@@ -102,6 +94,25 @@ for (const link of LINKS) {
     );
   }
 
+  await page.close();
+}
+
+// offer id는 공개값이므로 상품과의 조합을 서버에서 반드시 검증해야 한다.
+console.log(`\n[오퍼 위조 방지] /product/yeonae + breakup_decision_990`);
+{
+  const page = await browser.newPage();
+  await page.goto(BASE + "/product/yeonae?offer=breakup_decision_990", {
+    waitUntil: "domcontentloaded",
+    timeout: 90000,
+  });
+  const state = await page.evaluate(() => ({
+    marker: document.querySelector("[data-product]")?.getAttribute("data-offer") ?? null,
+    cta: [...document.querySelectorAll("a")]
+      .map((node) => node.getAttribute("href"))
+      .find((href) => href?.startsWith("/reading?c=yeonae")) ?? null,
+  }));
+  check("다른 상품용 오퍼는 무시한다", state.marker === null, String(state.marker));
+  check("정가 CTA에 잘못된 오퍼를 넘기지 않는다", !!state.cta && !state.cta.includes("offer="), String(state.cta));
   await page.close();
 }
 
