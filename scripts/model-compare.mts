@@ -35,7 +35,7 @@ interface Candidate {
 }
 
 const CANDIDATES: Candidate[] = [
-  { id: "gpt-5.6", provider: "openai", model: "gpt-5.6", price: { input: 1.25, output: 10, cached: 0.125 }, note: "현재 .env 설정값" },
+  { id: "gpt-5.6", provider: "openai", model: "gpt-5.6", price: { input: 4, output: 20, cached: 0.4 }, note: "현재 .env 설정값 · gpt-5.6-sol 프로모션 단가" },
   { id: "gpt-5", provider: "openai", model: "gpt-5", price: { input: 1.25, output: 10, cached: 0.125 }, note: "4o보다 싸고 최신" },
   { id: "gpt-4o", provider: "openai", model: "gpt-4o", price: { input: 2.5, output: 10, cached: 1.25 }, note: "이번 질문의 대상" },
   { id: "gemini-2.5-flash", provider: "gemini", model: "gemini-2.5-flash", price: { input: 0.3, output: 2.5 }, note: "코드 기본값 · 최저가" },

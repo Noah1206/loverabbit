@@ -13,11 +13,35 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { adminKeyFromAuthorization, verifyAdminApprovalKey } from "@/lib/admin-auth";
+import { costBreakdownOf, priceOf } from "@/lib/ai-pricing";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 const KRW_PER_USD = 1450;
+const MAX_TOKEN_VALUE = 1_000_000_000;
+const MAX_CALLS = 10_000;
+
+interface EstimateBody {
+  model?: unknown;
+  calls?: unknown;
+  inputTokens?: unknown;
+  cachedTokens?: unknown;
+  cacheWriteTokens?: unknown;
+  outputTokens?: unknown;
+}
+
+function nonNegativeInteger(value: unknown, fallback: number): number | null {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0 || value > MAX_TOKEN_VALUE) {
+    return null;
+  }
+  return value;
+}
+
+function rounded(value: number, digits = 8): number {
+  return Number(value.toFixed(digits));
+}
 
 interface Row {
   stage: string;
@@ -111,5 +135,93 @@ export async function GET(req: NextRequest) {
     // 단가를 모르는 모델이 섞여 있으면 합계가 실제보다 적다. 숨기지 않는다.
     unpricedRows,
     stages,
+  });
+}
+
+/**
+ * Pure price calculator. This handler never imports or calls the model client,
+ * so checking a scenario cannot create an OpenAI charge.
+ */
+export async function POST(req: NextRequest) {
+  if (!verifyAdminApprovalKey(adminKeyFromAuthorization(req.headers.get("authorization")))) {
+    return NextResponse.json({ error: "권한이 없어요." }, { status: 401 });
+  }
+
+  let body: EstimateBody;
+  try {
+    body = (await req.json()) as EstimateBody;
+  } catch {
+    return NextResponse.json({ error: "JSON 요청 본문이 필요해요." }, { status: 400 });
+  }
+
+  const model =
+    typeof body.model === "string" && body.model.trim()
+      ? body.model.trim()
+      : process.env.OPENAI_MODEL?.trim() || "gpt-5.6";
+  const calls = nonNegativeInteger(body.calls, 1);
+  const input = nonNegativeInteger(body.inputTokens, 0);
+  const cached = nonNegativeInteger(body.cachedTokens, 0);
+  const cacheWrite = nonNegativeInteger(body.cacheWriteTokens, 0);
+  const output = nonNegativeInteger(body.outputTokens, 0);
+
+  if (
+    calls === null ||
+    calls < 1 ||
+    calls > MAX_CALLS ||
+    input === null ||
+    cached === null ||
+    cacheWrite === null ||
+    output === null
+  ) {
+    return NextResponse.json(
+      { error: `토큰은 0~${MAX_TOKEN_VALUE.toLocaleString()}, calls는 1~${MAX_CALLS.toLocaleString()} 정수여야 해요.` },
+      { status: 400 }
+    );
+  }
+  if (cached + cacheWrite > input) {
+    return NextResponse.json(
+      { error: "cachedTokens와 cacheWriteTokens의 합은 inputTokens보다 클 수 없어요." },
+      { status: 400 }
+    );
+  }
+
+  const unitPrice = priceOf(model);
+  if (!unitPrice) {
+    return NextResponse.json({ error: `${model} 단가가 등록되어 있지 않아요.` }, { status: 400 });
+  }
+
+  const totalUsage = {
+    input: input * calls,
+    cached: cached * calls,
+    cacheWrite: cacheWrite * calls,
+    output: output * calls,
+  };
+  const breakdown = costBreakdownOf(model, totalUsage);
+  if (!breakdown) {
+    return NextResponse.json({ error: "비용을 계산하지 못했어요." }, { status: 400 });
+  }
+
+  return NextResponse.json({
+    mode: "estimate-only",
+    openAiApiCalled: false,
+    openAiBillable: false,
+    model,
+    pricingNote: unitPrice.note ?? null,
+    calls,
+    perCallTokens: { input, cached, cacheWrite, output },
+    totalTokens: totalUsage,
+    ratesUsdPerMillion: breakdown.ratesUsdPerMillion,
+    usd: {
+      freshInput: rounded(breakdown.usd.freshInput),
+      cachedInput: rounded(breakdown.usd.cachedInput),
+      cacheWrite: rounded(breakdown.usd.cacheWrite),
+      output: rounded(breakdown.usd.output),
+      total: rounded(breakdown.usd.total),
+    },
+    krw: {
+      rate: KRW_PER_USD,
+      total: rounded(breakdown.usd.total * KRW_PER_USD, 2),
+      rounded: Math.round(breakdown.usd.total * KRW_PER_USD),
+    },
   });
 }

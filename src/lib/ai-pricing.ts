@@ -23,11 +23,11 @@ export interface ModelPrice {
 export const MODEL_PRICES: Record<string, ModelPrice> = {
   // ── OpenAI ──
   "gpt-5.6": {
-    input: 5.0,
-    cachedInput: 0.5,
+    input: 4.0,
+    cachedInput: 0.4,
     cacheWriteMultiplier: 1.25,
-    output: 30.0,
-    note: "gpt-5.6-sol 별칭. 지금 .env 가 가리키는 모델",
+    output: 20.0,
+    note: "gpt-5.6-sol 별칭. 2026-11-21까지 안내된 프로모션 단가",
   },
   "gpt-5.6-terra": { input: 2.0, cachedInput: 0.2, cacheWriteMultiplier: 1.25, output: 12.0 },
   "gpt-5.6-luna": { input: 0.2, cachedInput: 0.02, cacheWriteMultiplier: 1.25, output: 1.2 },
@@ -67,22 +67,69 @@ export interface TokenUsage {
   cacheWrite?: number | null;
 }
 
-/** 이 사용량이면 얼마인가. 단가를 모르는 모델이면 null. */
-export function costOf(model: string | undefined | null, usage: TokenUsage | null): number | null {
+export interface CostBreakdown {
+  usage: {
+    freshInput: number;
+    cachedInput: number;
+    cacheWrite: number;
+    output: number;
+  };
+  ratesUsdPerMillion: {
+    freshInput: number;
+    cachedInput: number;
+    cacheWrite: number;
+    output: number;
+  };
+  usd: {
+    freshInput: number;
+    cachedInput: number;
+    cacheWrite: number;
+    output: number;
+    total: number;
+  };
+}
+
+export function costBreakdownOf(
+  model: string | undefined | null,
+  usage: TokenUsage | null
+): CostBreakdown | null {
   const price = priceOf(model);
   if (!price || !usage) return null;
+
   const input = Math.max(0, usage.input);
-  const cached = Math.min(input, Math.max(0, usage.cached ?? 0));
-  const cacheWrite = Math.min(input - cached, Math.max(0, usage.cacheWrite ?? 0));
-  const fresh = Math.max(0, input - cached - cacheWrite);
-  const cachedRate = price.cachedInput ?? price.input;
+  const output = Math.max(0, usage.output);
+  const cachedInput = Math.min(input, Math.max(0, usage.cached ?? 0));
+  const cacheWrite = Math.min(input - cachedInput, Math.max(0, usage.cacheWrite ?? 0));
+  const freshInput = Math.max(0, input - cachedInput - cacheWrite);
+  const cachedInputRate = price.cachedInput ?? price.input;
   const cacheWriteRate = price.input * (price.cacheWriteMultiplier ?? 1);
-  return (
-    fresh * price.input +
-    cacheWrite * cacheWriteRate +
-    cached * cachedRate +
-    usage.output * price.output
-  ) / 1_000_000;
+
+  const freshInputUsd = (freshInput * price.input) / 1_000_000;
+  const cachedInputUsd = (cachedInput * cachedInputRate) / 1_000_000;
+  const cacheWriteUsd = (cacheWrite * cacheWriteRate) / 1_000_000;
+  const outputUsd = (output * price.output) / 1_000_000;
+
+  return {
+    usage: { freshInput, cachedInput, cacheWrite, output },
+    ratesUsdPerMillion: {
+      freshInput: price.input,
+      cachedInput: cachedInputRate,
+      cacheWrite: cacheWriteRate,
+      output: price.output,
+    },
+    usd: {
+      freshInput: freshInputUsd,
+      cachedInput: cachedInputUsd,
+      cacheWrite: cacheWriteUsd,
+      output: outputUsd,
+      total: freshInputUsd + cachedInputUsd + cacheWriteUsd + outputUsd,
+    },
+  };
+}
+
+/** 이 사용량이면 얼마인가. 단가를 모르는 모델이면 null. */
+export function costOf(model: string | undefined | null, usage: TokenUsage | null): number | null {
+  return costBreakdownOf(model, usage)?.usd.total ?? null;
 }
 
 /**

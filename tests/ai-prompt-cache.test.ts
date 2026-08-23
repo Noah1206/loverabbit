@@ -117,5 +117,5 @@ test("한 번뿐인 호출은 프리픽스를 보내되 유료 캐시 쓰기는 
 });
 
 test("GPT-5.6 원가는 캐시 쓰기 할증을 별도로 계산한다", () => {
-  assert.equal(costOf("gpt-5.6", { input: 1000, output: 0, cacheWrite: 1000 }), 0.00625);
+  assert.equal(costOf("gpt-5.6", { input: 1000, output: 0, cacheWrite: 1000 }), 0.005);
 });
