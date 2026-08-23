@@ -23,7 +23,10 @@ export const CHARACTER_MOTION: Record<string, string[]> = {
 };
 
 export const CHARACTER_MOTION_ADULT: Record<string, string[]> = {
-  jawol: ["tease"],
+  bihwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  jawol: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  maehwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
+  yeonhwa: ["disgust", "idle", "laugh", "sad", "shy", "sulk", "surprise", "tease"],
 };
 
 /**
