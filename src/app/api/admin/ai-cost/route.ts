@@ -25,6 +25,7 @@ interface Row {
   calls: number | null;
   input_tokens: number | null;
   cached_tokens: number | null;
+  cache_write_tokens: number | null;
   output_tokens: number | null;
   cost_usd: string | number | null;
 }
@@ -42,7 +43,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await db
     .from("lr_ai_usage")
-    .select("stage, model, calls, input_tokens, cached_tokens, output_tokens, cost_usd")
+    .select("stage, model, calls, input_tokens, cached_tokens, cache_write_tokens, output_tokens, cost_usd")
     .gte("created_at", since);
   if (error) {
     // 표가 아직 없을 수 있다. 그 사실을 숨기면 "0원이다" 로 읽힌다.
@@ -53,15 +54,27 @@ export async function GET(req: NextRequest) {
   }
 
   const rows = (data ?? []) as Row[];
-  const byStage = new Map<string, { calls: number; input: number; cached: number; output: number; usd: number; unpriced: number }>();
+  const byStage = new Map<
+    string,
+    { calls: number; input: number; cached: number; cacheWrite: number; output: number; usd: number; unpriced: number }
+  >();
   let unpricedRows = 0;
 
   for (const row of rows) {
     const key = row.stage;
-    const bucket = byStage.get(key) ?? { calls: 0, input: 0, cached: 0, output: 0, usd: 0, unpriced: 0 };
+    const bucket = byStage.get(key) ?? {
+      calls: 0,
+      input: 0,
+      cached: 0,
+      cacheWrite: 0,
+      output: 0,
+      usd: 0,
+      unpriced: 0,
+    };
     bucket.calls += row.calls ?? 0;
     bucket.input += row.input_tokens ?? 0;
     bucket.cached += row.cached_tokens ?? 0;
+    bucket.cacheWrite += row.cache_write_tokens ?? 0;
     bucket.output += row.output_tokens ?? 0;
     // 단가를 모르는 줄은 0 으로 더하지 않고 따로 센다. 0 으로 섞으면 합계가 거짓말을 한다.
     if (row.cost_usd === null || row.cost_usd === undefined) {
@@ -79,6 +92,7 @@ export async function GET(req: NextRequest) {
       calls: v.calls,
       inputTokens: v.input,
       cachedTokens: v.cached,
+      cacheWriteTokens: v.cacheWrite,
       outputTokens: v.output,
       usd: Number(v.usd.toFixed(5)),
       krw: Math.round(v.usd * KRW_PER_USD),

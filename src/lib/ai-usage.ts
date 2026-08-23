@@ -47,6 +47,7 @@ export async function recordAiUsage(record: UsageRecord): Promise<void> {
       calls: Math.max(0, Math.round(record.calls)),
       input_tokens: Math.max(0, usage?.input ?? 0),
       cached_tokens: Math.max(0, usage?.cached ?? 0),
+      cache_write_tokens: Math.max(0, usage?.cacheWrite ?? 0),
       output_tokens: Math.max(0, usage?.output ?? 0),
       // 단가를 모르는 모델이면 null 로 남는다. 0 으로 적으면 "공짜였다" 는
       // 거짓말이 되고, 그 거짓말은 합계에서 조용히 섞인다.

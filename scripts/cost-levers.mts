@@ -10,7 +10,7 @@
 import { buildSajuFacts } from "../src/lib/saju-facts";
 import { matchRules } from "../src/lib/reading-rules";
 import { scopeOutline } from "../src/lib/reading-scope";
-import { buildReadingInput, READING_SYSTEM_PROMPT } from "../src/lib/reading-prompt";
+import { buildReadingInput, READING_SYSTEM_PROMPT, systemPromptFor } from "../src/lib/reading-prompt";
 import { previewBatchCount } from "../src/lib/reading-compose";
 import { PRODUCTS } from "../src/lib/products";
 import { MODEL_PRICES, estimateTokens, type ModelPrice } from "../src/lib/ai-pricing";
@@ -31,8 +31,11 @@ const inputJson = buildReadingInput({
 } as Parameters<typeof buildReadingInput>[0]);
 
 const SYS = estimateTokens(READING_SYSTEM_PROMPT.length);
+const HEAD_SYS = estimateTokens(systemPromptFor("head").length);
+const BODY_SYS = estimateTokens(systemPromptFor("body").length);
 const JSONTOK = estimateTokens(inputJson.length);
 const CALLS = 1 + previewBatchCount(outline);
+const BODY_CALLS = CALLS - 1;
 const OUT_HEAD = 2600;
 const OUT_BATCH = 3000;
 
@@ -43,21 +46,33 @@ const SLIM_IN = estimateTokens(FREE_PREVIEW_SYSTEM_PROMPT.length + buildFreePrev
 /** OpenAI 자동 캐시는 1,024토큰 이상인 공통 앞부분에만 걸린다 */
 const CACHE_FLOOR = 1024;
 
-interface Lever { name: string; fresh: number; cached: number; output: number; note?: string }
+interface Lever { name: string; fresh: number; cached: number; cacheWrite: number; output: number; note?: string }
 
 const levers: Lever[] = [
-  { name: "1. 지금 (캐시 안 먹음)", fresh: (SYS + JSONTOK) * CALLS, cached: 0, output: OUT_HEAD + OUT_BATCH },
-  // 지시문은 모든 호출·모든 유저에게 같다. 첫 호출만 값을 내고 나머지는 캐시가 받는다.
-  { name: "2. + 프롬프트 캐싱", fresh: JSONTOK * CALLS, cached: SYS * CALLS, output: OUT_HEAD + OUT_BATCH,
-    note: "OpenAI 는 자동, Anthropic 은 cache_control 을 붙인다(2026-08 추가)" },
-  { name: "3. + 미리보기 1절", fresh: JSONTOK * CALLS, cached: SYS * CALLS, output: OUT_HEAD + Math.round(OUT_BATCH / 2),
+  { name: "1. 통짜 · 캐시 없음", fresh: (SYS + JSONTOK) * CALLS, cached: 0, cacheWrite: 0, output: OUT_HEAD + OUT_BATCH },
+  // 입력 JSON도 한 리딩 안에서는 호출마다 정확히 같다. 첫 호출이 쓴 뒤에는
+  // 지시문뿐 아니라 JSON까지 같은 프리픽스로 읽힌다.
+  { name: "2. 통짜 · 정확한 캐싱", fresh: 0, cached: (SYS + JSONTOK) * (CALLS - 1), cacheWrite: SYS + JSONTOK, output: OUT_HEAD + OUT_BATCH,
+    note: "입력 JSON도 반복 호출에서는 캐시 대상" },
+  { name: "3. 갈래 지시문", fresh: HEAD_SYS + JSONTOK + (BODY_CALLS === 1 ? BODY_SYS + JSONTOK : 0),
+    cached: Math.max(0, BODY_CALLS - 1) * (BODY_SYS + JSONTOK),
+    cacheWrite: BODY_CALLS > 1 ? BODY_SYS + JSONTOK : 0,
+    output: OUT_HEAD + OUT_BATCH,
+    note: "머리에는 본문 계약을, 본문에는 머리 계약을 보내지 않음" },
+  { name: "4. + 미리보기 1절", fresh: HEAD_SYS + JSONTOK + (BODY_CALLS === 1 ? BODY_SYS + JSONTOK : 0),
+    cached: Math.max(0, BODY_CALLS - 1) * (BODY_SYS + JSONTOK),
+    cacheWrite: BODY_CALLS > 1 ? BODY_SYS + JSONTOK : 0,
+    output: OUT_HEAD + Math.round(OUT_BATCH / 2),
     note: "READING_PREVIEW_SECTIONS=1" },
-  { name: "4. 슬림 경로", fresh: SLIM_IN, cached: 0, output: FREE_PREVIEW_LIMITS.maxOutputTokens,
+  { name: "5. 슬림 경로", fresh: SLIM_IN, cached: 0, cacheWrite: 0, output: FREE_PREVIEW_LIMITS.maxOutputTokens,
     note: SLIM_SYS < CACHE_FLOOR ? `지시문이 ${SLIM_SYS}토큰이라 캐시 문턱(${CACHE_FLOOR}) 아래 — 캐싱 이득 없음` : "" },
 ];
 
 const cost = (p: ModelPrice, l: Lever) =>
-  (l.fresh * p.input + l.cached * (p.cachedInput ?? p.input) + l.output * p.output) / 1_000_000;
+  (l.fresh * p.input +
+    l.cacheWrite * p.input * (p.cacheWriteMultiplier ?? 1) +
+    l.cached * (p.cachedInput ?? p.input) +
+    l.output * p.output) / 1_000_000;
 
 for (const model of ["gpt-5-mini", "gpt-5.6", "claude-sonnet-5"]) {
   const p = MODEL_PRICES[model];
@@ -66,7 +81,11 @@ for (const model of ["gpt-5-mini", "gpt-5.6", "claude-sonnet-5"]) {
   console.log(`\n── ${model}  (입력 $${p.input} / 캐시 $${p.cachedInput ?? p.input} / 출력 $${p.output}) ──`);
   for (const l of levers) {
     const c = cost(p, l);
-    const inUsd = (l.fresh * p.input + l.cached * (p.cachedInput ?? p.input)) / 1_000_000;
+    const inUsd = (
+      l.fresh * p.input +
+      l.cacheWrite * p.input * (p.cacheWriteMultiplier ?? 1) +
+      l.cached * (p.cachedInput ?? p.input)
+    ) / 1_000_000;
     const outUsd = (l.output * p.output) / 1_000_000;
     console.log(
       `  ${l.name.padEnd(22)} $${c.toFixed(5)} (${Math.round(c * KRW)}원)  ` +
@@ -79,4 +98,4 @@ for (const model of ["gpt-5-mini", "gpt-5.6", "claude-sonnet-5"]) {
       console.log(`  ${" ".repeat(22)} [!] ${model} 캐시 단가가 가격표에 없다. 이 줄의 절감은 실제보다 낮게 나온다.`);
   }
 }
-console.log(`\n지시문 ${SYS}tok · 입력JSON ${JSONTOK}tok · 호출 ${CALLS}회 · 슬림 입력 ${SLIM_IN}tok\n`);
+console.log(`\n지시문 통짜 ${SYS}tok · 머리 ${HEAD_SYS}tok · 본문 ${BODY_SYS}tok · 입력JSON ${JSONTOK}tok · 호출 ${CALLS}회 · 슬림 입력 ${SLIM_IN}tok\n`);

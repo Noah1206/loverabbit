@@ -67,6 +67,9 @@ export interface StructuredReport {
   nextStep: { label: string; description: string; recommendedFocus: string } | null;
 }
 
+/** 무료 초안과 결제 후 이어쓰기가 같은 생성 계약을 썼는지 확인하는 버전. */
+export const READING_PROMPT_VERSION = "reading-v3-continuous-preview";
+
 export const READING_SYSTEM_PROMPT = `# ROLE
 너는 러브레빗의 '사주 리포트 에디터'다.
 너는 계산기가 아니다. 입력 JSON의 saju_facts에 있는 값만 근거로 사용하며,
@@ -332,6 +335,31 @@ export const READING_SYSTEM_PROMPT = `# ROLE
   extra 에만 있고 본문에는 없는 판단이 나오면 그 리포트는 폐기된다.
 - extra 안에는 강조 표기를 쓰지 않는다. 이미 그 자체로 강조된 자리다.
 `;
+
+export type ReadingPromptBranch = "head" | "body";
+
+const HEAD_CONTRACT = '## 지시가 "머리"일 때';
+const BODY_CONTRACT = '## 지시가 "본문"일 때';
+
+/**
+ * 호출이 실제로 만드는 갈래의 계약만 보낸다.
+ *
+ * 예전에는 머리 호출에도 본문 길이·emotion_tags·extra 규칙을 보내고, 모든 본문
+ * 호출에도 머리 스키마를 다시 보냈다. 모델이 지켜야 할 규칙은 그대로 두되 서로
+ * 배타적인 출력 계약만 잘라 내면, 품질을 건드리지 않고 반복 입력을 줄일 수 있다.
+ *
+ * READING_SYSTEM_PROMPT 자체는 감사·비교 스크립트와 이전 호출부를 위해 남겨 둔다.
+ */
+export function systemPromptFor(branch: ReadingPromptBranch): string {
+  const headAt = READING_SYSTEM_PROMPT.indexOf(HEAD_CONTRACT);
+  const bodyAt = READING_SYSTEM_PROMPT.indexOf(BODY_CONTRACT);
+  if (headAt < 0 || bodyAt <= headAt) {
+    throw new Error("리딩 출력 계약 경계를 찾지 못했습니다.");
+  }
+
+  if (branch === "head") return READING_SYSTEM_PROMPT.slice(0, bodyAt).trimEnd();
+  return `${READING_SYSTEM_PROMPT.slice(0, headAt)}${READING_SYSTEM_PROMPT.slice(bodyAt)}`.trimEnd();
+}
 
 export interface ReadingInput {
   facts: SajuFacts;

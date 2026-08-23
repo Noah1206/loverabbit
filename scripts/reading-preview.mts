@@ -114,8 +114,12 @@ if (reuseText) {
       characterName: null,
       now: new Date(),
     },
-    (system: string, user: string, budget: number) =>
-      chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true })
+    (system, user, budget, callOptions) =>
+      chatComplete(system, [{ role: "user", content: user }], budget, {
+        thinking: false,
+        json: true,
+        ...callOptions,
+      })
   );
   const ms = Date.now() - t0;
 

@@ -4,12 +4,10 @@
 //
 // 모델을 부르지 않는다. 환경변수와 코드의 판단 규칙만 읽어서 표로 만든다.
 //
-// 이게 필요한 이유는 모델이 세 군데서 정해지기 때문이다 - AI_PROVIDER 가
-// 제공사를 고르고, OPENAI_MODEL 이 그 제공사의 기본을 고르고, FREE_PREVIEW_MODEL
-// 이 무료 경로만 따로 지목한다. 셋이 서로를 덮어써서, 머릿속으로 짚으면 틀린다.
+// 무료 초안과 결제 후 본문은 같은 제공사·모델을 쓴다. 예전 슬림 경로 변수는
+// 남아 있어도 무시되며, 여기서 그 사실까지 드러낸다.
 
 import { effectiveProvider, pinnedProvider, serverlessHost } from "../src/lib/ai";
-import { freePreviewModel } from "../src/lib/free-preview";
 import { MODEL_PRICES, priceOf } from "../src/lib/ai-pricing";
 import { previewSections } from "../src/lib/reading-compose";
 
@@ -26,10 +24,7 @@ function defaultModelOf(p: string | null): string {
 }
 
 const paidModel = defaultModelOf(provider);
-const wanted = freePreviewModel();
-// 지목은 OpenAI 일 때만 산다. free-preview-run.ts 의 판단과 같은 규칙이다.
-const freeModel = wanted && provider === "openai" ? wanted : paidModel;
-const slimOn = process.env.FREE_PREVIEW_V2 === "1";
+const legacyFreeModel = process.env.FREE_PREVIEW_MODEL?.trim();
 
 const keys = ["ANTHROPIC_API_KEY", "GEMINI_API_KEY", "OPENAI_API_KEY"]
   .filter((k) => process.env[k])
@@ -47,9 +42,9 @@ console.log();
 const rows = [
   {
     path: "무료 미리보기",
-    when: slimOn ? "FREE_PREVIEW_V2=1 (슬림 1회)" : `기본 경로 (머리+${previewSections()}절, 2회)`,
-    model: slimOn ? freeModel : paidModel,
-    from: slimOn && wanted && provider === "openai" ? "FREE_PREVIEW_MODEL" : "제공사 기본",
+    when: `확정 머리+${previewSections()}절, 결제 후 다음 절부터 이어쓰기`,
+    model: paidModel,
+    from: provider === "openai" ? "OPENAI_MODEL" : "제공사 기본",
   },
   {
     path: "유료 본문 (결제 후)",
@@ -76,12 +71,12 @@ for (const r of rows) {
   console.log(`  단가   ${price}\n`);
 }
 
-if (wanted && provider !== "openai") {
-  console.log(`[!] FREE_PREVIEW_MODEL="${wanted}" 가 무시된다. 제공사가 ${provider ?? "없음"} 이라서다.`);
+if (legacyFreeModel) {
+  console.log(`[i] FREE_PREVIEW_MODEL="${legacyFreeModel}" 는 이전 슬림 경로 설정이라 지금은 무시된다.`);
 }
-if (!slimOn) {
-  console.log(`[i] FREE_PREVIEW_V2 가 꺼져 있다. 무료 미리보기는 유료와 같은 프롬프트로 2회 부른다.`);
+if (process.env.FREE_PREVIEW_V2 === "1") {
+  console.log("[i] FREE_PREVIEW_V2=1 은 이전 슬림 경로 플래그라 지금은 무시된다.");
 }
-const unpriced = [freeModel, paidModel].filter((m) => !MODEL_PRICES[m] && !priceOf(m));
+const unpriced = [paidModel].filter((m) => !MODEL_PRICES[m] && !priceOf(m));
 if (unpriced.length) console.log(`[!] 단가를 모르는 모델: ${[...new Set(unpriced)].join(", ")}`);
 console.log();

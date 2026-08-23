@@ -1,4 +1,4 @@
-// 무료 미리보기 한 건이 지금 얼마고, 슬림 경로로 바꾸면 얼마인가.
+// 무료 미리보기 한 건: 현재 연속 초안과 폐기한 슬림 경로를 비교한다.
 //
 //   npx tsx scripts/free-preview-cost.mts
 //
@@ -11,7 +11,7 @@
 import { buildSajuFacts } from "../src/lib/saju-facts";
 import { matchRules } from "../src/lib/reading-rules";
 import { scopeOutline } from "../src/lib/reading-scope";
-import { buildReadingInput, READING_SYSTEM_PROMPT } from "../src/lib/reading-prompt";
+import { buildReadingInput, systemPromptFor } from "../src/lib/reading-prompt";
 import { chaptersOf, previewBatchCount, previewSections } from "../src/lib/reading-compose";
 import { PRODUCTS } from "../src/lib/products";
 import { MODEL_PRICES, costOf, estimateTokens } from "../src/lib/ai-pricing";
@@ -62,11 +62,12 @@ for (const id of CATEGORIES) {
   } as Parameters<typeof buildReadingInput>[0]);
 
   // ── 지금 ──
-  // 무료 미리보기는 머리 하나 + 첫 묶음이다. 두 호출 모두 시스템 프롬프트와
-  // 입력 JSON 을 통째로 다시 보낸다.
+  // 무료 미리보기는 머리 하나 + 첫 묶음이다. 서로 필요한 출력 계약만 보낸다.
   const calls = 1 + previewBatchCount(outline);
-  const perCall = READING_SYSTEM_PROMPT.length + inputJson.length;
-  const oldInput = estimateTokens(perCall) * calls;
+  const oldInput = estimateTokens(
+    systemPromptFor("head").length + inputJson.length +
+      previewBatchCount(outline) * (systemPromptFor("body").length + inputJson.length)
+  );
 
   // ── 슬림 ──
   const packet = buildPreviewFactPacket({
@@ -90,7 +91,8 @@ const OUT_NEW = FREE_PREVIEW_LIMITS.maxOutputTokens;
 const won = (usd: number) => `${Math.round(usd * KRW).toLocaleString()}원`;
 
 console.log(`\n무료 미리보기 1건 — 모델 호출 없이 센 값`);
-console.log(`미리보기 절 수 ${previewSections()} · 출력은 양쪽 다 상한치로 본다 (지금 ${OUT_OLD} / 슬림 ${OUT_NEW})\n`);
+console.log(`현재는 같은 모델로 머리+${previewSections()}절을 확정한다. 슬림은 이전 구조 비교용이다.`);
+console.log(`출력은 양쪽 다 상한치로 본다 (연속 초안 ${OUT_OLD} / 이전 슬림 ${OUT_NEW})\n`);
 
 for (const model of ["gpt-5-mini", "gpt-4o-mini", "gemini-2.5-flash", "gpt-5.6", "claude-sonnet-5"]) {
   if (!MODEL_PRICES[model]) continue;
@@ -103,8 +105,8 @@ for (const model of ["gpt-5-mini", "gpt-4o-mini", "gemini-2.5-flash", "gpt-5.6",
     sumOld += oldUsd;
     sumNew += newUsd;
     console.log(
-      `  ${row.product.padEnd(28)} 지금 ${row.oldCalls}회 ${String(row.oldInput).padStart(6)}tok $${oldUsd.toFixed(5)}` +
-      `   슬림 1회 ${String(row.newInput).padStart(5)}tok $${newUsd.toFixed(5)}`
+      `  ${row.product.padEnd(28)} 연속 ${row.oldCalls}회 ${String(row.oldInput).padStart(6)}tok $${oldUsd.toFixed(5)}` +
+      `   이전 슬림 1회 ${String(row.newInput).padStart(5)}tok $${newUsd.toFixed(5)}`
     );
   }
   const avgOld = sumOld / rows.length;
@@ -115,7 +117,7 @@ for (const model of ["gpt-5-mini", "gpt-4o-mini", "gemini-2.5-flash", "gpt-5.6",
   );
 }
 
-console.log(`상한 점검`);
+console.log(`이전 슬림 상한 점검 (운영 경로 아님)`);
 for (const row of rows) {
   const over = row.newInput > FREE_PREVIEW_LIMITS.maxInputTokensEstimated;
   console.log(`  ${row.product.padEnd(28)} 슬림 입력 ${row.newInput}tok  ${over ? "[X] 상한 초과" : "[OK]"}`);

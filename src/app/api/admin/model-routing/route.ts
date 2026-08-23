@@ -5,9 +5,8 @@
 // **모델을 부르지 않는다.** 환경변수와 코드의 판단 규칙만 읽는다. 그래서 값이 0원이고,
 // 배포 직후 설정이 먹었는지 확인하는 데 리딩 한 건을 태울 필요가 없다.
 //
-// 이게 필요한 이유는 모델이 세 군데서 정해지기 때문이다 - AI_PROVIDER 가 제공사를
-// 고르고, OPENAI_MODEL 이 그 제공사의 기본을 고르고, FREE_PREVIEW_MODEL 이 무료
-// 경로만 따로 지목한다. 셋이 서로를 덮어써서 대시보드만 보고는 결론이 안 난다.
+// 무료 초안과 결제 후 본문은 같은 제공사·모델을 쓴다. 이 화면은 그 계약이 배포
+// 환경에서도 실제로 살아 있는지, 예전 FREE_PREVIEW_MODEL 설정이 남았는지 보여준다.
 //
 // **키 값은 절대 내보내지 않는다.** 있는지 없는지만 말한다.
 
@@ -16,7 +15,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminKeyFromAuthorization, verifyAdminApprovalKey } from "@/lib/admin-auth";
 import { effectiveProvider, pinnedProvider, serverlessHost } from "@/lib/ai";
 import { priceOf } from "@/lib/ai-pricing";
-import { freePreviewModel } from "@/lib/free-preview";
 import { previewSections } from "@/lib/reading-compose";
 
 export const dynamic = "force-dynamic";
@@ -37,10 +35,7 @@ export async function GET(req: NextRequest) {
   const provider = effectiveProvider();
   const host = serverlessHost();
   const paidModel = defaultModelOf(provider);
-  const wanted = freePreviewModel();
-  // 지목은 OpenAI 일 때만 산다. free-preview-run.ts 의 판단과 같은 규칙이어야 한다.
-  const freeModel = wanted && provider === "openai" ? wanted : paidModel;
-  const slimOn = process.env.FREE_PREVIEW_V2 === "1";
+  const legacyFreeModel = process.env.FREE_PREVIEW_MODEL?.trim();
 
   const priced = (model: string) => {
     const p = priceOf(model);
@@ -51,10 +46,12 @@ export async function GET(req: NextRequest) {
   if (pinnedProvider() === "claude-code" && host) {
     warnings.push(`AI_PROVIDER=claude-code 는 ${host} 에서 쓸 수 없다. 생성이 전부 실패한다.`);
   }
-  if (wanted && provider !== "openai") {
-    warnings.push(`FREE_PREVIEW_MODEL="${wanted}" 가 무시된다. 제공사가 ${provider ?? "없음"} 이라서다.`);
+  if (legacyFreeModel) {
+    warnings.push(`FREE_PREVIEW_MODEL="${legacyFreeModel}" 는 이전 슬림 경로 설정이라 지금은 무시된다.`);
   }
-  if (!priceOf(freeModel)) warnings.push(`${freeModel} 단가가 가격표에 없다. 예산 가드가 금액으로 못 막는다.`);
+  if (process.env.FREE_PREVIEW_V2 === "1") {
+    warnings.push("FREE_PREVIEW_V2=1 은 이전 슬림 경로 플래그라 지금은 무시된다.");
+  }
   if (!priceOf(paidModel)) warnings.push(`${paidModel} 단가가 가격표에 없다.`);
   if (!provider) warnings.push("쓸 수 있는 제공사가 없다. 키가 하나도 없거나 못 박은 것이 잘못됐다.");
 
@@ -76,11 +73,11 @@ export async function GET(req: NextRequest) {
       openai: Boolean(process.env.OPENAI_API_KEY),
     },
     freePreview: {
-      slim: slimOn,
-      shape: slimOn ? "슬림 1회" : `머리+${previewSections()}절, 2회`,
-      model: freeModel,
-      from: slimOn && wanted && provider === "openai" ? "FREE_PREVIEW_MODEL" : "제공사 기본",
-      price: priced(freeModel),
+      continuous: true,
+      shape: `확정 머리+${previewSections()}절, 결제 후 다음 절부터 이어쓰기`,
+      model: paidModel,
+      from: provider === "openai" ? "OPENAI_MODEL" : "제공사 기본",
+      price: priced(paidModel),
     },
     paidReport: { model: paidModel, from: provider === "openai" ? "OPENAI_MODEL" : "제공사 기본", price: priced(paidModel) },
     warnings,

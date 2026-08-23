@@ -11,6 +11,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
+import type { Provider } from "@/lib/ai";
+import type { ReadingContinuityState } from "@/lib/reading-compose";
+import type { StructuredReport } from "@/lib/reading-prompt";
 import type { SajuFacts } from "@/lib/saju-facts";
 
 export interface ResumeInput {
@@ -29,6 +32,17 @@ export interface ResumeInput {
   issuedAt: string;
   /** 발급 때 이미 만들어 둔 절 수. 이 다음 항목부터 이어 만든다. */
   doneSections: number;
+  /** 발급 때 범위 검사를 통과한 정확한 목차. 상품 기본 목차와 달라질 수 있다. */
+  outline?: string[];
+  /** 무료에서 확정한 머리와 첫 절. 기기·브라우저가 바뀌어도 서버에서 복원한다. */
+  partialReport?: StructuredReport | null;
+  /** 후속 절이 무료 공개분의 결론·문체를 이어받게 하는 짧은 상태. */
+  continuity?: ReadingContinuityState;
+  /** 무료 초안을 만든 제공사와 모델. 결제 후에도 같은 모델을 지목한다. */
+  provider?: Provider;
+  model?: string;
+  /** 무료와 유료가 같은 프롬프트 계약인지 감사하기 위한 버전. */
+  promptVersion?: string;
 }
 
 const DIR = path.join(process.cwd(), "data", "resume");

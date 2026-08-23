@@ -10,7 +10,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { buildSajuFacts } from "../src/lib/saju-facts";
 import { matchRules } from "../src/lib/reading-rules";
 import { scopeOutline } from "../src/lib/reading-scope";
-import { buildReadingInput, READING_SYSTEM_PROMPT } from "../src/lib/reading-prompt";
+import { buildReadingInput, systemPromptFor } from "../src/lib/reading-prompt";
 import { chaptersOf } from "../src/lib/reading-compose";
 import { PRODUCTS } from "../src/lib/products";
 import { AD_OFFERS } from "../src/lib/ad-offers";
@@ -89,15 +89,20 @@ for (const product of PRODUCTS) {
 
   const batches = chaptersOf(scoped.outline);
   const chunks = batches.length + 1;
-  // 조각마다 시스템 프롬프트와 입력 JSON 이 통째로 다시 나간다. 그게 입력의 거의 전부다.
-  const inputTokens = estimateTokens(chunks * (READING_SYSTEM_PROMPT.length + input.length));
-  // 입력 JSON 을 지시문 앞으로 옮긴 뒤로, 시스템 프롬프트 + JSON 까지가 캐시에 얹힌다.
-  const stable = READING_SYSTEM_PROMPT.length + input.length;
-  const cached = estimateTokens((chunks - 1) * stable);
+  const headStable = systemPromptFor("head").length + input.length;
+  const bodyStable = systemPromptFor("body").length + input.length;
+  // 머리와 본문은 서로 필요한 계약만 받는다. 본문끼리는 시스템 + 같은 입력 JSON
+  // 프리픽스를 정확히 공유하므로 첫 본문 뒤의 호출은 JSON까지 캐시 대상이다.
+  const inputTokens = estimateTokens(headStable + batches.length * bodyStable);
+  // 무료 첫 절은 한 번뿐이라 유료 캐시 쓰기를 만들지 않는다. 결제 후 남은 본문
+  // 묶음끼리만 새 캐시를 공유한다(결제까지 시간이 길면 무료 호출의 캐시는 어차피 없다).
+  const paidBodyBatches = Math.max(0, batches.length - 1);
+  const cached = estimateTokens(Math.max(0, paidBodyBatches - 1) * bodyStable);
+  const cacheWrite = paidBodyBatches > 1 ? estimateTokens(bodyStable) : 0;
   const out = outputChars(product.id, scoped.outline.length);
   const outputTokens = estimateTokens(out.chars);
 
-  const usage = { input: inputTokens, output: outputTokens, cached };
+  const usage = { input: inputTokens, output: outputTokens, cached, cacheWrite };
   const cost: Record<string, number> = {};
   for (const model of MODELS) cost[model] = costOf(model, usage) ?? 0;
 
@@ -107,9 +112,11 @@ for (const product of PRODUCTS) {
   // 머리는 헤드라인·요약 카드·질문뿐이라 한 절보다 짧다.
   const headTokens = Math.round(perSection * 0.75);
   const previewUsage = {
-    input: estimateTokens(2 * (READING_SYSTEM_PROMPT.length + input.length)),
+    input: estimateTokens(headStable + bodyStable),
     output: Math.round(headTokens + perSection * previewSections),
-    cached: estimateTokens(stable),
+    // 머리와 본문 시스템이 다르고 각각 한 번뿐이라 유료 캐시 쓰기를 만들지 않는다.
+    cached: 0,
+    cacheWrite: 0,
   };
   const previewCost: Record<string, number> = {};
   for (const model of MODELS) previewCost[model] = costOf(model, previewUsage) ?? 0;

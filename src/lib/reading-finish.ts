@@ -7,14 +7,23 @@
 // 생성이 먼저면 돈을 받기 전에 만들게 되고, 저장이 먼저면 반쪽을 판 것이 된다.
 // 생성이 실패해도 리딩은 해금 상태로 남으므로, 다시 열면 이 함수가 한 번 더 시도한다.
 
-import { chatComplete } from "@/lib/ai";
+import { chatComplete, type Provider } from "@/lib/ai";
 import { PRODUCT_MAP } from "@/lib/products";
-import { composeReport, rewriteFlagged, type Complete } from "@/lib/reading-compose";
+import {
+  composeReport,
+  continuityFromReport,
+  rewriteFlagged,
+  type Complete,
+} from "@/lib/reading-compose";
 import { READING_RULES, forbiddenFromRules } from "@/lib/reading-rules";
 import { approvedPartnerRules } from "@/lib/myeongri-policy/partner-rules";
-import { reportToText, type StructuredReport } from "@/lib/reading-prompt";
+import {
+  READING_PROMPT_VERSION,
+  reportToText,
+  type StructuredReport,
+} from "@/lib/reading-prompt";
 import { checkReport, flaggedSections } from "@/lib/reading-guard";
-import { clearResume, loadResume } from "@/lib/reading-resume";
+import { clearResume, loadResume, saveResume, type ResumeInput } from "@/lib/reading-resume";
 import { getReading, saveReading, type StoredReading } from "@/lib/store";
 import { recordAiUsage } from "@/lib/ai-usage";
 
@@ -42,19 +51,14 @@ export async function finishReading(params: {
   /** 모델 호출부 — 검증에서 갈아끼우기 위한 자리. 생략하면 실제 생성기를 쓴다. */
   complete?: Complete;
 }): Promise<FinishResult> {
-  const { readingId, stored, partialReport, storedFull } = params;
-  const complete: Complete =
-    params.complete ??
-    ((system, user, budget) =>
-      chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true }));
-
+  const { readingId, stored, storedFull } = params;
+  const suppliedPartial = params.partialReport;
   const category = stored?.category ?? "";
-  const outline = PRODUCT_MAP[category]?.toc ?? [];
-  const done = partialReport?.sections.length ?? 0;
+  const catalogOutline = PRODUCT_MAP[category]?.toc ?? [];
 
   // 목차를 모르거나(옛 상품) 이미 다 있으면 손대지 않는다.
-  if (outline.length === 0 || (partialReport && done >= outline.length)) {
-    return { full: storedFull, report: partialReport, incomplete: false, generated: false };
+  if (catalogOutline.length === 0 || (suppliedPartial && suppliedPartial.sections.length >= catalogOutline.length)) {
+    return { full: storedFull, report: suppliedPartial, incomplete: false, generated: false };
   }
 
   let resume;
@@ -62,20 +66,49 @@ export async function finishReading(params: {
     resume = await loadResume(readingId);
   } catch (error) {
     console.error("재개 정보 조회 실패:", error);
-    return { full: storedFull, report: partialReport, incomplete: true, generated: false };
+    return { full: storedFull, report: suppliedPartial, incomplete: true, generated: false };
   }
 
   // 재개 정보가 없다 = 미뤄 생성 이전에 발급된 리딩. 그때는 전문을 다 만들어 저장했다.
   if (!resume) {
-    return { full: storedFull, report: partialReport, incomplete: false, generated: false };
+    return { full: storedFull, report: suppliedPartial, incomplete: false, generated: false };
   }
 
-  // 부분 리포트가 없을 수 있다. 슬림 무료 미리보기(FREE_PREVIEW_V2)를 켜면
-  // 결제 전에 유료 본문을 한 절도 안 만들기 때문이다. 그때는 머리부터 여기서
-  // 만든다 — 재개 정보가 있으니 만들 재료는 다 있다.
-  //
-  // 예전에는 여기서 포기했다. 그대로 뒀으면 슬림 경로를 켜는 순간 결제한 사람이
-  // 본문을 못 받았을 것이다. 무료가 싸진 대신 유료가 사라지는 맞바꿈이었다.
+  // 브라우저 blob과 서버 재개 정보 중 더 많이 완성된 것을 쓴다. 서버 사본이 있어야
+  // 무료 미리보기를 만든 기기와 결제하는 기기가 달라도 첫 절을 재생성하지 않는다.
+  const partialReport = [suppliedPartial, resume.partialReport ?? null]
+    .filter((report): report is StructuredReport => Boolean(report))
+    .sort((a, b) => b.sections.length - a.sections.length)[0] ?? null;
+  const outline = resume.outline?.length ? resume.outline : catalogOutline;
+  const done = partialReport?.sections.length ?? 0;
+
+  if (partialReport && done >= outline.length) {
+    return { full: storedFull, report: partialReport, incomplete: false, generated: false };
+  }
+  if (resume.doneSections > done) {
+    console.warn(
+      `리딩 ${readingId}: 완료 수는 ${resume.doneSections}절인데 복원할 구조화 본문은 ${done}절뿐이라 ` +
+        `없는 절부터 다시 만듭니다.`
+    );
+  }
+  if (resume.promptVersion && resume.promptVersion !== READING_PROMPT_VERSION) {
+    console.warn(
+      `리딩 ${readingId}: 무료 초안 프롬프트 ${resume.promptVersion}, 현재 ${READING_PROMPT_VERSION}. ` +
+        `저장된 첫 절과 연속성 상태는 그대로 유지합니다.`
+    );
+  }
+
+  const resumeProvider = validProvider(resume.provider);
+  const complete: Complete =
+    params.complete ??
+    ((system, user, budget, callOptions) =>
+      chatComplete(system, [{ role: "user", content: user }], budget, {
+        thinking: false,
+        json: true,
+        ...(resumeProvider ? { provider: resumeProvider } : {}),
+        ...(resume.model ? { model: resume.model } : {}),
+        ...callOptions,
+      }));
 
   // 발급 시점에 켜졌던 규칙을 그대로 복원한다. 그 사이 규칙 표현을 고쳤더라도
   // 산 사람이 산 리딩은 발급 때의 해석으로 이어져야 한다.
@@ -102,9 +135,12 @@ export async function finishReading(params: {
       now: new Date(resume.issuedAt),
   };
 
-  const rest = await composeReport(readingInput, complete, { doneSections: done });
+  const rest = await composeReport(readingInput, complete, {
+    doneSections: done,
+    continuity: resume.continuity ?? (partialReport ? continuityFromReport(partialReport) : undefined),
+  });
 
-  // 결제 뒤에 만든 몫. 슬림 미리보기를 켠 뒤로는 여기가 리딩 원가의 대부분이다.
+  // 결제 뒤에 만든 몫. 무료에서 확정한 머리와 첫 절은 이 원가에 다시 들어가지 않는다.
   void recordAiUsage({
     readingId,
     stage: "unlock",
@@ -130,7 +166,10 @@ export async function finishReading(params: {
       `리딩 ${readingId} 본문 미완성: ${sections.length}/${outline.length} (실패 조각: ${rest.failedParts.join(", ") || "불명"})`
     );
     // 만들어진 것까지는 저장해 둔다. 다음 시도는 그만큼을 건너뛴다.
-    if (sections.length > done) await persist(stored, full);
+    if (sections.length > done) {
+      await persist(stored, full);
+      await persistResumeProgress(readingId, resume, report, rest.model);
+    }
     return { full, report, incomplete: true, generated: true };
   }
 
@@ -190,6 +229,38 @@ export async function finishReading(params: {
   return { full, report, incomplete: false, generated: true };
 }
 
+function validProvider(provider: Provider | undefined): Provider | undefined {
+  return provider === "openai" ||
+    provider === "anthropic" ||
+    provider === "gemini" ||
+    provider === "claude-code"
+    ? provider
+    : undefined;
+}
+
+/** 실패한 조각이 있어도 성공한 절은 서버에 남겨 다음 결제 재조회에서 반복 생성하지 않는다. */
+async function persistResumeProgress(
+  readingId: string,
+  resume: ResumeInput,
+  report: StructuredReport,
+  model: string
+): Promise<void> {
+  try {
+    await saveResume(readingId, {
+      ...resume,
+      doneSections: report.sections.length,
+      partialReport: report,
+      continuity: continuityFromReport(report),
+      ...(model ? { model } : {}),
+      promptVersion: resume.promptVersion ?? READING_PROMPT_VERSION,
+    });
+  } catch (error) {
+    // 전문 저장과 마찬가지로 이번 응답을 막지는 않는다. 다만 다음 시도에서 같은 절을
+    // 다시 만들 수 있으므로 비용 장부에서 찾을 수 있게 남긴다.
+    console.error(`리딩 ${readingId} 재개 진행 저장 실패:`, error);
+  }
+}
+
 /**
  * 완성된 전문을 DB에 쓴다. 이 뒤로는 재개 정보 없이도 전문을 돌려줄 수 있다.
  *
@@ -206,9 +277,7 @@ async function persist(stored: StoredReading | null, full: string, teaser?: stri
     const current = (await getReading(stored.id)) ?? stored;
     // 티저도 같이 갈아 끼운다.
     //
-    // 무료 미리보기를 슬림 경로로 만들면 그 훅과 요약은 유료 본문과 다른
-    // 프롬프트로 쓴 문장이다. 결제 화면은 본문만 교체하고 티저는 그대로 두므로,
-    // 안 갈면 머리와 몸이 서로 다른 목소리로 한 화면에 남는다.
+    // 완성된 리포트의 티저를 같이 저장해 목록·결제 화면도 같은 확정 머리를 쓰게 한다.
     await saveReading({ ...current, full, ...(teaser ? { teaser } : {}) });
   } catch (error) {
     console.error("완성된 리딩 저장 실패:", error);

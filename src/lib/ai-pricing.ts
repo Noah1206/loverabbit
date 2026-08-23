@@ -13,6 +13,8 @@ export interface ModelPrice {
   input: number;
   /** 100만 캐시 적중 입력 토큰당 USD. 없으면 input 과 같게 본다. */
   cachedInput?: number;
+  /** 캐시에 새로 쓰는 입력의 정가 배수. 생략하면 정가와 같다. */
+  cacheWriteMultiplier?: number;
   /** 100만 출력 토큰당 USD */
   output: number;
   note?: string;
@@ -20,7 +22,15 @@ export interface ModelPrice {
 
 export const MODEL_PRICES: Record<string, ModelPrice> = {
   // ── OpenAI ──
-  "gpt-5.6": { input: 1.25, cachedInput: 0.125, output: 10.0, note: "지금 .env 가 가리키는 모델" },
+  "gpt-5.6": {
+    input: 5.0,
+    cachedInput: 0.5,
+    cacheWriteMultiplier: 1.25,
+    output: 30.0,
+    note: "gpt-5.6-sol 별칭. 지금 .env 가 가리키는 모델",
+  },
+  "gpt-5.6-terra": { input: 2.0, cachedInput: 0.2, cacheWriteMultiplier: 1.25, output: 12.0 },
+  "gpt-5.6-luna": { input: 0.2, cachedInput: 0.02, cacheWriteMultiplier: 1.25, output: 1.2 },
   "gpt-4o-mini": {
     input: 0.15,
     output: 0.6,
@@ -54,16 +64,25 @@ export interface TokenUsage {
   input: number;
   output: number;
   cached?: number | null;
+  cacheWrite?: number | null;
 }
 
 /** 이 사용량이면 얼마인가. 단가를 모르는 모델이면 null. */
 export function costOf(model: string | undefined | null, usage: TokenUsage | null): number | null {
   const price = priceOf(model);
   if (!price || !usage) return null;
-  const cached = usage.cached ?? 0;
-  const fresh = Math.max(0, usage.input - cached);
+  const input = Math.max(0, usage.input);
+  const cached = Math.min(input, Math.max(0, usage.cached ?? 0));
+  const cacheWrite = Math.min(input - cached, Math.max(0, usage.cacheWrite ?? 0));
+  const fresh = Math.max(0, input - cached - cacheWrite);
   const cachedRate = price.cachedInput ?? price.input;
-  return (fresh * price.input + cached * cachedRate + usage.output * price.output) / 1_000_000;
+  const cacheWriteRate = price.input * (price.cacheWriteMultiplier ?? 1);
+  return (
+    fresh * price.input +
+    cacheWrite * cacheWriteRate +
+    cached * cachedRate +
+    usage.output * price.output
+  ) / 1_000_000;
 }
 
 /**

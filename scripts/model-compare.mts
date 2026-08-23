@@ -178,12 +178,13 @@ async function runOne(c: Candidate, seed: number, dry: boolean): Promise<ModelRu
 
   const complete = dry
     ? fakeComplete(seed)
-    : (system: string, user: string, budget: number) =>
+    : (system, user, budget, callOptions) =>
         chatComplete(system, [{ role: "user", content: user }], budget, {
           thinking: false,
           json: true,
           provider: c.provider,
           model: c.model,
+          ...callOptions,
         });
 
   const t0 = Date.now();

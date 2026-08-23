@@ -3,6 +3,7 @@ import { randomUUID } from "crypto";
 import { computeSaju, chartSummary } from "@/lib/saju";
 import { buildSajuFacts, type SajuFacts } from "@/lib/saju-facts";
 import {
+  READING_PROMPT_VERSION,
   reportToText,
   type StructuredReport,
 } from "@/lib/reading-prompt";
@@ -11,7 +12,7 @@ import { saveImageState } from "@/lib/reading-image-store";
 import { pickIllustrated } from "@/lib/reading-images";
 import { saveReading, priceFor } from "@/lib/store";
 import { seal } from "@/lib/crypto";
-import { chatComplete, isAiConfigured } from "@/lib/ai";
+import { chatComplete, effectiveProvider, isAiConfigured } from "@/lib/ai";
 import { demoReport, hasDemoReport } from "@/lib/reading-demo";
 import { PRODUCT_MAP } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
@@ -22,11 +23,15 @@ import { computeSajuScore, sealScore } from "@/lib/saju-score";
 import { checkReport, flaggedSections, type GuardViolation } from "@/lib/reading-guard";
 import { forbiddenFromRules, matchRules } from "@/lib/reading-rules";
 import { scopeOutline } from "@/lib/reading-scope";
-import { composeReport, previewBatchCount, previewSections, rewriteFlagged } from "@/lib/reading-compose";
+import {
+  composeReport,
+  continuityFromReport,
+  previewBatchCount,
+  previewSections,
+  rewriteFlagged,
+} from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
-import { emotionTagsForAssets, runFreePreview, type FreePreviewOutcome } from "@/lib/free-preview-run";
 import { recordAiUsage } from "@/lib/ai-usage";
-import { READING_ENGINE_VERSION } from "@/lib/free-preview";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
 // 여유가 없어, 재시도가 한 번 붙으면 함수가 먼저 끊긴다.
@@ -345,10 +350,9 @@ export async function POST(req: NextRequest) {
   let full = "";
   let report: StructuredReport | null = null;
   let providerName = "demo";
+  let generationModel = "";
   // 출고 검사 결과 — 고치지 못한 위반은 blob에 남겨 나중에 되짚을 수 있게 한다
   let guardViolations: GuardViolation[] = [];
-  // 슬림 무료 미리보기 결과. 켜져 있을 때만 채워진다.
-  let freePreview: FreePreviewOutcome | null = null;
   // 생성기가 붙어 있는데도 리포트를 못 만든 경우. 데모 글로 때우면 안 되는 상황이다.
   let generationFailed = false;
 
@@ -368,50 +372,6 @@ export async function POST(req: NextRequest) {
       throw new SkipGeneration();
     }
 
-    // 슬림 무료 미리보기 — 지시문 11,453자를 두 번 보내는 대신 근거 서너 개를
-    // 한 번 보낸다. 입력이 22,000토큰에서 2,000토큰으로 준다.
-    //
-    // 켜면 결제 전에는 유료 본문을 한 절도 만들지 않는다. 그래서 결제 뒤에
-    // 머리부터 새로 만들게 되고, 아래 saveResume 이 report 없이도 반드시 돌아야
-    // 한다 — 그 정보가 없으면 결제한 사람의 리딩을 이어 만들 방법이 사라진다.
-    if (process.env.FREE_PREVIEW_V2 === "1") {
-      freePreview = await runFreePreview({
-        rules: matchedRules,
-        product: body.category,
-        relationshipStatus: partnerFacts ? "dating" : "single",
-        dayMasterElement: myFacts.dayMasterElement as "목" | "화" | "토" | "금" | "수",
-        // 해시로만 남는다. 원문은 열쇠 밖으로 나가지 않는다.
-        normalizedBirthInput: JSON.stringify([myFacts, partnerFacts]),
-        engineVersion: READING_ENGINE_VERSION,
-        ruleSetVersion: matchedRules.map((rule) => rule.id).join(","),
-      });
-      const preview = freePreview.result;
-      teaser = [preview.hook, preview.section.verdict].filter(Boolean).join(" ");
-      full = [
-        preview.hook,
-        `■ ${preview.section.title}`,
-        preview.section.verdict,
-        ...preview.section.paragraphs,
-        preview.paidTeaser,
-      ].join("\n\n");
-      providerName = freePreview.telemetry.provider ?? `free-preview:${freePreview.telemetry.source}`;
-      // 값을 남긴다. 리딩이 아직 저장되기 전이라 readingId 는 비운다 - 그래도
-      // 하루치를 더할 때는 이 줄이 있어야 무료 경로의 몫이 보인다.
-      void recordAiUsage({
-        stage: "free_preview",
-        category: body.category,
-        provider: freePreview.telemetry.provider,
-        model: freePreview.telemetry.model,
-        calls: freePreview.telemetry.llmCalls,
-        usage: {
-          input: freePreview.telemetry.inputTokens ?? 0,
-          output: freePreview.telemetry.outputTokens ?? 0,
-          cached: 0,
-          reasoning: 0,
-        },
-      });
-      throw new SkipGeneration();
-    }
     // 리포트는 머리 하나 + 본문 묶음 여럿을 동시에 받아 합친다(reading-compose.ts).
     // 한 번에 다 시키면 목차 10개짜리가 gpt-5.6에서 128초 걸린다 — 토큰이 순서대로
     // 나오기 때문이고, 그건 요청을 나눠 동시에 던지는 것 말고는 줄일 방법이 없다.
@@ -420,8 +380,12 @@ export async function POST(req: NextRequest) {
       // thinking을 끄는 이유는 OpenAI에서 reasoning_effort를 낮게 두는 이유와 같다.
       // 명리 계산은 이미 끝났고 여기서 하는 일은 문장 쓰기다. 게다가 Gemini는 생각
       // 토큰도 maxOutputTokens에서 빼가므로, 켜두면 JSON이 중간에 잘려 조각이 날아간다.
-      (system, user, budget) =>
-        chatComplete(system, [{ role: "user", content: user }], budget, { thinking: false, json: true }),
+      (system, user, budget, callOptions) =>
+        chatComplete(system, [{ role: "user", content: user }], budget, {
+          thinking: false,
+          json: true,
+          ...callOptions,
+        }),
       // 결제 전에는 미리보기가 보여주는 절까지만 만든다. 나머지는 결제가 확인된 뒤
       // /api/unlock이 이어 만든다(reading-finish.ts). 결제하지 않는 사람의 유료
       // 본문을 만드느라 돈을 태우지 않기 위해서다.
@@ -430,7 +394,7 @@ export async function POST(req: NextRequest) {
 
     // 만들어졌든 못 만들었든 값은 나갔다. 실패한 호출을 빼고 세면 청구서와 안 맞는다.
     void recordAiUsage({
-      stage: "reading",
+      stage: "free_preview",
       category: body.category,
       provider: composed.provider,
       model: composed.model,
@@ -445,6 +409,7 @@ export async function POST(req: NextRequest) {
     } else {
       report = composed.report;
       providerName = composed.provider || "demo";
+      generationModel = composed.model;
       if (composed.failedParts.length > 0) {
         console.error("리포트 조각이 비어 있음:", composed.failedParts.join(", "));
       }
@@ -487,10 +452,11 @@ export async function POST(req: NextRequest) {
           report.sections.map((section) => section.title)
         );
         if (flagged.length > 0 && isAiConfigured()) {
-          const redone = await rewriteFlagged(readingInput, (system, user, budget) =>
+          const redone = await rewriteFlagged(readingInput, (system, user, budget, callOptions) =>
             chatComplete(system, [{ role: "user", content: user }], budget, {
               thinking: false,
               json: true,
+              ...callOptions,
             })
           , flagged);
           for (const section of redone.sections) {
@@ -585,18 +551,11 @@ export async function POST(req: NextRequest) {
       const illustrated = pickIllustrated(
         (report?.sections ?? []).map((section, index) => ({ chapter: index + 1, section }))
       );
-      // 슬림 경로에는 절이 없다. 카드의 감정 태그가 그 자리를 대신한다 -
-      // 이게 없으면 그림 자리가 전부 폴백으로 떨어져 여섯 장이 다 같아 보인다.
-      const freeTags = freePreview ? emotionTagsForAssets(freePreview.result) : [];
       await saveImageState(
         id,
         planImagesFor({
-          chapterNumbers: freePreview
-            ? freeTags.map((_, index) => index + 1)
-            : illustrated.map((item) => item.chapter),
-          chapterEmotionTags: freePreview
-            ? freeTags
-            : illustrated.map((item) => item.section.emotionTags ?? []),
+          chapterNumbers: illustrated.map((item) => item.chapter),
+          chapterEmotionTags: illustrated.map((item) => item.section.emotionTags ?? []),
           chart: chart.me,
           label: PRODUCT_MAP[body.category]?.shortLabel ?? PRODUCT_MAP[body.category]?.title,
         })
@@ -615,7 +574,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 무료 공개분: 첫 섹션은 읽히고, 둘째 섹션은 흐려지며 끊기고, 나머지는 제목만 목차에 남는다.
+  // 무료 공개분: 확정된 첫 절 일부를 읽히고, 나머지는 제목만 목차에 남긴다.
   // 잠긴 제목은 상품 목차에서 뽑는다 — 그 절은 아직 만들지도 않았고, 어차피 모델이
   // 목차 문구를 그대로 옮겨 적게 돼 있어 결과가 같다.
   const preview = report
@@ -623,38 +582,21 @@ export async function POST(req: NextRequest) {
         sections: report.sections.slice(0, previewSections()).map((section, index) => ({
           title: section.title,
           excerpt: section.summary.slice(0, 360),
-          // 첫 절만 문단 하나를 더 준다. 광고에서 들어온 사람은 표지에서 끊기는데,
-          // 요약 한 덩어리만 보고는 이 글이 어떤 결인지 알 수 없다. 두 덩어리는
-          // 보여 주고 거기서 흐려진다. 나머지 문단은 결제 전에 내려보내지 않는다.
+          // 무료에서 만든 첫 절은 결제 뒤에도 그대로 남는다. 화면에는 답과 첫 문단만
+          // 공개하고, 구조화 원문은 서버의 재개 정보에 보관한다.
           ...(index === 0 && section.paragraphs[0]
-            ? { paragraphs: [section.paragraphs[0]] }
+            ? { paragraphs: [section.verdict ?? section.summary, section.paragraphs[0]].filter(Boolean) }
             : {}),
         })),
         lockedTitles: outline.slice(previewSections()),
       }
-    : freePreview
-      ? {
-          // 슬림 경로의 카드가 미리보기 자리를 그대로 채운다. 잠긴 제목은 상품
-          // 목차를 그대로 쓴다 - 그 절들은 아직 만들지도 않았다.
-          // 문단을 그대로 넘긴다. excerpt 는 문단이 없는 옛 화면을 위한 사본이다.
-          sections: [
-            {
-              title: freePreview.result.section.title,
-              excerpt: freePreview.result.section.verdict,
-              // 답 한 줄을 맨 앞에 세운다. 유료 본문의 절도 그 순서라, 같은 모양으로 읽힌다.
-              paragraphs: [freePreview.result.section.verdict, ...freePreview.result.section.paragraphs],
-            },
-          ],
-          lockedTitles: outline,
-        }
-      : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
+    : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
 
   // 나머지 본문을 결제 후에 이어 만들기 위한 정보. 클라이언트 blob에만 두면
   // 계좌이체처럼 며칠 뒤에 승인되는 경우 기기를 바꾼 사용자에게 못 준다.
-  // 슬림 경로에서는 report 가 없다. 그래도 - 아니, 그래서 더욱 - 저장해야 한다.
-  // 결제 전에 한 절도 안 만들었으므로 결제 뒤에 만들 것이 전부다.
-  if (freePreview || (report && report.sections.length < outline.length)) {
+  if (report && report.sections.length < outline.length) {
     try {
+      const provider = effectiveProvider();
       await saveResume(id, {
         category: body.category,
         facts: myFacts,
@@ -665,8 +607,13 @@ export async function POST(req: NextRequest) {
         // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해.
         // 리딩 계산에 쓴 now를 그대로 쓴다(다른 변수에 기대지 않는다).
         issuedAt: now.toISOString(),
-        // 슬림 경로는 0이다. 결제 뒤 머리부터 만든다.
-        doneSections: report?.sections.length ?? 0,
+        doneSections: report.sections.length,
+        outline,
+        partialReport: report,
+        continuity: continuityFromReport(report),
+        ...(provider ? { provider } : {}),
+        ...(generationModel ? { model: generationModel } : {}),
+        promptVersion: READING_PROMPT_VERSION,
       });
     } catch (e) {
       // 여기서 실패하면 결제 후에 나머지를 만들 방법이 없다. 팔지 않는다.

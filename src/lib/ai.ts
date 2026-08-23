@@ -17,8 +17,20 @@ export interface ChatUsage {
   output: number;
   /** 프롬프트 캐시로 할인된 입력 토큰 (있으면) */
   cached: number;
+  /** 캐시에 새로 쓴 입력 토큰. GPT-5.6 계열은 이 구간의 단가가 더 높다. */
+  cacheWrite?: number;
   /** 추론 모델이 따로 쓴 토큰 (있으면) */
   reasoning: number;
+}
+
+/** 같은 작업의 반복 호출에서 재사용할 정확한 사용자 프리픽스. */
+export interface ChatPromptCache {
+  /** 원문 개인정보를 넣지 않은 짧고 안정적인 라우팅 키 */
+  key: string;
+  /** 호출마다 정확히 같은 입력. 조각별 지시보다 반드시 앞에 놓인다. */
+  prefix: string;
+  /** false면 순서만 보존하고 유료 캐시 쓰기는 만들지 않는다. */
+  enabled?: boolean;
 }
 
 export interface ChatResult {
@@ -39,31 +51,58 @@ export interface ChatResult {
  */
 export type Provider = "anthropic" | "gemini" | "openai" | "claude-code";
 
-const NO_USAGE: ChatUsage = { input: 0, output: 0, cached: 0, reasoning: 0 };
+const NO_USAGE: ChatUsage = { input: 0, output: 0, cached: 0, cacheWrite: 0, reasoning: 0 };
+
+function withPromptPrefix(messages: ChatMsg[], cache?: ChatPromptCache): ChatMsg[] {
+  if (!cache?.prefix) return messages;
+  const firstUser = messages.findIndex((message) => message.role === "user");
+  if (firstUser < 0) return messages;
+  return messages.map((message, index) =>
+    index === firstUser ? { ...message, content: `${cache.prefix}${message.content}` } : message
+  );
+}
 
 async function callAnthropic(
   apiKey: string,
   system: string,
   messages: ChatMsg[],
   maxTokens: number,
-  modelOverride?: string
+  modelOverride?: string,
+  promptCache?: ChatPromptCache
 ): Promise<ChatResult> {
   const client = new Anthropic({ apiKey });
   const model = modelOverride ?? process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5";
   // 지시문에 캐시 표식을 붙인다.
   //
-  // 이 지시문은 11,453자(약 8,000토큰)이고 **모든 호출·모든 유저에게 똑같다.**
-  // 리포트 하나가 조각 대여섯이라 그 8,000토큰이 매번 다시 나간다.
+  // 리딩 지시문은 길고 같은 갈래의 호출·모든 유저에게 똑같다.
+  // 리포트 하나가 조각 대여섯이라 캐시하지 않으면 그 입력이 매번 다시 나간다.
   //
   // OpenAI 는 같은 앞부분이면 알아서 캐시하지만 Anthropic 은 여기 표식을 붙여야
   // 한다. 안 붙이면 조용히 정가로 청구된다 - 어디에도 오류가 안 뜨고, 청구서에만
   // 나타난다. 캐시 단가는 정가의 1/10 이다.
+  const firstUser = messages.findIndex((message) => message.role === "user");
+  const preparedMessages: Anthropic.MessageParam[] =
+    promptCache?.enabled === false
+      ? withPromptPrefix(messages, promptCache)
+      : messages.map((message, index) =>
+          promptCache?.prefix && index === firstUser
+            ? {
+                role: message.role,
+                content: [
+                  { type: "text", text: promptCache.prefix, cache_control: { type: "ephemeral" } },
+                  { type: "text", text: message.content },
+                ],
+              }
+            : { role: message.role, content: message.content }
+        );
   const msg = await client.messages.create({
     model,
     max_tokens: maxTokens,
     system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-    messages,
+    messages: preparedMessages,
   });
+  const cacheRead = msg.usage?.cache_read_input_tokens ?? 0;
+  const cacheWrite = msg.usage?.cache_creation_input_tokens ?? 0;
   return {
     text: msg.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
@@ -72,9 +111,12 @@ async function callAnthropic(
     provider: "anthropic",
     model,
     usage: {
-      input: msg.usage?.input_tokens ?? 0,
+      // Anthropic은 새 입력·캐시 읽기·캐시 쓰기를 서로 다른 칸으로 돌려준다.
+      // 공용 비용식은 input을 전체 입력으로 보므로 여기서 다시 합친다.
+      input: (msg.usage?.input_tokens ?? 0) + cacheRead + cacheWrite,
       output: msg.usage?.output_tokens ?? 0,
-      cached: msg.usage?.cache_read_input_tokens ?? 0,
+      cached: cacheRead,
+      cacheWrite,
       reasoning: 0,
     },
   };
@@ -100,9 +142,11 @@ async function callGemini(
   maxTokens: number,
   thinking: boolean,
   json: boolean,
-  modelOverride?: string
+  modelOverride?: string,
+  promptCache?: ChatPromptCache
 ): Promise<ChatResult> {
   const model = modelOverride ?? process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+  const preparedMessages = withPromptPrefix(messages, promptCache);
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
     {
@@ -110,7 +154,7 @@ async function callGemini(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
-        contents: messages.map((m) => ({
+        contents: preparedMessages.map((m) => ({
           role: m.role === "assistant" ? "model" : "user",
           parts: [{ text: m.content }],
         })),
@@ -137,7 +181,7 @@ async function callGemini(
     // 모델 하나 잘못 고른 것 때문에 리딩이 전부 죽지 않도록, 그 옵션만 빼고 한 번 더 시도한다.
     if (res.status === 400 && !thinking && /thinking/i.test(detail)) {
       console.warn(`Gemini ${model}이 thinkingConfig를 거절함 — 해당 옵션 없이 재시도`);
-      return callGemini(apiKey, system, messages, maxTokens, true, json, modelOverride);
+      return callGemini(apiKey, system, messages, maxTokens, true, json, modelOverride, promptCache);
     }
     throw new Error(`Gemini API ${res.status}: ${detail}`);
   }
@@ -187,6 +231,51 @@ function isReasoningModel(model: string): boolean {
   return /^(gpt-5|o[1-9])/.test(model);
 }
 
+function supportsExplicitPromptCaching(model: string): boolean {
+  if (/^gpt-(?:[6-9]|[1-9]\d)(?:[.-]|$)/.test(model)) return true;
+  const match = model.match(/^gpt-5\.(\d+)/);
+  return match ? Number(match[1]) >= 6 : false;
+}
+
+function isOfficialOpenAI(baseUrl: string): boolean {
+  try {
+    return new URL(baseUrl).hostname === "api.openai.com";
+  } catch {
+    return false;
+  }
+}
+
+function openAIMessages(
+  system: string,
+  messages: ChatMsg[],
+  promptCache: ChatPromptCache | undefined,
+  explicit: boolean
+): unknown[] {
+  if (!promptCache?.prefix || !explicit) {
+    return [{ role: "system", content: system }, ...withPromptPrefix(messages, promptCache)];
+  }
+
+  const firstUser = messages.findIndex((message) => message.role === "user");
+  return [
+    { role: "system", content: system },
+    ...messages.map((message, index) =>
+      index === firstUser
+        ? {
+            role: message.role,
+            content: [
+              {
+                type: "text",
+                text: promptCache.prefix,
+                prompt_cache_breakpoint: { mode: "explicit" },
+              },
+              { type: "text", text: message.content },
+            ],
+          }
+        : message
+    ),
+  ];
+}
+
 async function callOpenAICompat(
   apiKey: string,
   system: string,
@@ -194,10 +283,16 @@ async function callOpenAICompat(
   maxTokens: number,
   json: boolean,
   modelOverride?: string,
-  jsonSchema?: unknown
+  jsonSchema?: unknown,
+  promptCache?: ChatPromptCache
 ): Promise<ChatResult> {
   const baseUrl = (process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1").replace(/\/$/, "");
   const model = modelOverride ?? process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  // 명시적 캐시 필드는 OpenAI GPT-5.6+ 규약이다. OpenRouter·Groq·Ollama 같은
+  // 호환 서버에는 보내지 않고, 같은 프리픽스를 평문으로만 앞에 붙인다.
+  const official = isOfficialOpenAI(baseUrl);
+  const cacheEnabled = Boolean(promptCache && promptCache.enabled !== false);
+  const explicitCache = Boolean(cacheEnabled && official && supportsExplicitPromptCaching(model));
   const budget = isReasoningModel(model)
     ? {
         // 추론 토큰도 이 예산에서 빠져나가므로 여유를 둔다
@@ -220,7 +315,9 @@ async function callOpenAICompat(
       // 지시문을 1,000자로 줄인 무료 경로에서 바로 깨졌다 — 산문이 돌아와
       // 파싱에 실패하고 전원이 폴백으로 갔다.
       ...(jsonSchema ? { response_format: jsonSchema } : json ? { response_format: { type: "json_object" } } : {}),
-      messages: [{ role: "system", content: system }, ...messages],
+      ...(cacheEnabled && promptCache && official ? { prompt_cache_key: promptCache.key } : {}),
+      ...(explicitCache ? { prompt_cache_options: { mode: "explicit", ttl: "30m" } } : {}),
+      messages: openAIMessages(system, messages, promptCache, explicitCache),
     }),
   });
   if (!res.ok) throw new Error(`OpenAI 호환 API ${res.status}: ${await res.text()}`);
@@ -237,6 +334,7 @@ async function callOpenAICompat(
           input: u.prompt_tokens ?? 0,
           output: u.completion_tokens ?? 0,
           cached: u.prompt_tokens_details?.cached_tokens ?? 0,
+          cacheWrite: u.prompt_tokens_details?.cache_write_tokens ?? 0,
           reasoning: u.completion_tokens_details?.reasoning_tokens ?? 0,
         }
       : null,
@@ -323,24 +421,33 @@ export function effectiveProvider(): Provider | null {
   return null;
 }
 
+export interface ChatCompleteOptions {
+  thinking?: boolean;
+  json?: boolean;
+  provider?: Provider;
+  model?: string;
+  /**
+   * 같은 작업 안에서 되풀이되는 정확한 입력 프리픽스.
+   *
+   * GPT-5.6+에는 명시적 breakpoint와 key로, Anthropic에는 cache_control로
+   * 전달한다. 그 밖의 제공사에는 순서만 보존해 평문으로 붙인다.
+   */
+  promptCache?: ChatPromptCache;
+  /**
+   * 모양까지 못 박는다 (OpenAI json_schema).
+   *
+   * json: true 는 "JSON 으로 줘" 까지만 시킨다. 그러면 모델이 키 이름을 제 맘대로
+   * 짓는다 - 실제로 hook/cards 대신 opening/insights 를 돌려줬고, 파싱은 통과하는데
+   * 우리 타입과 안 맞아 전원이 폴백으로 갔다. 스키마를 실어야 키까지 맞는다.
+   */
+  jsonSchema?: unknown;
+}
+
 export async function chatComplete(
   system: string,
   messages: ChatMsg[],
   maxTokens = 3000,
-  options: {
-    thinking?: boolean;
-    json?: boolean;
-    provider?: Provider;
-    model?: string;
-    /**
-     * 모양까지 못 박는다 (OpenAI json_schema).
-     *
-     * json: true 는 "JSON 으로 줘" 까지만 시킨다. 그러면 모델이 키 이름을 제 맘대로
-     * 짓는다 - 실제로 hook/cards 대신 opening/insights 를 돌려줬고, 파싱은 통과하는데
-     * 우리 타입과 안 맞아 전원이 폴백으로 갔다. 스키마를 실어야 키까지 맞는다.
-     */
-    jsonSchema?: unknown;
-  } = {}
+  options: ChatCompleteOptions = {}
 ): Promise<ChatResult | null> {
   const thinking = options.thinking !== false;
   const json = options.json === true || options.jsonSchema !== undefined;
@@ -369,24 +476,54 @@ export async function chatComplete(
         );
       }
       const { callClaudeCode } = await import("@/lib/ai-claude-code");
-      return callClaudeCode(system, messages, options.model);
+      return callClaudeCode(system, withPromptPrefix(messages, options.promptCache), options.model);
     }
     if (options.provider === "anthropic")
       return ANTHROPIC_API_KEY
-        ? callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model)
+        ? callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model, options.promptCache)
         : null;
     if (options.provider === "gemini")
       return GEMINI_API_KEY
-        ? callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model)
+        ? callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model, options.promptCache)
         : null;
     return OPENAI_API_KEY
-      ? callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, json, options.model, options.jsonSchema)
+      ? callOpenAICompat(
+          OPENAI_API_KEY,
+          system,
+          messages,
+          maxTokens,
+          json,
+          options.model,
+          options.jsonSchema,
+          options.promptCache
+        )
       : null;
   }
 
-  if (ANTHROPIC_API_KEY) return callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model);
-  if (GEMINI_API_KEY) return callGemini(GEMINI_API_KEY, system, messages, maxTokens, thinking, json, options.model);
-  if (OPENAI_API_KEY) return callOpenAICompat(OPENAI_API_KEY, system, messages, maxTokens, json, options.model, options.jsonSchema);
+  if (ANTHROPIC_API_KEY)
+    return callAnthropic(ANTHROPIC_API_KEY, system, messages, maxTokens, options.model, options.promptCache);
+  if (GEMINI_API_KEY)
+    return callGemini(
+      GEMINI_API_KEY,
+      system,
+      messages,
+      maxTokens,
+      thinking,
+      json,
+      options.model,
+      options.promptCache
+    );
+  if (OPENAI_API_KEY)
+    return callOpenAICompat(
+      OPENAI_API_KEY,
+      system,
+      messages,
+      maxTokens,
+      json,
+      options.model,
+      options.jsonSchema,
+      options.promptCache
+    );
   return null;
 }
 
@@ -399,6 +536,7 @@ export function sumUsage(parts: (ChatUsage | null | undefined)[]): ChatUsage {
             input: acc.input + u.input,
             output: acc.output + u.output,
             cached: acc.cached + u.cached,
+            cacheWrite: (acc.cacheWrite ?? 0) + (u.cacheWrite ?? 0),
             reasoning: acc.reasoning + u.reasoning,
           }
         : acc,
