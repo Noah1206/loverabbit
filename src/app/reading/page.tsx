@@ -78,9 +78,10 @@ function birthError(p: PersonForm, who: string, requireAdult = false): string | 
   const lunar = p.calendar === "lunar";
   const nowYear = new Date().getFullYear();
   if (isNaN(year) || year < 1900 || year > nowYear) return `${who} 출생연도를 확인해주세요 (1900~${nowYear}).`;
-  if (isNaN(month) || month < 1 || month > 12) return `${who} 월은 1~12 사이여야 해요.`;
+  // "내 일은" 은 "내일은" 으로 읽힌다. 달·날은 "태어난" 을 붙여 떼어 놓는다.
+  if (isNaN(month) || month < 1 || month > 12) return `${who} 태어난 달은 1~12 사이여야 해요.`;
   if (isNaN(day) || day < 1 || day > (lunar ? 30 : 31)) {
-    return `${who} 일은 1~${lunar ? 30 : 31} 사이여야 해요.`;
+    return `${who} 태어난 날은 1~${lunar ? 30 : 31} 사이여야 해요.`;
   }
   // 음력은 양력 달력으로 검사하면 안 된다. 변환이 되는지로 존재 여부를 판단한다.
   const solar = solarOf(p);

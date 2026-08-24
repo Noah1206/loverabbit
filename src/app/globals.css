@@ -545,6 +545,31 @@ select:focus {
   background: rgba(255, 255, 255, 0.68);
 }
 
+/* 브라우저 자동완성 하이라이트.
+
+   크로미움과 사파리는 자동완성한 칸에 자기 배경색을 칠한다. 이 색은 CSS 의
+   background 로 못 덮는다 - !important 를 붙여도 진다.
+
+   그 배경이 <input> 상자에만 칠해지는 게 문제다. 생년월일 칸처럼 input 을
+   감싸고 그 안에 꼬리표(년·월·일)를 같이 둔 구조에서는, 감싼 칸은 어두운데
+   input 자리만 밝은 네모로 떠서 칸 안에 네모가 하나 더 얹힌 것처럼 보였다.
+
+   색을 덮는 대신 전환을 아주 길게 잡아, 그 색이 실제로 그려지기 전에 멈춰
+   세운다. 자동완성한 값의 글자색은 -webkit-text-fill-color 로 따로 준다 -
+   color 도 같이 덮이기 때문이다. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition:
+    background-color 0s 600000s,
+    color 0s 600000s;
+}
+
 label {
   display: block;
   font-size: 0.88rem;
