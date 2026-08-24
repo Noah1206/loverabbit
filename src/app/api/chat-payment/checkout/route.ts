@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getChatProduct } from "@/lib/chat-products";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { resolveUserToken } from "@/lib/tokens";
 
@@ -66,5 +67,6 @@ export async function POST(request: NextRequest) {
     amount: product.price,
     orderName: product.name,
     provider: usePortOne ? "portone" : "toss",
+    ...(usePortOne ? { noticeUrl: getPortOneNoticeUrl(request.nextUrl.origin) } : {}),
   });
 }

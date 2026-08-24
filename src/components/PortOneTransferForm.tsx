@@ -12,6 +12,7 @@ interface CheckoutResponse {
   amount?: number;
   orderName?: string;
   provider?: string;
+  noticeUrl?: string;
   error?: string;
 }
 
@@ -89,7 +90,7 @@ export default function PortOneTransferForm({
           email: customerEmailValue,
         },
         redirectUrl,
-        noticeUrls: [`${window.location.origin}/api/portone/webhook`],
+        noticeUrls: [checkout.noticeUrl ?? `${window.location.origin}/api/portone/webhook`],
         forceRedirect: true,
       });
 

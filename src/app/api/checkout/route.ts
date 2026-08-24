@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
@@ -84,5 +85,6 @@ export async function POST(request: NextRequest) {
     amount: reading.price,
     orderName: "러브레빗 사주 전문 리딩",
     provider: usePortOne ? "portone" : "toss",
+    ...(usePortOne ? { noticeUrl: getPortOneNoticeUrl(request.nextUrl.origin) } : {}),
   });
 }
