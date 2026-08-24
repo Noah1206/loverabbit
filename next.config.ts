@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // 명리 엔진은 빌드 없이 TS 원본을 그대로 실어 보낸다. 사본을 만들지 않기
+  // 위해 패키지로 뺐는데, 거기서 다시 빌드 산출물을 만들면 원본과 산출물이라는
+  // 또 다른 사본이 생긴다.
+  transpilePackages: ["@loverabbit/myeongri"],
   async headers() {
     return [
       {

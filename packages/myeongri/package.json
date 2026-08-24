@@ -1,0 +1,19 @@
+{
+  "name": "@loverabbit/myeongri",
+  "version": "1.0.0",
+  "private": true,
+  "description": "명리 엔진과 승인된 규칙 표. 웹사이트와 Threads 생성기가 같은 것을 본다.",
+  "type": "module",
+  "exports": {
+    "./saju": "./src/saju.ts",
+    "./saju-facts": "./src/saju-facts.ts",
+    "./reading-rules": "./src/reading-rules.ts",
+    "./korean-josa": "./src/korean-josa.ts",
+    "./solar-terms": "./src/solar-terms.ts",
+    "./myeongri/*": "./src/myeongri/*.ts",
+    "./myeongri-policy/*.json": "./src/myeongri-policy/*.json",
+    "./myeongri-policy/*": "./src/myeongri-policy/*.ts",
+    "./korea-time": "./src/korea-time.ts",
+    "./saju-shinsal": "./src/saju-shinsal.ts"
+  }
+}

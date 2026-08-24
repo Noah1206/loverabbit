@@ -22,8 +22,8 @@ import {
   HEAVENLY_COMBOS,
   type SajuFacts,
 } from "./saju-facts";
-import { WONJIN } from "./saju-shinsal";
-import { shinsalCount } from "./saju-shinsal";
+import { WONJIN } from "@loverabbit/myeongri/saju-shinsal";
+import { shinsalCount } from "@loverabbit/myeongri/saju-shinsal";
 
 export interface ScoreFactor {
   /** 화면에 그대로 찍히는 인자 이름 */
