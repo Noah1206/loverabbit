@@ -124,6 +124,21 @@ export const AD_OFFERS = {
     loginTitle: "내 도화의 위치와 힘을 확인해요",
     loginReason: "로그인 후 생년정보를 입력하면 도화살 진단 미리보기로 이어져요.",
   },
+  baramgi_990: {
+    id: "baramgi_990",
+    category: "baramgi",
+    price: 990,
+    landingType: "baramgi",
+    route: "/saju/baramgi",
+    // 도화살·연애운과 같이 홈 그리드 카드 그림을 그대로 쓴다. 이 주제만 배경을
+    // 따로 만들면 광고에서 본 그림과 랜딩의 그림이 달라진다.
+    heroImage: "/cards-pastel/baramgi.jpg",
+    badge: "바람기 레이더",
+    headline: "그 사람, 믿어도 되는 걸까?",
+    sub: "상대 명식의 도화 기운과 이성운 흐름으로, 흔들릴 수 있는 시기와 신호를 미리 짚습니다",
+    loginTitle: "그 사람의 위험 신호를 확인해요",
+    loginReason: "로그인 후 두 사람 정보를 입력하면 바람기 레이더 미리보기로 이어져요.",
+  },
 } as const satisfies Record<string, AdOffer>;
 
 export type AdOfferId = keyof typeof AD_OFFERS;

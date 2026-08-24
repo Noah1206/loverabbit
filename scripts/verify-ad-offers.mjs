@@ -20,6 +20,7 @@ const LINKS = [
   { name: "이별", path: "/product/ibyeol", offer: "breakup_decision_990", category: "ibyeol" },
   { name: "속마음", path: "/product/sseom", offer: "inner_mind_990", category: "sseom" },
   { name: "도화", path: "/product/dohwasal", offer: "dohwasal_990", category: "dohwasal" },
+  { name: "바람기", path: "/product/baramgi", offer: "baramgi_990", category: "baramgi" },
   { name: "19금", path: "/product/sokgunghap", offer: "mature_compatibility_990", category: "sokgunghap" },
 ];
 

@@ -36,6 +36,12 @@ test("광고 랜딩은 990원 오퍼를 유지하면서 실제 앱 상품으로 
       productTitle: "도화살 진단",
     },
     {
+      offerId: "baramgi_990",
+      route: "/saju/baramgi",
+      productId: "baramgi",
+      productTitle: "바람기 레이더",
+    },
+    {
       offerId: "mature_compatibility_990",
       route: "/saju/mature-compatibility",
       productId: "sokgunghap",

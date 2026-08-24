@@ -106,16 +106,18 @@ const ads = [
     ],
   },
   {
-    dir: "06-속마음",
-    landing: "/product/sseom",
-    offer: "inner_mind_990",
-    product: "썸 해부 사주 12,900 -> 990",
-    headline: "읽씹은 아닌데 진도가 안 나가",
+    // 속마음(썸 해부)이 있던 자리다. 소재와 오퍼(inner_mind_990)는 코드에 그대로
+    // 남아 있으니, 되돌리려면 이 항목만 예전 값으로 바꾸면 된다.
+    dir: "06-바람기",
+    landing: "/saju/baramgi",
+    offer: "baramgi_990",
+    product: "바람기 레이더 12,900 -> 990",
+    headline: "그 사람, 믿어도 되는 걸까",
     // 이 주제는 스크린샷 세트에만 있다. 어두운 세트와 화이트 세트에는 없다.
-    note: "1:1 두 장뿐이다(틀은 같고 배경만 다름). 어두운 세트와 화이트 세트에는 속마음 소재가 없다.",
+    note: "1:1 두 장뿐이다(틀은 같고 배경만 다름). 어두운 세트와 화이트 세트에는 바람기 소재가 없다.",
     sources: [
-      [SQUARE, "05-inner-mind-square-1080x1080.jpg"],
-      [CARD, "05-inner-mind-square-1080x1080.jpg", "카드-"],
+      [SQUARE, "07-baramgi-square-1080x1080.jpg"],
+      [CARD, "07-baramgi-square-1080x1080.jpg", "카드-"],
     ],
   },
   {

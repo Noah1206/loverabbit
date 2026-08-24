@@ -132,6 +132,20 @@ const items = [
     lines: ['"가까워질수록 어긋나는 느낌"', "둘의 속도, 어디서 갈리나."],
     adult: true,
   },
+  {
+    id: "07",
+    slug: "baramgi",
+    // 붉은 동백을 든 사내. 도화(桃花)를 그림 하나로 말하는 유일한 원화다.
+    character: "jeokya.jpg",
+    card: "baramgi.jpg",
+    landing: "/saju/baramgi",
+    product: "바람기 레이더 (baramgi, 12,900)",
+    // 첫 줄은 상품 headline 을 그대로 쓴다. 광고에서 사람의 처지를 단정하지 않고
+    // 묻기만 하려면, 이미 승인된 그 질문 문장이 제일 안전하다.
+    // 근거: "1장 02. 도화는 몇 개이고 어디에 있는가", "5장 01. 올해 조심해야 할 위험 시기"
+    title: "사주로 보는 바람기",
+    lines: ['"그 사람, 믿어도 될까"', "상대 도화 개수와 조심할 달."],
+  },
 ];
 
 const xml = (value) => value

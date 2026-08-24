@@ -6,6 +6,7 @@ export const AD_PARTICIPANT_COUNTS = {
   romance_timing_990: 267,
   breakup_decision_990: 693,
   dohwasal_990: 438,
+  baramgi_990: 524,
 } as const;
 
 export const PRODUCT_PARTICIPANT_COUNTS: Record<string, number> = {
