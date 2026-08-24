@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   description: "두 사람의 끌림과 주도권, 가까워질수록 드러나는 친밀도 상성을 무료로 확인해 보세요.",
 };
 
-export default function IntimateCompatibilityLanding() {
-  return <AdSajuLanding offerId="intimate_compatibility_990" />;
+export default async function IntimateCompatibilityLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="intimate_compatibility_990" searchParams={searchParams} />;
 }

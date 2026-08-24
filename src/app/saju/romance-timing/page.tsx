@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   description: "인연의 창이 열리는 시기와 만남의 경로, 다음 상대의 윤곽을 무료 미리보기로 확인해 보세요.",
 };
 
-export default function RomanceTimingLanding() {
-  return <AdSajuLanding offerId="romance_timing_990" />;
+export default async function RomanceTimingLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="romance_timing_990" searchParams={searchParams} />;
 }

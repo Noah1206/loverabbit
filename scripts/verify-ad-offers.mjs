@@ -117,6 +117,52 @@ console.log(`\n[오퍼 위조 방지] /product/yeonae + breakup_decision_990`);
   await page.close();
 }
 
+// 990원은 광고 링크로 들어왔을 때만이다.
+//
+// 전용 랜딩(/saju/*)은 예전에 주소를 안 보고 늘 990원을 말했다. 그냥 열기만 해도
+// CTA 에 offer 가 실려 나갔고, 서버는 그 offer 를 받아 리딩 값을 990원으로 박았다.
+// 광고를 한 번도 안 거친 사람이 정가짜리를 990원에 사고 있었다는 뜻이다.
+//
+// 값이 새는 것은 화면만 봐서는 안 보인다. 여기서 오퍼 없는 맨 주소를 열고,
+// CTA 가 offer 를 안 달고 나가는지 본다.
+const BARE = [
+  { name: "궁합", path: "/saju/compatibility", category: "sokgunghap", list: "9,900" },
+  { name: "속궁합", path: "/saju/intimate-compatibility", category: "sokgunghap", list: "9,900" },
+  { name: "19금", path: "/saju/mature-compatibility", category: "sokgunghap", list: "9,900" },
+  { name: "인연", path: "/saju/romance-timing", category: "insun", list: "14,900" },
+  { name: "이별", path: "/saju/breakup-decision", category: "ibyeol", list: "29,900" },
+  { name: "속마음", path: "/saju/inner-mind", category: "sseom", list: "12,900" },
+  { name: "도화", path: "/saju/dohwasal", category: "dohwasal", list: "9,900" },
+  { name: "바람기", path: "/saju/baramgi", category: "baramgi", list: "12,900" },
+];
+
+console.log(`\n[광고 링크 없이 들어오면 정가]`);
+for (const bare of BARE) {
+  const page = await browser.newPage();
+  await page.setViewport({ width: 390, height: 844 });
+  await page.evaluateOnNewDocument(() => localStorage.setItem("loverabbit-consent-v1", "denied"));
+  await page.goto(BASE + bare.path, { waitUntil: "domcontentloaded", timeout: 90000 });
+  await new Promise((r) => setTimeout(r, 2000));
+
+  const state = await page.evaluate((category) => ({
+    body: document.body.innerText,
+    marker: document.querySelector("[data-offer]")?.getAttribute("data-offer") ?? null,
+    ctas: [...document.querySelectorAll("a")]
+      .map((node) => node.getAttribute("href") ?? "")
+      .filter((href) => href.includes(`/reading?c=${category}`)),
+  }), bare.category);
+
+  // 가장 중요한 줄이다. 여기가 새면 값이 샌다.
+  check(
+    `${bare.name} - 맨 주소 CTA 에 오퍼가 없다`,
+    state.ctas.every((href) => !href.includes("offer=")),
+    state.ctas.join(" ") || "(리딩 링크 없음)"
+  );
+  check(`${bare.name} - 맨 주소에 오퍼 표시가 없다`, state.marker === null, String(state.marker));
+  check(`${bare.name} - 990원을 말하지 않는다`, !/990\s*원/.test(state.body), (state.body.match(/[\d,]+\s*원/g) ?? []).slice(0, 3).join(" / "));
+  await page.close();
+}
+
 await browser.close();
 const failed = results.filter((r) => !r).length;
 console.log(`\n${results.length - failed}/${results.length} 통과`);

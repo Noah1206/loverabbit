@@ -6,21 +6,49 @@ import { getAdOffer, type AdOfferId } from "@/lib/ad-offers";
 import { PRODUCT_MAP } from "@/lib/products";
 import { AD_PARTICIPANT_COUNTS } from "@/lib/participant-counts";
 
-export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
+/*
+  990원은 광고 링크로 들어왔을 때만 붙는다.
+
+  예전에는 이 랜딩이 주소를 보지 않고 늘 990원을 말했다. /saju/dohwasal 을 그냥
+  열기만 해도 CTA 에 offer 가 실려 나갔고, 서버는 그 offer 를 그대로 받아 리딩
+  값을 990원으로 박았다 - 광고를 한 번도 안 거친 사람이 정가 9,900원짜리를
+  990원에 사고 있었다.
+
+  이제 주소에 그 랜딩의 offer 가 실려 있을 때만 오퍼가 산다. 광고 링크에는
+  실려 있고(?offer=...), 검색이나 직접 입력으로 들어온 주소에는 없다.
+
+  offer id 자체는 광고 주소에 드러나는 공개값이라, 그걸 본 사람이 주소를 그대로
+  퍼뜨리는 것까지는 막지 못한다. 그 뒤는 서버가 막는다 - 한 사람이 이미 유료로
+  산 적이 있으면 오퍼를 죽인다(api/reading 의 hasPaidReadingOrder).
+*/
+export default async function AdSajuLanding({
+  offerId,
+  searchParams,
+}: {
+  offerId: AdOfferId;
+  searchParams?: Promise<{ offer?: string | string[] }>;
+}) {
   const offer = getAdOffer(offerId);
   if (!offer) notFound();
   const product = PRODUCT_MAP[offer.category];
   if (!product) notFound();
   const participantCount = AD_PARTICIPANT_COUNTS[offer.id as keyof typeof AD_PARTICIPANT_COUNTS];
 
-  const formHref = `/reading?c=${encodeURIComponent(product.id)}&offer=${encodeURIComponent(offer.id)}`;
+  const query = searchParams ? await searchParams : {};
+  const requested = Array.isArray(query.offer) ? query.offer[0] : query.offer;
+  const active = requested === offer.id;
+  const price = active ? offer.price : product.price;
+
+  const formHref = active
+    ? `/reading?c=${encodeURIComponent(product.id)}&offer=${encodeURIComponent(offer.id)}`
+    : `/reading?c=${encodeURIComponent(product.id)}`;
 
   return (
     <main
       className="product-page"
       data-product={product.id}
       data-landing={offer.landingType}
-      data-offer={offer.id}
+      data-offer={active ? offer.id : undefined}
     >
       <AdLandingTracker landingType={offer.landingType} />
       <ProductRevealObserver />
@@ -132,7 +160,8 @@ export default function AdSajuLanding({ offerId }: { offerId: AdOfferId }) {
           <span className="badge">먼저 무료로 확인</span>
           <h2 style={{ fontSize: "1.12rem", margin: "12px 0 7px" }}>사주 입력과 운명 미리보기는 무료예요</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", lineHeight: 1.6 }}>
-            결과의 첫 부분을 확인한 뒤, 결론과 행동 가이드까지 끝까지 보고 싶을 때만 990원을 결제합니다.
+            결과의 첫 부분을 확인한 뒤, 결론과 행동 가이드까지 끝까지 보고 싶을 때만{" "}
+            {price.toLocaleString("ko-KR")}원을 결제합니다.
           </p>
         </section>
 

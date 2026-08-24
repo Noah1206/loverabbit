@@ -9,10 +9,12 @@ import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 import { INNER_MIND_PARTICIPANT_COUNT } from "@/lib/participant-counts";
 
 const LANDING = "inner_mind" as const;
-// 광고에서 들어온 사람은 990원으로 받는다. 다른 네 랜딩과 같은 규칙이다 -
-// 이 자리에 offer 가 없으면 광고는 990원을 말하는데 도착지는 정가라, 광고가
-// 거짓말이 된다. 유저당 한 번만 먹는 것은 서버가 따로 본다.
-const FORM_PATH = "/reading?c=sseom&offer=inner_mind_990";
+// 990원은 광고 링크로 들어왔을 때만이다 - 주소에 offer 가 실려 있어야 한다.
+// 그냥 /saju/inner-mind 를 연 사람에게는 정가를 말하고 CTA 에도 offer 를 싣지
+// 않는다. 유저당 한 번만 먹는 것은 서버가 따로 본다.
+const OFFER_ID = "inner_mind_990";
+const LIST_PRICE = 12_900;
+const OFFER_PRICE = 990;
 
 // 개인화 질문 — 일반적 상황 선택지만 제공한다.
 // 선택값은 이 기기의 sessionStorage에만 남기고, URL·광고 이벤트·로그에 넣지 않는다.
@@ -32,12 +34,17 @@ export function LandingTracker() {
   return null;
 }
 
-export default function InnerMindFlow() {
+export default function InnerMindFlow({ offerActive }: { offerActive: boolean }) {
   // 연출을 본 사람과 건너뛴 사람이 같은 설문·미리보기에 도달한다.
   const [stage, setStage] = useState<"intro" | "situation">("intro");
   const [picked, setPicked] = useState<string | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [showReady, setShowReady] = useState(false);
+
+  const formPath = offerActive
+    ? `/reading?c=sseom&offer=${encodeURIComponent(OFFER_ID)}`
+    : "/reading?c=sseom";
+  const price = (offerActive ? OFFER_PRICE : LIST_PRICE).toLocaleString("ko-KR");
 
   const go = () => {
     trackPreviewStarted(LANDING);
@@ -58,7 +65,7 @@ export default function InnerMindFlow() {
   return (
     // data-offer 는 다른 네 랜딩과 같은 표시다. 광고 점검 스크립트가 이걸 보고
     // "이 랜딩이 어떤 오퍼를 파는지" 를 읽는다.
-    <div className="lp-flow" data-offer="inner_mind_990">
+    <div className="lp-flow" data-offer={offerActive ? OFFER_ID : undefined}>
       {stage === "intro" ? (
         <div className="lp-intro">
           {/* 광고 소재의 속마음 후킹을 실제 판매 상품인 썸 해부 사주로 이어 준다. */}
@@ -90,7 +97,8 @@ export default function InnerMindFlow() {
             {/* 광고가 990원을 말했다. 첫 화면에서 그 값이 안 보이면 다음 화면까지
                 반신반의로 걷게 된다 - 확인은 도착 즉시가 가장 싸다. */}
             <p className="lp-price">
-              미리보기는 무료 · 전체 리포트 <strong>990원</strong> <s>12,900원</s>
+              미리보기는 무료 · 전체 리포트 <strong>{price}원</strong>
+              {offerActive ? <s>{LIST_PRICE.toLocaleString("ko-KR")}원</s> : null}
             </p>
           </div>
         </div>
@@ -121,9 +129,13 @@ export default function InnerMindFlow() {
             {/* 광고가 990원을 말하면 랜딩도 990원을 말해야 한다. 도착지에서만
                 처음 보면 그 순간이 곧 이탈이다. */}
             <p className="lp-price">
-              미리보기는 무료 · 전체 리포트 <strong>990원</strong>
-              <span aria-hidden> </span>
-              <s>12,900원</s>
+              미리보기는 무료 · 전체 리포트 <strong>{price}원</strong>
+              {offerActive ? (
+                <>
+                  <span aria-hidden> </span>
+                  <s>{LIST_PRICE.toLocaleString("ko-KR")}원</s>
+                </>
+              ) : null}
             </p>
           </div>
           <p className="lp-note">고른 항목은 해석에만 쓰이고, 주소창이나 광고 기록에는 남지 않아요.</p>
@@ -133,7 +145,7 @@ export default function InnerMindFlow() {
       {showSignup ? (
         <SignupModal
           title="로그인하고 무료로 시작하기"
-          nextPath={FORM_PATH}
+          nextPath={formPath}
           reason="로그인 후 썸 해부 사주 입력 화면으로 바로 이어져요."
           onDone={() => {
             setShowSignup(false);
@@ -142,7 +154,7 @@ export default function InnerMindFlow() {
           onClose={() => setShowSignup(false)}
         />
       ) : null}
-      {showReady ? <AuthReadyTransition href={FORM_PATH} /> : null}
+      {showReady ? <AuthReadyTransition href={formPath} /> : null}
     </div>
   );
 }

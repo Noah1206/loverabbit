@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   description: "두 사람의 끌림 구조와 친밀도 상성, 주도권과 완급을 무료 미리보기로 확인해 보세요.",
 };
 
-export default function MatureCompatibilityLanding() {
-  return <AdSajuLanding offerId="mature_compatibility_990" />;
+export default async function MatureCompatibilityLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="mature_compatibility_990" searchParams={searchParams} />;
 }

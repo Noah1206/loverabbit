@@ -11,7 +11,18 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function InnerMindLanding() {
+// 990원은 광고 링크로 들어왔을 때만이다. 주소에 이 랜딩의 offer 가 실려 있는지
+// 여기서 보고 아래로 내려 준다 - 흐름 화면이 클라이언트 컴포넌트라 주소를 직접
+// 읽으면 Suspense 경계가 따로 필요해진다.
+export default async function InnerMindLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  const query = await searchParams;
+  const requested = Array.isArray(query.offer) ? query.offer[0] : query.offer;
+  const offerActive = requested === "inner_mind_990";
+
   return (
     <main className="lp" data-landing="inner_mind">
       <LandingTracker />
@@ -20,7 +31,7 @@ export default function InnerMindLanding() {
         <span className="badge">속마음 · 썸 해부 사주</span>
         {/* 몰입형 화면이지만 스크린리더가 읽을 제목은 반드시 남긴다. */}
         <h1 className="lp-h1">이 썸, 왜 진도가 안 나갈까?</h1>
-        <InnerMindFlow />
+        <InnerMindFlow offerActive={offerActive} />
       </section>
 
       <section className="lp-section">

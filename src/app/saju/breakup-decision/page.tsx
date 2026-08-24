@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   description: "끝난 연애의 진짜 사인과 반복 패턴, 다음 연애를 위한 처방을 무료 미리보기로 확인해 보세요.",
 };
 
-export default function BreakupDecisionLanding() {
-  return <AdSajuLanding offerId="breakup_decision_990" />;
+export default async function BreakupDecisionLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="breakup_decision_990" searchParams={searchParams} />;
 }

@@ -7,6 +7,10 @@ export const metadata: Metadata = {
     "상대 명식의 도화 기운과 이성운 흐름으로 흔들릴 수 있는 시기와 신호를 무료 미리보기로 확인해 보세요.",
 };
 
-export default function BaramgiLanding() {
-  return <AdSajuLanding offerId="baramgi_990" />;
+export default async function BaramgiLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="baramgi_990" searchParams={searchParams} />;
 }

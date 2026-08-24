@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   description: "두 사람의 성향과 관계 온도, 부딪히는 지점을 무료 운명 미리보기로 확인해 보세요.",
 };
 
-export default function CompatibilityLanding() {
-  return <AdSajuLanding offerId="compatibility_990" />;
+export default async function CompatibilityLanding({
+  searchParams,
+}: {
+  searchParams: Promise<{ offer?: string | string[] }>;
+}) {
+  return <AdSajuLanding offerId="compatibility_990" searchParams={searchParams} />;
 }
