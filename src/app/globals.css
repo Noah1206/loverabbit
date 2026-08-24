@@ -1506,8 +1506,8 @@ label {
   bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100% - 18px), 622px);
-  /* 참여 인원 배지가 CTA 버튼 위로 올라앉을 만큼만 위쪽을 비워둔다 */
-  padding: 24px 9px 9px;
+  /* 참여 인원 배지가 CTA 버튼과 겹치지 않도록 배지 높이와 간격을 확보한다. */
+  padding: 46px 9px 9px;
   transform: translateX(-50%);
   border-top: 1px solid color-mix(in srgb, var(--product-c1, #cf3cff) 34%, transparent);
   border-radius: 26px 26px 18px 18px;
@@ -1867,7 +1867,7 @@ label {
 @media (max-width: 390px) {
   .product-sticky-shell {
     bottom: calc(8px + env(safe-area-inset-bottom));
-    padding-top: 22px;
+    padding-top: 42px;
   }
 
   .product-sticky-cta {
@@ -1907,7 +1907,7 @@ label {
   }
 
   .product-participant-badge {
-    top: 30px;
+    top: 5px;
     right: 15px;
   }
 
