@@ -61,7 +61,7 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ## ① 속궁합 — `/saju/intimate-compatibility`
 
-소재 `meta-upload-v1/03-속궁합/` (6개) · 속궁합 사주 9,900 → 990
+소재 `meta-upload-v1/01-속궁합/` (6개) · 속궁합 사주 9,900 → 990
 오퍼 `intimate_compatibility_990`
 
 **기본 문구**
@@ -82,7 +82,7 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ## ② 연애운 · 인연 타이밍 — `/saju/romance-timing`
 
-소재 `meta-upload-v1/04-연애운/` (6개) · 인연 타이밍 14,900 → 990
+소재 `meta-upload-v1/02-연애운/` (6개) · 인연 타이밍 14,900 → 990
 오퍼 `romance_timing_990`
 
 **기본 문구**
@@ -106,7 +106,7 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ## ③ 이별 · 이별 부검 — `/saju/breakup-decision`
 
-소재 `meta-upload-v1/01-이별/` (6개) · 이별 부검 리포트 29,900 → 990
+소재 `meta-upload-v1/03-이별/` (6개) · 이별 부검 리포트 29,900 → 990
 오퍼 `breakup_decision_990`
 
 **기본 문구**
@@ -158,19 +158,26 @@ https://loverebbit.xyz/saju/breakup-decision?offer=breakup_decision_990&utm_sour
 공통 행동 유도는 **자세히 보기**. `지금 구매` 는 무료 미리보기가 먼저 오는
 흐름과 안 맞는다.
 
-## 아직 옛 주소를 들고 있는 곳
+## 링크는 한 장에 모여 있다
 
-셋으로 줄이기 전에 만들어 둔 것들이라 **`/product/...` 주소가 그대로 적혀
-있다. 여기 말고 저기서 복사하면 안 된다.**
+위 세 줄과 같은 것이 파일로도 있다. 메타 광고 만들기 화면 옆에 이 파일 하나만
+띄워 두면 폴더를 오갈 일이 없다.
 
-| 곳 | 상태 |
-|---|---|
-| `meta-upload-v1/광고링크.txt` | 7개 · `/product/...` |
-| `meta-upload-v1/*/읽어보기.txt` | 폴더마다 `/product/...` |
-| `collect-meta-upload.mjs` | 위 두 파일을 만드는 쪽 |
-| `scripts/verify-ad-offers.mjs` | `/product/...` 8개를 확인 |
+```
+marketing/ads/meta-upload-v1/광고링크.txt      링크 3개만
+marketing/ads/meta-upload-v1/읽어보기.txt      폴더 안내
+marketing/ads/meta-upload-v1/<광고>/읽어보기.txt  랜딩·소재 목록
+```
 
-소재 파일 자체는 그대로 쓴다 — 바뀐 것은 주소뿐이다.
+셋 다 `collect-meta-upload.mjs` 의 같은 배열에서 나온다 - 여기와 저기가 어긋날
+수 없다. 소재나 주소를 고쳤으면 생성기를 다시 돌려라.
+
+```
+node marketing/ads/collect-meta-upload.mjs
+```
+
+이 폴더는 `.gitignore` 에 있다. 저장소에 같은 그림을 두 번 넣지 않으려는 것이고,
+없으면 위 명령으로 다시 만든다.
 
 ## 켠 뒤에 볼 것
 
@@ -179,7 +186,8 @@ https://loverebbit.xyz/saju/breakup-decision?offer=breakup_decision_990&utm_sour
 
 게시 전에 한 번씩:
 
-1. 세 주소를 그대로 열어 **990원이 뜨는지** 눈으로 본다
+1. `node scripts/verify-ad-offers.mjs https://loverebbit.xyz` — 세 링크가 990원까지
+   이어지는지, 오퍼 없는 맨 주소로는 정가가 뜨는지 함께 본다
 2. 새 계정으로 990원 결제를 끝까지 한 번 (기존 계정은 정가가 뜬다)
 3. Vercel `OPENAI_API_KEY` 유효한지
 

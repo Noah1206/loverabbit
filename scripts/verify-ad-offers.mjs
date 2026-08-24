@@ -1,6 +1,6 @@
 import puppeteer from "puppeteer-core";
 
-// 실제 상품 페이지 광고 링크가 990원까지 이어지는지 확인한다.
+// 지금 켜는 광고 링크가 990원까지 이어지는지 확인한다.
 //
 // 확인하는 것은 셋이다.
 //   1. 랜딩이 열리고 990원을 말하는가
@@ -14,14 +14,12 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const UTM = "utm_source=meta&utm_medium=paid&utm_campaign=TEST_CAMPAIGN&utm_content=TEST_AD";
 
 const LINKS = [
-  { name: "궁합", path: "/product/sokgunghap", offer: "compatibility_990", category: "sokgunghap" },
-  { name: "속궁합", path: "/product/sokgunghap", offer: "intimate_compatibility_990", category: "sokgunghap" },
-  { name: "연애운", path: "/product/yeonae", offer: "yeonae_990", category: "yeonae" },
-  { name: "이별", path: "/product/ibyeol", offer: "breakup_decision_990", category: "ibyeol" },
-  { name: "속마음", path: "/product/sseom", offer: "inner_mind_990", category: "sseom" },
-  { name: "도화", path: "/product/dohwasal", offer: "dohwasal_990", category: "dohwasal" },
-  { name: "바람기", path: "/product/baramgi", offer: "baramgi_990", category: "baramgi" },
-  { name: "19금", path: "/product/sokgunghap", offer: "mature_compatibility_990", category: "sokgunghap" },
+  // 켜는 광고 셋 - marketing/ads/collect-meta-upload.mjs 의 배열과 같은 셋이다.
+  // 안 켜는 오퍼(궁합·19금·속마음·도화·바람기·올해의연애운)도 코드에는 살아 있고,
+  // 맨 주소로 값이 새는지는 아래 BARE 가 전부 훑는다.
+  { name: "속궁합", path: "/saju/intimate-compatibility", offer: "intimate_compatibility_990", category: "sokgunghap" },
+  { name: "연애운", path: "/saju/romance-timing", offer: "romance_timing_990", category: "insun" },
+  { name: "이별", path: "/saju/breakup-decision", offer: "breakup_decision_990", category: "ibyeol" },
 ];
 
 const results = [];

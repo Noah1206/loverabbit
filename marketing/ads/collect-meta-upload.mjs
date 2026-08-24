@@ -24,42 +24,17 @@ const WHITE = "white-five-v1";
 const SQUARE = "shrine-square-v1";
 // 같은 틀에 배경만 홈 그리드 카드로 바꾼 벌. 파일 이름이 같아서 접두어를 붙인다.
 const CARD = "card-square-v1";
-const APP_CARDS = path.join("..", "..", "public", "cards-pastel");
 
 const ads = [
+  // 켜는 광고는 셋뿐이다 (2026-08-24). 랜딩도 /product/... 에서 /saju/<랜딩> 전용
+  // 페이지로 옮겼다 - 그 화면이 상품 상세와 같은 판매 화면을 쓴다.
+  //
+  // 뺀 넷 - 궁합(compatibility_990) / 19금(mature_compatibility_990) /
+  // 바람기(baramgi_990) / 도화(dohwasal_990). 소재도 오퍼도 그대로 살아 있으니
+  // 되돌리려면 git 에서 이 배열의 예전 항목을 가져와 붙이면 된다.
   {
-    dir: "01-이별",
-    landing: "/product/ibyeol",
-    offer: "breakup_decision_990",
-    product: "이별 부검 리포트 29,900 -> 990",
-    headline: "내가 뭘 그렇게 잘못했을까",
-    sources: [
-      [DARK, "05-breakup-ad-vertical-1080x1920.jpg"],
-      [DARK, "05-breakup-ad-horizontal-1200x628.jpg"],
-      [WHITE, "05-breakup-feed-1080x1350.jpg"],
-      [WHITE, "05-breakup-story-1080x1920.jpg"],
-      [SQUARE, "01-breakup-square-1080x1080.jpg"],
-      [CARD, "01-breakup-square-1080x1080.jpg", "카드-"],
-    ],
-  },
-  {
-    dir: "02-궁합",
-    landing: "/product/sokgunghap",
-    offer: "compatibility_990",
-    product: "속궁합 사주 9,900 -> 990",
-    headline: "잘 맞다가도 꼭 여기서 틀어진다면",
-    sources: [
-      [DARK, "01-general-compatibility-ad-vertical-1080x1920.jpg"],
-      [DARK, "01-general-compatibility-ad-horizontal-1200x628.jpg"],
-      [WHITE, "01-compatibility-feed-1080x1350.jpg"],
-      [WHITE, "01-compatibility-story-1080x1920.jpg"],
-      [SQUARE, "02-compatibility-square-1080x1080.jpg"],
-      [CARD, "02-compatibility-square-1080x1080.jpg", "카드-"],
-    ],
-  },
-  {
-    dir: "03-속궁합",
-    landing: "/product/sokgunghap",
+    dir: "01-속궁합",
+    landing: "/saju/intimate-compatibility",
     offer: "intimate_compatibility_990",
     product: "속궁합 사주 9,900 -> 990",
     headline: "겉궁합은 좋은데 속궁합은 어떨까",
@@ -73,10 +48,12 @@ const ads = [
     ],
   },
   {
-    dir: "04-연애운",
-    landing: "/product/yeonae",
-    offer: "yeonae_990",
-    product: "올해의 연애운 14,900 -> 990",
+    dir: "02-연애운",
+    landing: "/saju/romance-timing",
+    offer: "romance_timing_990",
+    // 파는 것은 "올해의 연애운"(yeonae)이 아니라 인연 타이밍(insun)이다 -
+    // 창이 열리는 시기 / 만남의 경로 / 상대의 윤곽. 소재 CTA 도 원래 그 각도다.
+    product: "인연 타이밍 14,900 -> 990",
     headline: "올해도 그냥 지나가는 걸까",
     sources: [
       [DARK, "04-romance-fortune-ad-vertical-1080x1920.jpg"],
@@ -88,47 +65,18 @@ const ads = [
     ],
   },
   {
-    dir: "05-19금",
-    landing: "/product/sokgunghap",
-    offer: "mature_compatibility_990",
-    product: "속궁합 사주 9,900 -> 990",
-    headline: "가까워질수록 어긋나는 느낌이라면",
-    adult: true,
-    // 어두운 소재는 배경이 밀착 장면이라 심의 위험이 가장 높다. 폴더에는 넣되
-    // 이름 앞에 표시를 붙여 둔다 - 먼저 올릴 것과 구분되어야 한다.
+    dir: "03-이별",
+    landing: "/saju/breakup-decision",
+    offer: "breakup_decision_990",
+    product: "이별 부검 리포트 29,900 -> 990",
+    headline: "내가 뭘 그렇게 잘못했을까",
     sources: [
-      [WHITE, "03-mature-feed-1080x1350.jpg"],
-      [WHITE, "03-mature-story-1080x1920.jpg"],
-      [SQUARE, "06-mature-square-1080x1080.jpg"],
-      [CARD, "06-mature-square-1080x1080.jpg", "카드-"],
-      [DARK, "03-mature-night-ad-vertical-1080x1920.jpg", "심의위험-"],
-      [DARK, "03-mature-night-ad-horizontal-1200x628.jpg", "심의위험-"],
-    ],
-  },
-  {
-    // 속마음(썸 해부)이 있던 자리다. 소재와 오퍼(inner_mind_990)는 코드에 그대로
-    // 남아 있으니, 되돌리려면 이 항목만 예전 값으로 바꾸면 된다.
-    dir: "06-바람기",
-    landing: "/saju/baramgi",
-    offer: "baramgi_990",
-    product: "바람기 레이더 12,900 -> 990",
-    headline: "그 사람, 믿어도 되는 걸까",
-    // 이 주제는 스크린샷 세트에만 있다. 어두운 세트와 화이트 세트에는 없다.
-    note: "1:1 두 장뿐이다(틀은 같고 배경만 다름). 어두운 세트와 화이트 세트에는 바람기 소재가 없다.",
-    sources: [
-      [SQUARE, "07-baramgi-square-1080x1080.jpg"],
-      [CARD, "07-baramgi-square-1080x1080.jpg", "카드-"],
-    ],
-  },
-  {
-    dir: "07-도화",
-    landing: "/product/dohwasal",
-    offer: "dohwasal_990",
-    product: "도화살 진단 9,900 -> 990",
-    headline: "나한테 도화살, 진짜 있을까",
-    note: "앱에서 실제로 쓰는 도화살 상품 카드 한 장이다.",
-    sources: [
-      [APP_CARDS, "dohwasal.jpg", "카드-"],
+      [DARK, "05-breakup-ad-vertical-1080x1920.jpg"],
+      [DARK, "05-breakup-ad-horizontal-1200x628.jpg"],
+      [WHITE, "05-breakup-feed-1080x1350.jpg"],
+      [WHITE, "05-breakup-story-1080x1920.jpg"],
+      [SQUARE, "01-breakup-square-1080x1080.jpg"],
+      [CARD, "01-breakup-square-1080x1080.jpg", "카드-"],
     ],
   },
 ];
@@ -207,9 +155,9 @@ const index = "﻿" + [
 await writeFile(path.join(outDir, "읽어보기.txt"), index, "utf8");
 
 // 링크만 모은 판. 메타 광고 만들기 화면의 "웹사이트 URL" 칸에 한 줄씩 붙여 넣는다.
-// 폴더별 읽어보기.txt 에도 같은 주소가 있지만, 광고 일곱 개를 만들 때 폴더를
-// 일곱 번 여는 것보다 이 파일 하나를 띄워 두는 편이 빠르다. 같은 배열에서 뽑으므로
-// 둘이 어긋날 수 없다.
+// 폴더별 읽어보기.txt 에도 같은 주소가 있지만, 광고를 만들 때 폴더를 하나씩 여는
+// 것보다 이 파일 하나를 띄워 두는 편이 빠르다. 같은 배열에서 뽑으므로 둘이
+// 어긋날 수 없다.
 const links = "﻿" + [
   `LOVERABBIT 메타 광고 링크 ${ads.length}개`,
   ``,
