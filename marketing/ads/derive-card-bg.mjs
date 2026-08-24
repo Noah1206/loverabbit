@@ -18,8 +18,9 @@ import sharp from "sharp";
 // 띄지는 않지만 원화를 새로 만든 것과 같지 않다. 여유가 생기면 이 배경을
 // 갈아 끼우는 편이 낫다 - 파일 이름만 맞추면 생성기는 그대로 돈다.
 //
-// 세로는 cover + attention 으로 뜬다. 3:4 를 9:16 으로 늘리는 것이라 좌우만
-// 조금 잘리고 인물은 거의 그대로 남는다.
+// 세로는 기본이 cover + attention 이다. 3:4 를 9:16 으로 늘리는 것이라 좌우만
+// 조금 잘리고 인물은 거의 그대로 남는다. attention 이 엉뚱한 데를 잡는 그림은
+// vertical 에 배율과 좌표를 직접 적는다.
 //
 // 가로는 다르다. 3:4 에서 1.9:1 을 뜨면 세로의 39% 만 남아서, 가운데를 뜨면
 // 머리가 잘린다. 그래서 폭에 맞춰 늘린 뒤 **위에서 얼마나 내려온 자리**를
@@ -29,6 +30,28 @@ const root = process.cwd();
 
 const V = { width: 941, height: 1672 };
 const H = { width: 1734, height: 907 };
+
+// 배율과 좌표를 직접 적은 자리를 뜬다. 좌표는 배율을 먹인 그림 기준이고,
+// 화면 밖으로 나가면 안쪽으로 당긴다 - 값을 잘못 적어도 깨지지 않게.
+async function cropAt(src, { scale, left, top }, size) {
+  const meta = await sharp(src).metadata();
+  const widened = await sharp(src)
+    .resize({ width: Math.round(meta.width * scale), kernel: "lanczos3" })
+    .toBuffer();
+  const w = await sharp(widened).metadata();
+  if (w.width < size.width || w.height < size.height) {
+    throw new Error(`scale ${scale} 로는 ${size.width}x${size.height} 가 안 나온다.`);
+  }
+  return sharp(widened)
+    .extract({
+      left: Math.max(0, Math.min(left, w.width - size.width)),
+      top: Math.max(0, Math.min(top, w.height - size.height)),
+      width: size.width,
+      height: size.height,
+    })
+    .png()
+    .toBuffer();
+}
 
 const items = [
   {
@@ -44,6 +67,26 @@ const items = [
       // 화이트형은 배경을 public/ads/saju 에서 읽는다. 사이트가 쓰는 그림은
       // 아니고 그 생성기만 보는 자리다.
       ["public/ads/saju", "jaehoe-bg.png", "vertical"],
+    ],
+  },
+  {
+    id: "yeonae",
+    card: "yeonae.jpg",
+    // 세로는 기본값(cover + attention)이 두 번 틀렸다. 인물이 왼쪽 끝으로
+    // 밀려 귀가 잘렸고, 가슴선이 화면 한가운데(52%)에 왔다. 후킹형 세로
+    // 레이아웃은 42~76% 구간이 베일 없이 그대로 보이는 자리라, 하필 거기다.
+    //
+    // 2.6배로 당겨 두 얼굴만 남기면 목선 아래가 88% 로 내려가 CTA 버튼과
+    // 아래쪽 어두운 띠 뒤로 들어간다. 파는 것은 올해의 연애 흐름이지 성인
+    // 소재가 아니다 - 그림이 그렇게 읽히면 심의도 위험하고 상품도 오해받는다.
+    // 2.15 로도 해 봤는데 가슴선이 78%, 즉 CTA 바로 위에 그대로 남았다.
+    vertical: { scale: 2.6, left: 700, top: 0 },
+    // 220 에서 두 얼굴이 다 남고 띠가 가슴선 위에서 끝난다. 왼쪽 3분의 1이
+    // 장미와 촛불이라 헤드라인이 앉을 자리가 빈다.
+    landscapeTop: 220,
+    out: [
+      ["marketing/ads/hook-five-v1", "07-yeonae-year-vertical-bg.png", "vertical"],
+      ["marketing/ads/hook-five-v1", "07-yeonae-year-horizontal-bg.png", "horizontal"],
     ],
   },
 ];
@@ -63,10 +106,12 @@ for (const item of items) {
     );
   }
 
-  const vertical = await sharp(src)
-    .resize(V.width, V.height, { fit: "cover", position: sharp.strategy.attention, kernel: "lanczos3" })
-    .png()
-    .toBuffer();
+  const vertical = item.vertical
+    ? await cropAt(src, item.vertical, V)
+    : await sharp(src)
+        .resize(V.width, V.height, { fit: "cover", position: sharp.strategy.attention, kernel: "lanczos3" })
+        .png()
+        .toBuffer();
 
   const widened = await sharp(src).resize({ width: H.width, kernel: "lanczos3" }).toBuffer();
   const widenedMeta = await sharp(widened).metadata();

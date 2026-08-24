@@ -72,9 +72,12 @@ const ads = [
       [SQUARE, "04-romance-timing-square-1080x1080.jpg"],
       [CARD, "04-romance-timing-square-1080x1080.jpg", "카드-"],
       // 합쳐진 상품이 실제로 쓰는 그림으로 만든 한 벌. 도착 화면과 소재의 그림이
-      // 같아서 클릭 뒤 이질감이 가장 적다.
+      // 같아서 클릭 뒤 이질감이 가장 적다. 정사각 · 세로 · 가로 셋이 같은
+      // 그림에서 나온다 (배경은 derive-card-bg.mjs 가 그 카드에서 뜬다).
       [SQUARE, "08-yeonae-year-square-1080x1080.jpg"],
       [CARD, "08-yeonae-year-square-1080x1080.jpg", "카드-"],
+      [DARK, "07-yeonae-year-ad-vertical-1080x1920.jpg"],
+      [DARK, "07-yeonae-year-ad-horizontal-1200x628.jpg"],
     ],
   },
   {

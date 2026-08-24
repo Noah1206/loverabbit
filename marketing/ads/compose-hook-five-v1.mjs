@@ -100,6 +100,24 @@ const campaigns = [
     highlight: "#ffb08a",
     veil: "#0c0708",
   },
+  {
+    id: "07",
+    slug: "yeonae-year",
+    title: "연애운 사주",
+    badge: "연애운 사주",
+    product: "올해의 연애운 (yeonae, 14,900)",
+    // 04 와 같은 상품이다. 갈라 두는 축은 각도 - 04 는 혼자 기다리는 사람에게
+    // "인연 들어오는 달", 여기는 올해 전체를 재는 사람에게 "기회의 달과
+    // 고비의 달". 정사각 04/08 을 갈라 둔 것과 같은 축이고, 배경도 그와 같이
+    // 그 상품이 실제로 쓰는 카드에서 떴다 (derive-card-bg.mjs).
+    // 근거: "2장 02. 기회의 달 - 움직여야 할 때", "3장 01. 고비의 달 - 결정을 미뤄야 할 때"
+    headline: ["올해는 좀", "다를까 싶다면"],
+    cta: "기회의 달 보기  →",
+    accent: "#e0a03c",
+    accent2: "#8b4a6e",
+    highlight: "#ffd08a",
+    veil: "#0a0608",
+  },
 ];
 
 const xml = (value) => value
