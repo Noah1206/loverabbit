@@ -173,19 +173,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 
       {/* ── 고정 CTA ── */}
       <div className="product-sticky-shell">
-        <span className="product-sticky-hook">{p.emoji} {p.ctaHook}</span>
         <span className="product-participant-badge" aria-label={`${participantCount}명이 참여함`}>
-          <span aria-hidden="true">🔥</span> {participantCount}명이 참여함
+          {participantCount}명이 참여함
         </span>
         <ProductCtaGate href={cta} className="product-sticky-cta">
-          <span className="product-sticky-icon" aria-hidden>{p.emoji}</span>
           <span className="product-sticky-copy">
             <strong>{p.ctaLabel}</strong>
-            <small>
-              {activeOffer
-                ? `무료 미리보기 · 전체 리포트 ${activeOffer.price.toLocaleString("ko-KR")}원`
-                : "결과 일부 공개 · 전체 리포트는 확인 후 선택"}
-            </small>
           </span>
           <span className="product-sticky-arrow" aria-hidden>→</span>
         </ProductCtaGate>

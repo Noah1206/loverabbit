@@ -1480,8 +1480,8 @@ label {
   bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100% - 18px), 622px);
-  /* 상단 후킹 문구(pill)와 CTA 버튼이 겹치지 않도록 pill 높이 + 여백만큼 위쪽을 비워둔다 */
-  padding: 46px 9px 9px;
+  /* 참여 인원 배지가 CTA 버튼 위로 올라앉을 만큼만 위쪽을 비워둔다 */
+  padding: 24px 9px 9px;
   transform: translateX(-50%);
   border-top: 1px solid color-mix(in srgb, var(--product-c1, #cf3cff) 34%, transparent);
   border-radius: 26px 26px 18px 18px;
@@ -1491,23 +1491,6 @@ label {
   -webkit-backdrop-filter: blur(14px);
 }
 
-.product-sticky-hook {
-  position: absolute;
-  top: 2px;
-  right: 18px;
-  max-width: calc(100% - 36px);
-  padding: 7px 13px;
-  overflow: hidden;
-  border: 1px solid var(--product-line, rgba(255, 255, 255, 0.18));
-  border-radius: 999px;
-  background: rgba(20, 20, 24, 0.96);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.26);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .product-sticky-cta {
   display: flex;
@@ -1529,17 +1512,6 @@ label {
   filter: brightness(1.08) saturate(1.06);
 }
 
-.product-sticky-icon {
-  display: grid;
-  place-items: center;
-  width: 39px;
-  height: 39px;
-  flex: 0 0 39px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 50%;
-  background: rgba(13, 13, 15, 0.2);
-  font-size: 1.12rem;
-}
 
 .product-sticky-copy {
   min-width: 0;
@@ -1642,7 +1614,7 @@ label {
 .product-participant-badge {
   position: absolute;
   z-index: 2;
-  top: 28px;
+  top: 6px;
   right: 19px;
 }
 
@@ -1821,23 +1793,12 @@ label {
 @media (max-width: 390px) {
   .product-sticky-shell {
     bottom: calc(8px + env(safe-area-inset-bottom));
-    padding-top: 44px;
-  }
-
-  .product-sticky-hook {
-    right: 12px;
-    max-width: calc(100% - 24px);
+    padding-top: 22px;
   }
 
   .product-sticky-cta {
     gap: 9px;
     padding-inline: 12px;
-  }
-
-  .product-sticky-icon {
-    width: 34px;
-    height: 34px;
-    flex-basis: 34px;
   }
 
   .ad-saju-sticky-shell {

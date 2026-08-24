@@ -172,7 +172,7 @@ export default async function AdSajuLanding({
 
       <div className="product-sticky-shell ad-saju-sticky-shell">
         <span className="ad-saju-participant-badge" aria-label={`${participantCount}명이 참여함`}>
-          <span aria-hidden="true">🔥</span> {participantCount}명이 참여함
+          {participantCount}명이 참여함
         </span>
         <div className="ad-saju-cta-flames" aria-hidden="true">
           <span>🔥</span>

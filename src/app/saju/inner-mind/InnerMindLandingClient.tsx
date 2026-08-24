@@ -121,7 +121,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           </ul>
           <div className="lp-cta-wrap">
             <span className="lp-participant-badge" aria-label={`${INNER_MIND_PARTICIPANT_COUNT}명이 참여함`}>
-              <span aria-hidden="true">🔥</span> {INNER_MIND_PARTICIPANT_COUNT}명이 참여함
+              {INNER_MIND_PARTICIPANT_COUNT}명이 참여함
             </span>
             <button type="button" className="btn lp-cta" onClick={go} disabled={!picked}>
               미리보기로 이동
