@@ -40,6 +40,7 @@ type CategorySelectionMode = "loading" | "fixed" | "picker";
 // 먼저 묻는 mode 단계가 그 자리를 대신한다.
 type ReadingStep =
   | "category"
+  | "meGender"
   | "meBirth"
   | "meDetails"
   | "partnerBirth"
@@ -51,6 +52,7 @@ type ReadingStep =
 const READING_STEP_LABELS: Record<ReadingStep, string> = {
   category: "리딩 선택",
   mode: "함께 볼 사람",
+  meGender: "성별",
   meBirth: "내 생년월일",
   meDetails: "내 출생 정보",
   partnerBirth: "그 사람 생년월일",
@@ -339,12 +341,17 @@ function BirthDateFields({
   );
 }
 
+// showGender=false 는 내 정보 단계에서 쓴다. 내 성별은 맨 앞에서 이미 받았고,
+// 같은 질문을 두 번 하면 고쳐야 하는 값인지 헷갈린다. 상대 정보는 앞 단계가
+// 없으니 여기서 같이 받는다.
 function PersonDetailsFields({
   value,
   onChange,
+  showGender = true,
 }: {
   value: PersonForm;
   onChange: (v: PersonForm) => void;
+  showGender?: boolean;
 }) {
   const set = (key: "hour" | "gender", nextValue: string) => onChange({ ...value, [key]: nextValue });
 
@@ -360,14 +367,16 @@ function PersonDetailsFields({
           ))}
         </select>
       </div>
-      <div>
-        <label htmlFor="reading-gender">성별</label>
-        <select id="reading-gender" value={value.gender} onChange={(e) => set("gender", e.target.value)}>
-          <option value="" disabled>선택해주세요</option>
-          <option value="F">여성</option>
-          <option value="M">남성</option>
-        </select>
-      </div>
+      {showGender && (
+        <div>
+          <label htmlFor="reading-gender">성별</label>
+          <select id="reading-gender" value={value.gender} onChange={(e) => set("gender", e.target.value)}>
+            <option value="" disabled>선택해주세요</option>
+            <option value="F">여성</option>
+            <option value="M">남성</option>
+          </select>
+        </div>
+      )}
     </div>
   );
 }
@@ -378,6 +387,9 @@ export default function ReadingPage() {
   const [offerId, setOfferId] = useState<string | undefined>();
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [step, setStep] = useState<ReadingStep>("category");
+  // 화면이 어느 쪽에서 들어올지. 다음으로 가면 오른쪽에서, 뒤로 가면 왼쪽에서.
+  // 방향이 없으면 뒤로 가는데도 앞으로 가는 것처럼 보여 어디로 움직였는지 잃는다.
+  const [stepDir, setStepDir] = useState<"forward" | "back">("forward");
   const [hasChosenCategory, setHasChosenCategory] = useState(false);
   // 혼자/함께 를 골랐는가. withPartner 의 기본값(true)과 "골랐다"는 별개라 따로 든다.
   const [modeChosen, setModeChosen] = useState(false);
@@ -434,7 +446,7 @@ export default function ReadingPage() {
     // 광고·홈 카드로 들어와 상품이 정해져 있으면(found) 선택·mode 단계를 아예
     // 건너뛴다 — fixed 흐름. 아니면 picker 흐름으로 맨 뒤에서 고른다.
     setCategorySelectionMode(found ? "fixed" : "picker");
-    setStep("meBirth");
+    setStep("meGender");
     setHasChosenCategory(Boolean(found));
     setModeChosen(Boolean(found));
 
@@ -559,6 +571,7 @@ export default function ReadingPage() {
 
   const moveTo = (nextStep: ReadingStep) => {
     setError("");
+    setStepDir("forward");
     setStep(nextStep);
   };
 
@@ -591,6 +604,10 @@ export default function ReadingPage() {
   };
 
   const advanceStep = () => {
+    if (step === "meGender") {
+      moveTo("meBirth");
+      return;
+    }
     if (step === "meBirth") {
       if (!showBirthError(me, "내", true)) moveTo("meDetails");
       return;
@@ -631,11 +648,11 @@ export default function ReadingPage() {
   const workflowSteps: readonly ReadingStep[] =
     categorySelectionMode === "fixed"
       ? withPartner
-        ? ["meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
-        : ["meBirth", "meDetails", "concern", "ready"]
+        ? ["meGender", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
+        : ["meGender", "meBirth", "meDetails", "concern", "ready"]
       : withPartner
-        ? ["meBirth", "meDetails", "mode", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
-        : ["meBirth", "meDetails", "mode", "concern", "category", "ready"];
+        ? ["meGender", "meBirth", "meDetails", "mode", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
+        : ["meGender", "meBirth", "meDetails", "mode", "concern", "category", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
 
   // 헤더의 < 버튼. 첫 단계에서는 흐름을 벗어나 홈으로 돌아간다.
@@ -645,6 +662,7 @@ export default function ReadingPage() {
       router.push("/");
       return;
     }
+    setStepDir("back");
     setStep(workflowSteps[workflowStepIndex - 1]);
   };
 
@@ -653,10 +671,12 @@ export default function ReadingPage() {
   // 컨트롤만 봐서는 드러나지 않는 자리다.
   const showIntroHeader =
     categorySelectionMode === "loading" ||
+    step === "meGender" ||
     step === "meBirth" ||
     step === "category" ||
     step === "concern";
-  const isDataEntryStep = step === "meBirth"
+  const isDataEntryStep = step === "meGender"
+    || step === "meBirth"
     || step === "meDetails"
     || step === "partnerBirth"
     || step === "partnerDetails"
@@ -665,6 +685,8 @@ export default function ReadingPage() {
     ? hasChosenCategory
     : step === "mode"
     ? modeChosen
+    : step === "meGender"
+    ? me.gender === "F" || me.gender === "M"
     : step === "meBirth"
       ? hasValidBirth(me, true)
       : step === "meDetails"
@@ -694,6 +716,7 @@ export default function ReadingPage() {
        버튼은 제출이라 자동 제출이 되고, 고민은 선택 입력이라 "다 찼다"가 없다.
   */
   const AUTO_ADVANCE_DELAY: Partial<Record<ReadingStep, number>> = {
+    meGender: 350,
     meBirth: 1100,
     meDetails: 450,
     mode: 350,
@@ -744,12 +767,14 @@ export default function ReadingPage() {
       </header>
 
       {showIntroHeader && (
-        <header className="reading-flow-header">
+        <header key={step} className="reading-flow-header" data-dir={stepDir}>
           {step === "concern" ? (
             <>
               <h1>당신의 속마음을 말해주세요.</h1>
               <p>자세하면 자세할 수록 좋아요!</p>
             </>
+          ) : step === "meGender" ? (
+            <h1>사주를 위한 성별을 알려주세요.</h1>
           ) : step === "meBirth" ? (
             <h1>당신의 사주부터 세워볼게요.</h1>
           ) : (
@@ -776,6 +801,7 @@ export default function ReadingPage() {
 
           <section
             key={step}
+            data-dir={stepDir}
             className={`reading-step-card${isDataEntryStep ? " reading-step-card--plain" : " card"}`}
             // 카드 안에는 제목을 두지 않는다 — 바로 위 진행바가 단계 이름을 보여준다.
             // 제목 요소가 없으므로 영역 이름은 여기서 직접 준다.
@@ -783,10 +809,6 @@ export default function ReadingPage() {
           >
             {step === "mode" && (
               <>
-                <p className="reading-step-note">
-                  혼자 보면 내 흐름을 깊게, 함께 보면 두 명식을 맞대어 합과 충까지 읽어요.
-                  다음에 나올 리딩 목록이 이 선택에 맞춰 갈려요.
-                </p>
                 <div className="reading-category-grid">
                   <button
                     type="button"
@@ -839,6 +861,29 @@ export default function ReadingPage() {
               </>
             )}
 
+            {step === "meGender" && (
+              <>
+                <div className="reading-category-grid">
+                  <button
+                    type="button"
+                    className={"reading-category-option" + (me.gender === "F" ? " is-selected" : "")}
+                    aria-pressed={me.gender === "F"}
+                    onClick={() => setMe({ ...me, gender: "F" })}
+                  >
+                    <strong>여성</strong>
+                  </button>
+                  <button
+                    type="button"
+                    className={"reading-category-option" + (me.gender === "M" ? " is-selected" : "")}
+                    aria-pressed={me.gender === "M"}
+                    onClick={() => setMe({ ...me, gender: "M" })}
+                  >
+                    <strong>남성</strong>
+                  </button>
+                </div>
+              </>
+            )}
+
             {step === "meBirth" && (
               <>
                 <CalendarToggle value={me} onChange={setMe} />
@@ -851,10 +896,7 @@ export default function ReadingPage() {
 
             {step === "meDetails" && (
               <>
-                <p className="reading-step-note">
-                  태어난 시각이 네 번째 기둥이 되고, 성별은 태어난 해와 함께 대운이 흐르는 방향을 정해요. 시각을 모르면 세 기둥으로 읽고 그 사실을 결과에 밝혀둬요.
-                </p>
-                <PersonDetailsFields value={me} onChange={setMe} />
+                <PersonDetailsFields value={me} onChange={setMe} showGender={false} />
                 {/*
                   두 사람을 보는 상품에서는 끄지 못하게 한다.
 
@@ -864,14 +906,11 @@ export default function ReadingPage() {
                   본인 이야기의 되풀이가 되고, 그 값을 치른 사람은 두 사람을 보러 온
                   사람이다.
 
-                  혼자 보는 상품에서는 그대로 고를 수 있게 둔다.
+                  그래서 그 상품에서는 이 자리에 아무것도 두지 않는다 — 끌 수 없는
+                  것을 안내로 알리지도 않는다. 다음 화면에서 상대 정보를 받으면
+                  그때 알게 된다. 혼자 보는 상품에서만 고를 수 있게 둔다.
                 */}
-                {categorySelectionMode !== "fixed" ? null : selectedCategory?.needsPartner ? (
-                  <p className="reading-step-note">
-                    <strong>{selectedCategory.label}</strong>은 두 사람의 명식을 맞대어 보는
-                    리포트예요. 다음 화면에서 그 사람의 정보도 받을게요.
-                  </p>
-                ) : (
+                {categorySelectionMode === "fixed" && !selectedCategory?.needsPartner && (
                   <label className="reading-partner-toggle">
                     <input
                       type="checkbox"
@@ -889,9 +928,6 @@ export default function ReadingPage() {
 
             {step === "partnerBirth" && (
               <>
-                <p className="reading-step-note">
-                  그 사람의 기둥도 같은 방식으로 세워요. 두 명식을 맞대야 합과 충이 보여요.
-                </p>
                 <CalendarToggle value={partner} onChange={setPartner} />
                 <BirthDateFields value={partner} onChange={setPartner} />
               </>
@@ -899,9 +935,6 @@ export default function ReadingPage() {
 
             {step === "partnerDetails" && (
               <>
-                <p className="reading-step-note">
-                  성별에 따라 배우자를 뜻하는 글자가 갈려요 — 여자는 관성, 남자는 재성으로 읽어요.
-                </p>
                 <PersonDetailsFields value={partner} onChange={setPartner} />
               </>
             )}

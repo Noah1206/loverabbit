@@ -2223,6 +2223,21 @@ label {
 .reading-flow-page {
   padding-top: 42px;
   padding-bottom: calc(128px + env(safe-area-inset-bottom));
+  /* 들어오는 화면이 화면 밖에서 출발한다. 잘라내지 않으면 애니메이션 도중
+     가로 스크롤바가 번쩍이고, 모바일에서는 손가락에 좌우로 밀린다.
+     clip 은 hidden 과 달리 세로 sticky 를 안 깨뜨린다. */
+  overflow-x: clip;
+}
+
+/* 머리글도 카드와 같이 움직인다. 카드만 밀면 제목은 제자리에서 글자만 바뀌어
+   화면이 넘어간 게 아니라 내용만 갈린 것처럼 보인다. */
+.reading-flow-header {
+  animation: reading-step-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reading-flow-header[data-dir="back"],
+.reading-step-card[data-dir="back"] {
+  animation-name: reading-step-enter-back;
 }
 
 .reading-flow-header {
@@ -2249,8 +2264,7 @@ label {
   /* 좌우 들여쓰기를 두지 않는다 — 테두리가 없어져 안쪽을 밀어넣을 이유가 사라졌고,
      그만큼 항목이 넓어지면서 위 진행바·제목과 같은 20px 기준선에 맞는다. */
   padding: clamp(20px, 5vw, 28px) 0;
-  transform-origin: 50% 20%;
-  animation: reading-step-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: reading-step-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /* 이 카드에는 테두리를 두지 않는다. 안쪽 항목들이 이미 각자 상자를 갖고 있어서
@@ -2689,14 +2703,32 @@ label {
   transform: none;
 }
 
+/* 다음으로 갈 때는 오른쪽에서, 뒤로 갈 때는 왼쪽에서 들어온다.
+   방향이 없으면 뒤로 가는데도 앞으로 가는 것처럼 보여 길을 잃는다.
+
+   18px 이던 것을 화면 폭에 비례하게 키웠다. 그 정도로는 화면이 넘어갔다기보다
+   내용이 살짝 튄 것으로 읽혔다. 나가는 화면은 함께 밀지 않는다 - 단계마다
+   remount 하는 구조라 둘을 동시에 띄우려면 흐름 전체를 바꿔야 하고,
+   들어오는 쪽만 밀어도 "옆에서 나온다"는 읽힘은 충분하다. */
 @keyframes reading-step-enter {
   from {
     opacity: 0;
-    transform: translate3d(18px, 0, 0) scale(0.99);
+    transform: translate3d(clamp(84px, 34vw, 220px), 0, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes reading-step-enter-back {
+  from {
+    opacity: 0;
+    transform: translate3d(calc(-1 * clamp(84px, 34vw, 220px)), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -2795,6 +2827,7 @@ label {
   }
 
   .reading-step-card,
+  .reading-flow-header,
   .reading-fixed-action {
     animation: none;
   }
