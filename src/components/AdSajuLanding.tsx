@@ -80,8 +80,6 @@ export default async function AdSajuLanding({
           <AdLandingCta
             href={formHref}
             landingType={offer.landingType}
-            signupTitle={offer.loginTitle}
-            signupReason={offer.loginReason}
             className="product-sticky-cta"
           >
             <span className="product-sticky-copy">
