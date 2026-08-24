@@ -8,7 +8,7 @@
 // 단정 표현 표는 reading-guard 에서 그대로 가져온다. 하면 안 되는 말은 같다.
 
 import { ABSOLUTE_PATTERNS, OUT_OF_SCOPE } from "@/lib/reading-guard";
-import type { CorpusRow } from "@/lib/threads-corpus";
+import type { CorpusRow, SajushibaPattern } from "@/lib/threads-corpus";
 import { unknownSourceIds } from "@/lib/threads-corpus";
 import type {
   AuthorizedReuseMode,
@@ -69,6 +69,58 @@ const BRAND_TYPO = /러브(?!레빗)[가-힣]{0,2}빗|럽레빗|러브\s+레빗/
 const POLITE_END = /(요|니다|죠|습니까)[.!?…]?$/;
 const CASUAL_END = /(어|아|야|지|해|봐|께|게|거든|잖아)[.!?…]?$/;
 
+/** 문장으로 갈라 끝 글자만 센다. 패턴 공식과 초안 본문에 같은 자를 댄다. */
+function countTone(text: string): { polite: number; casual: number } {
+  const sentences = text
+    .split(/[\n.!?…]+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 3);
+  return {
+    polite: sentences.filter((s) => POLITE_END.test(s)).length,
+    casual: sentences.filter((s) => CASUAL_END.test(s)).length,
+  };
+}
+
+export type PatternTone = "polite" | "casual";
+
+/**
+ * 이 패턴이 요구하는 말투.
+ *
+ * 지금까지 가드는 "한 초안 안에서 섞이지 마라"만 봤고 **어느 쪽인지는 안 봤다.**
+ * 그래서 SS-P03(반말이 규격인 패턴)으로 쓴 존댓말 초안이 그대로 통과해 큐에
+ * 앉았고, 다음 주 리뷰가 그 이탈본을 기준 삼아 정상본을 고치라고 지목했다 —
+ * 규격에 맞게 나온 글을 두 번 다시 쓰게 만들었다.
+ *
+ * 두 군데서 읽는다. 순서가 있다.
+ *   1. style_markers 에 "반말"/"존댓말"이 적혀 있으면 그것이 선언이다.
+ *   2. 없으면 패턴 자신의 공식 문장(hook/body/conversion)에서 잰다.
+ *      허가받은 원문에서 뽑은 문장이라 그 말투가 곧 그 패턴의 말투다.
+ *
+ * 2번은 여유를 두고 판정한다 — 한쪽이 두 문장 이상이면서 반대쪽의 두 배는 되어야
+ * 한다. 공식에는 자리표시자가 섞여 있어 한두 문장은 반대로 끝나기 때문이다
+ * (실제로 SS-P03 은 반말 4 / 존댓말 1 이다). 판정이 안 서면 null 을 주고, 이
+ * 검사는 그 패턴에 대해 아무 말도 하지 않는다. 애매한 것을 우겨서 잡으면
+ * 멀쩡한 초안이 매번 사람 손으로 넘어간다.
+ */
+export function patternTone(pattern: SajushibaPattern | undefined): PatternTone | null {
+  if (!pattern) return null;
+
+  const declared = pattern.style_markers.join(" ");
+  if (/반말/.test(declared) && !/존댓말/.test(declared)) return "casual";
+  if (/존댓말/.test(declared) && !/반말/.test(declared)) return "polite";
+
+  // 자리표시자는 세지 않는다. {trait} 같은 것이 문장 끝에 오면 말투가 아니라
+  // 중괄호를 재게 된다.
+  const formulas = [pattern.hook_formula, ...pattern.body_formula, pattern.conversion_bridge]
+    .filter(Boolean)
+    .join("\n")
+    .replace(/\{[^}]*\}/g, "X");
+  const { polite, casual } = countTone(formulas);
+  if (casual >= 2 && casual >= polite * 2) return "casual";
+  if (polite >= 2 && polite >= casual * 2) return "polite";
+  return null;
+}
+
 /** 생년월일시로 읽히는 꼴 — 로그·fixture·본문 어디에도 남으면 안 된다 */
 const BIRTH_PATTERNS = [
   /\b(19|20)\d{2}\s*[년.\-/]\s*\d{1,2}\s*[월.\-/]\s*\d{1,2}\s*일?\s*(생|출생|태어)/,
@@ -99,6 +151,8 @@ export interface ThreadGuardOptions {
   allowDirectCopy: boolean;
   /** 이 초안이 원문을 어디까지 쓰기로 한 모드인가 */
   reuseMode?: AuthorizedReuseMode;
+  /** 이 초안이 따르기로 한 패턴. 말투 규격이 여기서 온다 (patternTone 참조) */
+  pattern?: SajushibaPattern;
 }
 
 /**
@@ -375,6 +429,29 @@ export function checkThreadDraft(
       detail: `존댓말 ${polite}문장 / 반말 ${casual}문장 — 한 초안 안에서 섞였다`,
       blocking: false,
     });
+  }
+
+  // 섞였는지만이 아니라 **어느 쪽인지**를 본다. 패턴이 말투를 정해 두었는데
+  // 초안이 반대로 갔으면, 그건 글이 예쁘냐 마냐가 아니라 규격 이탈이다.
+  //
+  // 막지는 않는다(needs_review 로 간다). 끝 글자만 보는 성긴 자라서, 틀린
+  // 지적으로 멀쩡한 초안을 다시 쓰게 만드는 값이 사람이 한 번 보는 값보다 비싸다.
+  const required = patternTone(options.pattern);
+  if (required) {
+    const wrong = required === "casual" ? polite : casual;
+    const right = required === "casual" ? casual : polite;
+    const label = required === "casual" ? "반말" : "존댓말";
+    const other = required === "casual" ? "존댓말" : "반말";
+    if (wrong >= 2 && wrong > right) {
+      add({
+        kind: "말투",
+        where: "posts",
+        detail:
+          `이 패턴(${options.pattern!.id})은 ${label}이 규격인데 초안이 ${other}로 갔다 ` +
+          `— ${other} ${wrong}문장 / ${label} ${right}문장`,
+        blocking: false,
+      });
+    }
   }
 
   // ── 개인정보 ──

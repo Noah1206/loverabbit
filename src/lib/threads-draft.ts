@@ -161,6 +161,7 @@ export async function generateDraft(options: GenerateOptions): Promise<GenerateR
       corpus,
       allowDirectCopy: direct,
       reuseMode: mode,
+      pattern,
     });
 
     const dup = duplicateOfPrevious(posts, options.previousBodies ?? []);
