@@ -1165,8 +1165,9 @@ label {
   max-width: 640px;
   min-height: 100dvh;
   margin: 0 auto;
-  /* 고정 CTA 바(128px) + 바닥 여백(22px)보다 넉넉해야 마지막 문단이 가리지 않는다 */
-  padding-bottom: calc(166px + env(safe-area-inset-bottom));
+  /* 고정 CTA 바(128px) + 바닥 여백(24px) + 버튼 두께보다 넉넉해야 마지막 문단이
+     가리지 않는다 */
+  padding-bottom: calc(190px + env(safe-area-inset-bottom));
   overflow: clip;
   background:
     radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--product-c1, #cf3cff) 8%, transparent), transparent 38%),
@@ -1570,10 +1571,11 @@ label {
 
 /* 광고 전용 랜딩 CTA — 짧은 버튼 카피만 남기고 불꽃이 위로 번지게 한다 */
 .ad-saju-sticky-shell {
-  /* 배지의 기준점은 유지하면서 CTA 자체는 항상 화면 하단에 고정한다. */
+  /* 배지의 기준점은 유지하면서 CTA 자체는 항상 화면 하단에 고정한다.
+     아래 여백은 버튼 두께(옆면 8px)가 놓일 자리까지 함께 센 값이다. */
   position: fixed;
   z-index: 61;
-  bottom: calc(8px + env(safe-area-inset-bottom));
+  bottom: calc(24px + env(safe-area-inset-bottom));
   padding: 0;
   overflow: visible;
   border: 0;
@@ -1656,11 +1658,30 @@ label {
   right: 8px;
 }
 
+/* 눌러야 할 것처럼 보이게 만든다.
+
+   그림을 쓰지 않고 그림자만으로 두께를 만든다. 퍼지지 않는 그림자
+   (0 8px 0)가 버튼 옆면이 되고, 그 아래 글로우와 접지 그림자가 바닥이 된다.
+   윗면 하이라이트와 아랫면 안쪽 그늘이 판을 휘게 해 모서리를 세운다.
+
+   색은 전부 그 상품의 --product-c1 / --product-glow 에서 뽑는다. 속궁합은
+   장밋빛, 인연은 청록, 이별은 갈색 옆면이 나온다 - 버튼 색과 따로 놀지 않는다. */
 .ad-saju-sticky-shell .product-sticky-cta {
+  --cta-lift: 8px;
+  --cta-side: color-mix(in srgb, var(--product-c1, #cf3cff) 42%, #0b0611);
   position: relative;
   justify-content: center;
+  min-height: 76px;
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.32);
+  border-radius: 22px;
   text-align: center;
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    inset 0 -15px 22px -14px rgba(10, 4, 14, 0.62),
+    0 var(--cta-lift) 0 -3px var(--cta-side),
+    0 calc(var(--cta-lift) + 10px) 28px -10px var(--product-glow, rgba(207, 60, 255, 0.5)),
+    0 calc(var(--cta-lift) + 18px) 34px -18px rgba(6, 3, 10, 0.85);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -1669,13 +1690,33 @@ label {
     box-shadow 160ms ease;
 }
 
+/* 윗면 광택. 버튼 위 절반에만 얹어 빛이 위에서 온 것처럼 보이게 한다. */
+.ad-saju-sticky-shell .product-sticky-cta::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 46% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
 .ad-saju-sticky-shell .product-sticky-copy {
+  position: relative;
+  z-index: 1;
   flex: 0 1 auto;
   text-align: center;
 }
 
+.ad-saju-sticky-shell .product-sticky-copy strong {
+  font-size: clamp(1.02rem, 4.6vw, 1.18rem);
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(10, 4, 14, 0.35);
+}
+
 .ad-saju-sticky-shell .product-sticky-arrow {
   position: absolute;
+  z-index: 1;
   top: 50%;
   right: 18px;
   transform: translateY(-50%);
@@ -1683,12 +1724,20 @@ label {
 }
 
 .ad-saju-sticky-shell .product-sticky-cta:active {
-  transform: translateY(2px) scale(0.975);
-  filter: brightness(0.94) saturate(0.96);
+  --cta-lift: 2px;
+  transform: translateY(6px);
+  filter: brightness(0.95) saturate(0.98);
   box-shadow:
-    inset 0 4px 12px rgba(18, 8, 22, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    inset 0 3px 11px rgba(10, 4, 14, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
+    0 var(--cta-lift) 0 -1px var(--cta-side),
+    0 calc(var(--cta-lift) + 5px) 14px -9px var(--product-glow, rgba(207, 60, 255, 0.5)),
+    0 calc(var(--cta-lift) + 9px) 18px -14px rgba(6, 3, 10, 0.85);
   transition-duration: 80ms;
+}
+
+.ad-saju-sticky-shell .product-sticky-cta:active::before {
+  opacity: 0.5;
 }
 
 .ad-saju-sticky-shell .product-sticky-cta:active .product-sticky-arrow {
@@ -1699,7 +1748,7 @@ label {
 .ad-saju-cta-flames {
   position: absolute;
   z-index: 1;
-  inset: auto 18px 72px;
+  inset: auto 18px 76px;
   height: 112px;
   overflow: visible;
   pointer-events: none;
@@ -1827,7 +1876,19 @@ label {
   }
 
   .ad-saju-sticky-shell {
+    /* 좁은 화면에서도 버튼 두께가 놓일 자리는 남긴다. 이 값을 안 적으면
+       뒤에 오는 .product-sticky-shell 의 bottom 이 대신 먹는다. */
+    bottom: calc(18px + env(safe-area-inset-bottom));
     padding: 0;
+  }
+
+  .ad-saju-sticky-shell .product-sticky-cta {
+    min-height: 72px;
+    border-radius: 20px;
+  }
+
+  .ad-saju-cta-flames {
+    inset: auto 16px 72px;
   }
 
   .ad-saju-participant-badge {
