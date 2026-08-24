@@ -47,6 +47,14 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             {participantCount}명이 참여함
           </span>
           <ProductCtaGate href={cta} className="product-sticky-cta">
+            <span className="product-cta-flames" aria-hidden="true">
+              <span>🔥</span>
+              <span>🔥</span>
+              <span>🔥</span>
+              <span>🔥</span>
+              <span>🔥</span>
+              <span>🔥</span>
+            </span>
             <span className="product-sticky-copy">
               <strong>{p.ctaLabel}</strong>
             </span>
