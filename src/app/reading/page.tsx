@@ -393,7 +393,6 @@ export default function ReadingPage() {
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
-  const [animatedProgress, setAnimatedProgress] = useState(0);
 
   // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
   const formStartedRef = useRef(false);
@@ -622,7 +621,7 @@ export default function ReadingPage() {
         ? ["meBirth", "meDetails", "mode", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
         : ["meBirth", "meDetails", "mode", "concern", "category", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
-  const progress = ((workflowStepIndex + 1) / workflowSteps.length) * 100;
+
   // 헤더의 < 버튼. 첫 단계에서는 흐름을 벗어나 홈으로 돌아간다.
   const goBack = () => {
     setError("");
@@ -716,11 +715,6 @@ export default function ReadingPage() {
     ? birthError(me, "내", true)
     : null;
 
-  useEffect(() => {
-    if (categorySelectionMode === "loading") return;
-    const frame = window.requestAnimationFrame(() => setAnimatedProgress(progress));
-    return () => window.cancelAnimationFrame(frame);
-  }, [categorySelectionMode, progress]);
 
   return (
     <main className="container reading-flow-page">
@@ -741,23 +735,9 @@ export default function ReadingPage() {
               <p>자세하면 자세할 수록 좋아요!</p>
             </>
           ) : step === "meBirth" ? (
-            <>
-              <h1>당신의 사주부터 세워볼게요.</h1>
-              <p>
-                {activeOffer
-                  ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요."
-                  : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
-              </p>
-            </>
+            <h1>당신의 사주부터 세워볼게요.</h1>
           ) : (
-            <>
-              <h1>어떤 운명을 읽어볼까요?</h1>
-              <p>
-                {activeOffer
-                  ? "사주 정보를 차례로 입력하고 무료 결과를 먼저 확인하세요."
-                  : "한 단계씩 입력하면 무료 운명 미리보기를 바로 확인할 수 있어요."}
-              </p>
-            </>
+            <h1>어떤 운명을 읽어볼까요?</h1>
           )}
         </header>
       )}
@@ -766,15 +746,6 @@ export default function ReadingPage() {
         <div className="card reading-step-card" aria-live="polite">리딩 정보를 불러오고 있어요…</div>
       ) : (
         <>
-          <div className="reading-flow-progress" aria-label={`입력 진행 단계 ${workflowStepIndex + 1}/${workflowSteps.length}`}>
-            <div className="reading-flow-progress-copy">
-              <span>{READING_STEP_LABELS[step]}</span>
-              <strong>{workflowStepIndex + 1} / {workflowSteps.length}</strong>
-            </div>
-            <div className="reading-flow-progress-track" aria-hidden="true">
-              <span style={{ transform: `scaleX(${animatedProgress / 100})` }} />
-            </div>
-          </div>
 
           {!user && pendingReferral && (
             <aside className="friend-invite-banner" aria-label="친구 초대 안내">
@@ -854,9 +825,6 @@ export default function ReadingPage() {
 
             {step === "meBirth" && (
               <>
-                <p className="reading-step-note">
-                  이 날짜에서 연·월·일 세 기둥이 나와요. 달은 절기로 갈려서, 월초에 태어났다면 하루 차이로 기둥이 바뀌기도 해요.
-                </p>
                 <CalendarToggle value={me} onChange={setMe} />
                 <BirthDateFields value={me} onChange={setMe} />
                 {visibleMeBirthError && (
