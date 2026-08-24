@@ -27,7 +27,7 @@ const me = buildSajuFacts({ year: 1993, month: 1, day: 24, hour: 14, gender: "F"
 const partner = buildSajuFacts({ year: 1991, month: 7, day: 8, hour: 20, gender: "M" });
 
 // 광고가 실제로 보내는 다섯 갈래
-const CATEGORIES = ["sokgunghap", "insun", "ibyeol", "sseom"];
+const CATEGORIES = ["sokgunghap", "yeonae", "ibyeol", "sseom"];
 
 interface Row {
   product: string;

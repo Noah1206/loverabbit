@@ -20,7 +20,7 @@
 | 07 | 궁합 사주 · 후킹 커플형 | 우리 둘, 잘 맞을까? | `hook-five-v1/01-general-compatibility-ad-vertical-1080x1920.png` | `hook-five-v1/01-general-compatibility-ad-horizontal-1200x628.png` | 궁합 전용 랜딩 |
 | 08 | 속궁합 사주 · 레드 라운지형 | 말보다 먼저 맞는 온도 | `hook-five-v1/02-intimate-compatibility-ad-vertical-1080x1920.png` | `hook-five-v1/02-intimate-compatibility-ad-horizontal-1200x628.png` | 속궁합 전용 랜딩 |
 | 09 | 19금 사주 · 향수 광고형 | 밤이 되면 달라지는 궁합 | `hook-five-v1/03-mature-night-ad-vertical-1080x1920.png` | `hook-five-v1/03-mature-night-ad-horizontal-1200x628.png` | 성인 인증/정책 검토 랜딩 |
-| 10 | 연애운 사주 · 봄밤 타이밍형 | 이번 사랑, 언제 시작될까? | `hook-five-v1/04-romance-fortune-ad-vertical-1080x1920.png` | `hook-five-v1/04-romance-fortune-ad-horizontal-1200x628.png` | 연애운 전용 랜딩 |
+| 10 | 연애운 사주 · 봄밤 타이밍형 | 이번 사랑, 언제 시작될까? | `hook-five-v1/04-romance-fortune-ad-vertical-1080x1920.png` | `hook-five-v1/04-romance-fortune-ad-horizontal-1200x628.png` | `/product/yeonae` (인연 타이밍이 여기로 합쳐졌다) |
 | 11 | 이별 사주 · 갈림길형 | 끝낼까, 붙잡을까? | `hook-five-v1/05-breakup-ad-vertical-1080x1920.png` | `hook-five-v1/05-breakup-ad-horizontal-1200x628.png` | 이별 전용 랜딩 |
 
 ## 형식
@@ -40,5 +40,19 @@
 - ~~넓은 연애운 관심층과 990원 입문 상품: **06 평생 연애운**~~ — 상품이 내려가 이 소재는 쓰지 않습니다
 - 이번 후킹형 5종만 빠르게 비교: **07–11**, 또는 `hook-five-v1/hook-five-preview.png`
 - 가장 관능적인 신규 소재: **09 19금 사주 · 향수 광고형**
+
+## 정사각 세트는 따로 센다
+
+위 표는 세로형·가로형 세트다. 1:1 정사각 두 벌(`shrine-square-v1` 신당 원화 ·
+`card-square-v1` 홈 그리드 카드)은 같은 생성기에서 8종씩 나오고, 각 폴더의
+`SHRINE_SQUARE_V1.md` · `CARD_SQUARE_V1.md` 가 그 목록을 갖고 있다.
+
+2026-08-24 에 **08 올해 연애운**과 **09 재회**가 붙었다. 둘 다 배경이 그
+상품 페이지(`/product/yeonae` · `/product/jaehoe`)가 실제로 쓰는 카드라,
+클릭 뒤에 같은 그림이 그대로 나온다. 08 은 같은 상품을 파는 04(인연 각도)와
+문구가 다르므로 둘을 갈아 끼우지 마라.
+
+**09 재회는 정사각 두 벌뿐이다.** 세로형·가로형은 위 표에도 없다 — 필요하면
+`compose-hook-five-v1.mjs` 와 `compose-white-five-v1.mjs` 에 항목을 더한다.
 
 Meta 광고 게시 전에는 실제 랜딩 URL, 무료 공개 범위, 가격, 오락 목적 고지와 광고 카피가 일치하는지 사람이 최종 확인한다.

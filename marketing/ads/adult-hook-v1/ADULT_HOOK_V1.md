@@ -20,7 +20,7 @@ node marketing/ads/compose-adult-hook-v1.mjs
 |---|---|---|---|---|
 | 01 | 속궁합 강조형 | `intimate-compatibility-bg.png` | `/saju/intimate-compatibility` | 속궁합 사주 |
 | 02 | 캐릭터 동반 몰입형 | `mature-compatibility-bg.png` | `/saju/mature-compatibility` | 19금 사주 |
-| 03 | 궁합 타이밍형 | `romance-timing-bg.png` | `/saju/romance-timing` | 연애운 사주 |
+| 03 | 궁합 타이밍형 | `romance-timing-bg.png` | `/saju/romance-timing` | 올해의 연애운 (인연 타이밍이 합쳐졌다) |
 
 ### 01 속궁합 강조형
 

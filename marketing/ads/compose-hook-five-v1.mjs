@@ -61,7 +61,7 @@ const campaigns = [
     slug: "romance-fortune",
     title: "연애운 사주",
     badge: "연애운 사주",
-    product: "인연 타이밍 (insun, 14,900)",
+    product: "올해의 연애운 (yeonae, 14,900)",  // 인연 타이밍이 합쳐진 상품 (2026-08-24)
     headline: ["올해도 그냥", "지나가는 걸까"],
     cta: "인연 오는 달 보기  →",
     accent: "#d94d77",

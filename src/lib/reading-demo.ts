@@ -14,7 +14,7 @@
 
 import type { StructuredReport } from "@/lib/reading-prompt";
 import SOKGUNGHAP from "@/content/demo/sokgunghap.json";
-import INSUN from "@/content/demo/insun.json";
+import YEONAE from "@/content/demo/yeonae.json";
 import IBYEOL from "@/content/demo/ibyeol.json";
 
 interface DemoSlot {
@@ -36,7 +36,7 @@ interface DemoSlot {
  */
 const DEMO_SLOT_MAP: Record<string, DemoSlot> = {
   sokgunghap: SOKGUNGHAP as DemoSlot,
-  insun: INSUN as DemoSlot,
+  yeonae: YEONAE as DemoSlot,
   ibyeol: IBYEOL as DemoSlot,
 };
 

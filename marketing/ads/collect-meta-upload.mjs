@@ -26,8 +26,8 @@ const SQUARE = "shrine-square-v1";
 const CARD = "card-square-v1";
 
 const ads = [
-  // 켜는 광고는 셋뿐이다 (2026-08-24). 랜딩도 /product/... 에서 /saju/<랜딩> 전용
-  // 페이지로 옮겼다 - 그 화면이 상품 상세와 같은 판매 화면을 쓴다.
+  // 켜는 광고는 넷이다 (2026-08-24 에 재회가 붙었다). 전용 랜딩이 있는 것은
+  // /saju/<랜딩> 을, 없는 것은 상품 상세를 쓴다 - 두 화면이 같은 판매 화면이다.
   //
   // 뺀 넷 - 궁합(compatibility_990) / 19금(mature_compatibility_990) /
   // 바람기(baramgi_990) / 도화(dohwasal_990). 소재도 오퍼도 그대로 살아 있으니
@@ -49,12 +49,21 @@ const ads = [
   },
   {
     dir: "02-연애운",
-    landing: "/saju/romance-timing",
-    offer: "romance_timing_990",
-    // 파는 것은 "올해의 연애운"(yeonae)이 아니라 인연 타이밍(insun)이다 -
-    // 창이 열리는 시기 / 만남의 경로 / 상대의 윤곽. 소재 CTA 도 원래 그 각도다.
-    product: "인연 타이밍 14,900 -> 990",
+    // 인연 타이밍(insun)은 올해의 연애운(yeonae)으로 합쳐졌다 (2026-08-24).
+    // 목적지를 합쳐진 상품 주소로 옮기고 오퍼도 그 상품 것으로 바꾼다.
+    // 창이 열리는 시기 / 만남의 경로 / 상대의 윤곽은 없어진 게 아니라 이 상품
+    // 목차 4장으로 들어갔다 - 소재의 각도는 그대로 살아 있다.
+    landing: "/product/yeonae",
+    offer: "yeonae_990",
+    product: "올해의 연애운 14,900 -> 990",
     headline: "올해도 그냥 지나가는 걸까",
+    // 이미 게시된 광고는 예전 주소를 들고 있다. 그쪽도 같은 상품을 990원에
+    // 그대로 파므로 끄거나 고칠 필요가 없다는 것을 폴더 안내에 적어 둔다.
+    note: [
+      "이미 게시된 광고는 /saju/romance-timing?offer=romance_timing_990 을 들고",
+      "있다. 그 주소도 같은 상품을 990원에 그대로 판다 - 끄거나 고칠 필요 없다.",
+      "새로 만드는 광고만 위 주소를 쓴다.",
+    ],
     sources: [
       [DARK, "04-romance-fortune-ad-vertical-1080x1920.jpg"],
       [DARK, "04-romance-fortune-ad-horizontal-1200x628.jpg"],
@@ -62,6 +71,10 @@ const ads = [
       [WHITE, "04-romance-timing-story-1080x1920.jpg"],
       [SQUARE, "04-romance-timing-square-1080x1080.jpg"],
       [CARD, "04-romance-timing-square-1080x1080.jpg", "카드-"],
+      // 합쳐진 상품이 실제로 쓰는 그림으로 만든 한 벌. 도착 화면과 소재의 그림이
+      // 같아서 클릭 뒤 이질감이 가장 적다.
+      [SQUARE, "08-yeonae-year-square-1080x1080.jpg"],
+      [CARD, "08-yeonae-year-square-1080x1080.jpg", "카드-"],
     ],
   },
   {
@@ -77,6 +90,23 @@ const ads = [
       [WHITE, "05-breakup-story-1080x1920.jpg"],
       [SQUARE, "01-breakup-square-1080x1080.jpg"],
       [CARD, "01-breakup-square-1080x1080.jpg", "카드-"],
+    ],
+  },
+  {
+    dir: "04-재회",
+    // 재회는 전용 랜딩이 없다. 상품 상세가 곧 랜딩이다.
+    landing: "/product/jaehoe",
+    offer: "jaehoe_990",
+    product: "재회 사주 14,900 -> 990",
+    headline: "아직 연락 올까 싶어서",
+    note: [
+      "정사각 두 장뿐이다. 세로형·가로형은 아직 없다 - 이 주제는 hook-five-v1",
+      "과 white-five-v1 세트에 항목이 없어서다. 필요하면 그 두 생성기에",
+      "항목을 더한 뒤 이 스크립트를 다시 돌려라.",
+    ],
+    sources: [
+      [SQUARE, "09-jaehoe-square-1080x1080.jpg"],
+      [CARD, "09-jaehoe-square-1080x1080.jpg", "카드-"],
     ],
   },
 ];
@@ -126,7 +156,7 @@ for (const ad of ads) {
     ...lines,
     ``,
     ad.adult ? `만 19세 이상 소재다. "심의위험-" 이 붙은 두 장은 배경이 밀착\n장면이라 성적 암시로 거부될 수 있다. 나머지 네 장으로 먼저 심사를\n통과시킨 뒤에 올려라.` : ``,
-    ad.note ?? ``,
+    ...(ad.note ?? []),
     ``,
   ].filter(Boolean).join("\r\n");
 

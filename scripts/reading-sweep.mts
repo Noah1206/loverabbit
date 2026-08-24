@@ -266,7 +266,7 @@ for (const product of PRODUCTS) {
 
 // 광고로 파는 세 갈래만 따로. 여기가 실제로 돈이 들어오는 자리다.
 console.log("\n── 광고로 파는 상품 ──");
-for (const id of ["sokgunghap", "insun", "ibyeol"]) {
+for (const id of ["sokgunghap", "yeonae", "ibyeol"]) {
   const product = PRODUCTS.find((item) => item.id === id);
   const stat = perProduct.get(id);
   if (!product || !stat) continue;

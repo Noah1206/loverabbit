@@ -1,11 +1,13 @@
-# 메타 광고 문구 v2 — 켤 광고 3개
+# 메타 광고 문구 v2 — 켤 광고 4개
 
-2026-08-24에 **일곱에서 셋으로 줄였다.** 켜는 것은 속궁합 · 인연 타이밍 · 이별
-셋뿐이다. 나머지 넷(궁합 · 속마음 · 도화 · 19금) 문구는 지웠고, 다시 필요하면
-`git show a3da079:marketing/ads/META_COPY_V2.md` 에 그대로 남아 있다.
+2026-08-24에 **일곱에서 셋으로 줄였다가, 같은 날 재회를 더해 넷이 됐다.**
+켜는 것은 속궁합 · 연애운 · 이별 · 재회. 나머지 넷(궁합 · 속마음 · 도화 · 19금)
+문구는 지웠고, 다시 필요하면 `git show a3da079:marketing/ads/META_COPY_V2.md`
+에 그대로 남아 있다.
 
-랜딩도 `/product/...` 에서 **`/saju/...` 전용 랜딩으로 바꿨다.** 세 광고 모두
-자기 랜딩을 하나씩 갖는다.
+랜딩은 **전용 랜딩이 있으면 `/saju/...`, 없으면 상품 상세**를 쓴다. 두 화면이
+같은 판매 화면(ProductSalesPage)이라 어느 쪽이든 같은 것을 판다 — 속궁합과
+이별은 전용 랜딩, 연애운과 재회는 상품 상세다.
 
 그리고 그 랜딩 화면을 상품 상세와 **한 벌로 합쳤다.** 그전까지 광고 랜딩만
 카드 모션 없는 옛 화면에 멈춰 있었다 - 광고비를 태워 데려온 사람이 오히려
@@ -80,10 +82,19 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ---
 
-## ② 연애운 · 인연 타이밍 — `/saju/romance-timing`
+## ② 연애운 — `/product/yeonae`
 
-소재 `meta-upload-v1/02-연애운/` (6개) · 인연 타이밍 14,900 → 990
-오퍼 `romance_timing_990`
+소재 `meta-upload-v1/02-연애운/` (8개) · 올해의 연애운 14,900 → 990
+오퍼 `yeonae_990`
+
+> **인연 타이밍(insun)은 2026-08-24 에 올해의 연애운(yeonae)으로 합쳐졌다.**
+> 창이 열리는 시기 · 만남의 경로 · 상대의 윤곽은 없어지지 않았다 — 합쳐진
+> 리포트의 4장이 통째로 그것이다. 그래서 아래 기본 문구는 그대로 쓸 수 있다.
+>
+> **이미 게시된 광고는 건드리지 않는다.** 그 광고들은
+> `/saju/romance-timing?offer=romance_timing_990` 을 들고 있고, 그 주소도 같은
+> 상품을 990원에 그대로 판다. 끄거나 고칠 필요 없다. 새로 만드는 광고만 위
+> 주소를 쓴다.
 
 **기본 문구**
 ```
@@ -96,11 +107,13 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 **설명** — `시기 · 경로 · 상대 윤곽` / `미리보기 무료 · 990원`
 
-> **이 랜딩은 "올해의 연애운"이 아니다.** 파는 것은 인연 타이밍(`insun`) —
-> 창이 열리는 시기 · 만남의 경로 · 상대의 윤곽이다. 월별 흐름을 약속하면
-> 랜딩에 없는 것을 판 것이 된다. 소재 쪽 CTA도 이미 `인연 오는 달 보기` 다.
+> **이 랜딩은 이제 월별 흐름도 판다.** 합쳐진 리포트가 세운·월운(2·3장)과
+> 인연의 창·경로·윤곽(4장)을 함께 준다. 그래서 두 각도의 소재가 한 폴더에
+> 같이 있다 — 04 는 "인연 들어오는 달"(솔로 각도), 08 은 "기회의 달과 고비의
+> 달"(올해 흐름 각도). 한 광고 세트에 두 각도를 섞어 쓰지 마라. 둘이 같은
+> 말을 하기 시작하면 한쪽이 나머지 예산만 갉아먹는다.
 >
-> 솔로 대상 상품이지만 **"솔로이신가요"** 를 쓰지 않는다. 그게 개인 속성이다.
+> 솔로 각도를 쓸 때 **"솔로이신가요"** 는 쓰지 않는다. 그게 개인 속성이다.
 
 ---
 
@@ -125,6 +138,33 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ---
 
+## ④ 재회 — `/product/jaehoe`
+
+소재 `meta-upload-v1/04-재회/` (2개) · 재회 사주 14,900 → 990
+오퍼 `jaehoe_990`
+
+정사각 두 장뿐이다. 세로형·가로형은 아직 없다 — `hook-five-v1` 과
+`white-five-v1` 세트에 이 주제 항목이 없어서다.
+
+**기본 문구**
+```
+1) 끝난 뒤에도 연락을 기다리게 되는 날이 있어요. 상대에게 남은 감정과 다시 닿을 수 있는 시기를 명식으로 짚어드려요. 미리보기 무료.
+2) 먼저 연락할지 기다릴지 기준이 필요할 때가 있어요. 남은 마음의 결과 연락이 올 확률, 그 시기까지 함께 봅니다. 전체 리포트는 990원.
+3) 다시 만난다면 무엇이 달라져야 하는지도 함께 정리해드려요. 미리보기 무료.
+```
+
+**제목** — `그 사람에게 남은 마음` / `연락이 다시 올 시기` / `먼저 연락할까, 기다릴까`
+
+**설명** — `남은 감정 · 연락 시기` / `미리보기 무료 · 990원`
+
+> ③ 이별과 가장 가깝다. 갈라 두는 축은 **방향**이다 — ③ 은 끝난 이유를
+> 부검하고, ④ 는 다시 이어질 가능성을 잰다. 이 축이 흐려지면 두 광고가
+> 같은 사람에게 같은 말을 하고 예산만 나눠 쓴다.
+>
+> `헤어지셨나요` 는 여기서도 쓰지 않는다. 개인 속성이다.
+
+---
+
 ## 넣을 때
 
 **URL에 UTM까지 통째로 넣고, "URL 매개변수" 칸은 비운다.** 둘 다 넣으면 UTM이
@@ -134,17 +174,20 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 ① 속궁합
 https://loverebbit.xyz/saju/intimate-compatibility?offer=intimate_compatibility_990&utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
 
-② 연애운 · 인연 타이밍
-https://loverebbit.xyz/saju/romance-timing?offer=romance_timing_990&utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
+② 연애운
+https://loverebbit.xyz/product/yeonae?offer=yeonae_990&utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
 
 ③ 이별 · 이별 부검
 https://loverebbit.xyz/saju/breakup-decision?offer=breakup_decision_990&utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
+
+④ 재회
+https://loverebbit.xyz/product/jaehoe?offer=jaehoe_990&utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}
 ```
 
 ### `?offer=` 를 빼면 990원이 안 붙는다
 
-세 주소 모두 **`?offer=` 가 UTM 앞에 반드시 붙어야 한다.** 이것만 빼면 랜딩은
-열리지만 정가(9,900 · 14,900 · 29,900)를 말한다 — 문구는 990원이라고 하고
+네 주소 모두 **`?offer=` 가 UTM 앞에 반드시 붙어야 한다.** 이것만 빼면 페이지는
+열리지만 정가(9,900 · 14,900 · 29,900 · 14,900)를 말한다 — 문구는 990원이라고 하고
 페이지는 정가를 띄우는, 가장 나쁜 조합이다.
 
 `AdSajuLanding` 이 그렇게 만들어져 있다. 예전에는 주소를 안 보고 늘 990원을

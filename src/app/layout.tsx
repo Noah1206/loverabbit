@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "마음과 인연의 흐름을 섬세하게 풀어보는 속궁합·연애운 리딩. 3분이면 확인할 수 있어요.",
   openGraph: {
     title: "러브레빗 — 마음과 인연을 읽다 🐰",
-    description: "속궁합·재회·인연 타이밍을 3분 만에 섬세하게 풀어보는 AI 사주 리딩.",
+    description: "속궁합·재회·연애운을 3분 만에 섬세하게 풀어보는 AI 사주 리딩.",
     images: ["/og.jpg"],
   },
   robots: { index: true, follow: true },

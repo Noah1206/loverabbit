@@ -41,6 +41,11 @@ const nextConfig: NextConfig = {
       // 비슷한 상품으로 넘기지 않는 것은 의도다. 소재는 "990원"을 말하는데
       // 도착지가 14,900원이면 광고가 거짓말이 된다.
       { source: "/product/pyeongsaeng", destination: "/", permanent: false },
+      // 인연 타이밍(insun)은 올해의 연애운(yeonae)으로 합쳐졌다 (2026-08-24).
+      // 여기는 홈이 아니라 합쳐진 상품으로 보낸다 - pyeongsaeng 때와 다른 것은,
+      // 그 상품이 없어진 게 아니라 목차째 yeonae 안으로 들어갔기 때문이다.
+      // 값을 약속하는 주소가 아니므로(오퍼 없이는 정가) 광고가 거짓말이 되지 않는다.
+      { source: "/product/insun", destination: "/product/yeonae", permanent: false },
       // 정식 주소는 apex — www로 들어온 요청은 같은 경로로 넘긴다 (OAuth 쿠키/중복 색인 방지)
       {
         source: "/:path*",

@@ -52,9 +52,13 @@ export const AD_OFFERS = {
     loginReason: "로그인 후 성인 확인과 두 사람의 속궁합 입력 화면으로 이어져요.",
     adultOnly: true,
   },
+  // 이 랜딩이 팔던 인연 타이밍(insun)은 올해의 연애운(yeonae)으로 합쳐졌다
+  // (2026-08-24). 주소와 오퍼 id 는 그대로 둔다 - 이 값이 이미 돌고 있는 메타
+  // 광고 URL 에 박혀 있어서, 바꾸면 유료 클릭이 정가 페이지에 떨어진다.
+  // 파는 상품만 yeonae 로 옮겼고, 히어로 문구는 이 광고가 파는 각도 그대로다.
   romance_timing_990: {
     id: "romance_timing_990",
-    category: "insun",
+    category: "yeonae",
     price: 990,
     landingType: "romance_timing",
     route: "/saju/romance-timing",
@@ -72,9 +76,23 @@ export const AD_OFFERS = {
     route: "/product/yeonae",
     badge: "올해의 연애운",
     headline: "올해 내 연애, 어떻게 흘러갈까?",
-    sub: "남은 한 해의 연애운을 월 단위로 펼쳐 기회의 달과 고비의 달을 미리 표시합니다",
+    sub: "남은 한 해의 연애운을 월 단위로 펼쳐 기회의 달과 고비의 달을 표시하고, 다음 인연의 창이 열리는 시기와 경로까지 봅니다",
     loginTitle: "올해의 연애 흐름을 확인해요",
     loginReason: "로그인 후 생년정보를 입력하면 올해의 연애운 미리보기로 이어져요.",
+  },
+  // 재회는 전용 랜딩(/saju/...)이 없다. 상품 상세가 곧 랜딩이다 - yeonae_990 과
+  // 같은 모양이고, 그 화면이 광고 랜딩과 같은 ProductSalesPage 를 쓴다.
+  jaehoe_990: {
+    id: "jaehoe_990",
+    category: "jaehoe",
+    price: 990,
+    landingType: "jaehoe",
+    route: "/product/jaehoe",
+    badge: "재회신점",
+    headline: "그 사람, 아직 나에게 마음이 남아 있을까?",
+    sub: "이별 뒤에도 남아 있는 감정의 결을 짚어, 상대 속마음과 다시 이어질 타이밍까지 읽어드립니다",
+    loginTitle: "그 사람의 남은 마음을 확인해요",
+    loginReason: "로그인 후 두 사람 정보를 입력하면 재회 미리보기로 이어져요.",
   },
   breakup_decision_990: {
     id: "breakup_decision_990",

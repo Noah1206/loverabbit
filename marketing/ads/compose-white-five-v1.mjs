@@ -79,7 +79,7 @@ const campaigns = [
     title: "연애운 사주",
     background: "romance-timing-bg.png",
     badge: "연애운 사주",
-    product: "인연 타이밍 (insun, 14,900)",
+    product: "올해의 연애운 (yeonae, 14,900)",  // 인연 타이밍이 합쳐진 상품 (2026-08-24)
     headline: ["올해도 그냥", "지나가는 걸까"],
     sub: "인연의 창이 열리는 달과 만날 경로까지 나옵니다.",
     cta: "인연 오는 달 보기  →",

@@ -12,7 +12,7 @@ export const AD_PARTICIPANT_COUNTS = {
 export const PRODUCT_PARTICIPANT_COUNTS: Record<string, number> = {
   sokgunghap: 482, jaehoe: 637, bamgijil: 391, baramgi: 524,
   gyeolhon: 308, gwontaegi: 447, hwanseung: 572, sseom: 286, jjak: 619,
-  bimil: 355, ibyeol: 704, dohwasal: 438, insun: 261, yeonae: 587,
+  bimil: 355, ibyeol: 704, dohwasal: 438, yeonae: 587,
 };
 
 export const INNER_MIND_PARTICIPANT_COUNT = 749;

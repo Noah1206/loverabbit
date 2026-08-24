@@ -217,7 +217,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.high,
       when: {
         partnerDayBranchTenGod: ["정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun", "baramgi"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi"],
       },
       claim:
         "상대의 배우자 자리에 앉은 기운이 있어, 가까운 사이에서 상대가 먼저 확인하려는 것이 " +
@@ -247,7 +247,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerLuckTenGodAny: ["정인", "편인"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "insun", "hwanseung", "baramgi"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "yeonae", "hwanseung", "baramgi"],
       },
       claim:
         "상대가 지금 안으로 거두는 흐름을 지나고 있어, 말수와 연락이 줄어드는 것이 " +
@@ -312,7 +312,7 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
         partnerDominantTenGod: [
           "정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재",
         ],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "insun", "baramgi"],
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi"],
       },
       claim:
         "상대가 기본으로 쓰는 결이 따로 있어, 같은 상황에서 두 사람이 먼저 꺼내는 카드가 " +

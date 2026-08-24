@@ -14,12 +14,18 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const UTM = "utm_source=meta&utm_medium=paid&utm_campaign=TEST_CAMPAIGN&utm_content=TEST_AD";
 
 const LINKS = [
-  // 켜는 광고 셋 - marketing/ads/collect-meta-upload.mjs 의 배열과 같은 셋이다.
-  // 안 켜는 오퍼(궁합·19금·속마음·도화·바람기·올해의연애운)도 코드에는 살아 있고,
+  // 켜는 광고 넷 - marketing/ads/collect-meta-upload.mjs 의 배열과 같다
+  // (연애운은 새 주소와 예전 랜딩 둘 다 보므로 줄이 다섯이다).
+  // 안 켜는 오퍼(궁합·19금·속마음·도화·바람기)도 코드에는 살아 있고,
   // 맨 주소로 값이 새는지는 아래 BARE 가 전부 훑는다.
   { name: "속궁합", path: "/saju/intimate-compatibility", offer: "intimate_compatibility_990", category: "sokgunghap" },
-  { name: "연애운", path: "/saju/romance-timing", offer: "romance_timing_990", category: "insun" },
+  // 인연 타이밍이 올해의 연애운으로 합쳐지면서(2026-08-24) 새 광고는 상품 주소를
+  // 쓴다. 예전 랜딩도 같은 상품을 990원에 그대로 팔고, 이미 게시된 광고가 그
+  // 주소를 들고 있으므로 둘 다 센다. 한쪽만 보면 나머지 한쪽이 조용히 죽는다.
+  { name: "연애운", path: "/product/yeonae", offer: "yeonae_990", category: "yeonae" },
+  { name: "연애운(구 랜딩)", path: "/saju/romance-timing", offer: "romance_timing_990", category: "yeonae" },
   { name: "이별", path: "/saju/breakup-decision", offer: "breakup_decision_990", category: "ibyeol" },
+  { name: "재회", path: "/product/jaehoe", offer: "jaehoe_990", category: "jaehoe" },
 ];
 
 const results = [];
@@ -127,7 +133,9 @@ const BARE = [
   { name: "궁합", path: "/saju/compatibility", category: "sokgunghap", list: "9,900" },
   { name: "속궁합", path: "/saju/intimate-compatibility", category: "sokgunghap", list: "9,900" },
   { name: "19금", path: "/saju/mature-compatibility", category: "sokgunghap", list: "9,900" },
-  { name: "인연", path: "/saju/romance-timing", category: "insun", list: "14,900" },
+  { name: "인연", path: "/saju/romance-timing", category: "yeonae", list: "14,900" },
+  { name: "연애운", path: "/product/yeonae", category: "yeonae", list: "14,900" },
+  { name: "재회", path: "/product/jaehoe", category: "jaehoe", list: "14,900" },
   { name: "이별", path: "/saju/breakup-decision", category: "ibyeol", list: "29,900" },
   { name: "속마음", path: "/saju/inner-mind", category: "sseom", list: "12,900" },
   { name: "도화", path: "/saju/dohwasal", category: "dohwasal", list: "9,900" },

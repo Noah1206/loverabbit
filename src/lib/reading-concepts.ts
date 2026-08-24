@@ -128,7 +128,8 @@ export const READING_CONCEPTS: Record<string, ReadingConcept> = {
     epilogue: "마지막 정리",
   },
 
-  // 인연 타이밍 — 솔로 전용. 해월도령의 새벽빛.
+  // 인연 타이밍 — 상품은 2026-08-24 에 yeonae 로 합쳐졌다. 이 자리는 그 전에
+  // 발급된 리딩이 표지를 잃지 않도록 남겨 둔다. 새 리딩은 여기로 오지 않는다.
   insun: {
     seal: "因緣",
     cover: "창이 열리는 때를 세는 자리",

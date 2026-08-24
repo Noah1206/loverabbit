@@ -12,7 +12,7 @@ import { READING_RULES, matchRules } from "@/lib/reading-rules";
 const PRODUCTS = [
   "ibyeol", "gwontaegi", "jaehoe", "gyeolhon", 
   "sokgunghap", "bamgijil", "sseom", "jjak", "bimil",
-  "yeonae", "hwanseung", "insun", "dohwasal", "baramgi",
+  "yeonae", "hwanseung", "dohwasal", "baramgi",
 ];
 
 /**

@@ -74,7 +74,7 @@ console.log("\n── 결제 전에 만드는 몫 ──────────
 
 const n = previewSections();
 console.log(`READING_PREVIEW_SECTIONS  ${process.env.READING_PREVIEW_SECTIONS ?? "(안 줌)"} -> ${n}절`);
-for (const id of ["sokgunghap", "insun", "ibyeol"]) {
+for (const id of ["sokgunghap", "yeonae", "ibyeol"]) {
   const product = PRODUCTS.find((p) => p.id === id);
   if (!product) continue;
   const batches = chaptersOf(product.toc);

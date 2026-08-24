@@ -7,6 +7,7 @@ export const LANDING_TYPES = [
   "inner_mind",
   "dohwasal",
   "baramgi",
+  "jaehoe",
 ] as const;
 
 export type LandingType = (typeof LANDING_TYPES)[number];

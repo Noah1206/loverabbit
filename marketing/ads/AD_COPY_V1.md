@@ -84,8 +84,8 @@
 ## 4. 연애운
 
 - 광고 이름: `연애운_이미지_v1`
-- 링크: `/saju/romance-timing`
-- 상품: 인연 타이밍 (14,900 -> 990)
+- 링크: `/product/yeonae` (예전 주소 `/saju/romance-timing` 도 같은 상품을 그대로 판다)
+- 상품: 올해의 연애운 (14,900 -> 990) — 인연 타이밍이 2026-08-24 에 여기로 합쳐졌다
 - 소재 3종
   - `hook-five-v1/04-romance-fortune-ad-horizontal-1200x628.jpg`
   - `white-five-v1/04-romance-timing-feed-1080x1350.jpg`

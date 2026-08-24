@@ -5,7 +5,7 @@ import puppeteer from "puppeteer-core";
 
 const EDGE = "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe";
 const BASE = "http://localhost:3000";
-const PRODUCTS = ["sokgunghap", "ibyeol", "jaehoe", "insun"];
+const PRODUCTS = ["sokgunghap", "ibyeol", "jaehoe", "yeonae"];
 const results = [];
 const check = (name, pass, detail = "") => {
   results.push(pass);
