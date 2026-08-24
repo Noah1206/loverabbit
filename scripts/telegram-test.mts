@@ -5,10 +5,16 @@
  *
  * TELEGRAM_ADMIN_CHAT_ID 를 아직 모르면, 봇에게 아무 메시지나 한 번 보낸 뒤
  * 이 스크립트를 돌리면 getUpdates 에서 챗 ID 를 찾아 알려준다.
+ *
+ * 챗 ID 는 서버와 같은 규칙으로 읽는다 - 예전 이름(TELEGRAM_CHAT_ID)도 본다.
+ * 여기서만 다른 이름을 보면, 이 스크립트는 통과하는데 실제 알림은 안 나가는
+ * 최악의 조합이 된다.
  */
 
+import { adminChatId } from "../src/lib/telegram";
+
 const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-const chatId = process.env.TELEGRAM_ADMIN_CHAT_ID?.trim();
+const chatId = adminChatId();
 
 if (!token) {
   console.error("TELEGRAM_BOT_TOKEN 이 비어 있어요.");
@@ -35,7 +41,7 @@ if (!chatId) {
     if (chat) chats.set(chat.id, chat.username ?? chat.title ?? chat.first_name ?? "");
   }
   if (chats.size === 0) {
-    console.error("TELEGRAM_ADMIN_CHAT_ID 가 비어 있고, 봇이 받은 메시지도 없어요.");
+    console.error("TELEGRAM_ADMIN_CHAT_ID (또는 TELEGRAM_CHAT_ID) 가 비어 있고, 봇이 받은 메시지도 없어요.");
     console.error(`텔레그램에서 @${me.result.username} 에게 아무 메시지나 보낸 뒤 다시 돌리세요.`);
     process.exit(1);
   }
