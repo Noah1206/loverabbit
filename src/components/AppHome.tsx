@@ -74,7 +74,7 @@ export default function AppHome() {
             <Image
               className="app-header-logo"
               src={loveRabbitLogo}
-              alt="하트를 안고 있는 러브레빗 토끼 로고"
+              alt="러브레빗 토끼 로고"
               width={30}
               height={30}
               priority
