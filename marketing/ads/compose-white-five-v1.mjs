@@ -2,7 +2,7 @@ import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-// 화이트형 광고 5종.
+// 화이트형 광고 6종.
 //
 // 기존 소재는 전부 어둡다. 밤 신당 그림 위에 어두운 베일을 덮으니 피드에서
 // 다른 어두운 게시물에 묻힌다. 그래서 반대로 간다 - 위쪽 절반을 흰 여백으로
@@ -101,6 +101,26 @@ const campaigns = [
     tint: "#f4f2fe",
     ground: "#fdfdff",
   },
+  {
+    id: "06",
+    slug: "jaehoe",
+    title: "재회 사주",
+    // AI 원화가 없어 상품 카드에서 뜬 배경이다 (derive-card-bg.mjs).
+    background: "jaehoe-bg.png",
+    // 이 그림만 attention 이 머리카락을 좇아 띠가 입 아래로 내려간다. 못박는다.
+    artTop: 0.18,
+    badge: "재회 사주",
+    product: "재회 사주 (jaehoe, 14,900)",
+    // 05(이별)와 방향이 반대다 - 저쪽은 끝난 이유, 여기는 다시 이어질 가능성.
+    // 근거: "3장 01. 그 사람, 아직 너에게 마음이 남아 있을까",
+    //       "5장 01. 연락이 다시 올 확률, 그리고 그 시기"
+    headline: ["아직 연락", "올까 싶다면"],
+    sub: "상대에게 남은 감정과 연락 올 시기를 짚습니다.",
+    cta: "남은 마음 보기  →",
+    accent: "#c2563f",
+    tint: "#fff4ef",
+    ground: "#fffdfb",
+  },
 ];
 
 const INK = "#1b1520";
@@ -184,12 +204,29 @@ function footer(c, { width, height, barTop, logoY }) {
   `;
 }
 
+// 그림에서 가로 띠를 뜬다.
+//
+// 기본은 attention 이다. 941x1672 세로 그림에서 띠를 뜰 때 가운데 고정으로는
+// 얼굴이 잘리는데, attention 은 정보가 몰린 쪽(대개 얼굴)을 남긴다.
+//
+// 다만 attention 이 얼굴을 못 찾는 그림이 있다. 재회 배경이 그랬다 - 머리카락
+// 결이 화면을 가득 채워서 그쪽이 더 "정보가 많다" 고 읽혔고, 띠가 입 아래로
+// 내려가 목 없는 그림이 나왔다. 그런 항목만 artTop 으로 자리를 못박는다.
+// artTop 은 폭에 맞춰 늘린 그림에서 띠가 시작하는 자리(0~1)다.
+async function cropBand(c, width, height) {
+  const src = path.join(bgDir, c.background);
+  if (c.artTop === undefined) {
+    return sharp(src).resize(width, height, { fit: "cover", position: sharp.strategy.attention }).png().toBuffer();
+  }
+  const widened = await sharp(src).resize({ width, kernel: "lanczos3" }).toBuffer();
+  const meta = await sharp(widened).metadata();
+  const top = Math.max(0, Math.min(Math.round(meta.height * c.artTop), meta.height - height));
+  return sharp(widened).extract({ left: 0, top, width, height }).png().toBuffer();
+}
+
 async function build(c, spec) {
   const { width, height, imageTop } = spec;
-  const art = await sharp(path.join(bgDir, c.background))
-    .resize(width, height - imageTop, { fit: "cover", position: sharp.strategy.attention })
-    .png()
-    .toBuffer();
+  const art = await cropBand(c, width, height - imageTop);
 
   const logo = await sharp(logoPath).resize(42, 42).png().toBuffer();
 
@@ -252,7 +289,7 @@ const sheetLabels = campaigns.map((c, i) => {
 
 const sheetBase = svg(sheetW, sheetH, `
   <rect width="${sheetW}" height="${sheetH}" fill="#0d0a14"/>
-  <text class="kr" x="60" y="62" fill="#fff" font-size="38" font-weight="900">LOVERABBIT 화이트형 5종</text>
+  <text class="kr" x="60" y="62" fill="#fff" font-size="38" font-weight="900">LOVERABBIT 화이트형 ${campaigns.length}종</text>
   <text class="kr" x="62" y="104" fill="#ff6d9d" font-size="22" font-weight="800">위는 비우고 그림은 내린다 · 피드 1080×1350 · 스토리 1080×1920</text>
   ${sheetLabels}
 `);
@@ -273,4 +310,4 @@ await Promise.all([
   sharp(sheet).jpeg({ quality: 92, chromaSubsampling: "4:4:4" }).toFile(path.join(outDir, "white-five-preview.jpg")),
 ]);
 
-console.log("Created 5 white-theme campaigns x 2 aspect ratios + contact sheet in marketing/ads/white-five-v1");
+console.log(`Created ${campaigns.length} white-theme campaigns x 2 aspect ratios + contact sheet in marketing/ads/white-five-v1`);

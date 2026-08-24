@@ -140,11 +140,13 @@ Marketplace · Audience Network · 검색결과 · 인스트림에서만 나온�
 
 ## ④ 재회 — `/product/jaehoe`
 
-소재 `meta-upload-v1/04-재회/` (2개) · 재회 사주 14,900 → 990
+소재 `meta-upload-v1/04-재회/` (6개) · 재회 사주 14,900 → 990
 오퍼 `jaehoe_990`
 
-정사각 두 장뿐이다. 세로형·가로형은 아직 없다 — `hook-five-v1` 과
-`white-five-v1` 세트에 이 주제 항목이 없어서다.
+> **배경 출처가 다르다.** 다른 셋은 주제마다 따로 만든 AI 원화를 쓰는데,
+> 재회는 그 원화가 없어서 상품 카드(`public/cards-pastel/jaehoe.jpg`)에서
+> 떴다 (`node marketing/ads/derive-card-bg.mjs`). 900px 원본을 늘린 확대라
+> 원화와 같지 않다 — 다만 클릭 뒤 도착하는 화면이 같은 그림을 쓴다.
 
 **기본 문구**
 ```

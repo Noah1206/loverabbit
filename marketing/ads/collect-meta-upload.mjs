@@ -100,11 +100,15 @@ const ads = [
     product: "재회 사주 14,900 -> 990",
     headline: "아직 연락 올까 싶어서",
     note: [
-      "정사각 두 장뿐이다. 세로형·가로형은 아직 없다 - 이 주제는 hook-five-v1",
-      "과 white-five-v1 세트에 항목이 없어서다. 필요하면 그 두 생성기에",
-      "항목을 더한 뒤 이 스크립트를 다시 돌려라.",
+      "세로형·가로형·피드 배경은 AI 원화가 아니라 상품 카드에서 뜬 것이다",
+      "(marketing/ads/derive-card-bg.mjs). 900px 원본을 늘린 것이라 원화를",
+      "새로 만들면 그 배경 파일만 갈아 끼우고 생성기를 다시 돌리면 된다.",
     ],
     sources: [
+      [DARK, "06-jaehoe-ad-vertical-1080x1920.jpg"],
+      [DARK, "06-jaehoe-ad-horizontal-1200x628.jpg"],
+      [WHITE, "06-jaehoe-feed-1080x1350.jpg"],
+      [WHITE, "06-jaehoe-story-1080x1920.jpg"],
       [SQUARE, "09-jaehoe-square-1080x1080.jpg"],
       [CARD, "09-jaehoe-square-1080x1080.jpg", "카드-"],
     ],

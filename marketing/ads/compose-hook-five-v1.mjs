@@ -82,6 +82,24 @@ const campaigns = [
     highlight: "#ff7da8",
     veil: "#080712",
   },
+  {
+    id: "06",
+    slug: "jaehoe",
+    title: "재회 사주",
+    badge: "재회 사주",
+    product: "재회 사주 (jaehoe, 14,900)",
+    // 05(이별)와 가장 가깝다. 갈라 두는 축은 방향이다 - 05 는 끝난 이유를
+    // 부검하고 여기는 다시 이어질 가능성을 잰다. 이 축이 흐려지면 두 광고가
+    // 같은 사람에게 같은 말을 하고 예산만 나눠 쓴다.
+    // 근거: "3장 01. 그 사람, 아직 너에게 마음이 남아 있을까",
+    //       "5장 01. 연락이 다시 올 확률, 그리고 그 시기"
+    headline: ["아직 연락", "올까 싶다면"],
+    cta: "남은 마음 보기  →",
+    accent: "#e0664a",
+    accent2: "#8b3f6a",
+    highlight: "#ffb08a",
+    veil: "#0c0708",
+  },
 ];
 
 const xml = (value) => value
@@ -233,8 +251,8 @@ async function buildContactSheet() {
 
   const base = svg(width, height, `
     <rect width="${width}" height="${height}" fill="#0d0a14"/>
-    <text class="kr" x="58" y="70" fill="#fff" font-size="44" font-weight="900">LOVERABBIT 후킹 광고 5종</text>
-    <text class="kr" x="60" y="120" fill="#ff6d9d" font-size="25" font-weight="800">5개 주제 · 10개 고유 이미지 · PNG/JPG 20개 최종 파일</text>
+    <text class="kr" x="58" y="70" fill="#fff" font-size="44" font-weight="900">LOVERABBIT 후킹 광고 ${campaigns.length}종</text>
+    <text class="kr" x="60" y="120" fill="#ff6d9d" font-size="25" font-weight="800">${campaigns.length}개 주제 · ${campaigns.length * 2}개 고유 이미지 · PNG/JPG ${campaigns.length * 4}개 최종 파일</text>
     ${labels}
   `);
 
@@ -263,4 +281,4 @@ async function buildContactSheet() {
 await Promise.all(campaigns.map(exportCampaign));
 await buildContactSheet();
 
-console.log("Created 5 campaigns × 2 aspect ratios, PNG/JPG exports, and contact sheet in marketing/ads/hook-five-v1");
+console.log(`Created ${campaigns.length} campaigns x 2 aspect ratios, PNG/JPG exports, and contact sheet in marketing/ads/hook-five-v1`);
