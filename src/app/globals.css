@@ -7627,18 +7627,3 @@ body:has(.product-page[data-landing]) .consent-banner {
   cursor: default;
 }
 
-/* 속마음 랜딩의 가격 줄 — 광고가 말한 값을 랜딩에서도 말한다 */
-.lp-price {
-  margin: 10px 0 0;
-  color: var(--text-dim);
-  font-size: 0.82rem;
-}
-
-.lp-price strong {
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.lp-price s {
-  opacity: 0.55;
-}
