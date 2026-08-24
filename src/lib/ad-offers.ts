@@ -6,7 +6,6 @@ export interface AdOffer {
   price: number;
   landingType: LandingType;
   route: string;
-  heroImage: string;
   badge: string;
   headline: string;
   sub: string;
@@ -22,7 +21,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "compatibility",
     route: "/saju/compatibility",
-    heroImage: "/ads/saju/compatibility-bg.png",
     badge: "궁합 사주",
     headline: "우리 둘, 잘 맞을까?",
     sub: "두 사람의 성향과 관계 온도, 자주 부딪히는 지점을 사주 흐름으로 함께 살펴봅니다.",
@@ -35,7 +33,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "intimate_compatibility",
     route: "/saju/intimate-compatibility",
-    heroImage: "/ads/saju/intimate-compatibility-bg.png",
     badge: "속궁합 사주",
     headline: "말보다 먼저 맞는 온도",
     sub: "가까워질수록 드러나는 끌림과 주도권, 두 사람만의 친밀도 상성을 섬세하게 읽습니다.",
@@ -48,7 +45,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "mature_compatibility",
     route: "/saju/mature-compatibility",
-    heroImage: "/ads/saju/mature-compatibility-bg.png",
     badge: "19금 · 속궁합 사주",
     headline: "그 사람과 나는, 가까워질수록 더 잘 맞을까?",
     sub: "겉으로 드러나지 않는 두 사람의 끌림 구조와 친밀도의 상성을 일주 단위로 분석합니다",
@@ -62,7 +58,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "romance_timing",
     route: "/saju/romance-timing",
-    heroImage: "/ads/saju/romance-timing-bg.png",
     badge: "인연 타이밍",
     headline: "내 다음 인연은, 언제 어디서 올까?",
     sub: "운의 흐름에서 인연의 창이 열리는 시기와 만나게 될 경로, 상대의 윤곽까지 봅니다",
@@ -75,7 +70,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "romance_timing",
     route: "/product/yeonae",
-    heroImage: "/cards-pastel/yeonae.jpg",
     badge: "올해의 연애운",
     headline: "올해 내 연애, 어떻게 흘러갈까?",
     sub: "남은 한 해의 연애운을 월 단위로 펼쳐 기회의 달과 고비의 달을 미리 표시합니다",
@@ -88,7 +82,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "breakup_decision",
     route: "/saju/breakup-decision",
-    heroImage: "/ads/saju/breakup-decision-bg.png",
     badge: "이별 부검 리포트",
     headline: "그 연애는, 어디서부터 어긋났을까?",
     sub: "끝난 연애를 명식으로 부검해 진짜 사인(死因)을 밝히고, 다음 연애의 처방을 남깁니다",
@@ -100,11 +93,8 @@ export const AD_OFFERS = {
     category: "sseom",
     price: 990,
     landingType: "inner_mind",
-    // 이 랜딩만 화면을 따로 쓴다(InnerMindLandingClient). AdSajuLanding 을 안 거치므로
-    // heroImage 는 실제로 그려지지 않지만, 다른 오퍼와 같은 모양을 유지한다 -
-    // 한 칸만 비면 나중에 이 오퍼가 예외로 남아 조용히 어긋난다.
+    // 이 랜딩만 화면을 따로 쓴다(InnerMindLandingClient). ProductSalesPage 를 안 거친다.
     route: "/saju/inner-mind",
-    heroImage: "/ads/saju/compatibility-bg.png",
     badge: "썸 해부 사주",
     headline: "이 썸, 왜 진도가 안 나갈까?",
     sub: "밀당인지 망설임인지 무관심인지 — 정체된 썸의 브레이크를 찾아냅니다",
@@ -117,7 +107,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "dohwasal",
     route: "/saju/dohwasal",
-    heroImage: "/cards-pastel/dohwasal.jpg",
     badge: "도화살 진단",
     headline: "나한테 도화살, 진짜 있을까?",
     sub: "명식 속 도화(桃花)의 개수와 위치를 확인하고, 그 매력을 축복으로 쓰는 법을 알려드립니다",
@@ -130,9 +119,6 @@ export const AD_OFFERS = {
     price: 990,
     landingType: "baramgi",
     route: "/saju/baramgi",
-    // 도화살·연애운과 같이 홈 그리드 카드 그림을 그대로 쓴다. 이 주제만 배경을
-    // 따로 만들면 광고에서 본 그림과 랜딩의 그림이 달라진다.
-    heroImage: "/cards-pastel/baramgi.jpg",
     badge: "바람기 레이더",
     headline: "그 사람, 믿어도 되는 걸까?",
     sub: "상대 명식의 도화 기운과 이성운 흐름으로, 흔들릴 수 있는 시기와 신호를 미리 짚습니다",
