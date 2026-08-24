@@ -56,6 +56,7 @@ const composed = await composeReport(
     partnerFacts: partner,
     matchedRules: rules,
     productLabel: product.promptLabel,
+    productId: PRODUCT_ID,
     outline: scoped.outline,
     focus: "relationship",
     currentScene: "",

@@ -9,7 +9,7 @@
 // OpenAI 잔액이 나갔다. npm 스크립트를 쓰면 이 순서가 이미 박혀 있다.
 // 확실히 하려면 AI_PROVIDER=gemini 로 못 박는다.
 //   글이 이미 있으면 --images 는 그림만 만든다. 글부터 다시 하려면 --force.
-//   --product ibyeol / --job "프리랜서 디자이너" 로 조건을 바꾼다.
+//   --product ibyeol / --job "프리랜서 디자이너" / --question "고민" 으로 조건을 바꾼다.
 //
 // 생성에는 실비가 든다. 그래서 이미 있는 결과를 함부로 다시 만들지 않는다.
 
@@ -22,6 +22,7 @@ import { checkReport } from "../src/lib/reading-guard";
 import { reportToText, type StructuredReport } from "../src/lib/reading-prompt";
 import { chatComplete } from "../src/lib/ai";
 import { PRODUCTS } from "../src/lib/products";
+import { computeSajuScore } from "../src/lib/saju-score";
 import { compareCost, costOf } from "../src/lib/ai-pricing";
 import { buildChapters, reportPieces } from "../src/lib/reading-chapters";
 import { conceptFor } from "../src/lib/reading-concepts";
@@ -38,7 +39,10 @@ const has = (name: string) => args.includes(`--${name}`);
 const PRODUCT_ID = argOf("product") ?? "jaehoe";
 const SUBJECT = { year: 1993, month: 1, day: 24, hour: 14, gender: "F" as const };
 const PARTNER = { year: 1991, month: 7, day: 8, hour: 20, gender: "M" as const };
-const QUESTION = "헤어진 지 넉 달인데 아직 가끔 연락이 와요. 같은 이유로 또 싸울까 봐 겁나요.";
+// 기본 고민은 재회 쪽 문장이다. 속궁합·결혼처럼 물음이 다른 상품을 볼 때는
+// --question 으로 갈아 끼운다 — 안 그러면 상품의 축이 아니라 고민의 축으로 읽힌다.
+const QUESTION =
+  argOf("question") ?? "헤어진 지 넉 달인데 아직 가끔 연락이 와요. 같은 이유로 또 싸울까 봐 겁나요.";
 // 직업은 계산에 안 들어간다. 장면이 실제로 달라지는지 눈으로 보려고 넣어 둔다.
 const OCCUPATION = argOf("job") ?? "3교대 간호사";
 
@@ -69,6 +73,9 @@ const pillars = (f: typeof me) =>
     .map((p) => (p ? p.stem + p.branch : "—"))
     .join(" ");
 
+// 화면에 찍히는 숫자. 목차가 지수를 파는 상품은 이걸 보고 그 절을 쓴다.
+const scoreResult = computeSajuScore(PRODUCT_ID, me, partner);
+
 const readingId = `preview-${PRODUCT_ID}`;
 
 interface Saved {
@@ -96,6 +103,7 @@ if (reuseText) {
   console.log(`운의 형  : ${me.xingLuck.map((x) => `${x.kind}/${x.completeness}`).join(" | ") || "없음"}`);
   console.log(`규칙 : ${rules.map((r) => r.id).join(" ")}`);
   console.log(`하는 일: ${OCCUPATION || "(안 적음)"}`);
+  console.log(`지수 : ${scoreResult.value} (${product.meterLabels?.[scoreResult.bandIndex] ?? "-"})`);
   console.log("");
   console.log("글을 만드는 중… (40초쯤 걸려요)");
 
@@ -106,6 +114,13 @@ if (reuseText) {
       partnerFacts: partner,
       matchedRules: rules,
       productLabel: product.promptLabel,
+      productId: product.id,
+      score: {
+        value: scoreResult.value,
+        label: product.scoreLabel ?? null,
+        band: product.meterLabels?.[scoreResult.bandIndex] ?? null,
+        factors: scoreResult.factors.map((f) => ({ label: f.label, delta: f.delta, basis: f.basis })),
+      },
       outline: scoped.outline,
       focus: "relationship",
       currentScene: QUESTION,

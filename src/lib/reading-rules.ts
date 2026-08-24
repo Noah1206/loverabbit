@@ -174,6 +174,12 @@ export interface ReadingRule {
 //     완성 삼형이 섰을 때의 상의는 가까운 관계에서 가장 크게 나온다.
 //   XING-CHOUXUWEI             +jaehoe,sokgunghap,bamgijil
 //     완성 삼형이 섰을 때의 상의는 가까운 관계에서 가장 크게 나온다.
+//   PAIR-WONJIN                +sokgunghap
+//     이 표에서 SIN-WONJIN 을 속궁합에 넣은 근거가 "몸이 가까울수록 도드라진다"
+//     였는데, 정작 **두 배우자 자리끼리의 원진**은 빠져 있었다. 자기 명식의 원진보다
+//     두 사람 사이의 원진이 이 상품의 물음에 더 가깝다 — 그 규칙의 본문("다툴 일이
+//     없는데도 마음이 식는 구간")이 곧 목차 "5장 01. 관계 온도가 식는 위험 구간"이다.
+//     같은 판단을 한쪽에만 적용한 누락이라 보고 맞췄다. 새 주장이 아니다.
 // ── 도메인을 넓히지 않기로 한 것 ────────────────────────
 //   SIN-YEOKMA   역마는 이동·자리 옮김이다. 속궁합·재회의 물음과 축이 다르다.
 //   SIN-YANGIN   양인은 힘이 과한 자리로 본다. 관계 상품에 바로 옮기면 성격 판정이 된다.
@@ -1047,7 +1053,7 @@ export const READING_RULES: ReadingRule[] = [
   {
     id: "PAIR-WONJIN",
     priority: 88,
-    when: { needsPartner: true, pairRelation: ["일지원진"] , domains: ["ibyeol", "gwontaegi", "hwanseung", "baramgi", "jaehoe"] },
+    when: { needsPartner: true, pairRelation: ["일지원진"] , domains: ["ibyeol", "gwontaegi", "hwanseung", "baramgi", "jaehoe", "sokgunghap"] },
     claim: "설명하기 어려운 거슬림이 두 사람 사이에 깔려, 다툴 일이 없는데도 마음이 식는 구간이 생기는 구조",
     safePhrasing: "그렇게 걸리기 쉬운",
     forbidden: ["악연이다"],

@@ -26,6 +26,7 @@ const rules = matchRules(me, partner, id);
 const outline = scopeOutline({ product: id, outline: product.toc, facts: me, matchedRules: rules }).outline;
 const inputJson = buildReadingInput({
   facts: me, partnerFacts: partner, matchedRules: rules, productLabel: product.promptLabel,
+  productId: product.id,
   outline, focus: "relationship", currentScene: "", occupation: undefined,
   characterId: null, characterName: null, now: new Date(2026, 7, 22),
 } as Parameters<typeof buildReadingInput>[0]);

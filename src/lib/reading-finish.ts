@@ -117,6 +117,9 @@ export async function finishReading(params: {
   );
   const matchedRules = resume.ruleIds.map((id) => byId.get(id)).filter((rule) => rule !== undefined);
 
+  // 발급 때 봉인한 지수. 옛 리딩에는 없을 수 있다 — 그때는 숫자 없이 쓴다.
+  const seal = stored?.scoreSeal ?? null;
+
   // 다시 쓰기도 같은 입력을 써야 한다. 여기서 한 번 만들어 둘 다 쓴다 —
   // 따로 만들면 now 나 occupation 이 어긋나 앞뒤 절이 다른 무대에서 논다.
   const readingInput = {
@@ -124,6 +127,20 @@ export async function finishReading(params: {
       partnerFacts: resume.partnerFacts,
       matchedRules,
       productLabel: PRODUCT_MAP[category]?.promptLabel ?? category,
+      // 결제 뒤 이어 쓰는 절도 같은 물음에 답해야 한다. 여기서 빠지면 앞 절과
+      // 뒤 절이 서로 다른 상품처럼 읽힌다.
+      productId: category,
+      // 발급 때 봉인해 둔 숫자를 그대로 쓴다. 다시 계산하지 않는다 — 운을 보는
+      // 인자가 섞여 있어 배합표를 고치거나 해가 바뀌면 다른 값이 나오고, 그러면
+      // 앞 절과 뒤 절이 서로 다른 지수를 말하게 된다. 화면이 보여주는 것도 봉인이다.
+      score: seal
+        ? {
+            value: seal.value,
+            label: seal.label ?? PRODUCT_MAP[category]?.scoreLabel ?? null,
+            band: seal.band ?? PRODUCT_MAP[category]?.meterLabels?.[seal.bandIndex] ?? null,
+            factors: seal.factors.map((f) => ({ label: f.label, delta: f.delta, basis: f.basis })),
+          }
+        : null,
       outline,
       focus: resume.partnerFacts ? "relationship" : "self",
       currentScene: resume.currentScene,

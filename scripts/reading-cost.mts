@@ -78,6 +78,7 @@ for (const product of PRODUCTS) {
     partnerFacts: partner,
     matchedRules: rules,
     productLabel: product.promptLabel,
+    productId: product.id,
     outline: scoped.outline,
     focus: "relationship",
     currentScene: "",

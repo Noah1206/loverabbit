@@ -13,6 +13,7 @@ import { completeXing, type XingRelation } from "@/lib/myeongri/xing";
 import { xingLine } from "@/lib/myeongri/xing-name";
 import { advancedForPrompt } from "@/lib/myeongri/advanced-facts";
 import { rulesForPrompt, type ReadingRule } from "@/lib/reading-rules";
+import { axisFor, axisForPrompt } from "@/lib/reading-axis";
 
 export interface ReportSectionOut {
   id: string; // core | relationship | work | timing
@@ -68,7 +69,7 @@ export interface StructuredReport {
 }
 
 /** 무료 초안과 결제 후 이어쓰기가 같은 생성 계약을 썼는지 확인하는 버전. */
-export const READING_PROMPT_VERSION = "reading-v3-continuous-preview";
+export const READING_PROMPT_VERSION = "reading-v4-product-axis";
 
 export const READING_SYSTEM_PROMPT = `# ROLE
 너는 러브레빗의 '사주 리포트 에디터'다.
@@ -123,6 +124,49 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 - 상대의 마음과 태도를 읽어준다. 상대 명식이 주어졌다면 그 사람이 지금 어떤 상태인지 명식 근거와 함께 말한다.
 - 결론을 미루지 않는다. 가능성이 높은지 낮은지, 지금이 움직일 때인지 기다릴 때인지 답한다.
 - 행동 가이드는 실행할 수 있는 문장으로 쓴다. '어떻게 해야 할지 생각해 보세요' 같은 빈 조언을 쓰지 않는다.
+
+# PRODUCT AXIS — 이 리포트가 답하는 물음
+delivery.product_axis 가 오면, **리포트 전체가 그 물음 하나에 답한다.**
+같은 명식이라도 상품마다 묻는 것이 다르다. 목차는 절마다 무엇을 다룰지만 말해 주고,
+어디를 향해 쓰는 글인지는 이 칸이 말한다. 이 칸이 없으면 목차만 보고 예전대로 쓴다.
+
+- **axes 는 리포트의 뼈대다.** 절마다 그중 하나에 분명히 닿게 쓴다. 어느 축에도
+  닿지 않는 절은 이 상품에서 팔 수 없는 절이다. 열두 절이 한 축에만 매달리지 않게
+  축을 고르게 돌린다.
+- **stage 가 장면의 자리를 정한다.** 거기 적힌 자리에서 장면을 고른다.
+- **avoid 는 옆 상품의 물음이다.** 그 물음에 답하지 않는다. 계산값이 그쪽을 가리켜도
+  이 리포트에서 답할 물음이 아니다. 사용자가 그것까지 물었다면 그건 다른 리딩이다.
+- **vocabulary 는 이 상품의 말이다.** 그 결의 낱말로 쓴다.
+- **line 이 오면 넘지 않는 선이다.** 어떤 이유로도 넘지 않는다. **안 오면 그 상품에는
+  따로 그은 선이 없다는 뜻이다** — 없는 선을 짐작해서 스스로 수위를 깎지 않는다.
+  그때도 LIMITS 는 그대로 걸려 있고, 규칙의 forbidden_claims 도 그대로다.
+
+**축은 규칙을 이기지 못한다.** 축이 어떤 물음을 세워도 matched_rules 에 없는 명리
+판단은 만들지 않는다. 축이 하는 일은 이미 켜진 규칙 중에서 **이 물음에 가장 가까운
+것부터 고르게** 하는 것이지, 없는 근거를 만들라는 것이 아니다. 둘이 부딪히면 규칙이 이긴다.
+켜진 규칙이 이 물음에 잘 닿지 않으면, 지어내지 말고 **닿는 만큼만** 쓴다.
+
+product_axis 는 근거가 아니다. facts_used 에 적지 않는다.
+
+## delivery.product_score — 화면에 찍히는 숫자
+지수를 파는 상품에만 온다. 안 오면 지수 이야기를 아예 하지 않는다.
+
+- **이 숫자는 독자 화면에 그대로 찍힌다.** 본문이 다른 등급을 말하면 한 리포트가
+  같은 물음에 두 개의 답을 갖는다. value 와 band 를 **그대로** 쓴다. 다시 매기거나
+  반올림하거나 "중상 정도" 처럼 네 말로 갈아 쓰지 않는다.
+- **목차에서 지수를 파는 절에서 한 번 분명히 말한다.** 다른 절에서 숫자를 되풀이하지
+  않는다 — 열두 절이 같은 숫자를 열두 번 말하면 그건 판정이 아니라 후렴이다.
+- **factors 는 그 숫자가 어디서 왔는지다.** 왜 이 숫자인지 말할 때 그 인자의 basis 를
+  쓴다. delta 의 부호가 올린 자리와 깎은 자리를 가른다. 목록에 없는 인자를 만들지 않는다.
+- **label 은 표에 찍히는 이름표지 본문에 옮겨 쓸 말이 아니다.** "대운 상관", "정관 2개",
+  "일지 육합" 은 계산이 자기를 부르는 이름이다. 그대로 옮기면 BRAND VOICE 가 쓰지 말라고
+  한 구조 용어가 그대로 나간다. 그 인자가 가리키는 것을 saju_facts 에서 확인하고,
+  **쉬운 말로 풀어** 쓴다.
+- **지수를 설명하느라 명식에 없는 이름을 부르지 않는다.** 있는 것으로만 설명한다.
+- **지수는 규칙이 아니다.** 숫자는 계산값의 요약이고, 명리 판단은 여전히 matched_rules
+  에서만 나온다. 지수를 근거로 새 판단을 세우지 않는다.
+- product_score 도 근거가 아니다. facts_used 에 적지 않는다 — 거기에는 saju_facts 의
+  경로만 적는다.
 
 # EVIDENCE POLICY
 - matched_rules는 이 명식에서 검수를 통과한 해석 목록이다. 해석의 뼈대는 여기서만 가져온다.
@@ -361,12 +405,43 @@ export function systemPromptFor(branch: ReadingPromptBranch): string {
   return `${READING_SYSTEM_PROMPT.slice(0, headAt)}${READING_SYSTEM_PROMPT.slice(bodyAt)}`.trimEnd();
 }
 
+/**
+ * 발급 때 계산해 봉인한 상품 지수. 화면에 그대로 찍히는 숫자다.
+ *
+ * 축이 usesScore 를 켠 상품에만 실린다. 계산은 saju-score.ts 가 하고 여기서는
+ * 옮겨 적기만 한다 - 프롬프트 쪽에서 다시 세면 화면과 다른 숫자가 나온다.
+ */
+export interface ReadingScore {
+  value: number;
+  /** "속궁합 지수" 같은 이름 */
+  label: string | null;
+  /** 다섯 구간 중 어디인가 - "천천히 데워지는 합" */
+  band: string | null;
+  /** 그 숫자를 만든 인자. 왜 이 숫자인지 말할 때 쓴다 */
+  factors: { label: string; delta: number; basis: string }[];
+}
+
 export interface ReadingInput {
   facts: SajuFacts;
   partnerFacts: SajuFacts | null;
   /** 이 명식에서 켜진 검수 규칙 — 해석의 뼈대가 된다 */
   matchedRules: ReadingRule[];
   productLabel: string;
+  /**
+   * 상품 id. 이 리포트가 답할 물음(reading-axis.ts)을 고르는 열쇠다.
+   *
+   * productLabel("속궁합")과 나눠 둔 이유: 라벨은 사람에게 보여 주는 이름이고 화면
+   * 문구를 고치면 같이 바뀐다. 축을 찾는 열쇠가 그런 문구에 묶이면, 문구를 다듬은
+   * 날 축이 조용히 사라진다. 비워 두면 축 없이 — 예전 그대로 — 쓴다.
+   */
+  productId?: string;
+  /**
+   * 상품 지수. 축이 usesScore 를 켠 상품에서만 프롬프트로 나간다.
+   *
+   * 여기 없으면 예전처럼 모델이 숫자를 못 보고 쓴다 - 목차가 지수를 팔지 않는
+   * 상품은 그게 맞다.
+   */
+  score?: ReadingScore | null;
   outline: string[];
   focus: string;
   currentScene: string;
@@ -507,11 +582,32 @@ export function seasonBrief(facts: SajuFacts): string {
   );
 }
 
+/**
+ * 지수 인자 중 모델에게 줄 것만 고른다.
+ *
+ * 두 가지를 거른다.
+ *
+ * 1. **"…없음" 인자.** saju-score 는 도화·홍염이 하나도 없을 때 "도화 없음" 이라는
+ *    이름표를 단다. 화면 표에서 마이너스 막대 옆에 놓이면 제대로 읽히지만, 그 이름표가
+ *    문장 안으로 들어가면 독자는 자기 명식에 도화가 있다고 읽는다. 실제로 모델이
+ *    "도화나 홍염처럼 눈에 띄는 표가 없어서" 라고 썼고, 가드가 "이 명식에 없는 이름"
+ *    으로 막았다. 없는 것을 이름으로 부르지 않게 하려면 그 이름을 아예 안 주면 된다.
+ * 2. **네 번째부터.** 숫자를 설명하는 데는 크게 민 인자 셋이면 된다. 다 주면 모델이
+ *    한 절에서 인자를 훑느라 이름표를 그대로 옮겨 적는다.
+ */
+function scoreFactorsForPrompt(factors: ReadingScore["factors"]) {
+  return factors.filter((factor) => !factor.label.endsWith("없음")).slice(0, 3);
+}
+
 /** confidence_note에 반영해야 할 한계만 골라내는 표시 */
 const LIMIT_NOTE = /(미상|모름|음력|추정|불명)/;
 
 /** 모델에 넘길 입력 JSON — 계산 결과와 사용자 맥락만 담는다 */
 export function buildReadingInput(input: ReadingInput): string {
+  const axis = axisForPrompt(input.productId);
+  // usesScore 는 지시가 아니라 스위치라 프롬프트에 실리지 않는다. 그래서 축 원본을
+  // 따로 본다 - axis 쪽에서 찾으면 언제나 undefined 라 숫자가 조용히 안 나간다.
+  const usesScore = axisFor(input.productId)?.usesScore === true;
   const payload = {
     saju_facts: slimFacts(input.facts),
     partner_saju_facts: input.partnerFacts ? slimFacts(input.partnerFacts) : null,
@@ -526,6 +622,19 @@ export function buildReadingInput(input: ReadingInput): string {
     delivery: {
       report_type: input.productLabel,
       character_name: input.characterName,
+      // 축이 없는 상품은 이 칸 자체가 안 나간다. 빈 칸을 보내면 모델이 그 빈 칸에
+      // 맞춰 무언가를 지어낸다 — 없는 것은 보여 주지 않는 편이 낫다.
+      ...(axis ? { product_axis: axis } : {}),
+      // 목차가 지수를 파는 상품에만 숫자를 준다. 그 절이 없는 상품에 숫자를 주면
+      // 안 판 것을 말하게 된다.
+      ...(usesScore && input.score
+        ? {
+            product_score: {
+              ...input.score,
+              factors: scoreFactorsForPrompt(input.score.factors),
+            },
+          }
+        : {}),
     },
   };
   // 들여쓰기를 빼면 같은 내용이 3분의 2 크기가 된다. 모델은 압축 JSON도 그대로 읽는다.

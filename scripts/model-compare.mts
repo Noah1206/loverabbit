@@ -196,6 +196,7 @@ async function runOne(c: Candidate, seed: number, dry: boolean): Promise<ModelRu
         partnerFacts: partner,
         matchedRules: rules,
         productLabel: product.promptLabel,
+        productId: product.id,
         outline: product.toc,
         focus: "relationship",
         currentScene: QUESTION,

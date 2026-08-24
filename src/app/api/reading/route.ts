@@ -330,11 +330,33 @@ export async function POST(req: NextRequest) {
   // 그대로 실으면 지시문을 밀어내는 데 쓰일 수 있다.
   const occupation = (body.occupation ?? "").trim().slice(0, 30);
 
+  // 지수는 명식에서 뽑는다 — 인자와 근거가 함께 나온다.
+  // 계산은 여기, 이 한 번뿐이다. 대운·세운을 보는 인자가 섞여 있어 내년에 다시
+  // 돌리면 다른 숫자가 나오므로, 결과를 통째로 봉인해 리딩 레코드에 저장한다.
+  // 해금·재조회는 전부 저장된 봉인을 읽는다(= 이미 판 리딩의 숫자는 그대로다).
+  //
+  // 생성보다 먼저 낸다. 목차가 지수를 파는 상품(속궁합)은 그 절을 쓰는 동안
+  // 숫자를 봐야 하는데, 예전에는 리포트를 다 만든 뒤에 계산해서 모델이 못 봤다.
+  // 그래서 화면의 숫자와 본문의 등급이 따로 정해졌다.
+  const scoreResult = computeSajuScore(body.category, myFacts, partnerFacts);
+  const score = scoreResult.value;
+  const scoreBand = product?.meterLabels?.[scoreResult.bandIndex] ?? null;
+  const scoreLabel = product?.scoreLabel ?? null;
+
   const readingInput = {
     facts: myFacts,
     partnerFacts,
     matchedRules,
     productLabel: label,
+    // 이 리포트가 답할 물음을 고르는 열쇠(reading-axis.ts). 라벨과 따로 넘긴다.
+    productId: body.category,
+    // 축이 usesScore 를 켠 상품에서만 프롬프트로 나간다. 화면에 찍히는 그 숫자다.
+    score: {
+      value: score,
+      label: scoreLabel,
+      band: scoreBand,
+      factors: scoreResult.factors.map((f) => ({ label: f.label, delta: f.delta, basis: f.basis })),
+    },
     outline,
     focus: partnerFacts ? "relationship" : "self",
     currentScene: body.question ?? "",
@@ -512,14 +534,6 @@ export async function POST(req: NextRequest) {
     me: chartSummary(myChart),
     partner: partnerChart ? chartSummary(partnerChart) : null,
   };
-  // 지수는 명식에서 뽑는다 — 인자와 근거가 함께 나온다.
-  // 계산은 여기, 이 한 번뿐이다. 대운·세운을 보는 인자가 섞여 있어 내년에 다시
-  // 돌리면 다른 숫자가 나오므로, 결과를 통째로 봉인해 리딩 레코드에 저장한다.
-  // 해금·재조회는 전부 저장된 봉인을 읽는다(= 이미 판 리딩의 숫자는 그대로다).
-  const scoreResult = computeSajuScore(body.category, myFacts, partnerFacts);
-  const score = scoreResult.value;
-  const scoreBand = product?.meterLabels?.[scoreResult.bandIndex] ?? null;
-  const scoreLabel = product?.scoreLabel ?? null;
   const id = randomUUID();
   const createdAt = new Date().toISOString();
   const scoreSeal = sealScore(scoreResult, { band: scoreBand, label: scoreLabel, issuedAt: createdAt });

@@ -52,6 +52,7 @@ for (const id of CATEGORIES) {
     partnerFacts: other,
     matchedRules: rules,
     productLabel: product.promptLabel,
+    productId: product.id,
     outline,
     focus: other ? "relationship" : "self",
     currentScene: "",
