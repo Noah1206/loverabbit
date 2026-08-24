@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import PortOneTransferForm, {
+  PORTONE_TRANSFER_CONFIGURED,
+} from "@/components/PortOneTransferForm";
 
 const KAKAOBANK_LINK = "kakaobank://";
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
@@ -50,7 +53,7 @@ export default function PaymentModal({
   useEffect(() => {
     // 이체가 기본 결제인 동안은 토스 SDK 를 아예 부르지 않는다 — 안 그리는
     // 위젯을 위해 스크립트만 내려받는다.
-    if (!TOSS_CLIENT_KEY || transferConfigured) return;
+    if (!TOSS_CLIENT_KEY || PORTONE_TRANSFER_CONFIGURED || transferConfigured) return;
     let active = true;
 
     const setup = async () => {
@@ -133,7 +136,16 @@ export default function PaymentModal({
             화면을 볼 수 있는 레이스가 있다. 이체는 관리자가 입금을 눈으로 확인해
             승인하는 흐름이라 그 문제 자체가 없다. 토스 위젯은 이체 계좌가
             설정되지 않은 환경에서만 나온다. */}
-        {transferConfigured ? (
+        {PORTONE_TRANSFER_CONFIGURED ? (
+          <PortOneTransferForm
+            amount={price}
+            customerEmail={customerEmail}
+            checkoutEndpoint="/api/checkout"
+            checkoutBody={{ readingId, userToken }}
+            redirectPath={`/payment/success?readingId=${encodeURIComponent(readingId)}`}
+            buttonLabel={`${price.toLocaleString()}원 계좌이체하고 전문 보기`}
+          />
+        ) : transferConfigured ? (
           <div className="transfer-payment-fallback">
             <p className="toss-payment-config-error">
               계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 전문이 열립니다.
@@ -209,7 +221,9 @@ export default function PaymentModal({
         <p className="toss-payment-note">
           {transferConfigured
             ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
-            : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
+            : PORTONE_TRANSFER_CONFIGURED
+              ? "결제 완료는 포트원 서버 검증과 KG이니시스 웹훅으로 안전하게 확인해요."
+              : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
         </p>
       </div>
     </div>

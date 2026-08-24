@@ -42,7 +42,7 @@ export interface StoredReading {
   unlocked: boolean;
   // 결제 기록 — 계좌이체는 입금코드로 통장 내역과 사후 대조한다
   payment?: {
-    method: "toss-pg" | "transfer" | "mock" | "referral";
+    method: "toss-pg" | "portone-pg" | "transfer" | "mock" | "referral";
     depositorCode?: string;
     referredUserId?: number;
     at: string;

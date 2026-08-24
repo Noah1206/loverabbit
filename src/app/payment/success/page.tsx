@@ -11,6 +11,7 @@ export default async function PaymentSuccessPage({
   const paymentKey = one(params.paymentKey);
   const orderId = one(params.orderId);
   const amount = Number(one(params.amount));
+  const paymentId = one(params.paymentId);
 
   return (
     <PaymentSuccessClient
@@ -18,6 +19,9 @@ export default async function PaymentSuccessPage({
       paymentKey={paymentKey}
       orderId={orderId}
       amount={amount}
+      paymentId={paymentId}
+      portOneCode={one(params.code)}
+      portOneMessage={one(params.message)}
     />
   );
 }

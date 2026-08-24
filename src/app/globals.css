@@ -300,6 +300,29 @@ body {
   line-height: 1.55;
 }
 
+.portone-transfer-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.portone-transfer-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.portone-transfer-form input {
+  width: 100%;
+}
+
+.portone-transfer-form .toss-payment-submit {
+  margin-top: 4px;
+}
+
 .toss-payment-intro {
   margin: 5px 0 12px;
 }
@@ -7819,4 +7842,3 @@ body:has(.product-page[data-landing]) .consent-banner {
   opacity: 0.5;
   cursor: default;
 }
-

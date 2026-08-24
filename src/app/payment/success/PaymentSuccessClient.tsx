@@ -13,21 +13,33 @@ export default function PaymentSuccessClient({
   paymentKey,
   orderId,
   amount,
+  paymentId,
+  portOneCode,
+  portOneMessage,
 }: {
   readingId: string;
   paymentKey: string;
   orderId: string;
   amount: number;
+  paymentId: string;
+  portOneCode: string;
+  portOneMessage: string;
 }) {
   const started = useRef(false);
   const [full, setFull] = useState("");
   const [error, setError] = useState("");
+  const portOnePayment = Boolean(paymentId);
+  const referenceId = paymentId || orderId;
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
 
     const confirm = async () => {
+      if (portOneCode) {
+        setError(portOneMessage || "계좌이체를 완료하지 못했어요.");
+        return;
+      }
       const user = getUser();
       if (!user) {
         setError("로그인 정보가 없어 결제를 승인하지 못했어요. 고객센터에 주문번호를 알려주세요.");
@@ -39,12 +51,12 @@ export default function PaymentSuccessClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             readingId,
-            method: "toss-pg",
+            method: portOnePayment ? "portone-pg" : "toss-pg",
             userToken: user.token,
             attribution: readAttribution(),
-            paymentKey,
-            orderId,
-            amount,
+            ...(portOnePayment
+              ? { paymentId }
+              : { paymentKey, orderId, amount }),
           }),
         });
         const data = (await response.json().catch(() => ({}))) as {
@@ -54,6 +66,8 @@ export default function PaymentSuccessClient({
           scoreFactors?: { label: string; delta: number; basis: string; timeVarying?: boolean }[];
           scoreAsOf?: ArchiveEntry["scoreAsOf"];
           report?: StructuredReport | null;
+          amount?: number;
+          paymentId?: string;
           error?: string;
         };
         if (!response.ok || !data.full) {
@@ -71,9 +85,9 @@ export default function PaymentSuccessClient({
         // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.
         const archiveEntry = listArchive().find((entry) => entry.readingId === readingId);
         void trackPurchase({
-          value: amount,
+          value: data.amount ?? amount,
           currency: "KRW",
-          transactionId: orderId,
+          transactionId: data.paymentId ?? referenceId,
           landingType: landingTypeForProduct(archiveEntry?.category, archiveEntry?.offerId) ?? undefined,
         });
         setFull(data.full);
@@ -83,7 +97,7 @@ export default function PaymentSuccessClient({
     };
 
     void confirm();
-  }, [amount, orderId, paymentKey, readingId]);
+  }, [amount, orderId, paymentId, paymentKey, portOneCode, portOneMessage, portOnePayment, readingId, referenceId]);
 
   return (
     <main className="payment-result-shell">
@@ -94,7 +108,7 @@ export default function PaymentSuccessClient({
             <span className="badge">승인 확인 필요</span>
             <h1>결제를 확인하고 있어요</h1>
             <p className="payment-result-error" role="alert">{error}</p>
-            <p className="payment-order-reference">주문번호 {orderId}</p>
+            <p className="payment-order-reference">주문번호 {referenceId || "확인 중"}</p>
             <Link className="btn" href={`/reading/${encodeURIComponent(readingId)}`}>내 리딩에서 다시 확인하기</Link>
           </>
         ) : full ? (

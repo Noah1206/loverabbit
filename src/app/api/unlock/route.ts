@@ -13,6 +13,8 @@ import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
 import { notifyAdmin } from "@/lib/telegram";
+import { finalizePortOnePayment } from "@/lib/portone-payment";
+import { PortOnePaymentError } from "@/lib/portone-validation";
 
 // 유료 본문을 여기서 만든다. 이 경로가 이 서비스에서 가장 오래 도는 자리다.
 //
@@ -34,10 +36,11 @@ export const maxDuration = 300;
 interface Body {
   readingId: string;
   blob?: string;
-  method?: "transfer" | "toss-pg" | "referral";
+  method?: "transfer" | "toss-pg" | "portone-pg" | "referral";
   userToken?: string; // 회원가입 토큰 — 유료 해금은 가입 필수
   depositorCode?: string;
   paymentKey?: string;
+  paymentId?: string;
   orderId?: string;
   amount?: number;
   /** 광고 유입 표시 (utm/fbclid). 주소에서 온 값이라 그대로 믿지 않는다. */
@@ -175,6 +178,55 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
+
+  // ── 포트원 V2 · KG이니시스 실시간 계좌이체 ──
+  if (body.method === "portone-pg") {
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("포트원 결제 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
+    }
+    if (!user?.userId) {
+      return NextResponse.json({ error: "풀 리딩을 열려면 로그인이 필요해요." }, { status: 401 });
+    }
+    if (!body.paymentId) {
+      return NextResponse.json({ error: "결제 번호를 확인하지 못했어요." }, { status: 400 });
+    }
+    if (stored?.userId && stored.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
+    }
+
+    try {
+      const completed = await finalizePortOnePayment(body.paymentId, {
+        userId: user.userId,
+        kind: "reading",
+        readingId: body.readingId,
+      });
+      console.log(
+        `[결제:포트원-KG이니시스] userId=${user.userId} reading=${body.readingId} paymentId=${body.paymentId}`
+      );
+      return deliver({
+        method: "portone-pg",
+        paymentId: completed.paymentId,
+        amount: completed.amount,
+      });
+    } catch (error) {
+      console.error("포트원 결제 검증 실패:", error);
+      const status = error instanceof PortOnePaymentError ? error.status : 503;
+      return NextResponse.json(
+        {
+          error:
+            error instanceof PortOnePaymentError
+              ? error.message
+              : "결제 확인 중 오류가 발생했어요. 잠시 후 다시 확인해주세요.",
+          paymentId: body.paymentId,
+        },
+        { status }
+      );
+    }
+  }
 
   // ── 계좌이체 ──
   if (body.method === "transfer") {

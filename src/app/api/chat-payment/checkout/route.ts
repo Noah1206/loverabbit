@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getChatProduct } from "@/lib/chat-products";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { resolveUserToken } from "@/lib/tokens";
 
 interface Body {
@@ -16,7 +17,12 @@ export async function POST(request: NextRequest) {
   if (!product) {
     return NextResponse.json({ error: "대화권 상품을 확인하지 못했어요." }, { status: 400 });
   }
-  if (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY) {
+  const portOneConfig = getPortOneServerConfig();
+  const usePortOne = Boolean(portOneConfig);
+  if (hasAnyPortOneServerSetting() && !portOneConfig) {
+    return NextResponse.json({ error: "포트원 결제 키 설정을 확인해주세요." }, { status: 503 });
+  }
+  if (!usePortOne && (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY)) {
     return NextResponse.json({ error: "토스페이먼츠 결제 설정이 아직 완료되지 않았어요." }, { status: 503 });
   }
   if (!isDatabaseConfigured()) {
@@ -34,12 +40,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "대화권을 결제하려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
   }
 
-  const providerOrderId = `LRC_${randomUUID().replace(/-/g, "")}`;
+  const providerOrderId = `${usePortOne ? "LRCP" : "LRC"}_${randomUUID().replace(/-/g, "")}`;
   try {
     await createOrder({
       userId: user.userId,
       kind: "chat_credits",
-      method: "toss-pg",
+      method: usePortOne ? "portone-pg" : "toss-pg",
       status: "pending",
       amount: product.price,
       providerOrderId,
@@ -56,7 +62,9 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     orderId: providerOrderId,
+    paymentId: providerOrderId,
     amount: product.price,
     orderName: product.name,
+    provider: usePortOne ? "portone" : "toss",
   });
 }

@@ -7,20 +7,20 @@ import {
   isDatabaseConfigured,
 } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
+import { finalizePortOnePayment } from "@/lib/portone-payment";
+import { PortOnePaymentError } from "@/lib/portone-validation";
 
 interface Body {
   userToken?: string;
+  method?: "toss-pg" | "portone-pg";
   paymentKey?: string;
+  paymentId?: string;
   orderId?: string;
   amount?: number;
 }
 
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as Body;
-  const secret = process.env.TOSS_SECRET_KEY;
-  if (!secret) {
-    return NextResponse.json({ error: "토스페이먼츠 결제 설정이 완료되지 않았어요." }, { status: 503 });
-  }
   if (!isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다." }, { status: 503 });
   }
@@ -32,7 +32,45 @@ export async function POST(request: NextRequest) {
     console.error("캐릭터챗 결제 승인 회원 확인 실패:", error);
     return NextResponse.json({ error: "로그인 정보를 확인하지 못했어요." }, { status: 503 });
   }
-  if (!user?.userId || !body.paymentKey || !body.orderId || !Number.isSafeInteger(body.amount)) {
+  if (!user?.userId) {
+    return NextResponse.json({ error: "결제 정보가 올바르지 않아요." }, { status: 400 });
+  }
+
+  if (body.method === "portone-pg") {
+    if (!body.paymentId) {
+      return NextResponse.json({ error: "결제 번호를 확인하지 못했어요." }, { status: 400 });
+    }
+    try {
+      const completed = await finalizePortOnePayment(body.paymentId, {
+        userId: user.userId,
+        kind: "chat_credits",
+      });
+      return NextResponse.json({
+        paymentId: completed.paymentId,
+        amount: completed.amount,
+        creditsRemaining: completed.creditsRemaining ?? 0,
+        alreadyPaid: completed.alreadyPaid,
+      });
+    } catch (error) {
+      console.error("캐릭터챗 포트원 결제 검증 실패:", error);
+      const status = error instanceof PortOnePaymentError ? error.status : 503;
+      return NextResponse.json(
+        {
+          error:
+            error instanceof PortOnePaymentError
+              ? error.message
+              : "결제 확인 중 오류가 발생했어요. 잠시 후 다시 확인해주세요.",
+        },
+        { status }
+      );
+    }
+  }
+
+  const secret = process.env.TOSS_SECRET_KEY;
+  if (!secret) {
+    return NextResponse.json({ error: "토스페이먼츠 결제 설정이 완료되지 않았어요." }, { status: 503 });
+  }
+  if (!body.paymentKey || !body.orderId || !Number.isSafeInteger(body.amount)) {
     return NextResponse.json({ error: "결제 정보가 올바르지 않아요." }, { status: 400 });
   }
 

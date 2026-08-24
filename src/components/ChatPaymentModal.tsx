@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
 
+import PortOneTransferForm, {
+  PORTONE_TRANSFER_CONFIGURED,
+} from "@/components/PortOneTransferForm";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
@@ -48,7 +51,7 @@ export default function ChatPaymentModal({
 
   useEffect(() => {
     // 이체가 기본 결제인 동안은 토스 SDK 를 부르지 않는다 (PaymentModal 과 같은 이유)
-    if (!TOSS_CLIENT_KEY || transferConfigured) return;
+    if (!TOSS_CLIENT_KEY || PORTONE_TRANSFER_CONFIGURED || transferConfigured) return;
     let active = true;
     const setup = async () => {
       try {
@@ -149,7 +152,16 @@ export default function ChatPaymentModal({
         <p className="toss-payment-price">{product.price.toLocaleString()}원</p>
         <p className="toss-payment-intro">결제가 승인되면 지금 대화하던 캐릭터에게 바로 이어서 말할 수 있어요.</p>
 
-        {submittedOrderId ? (
+        {PORTONE_TRANSFER_CONFIGURED ? (
+          <PortOneTransferForm
+            amount={product.price}
+            customerEmail={customerEmail}
+            checkoutEndpoint="/api/chat-payment/checkout"
+            checkoutBody={{ productId: product.id, userToken }}
+            redirectPath={`/payment/chat-success?characterId=${encodeURIComponent(characterId)}&productId=${encodeURIComponent(product.id)}`}
+            buttonLabel={`${product.price.toLocaleString()}원 계좌이체하기`}
+          />
+        ) : submittedOrderId ? (
           <div className="transfer-payment-fallback">
             <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
             <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>

@@ -10,22 +10,34 @@ export default function ChatPaymentSuccessClient({
   paymentKey,
   orderId,
   amount,
+  paymentId,
+  portOneCode,
+  portOneMessage,
 }: {
   characterId: string;
   paymentKey: string;
   orderId: string;
   amount: number;
+  paymentId: string;
+  portOneCode: string;
+  portOneMessage: string;
 }) {
   const started = useRef(false);
   const [credits, setCredits] = useState<number | null>(null);
   const [error, setError] = useState("");
   const shrineHref = `/shrine/${encodeURIComponent(characterId || "hwarin")}/chat?payment=approved`;
+  const portOnePayment = Boolean(paymentId);
+  const referenceId = paymentId || orderId;
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
 
     const confirm = async () => {
+      if (portOneCode) {
+        setError(portOneMessage || "계좌이체를 완료하지 못했어요.");
+        return;
+      }
       const user = getUser();
       if (!user) {
         setError("로그인 정보가 없어 결제를 승인하지 못했어요. 고객센터에 주문번호를 알려주세요.");
@@ -37,9 +49,10 @@ export default function ChatPaymentSuccessClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userToken: user.token,
-            paymentKey,
-            orderId,
-            amount,
+            method: portOnePayment ? "portone-pg" : "toss-pg",
+            ...(portOnePayment
+              ? { paymentId }
+              : { paymentKey, orderId, amount }),
           }),
         });
         const data = (await response.json().catch(() => ({}))) as {
@@ -57,7 +70,7 @@ export default function ChatPaymentSuccessClient({
     };
 
     void confirm();
-  }, [amount, orderId, paymentKey]);
+  }, [amount, orderId, paymentId, paymentKey, portOneCode, portOneMessage, portOnePayment]);
 
   return (
     <main className="payment-result-shell">
@@ -68,7 +81,7 @@ export default function ChatPaymentSuccessClient({
             <span className="badge">승인 확인 필요</span>
             <h1>결제를 확인하고 있어요</h1>
             <p className="payment-result-error" role="alert">{error}</p>
-            <p className="payment-order-reference">주문번호 {orderId}</p>
+            <p className="payment-order-reference">주문번호 {referenceId || "확인 중"}</p>
             <Link className="btn" href={shrineHref}>대화로 돌아가기</Link>
           </>
         ) : credits !== null ? (

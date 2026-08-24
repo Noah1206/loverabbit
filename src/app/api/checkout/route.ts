@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 
@@ -11,7 +12,15 @@ interface Body {
 
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as Body;
-  if (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY) {
+  const portOneConfig = getPortOneServerConfig();
+  const usePortOne = Boolean(portOneConfig);
+  if (hasAnyPortOneServerSetting() && !portOneConfig) {
+    return NextResponse.json(
+      { error: "포트원 결제 키 설정을 확인해주세요." },
+      { status: 503 }
+    );
+  }
+  if (!usePortOne && (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY)) {
     return NextResponse.json(
       { error: "토스페이먼츠 결제 키 설정이 아직 완료되지 않았어요." },
       { status: 503 }
@@ -19,6 +28,9 @@ export async function POST(request: NextRequest) {
   }
   if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다." }, { status: 503 });
+  }
+  if (usePortOne && !isDatabaseConfigured()) {
+    return NextResponse.json({ error: "포트원 결제 DB 연결을 준비 중입니다." }, { status: 503 });
   }
 
   let user;
@@ -49,13 +61,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "이미 열린 리딩이에요." }, { status: 409 });
   }
 
-  const orderId = `LR_${randomUUID().replace(/-/g, "")}`;
+  const orderId = `${usePortOne ? "LRP" : "LR"}_${randomUUID().replace(/-/g, "")}`;
   try {
     await createOrder({
       userId: user.userId,
       readingId: reading.id,
       kind: "reading",
-      method: "toss-pg",
+      method: usePortOne ? "portone-pg" : "toss-pg",
       status: "pending",
       amount: reading.price,
       providerOrderId: orderId,
@@ -68,7 +80,9 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     orderId,
+    paymentId: orderId,
     amount: reading.price,
     orderName: "러브레빗 사주 전문 리딩",
+    provider: usePortOne ? "portone" : "toss",
   });
 }

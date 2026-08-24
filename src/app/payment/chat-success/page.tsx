@@ -14,6 +14,9 @@ export default async function ChatPaymentSuccessPage({
       paymentKey={one(params.paymentKey)}
       orderId={one(params.orderId)}
       amount={Number(one(params.amount))}
+      paymentId={one(params.paymentId)}
+      portOneCode={one(params.code)}
+      portOneMessage={one(params.message)}
     />
   );
 }

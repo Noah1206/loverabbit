@@ -42,13 +42,14 @@ export interface ReferralStatus {
 }
 
 export type OrderKind = "reading" | "membership" | "chat_credits";
-export type OrderMethod = "transfer" | "toss-pg" | "mock";
+export type OrderMethod = "transfer" | "toss-pg" | "portone-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
 export interface DatabaseOrder {
   userId: number;
   readingId: string | null;
   kind: OrderKind;
+  method: OrderMethod;
   status: OrderStatus;
   amount: number;
   providerOrderId: string | null;
@@ -653,7 +654,7 @@ export async function getOrderByProviderOrderId(
 
   const { data, error } = await db
     .from("lr_orders")
-    .select("user_id,reading_id,kind,status,amount,provider_order_id,metadata")
+    .select("user_id,reading_id,kind,method,status,amount,provider_order_id,metadata")
     .eq("provider_order_id", providerOrderId)
     .maybeSingle();
   if (error) throw databaseError("주문 조회", error);
@@ -662,6 +663,7 @@ export async function getOrderByProviderOrderId(
     userId: Number(data.user_id),
     readingId: data.reading_id ?? null,
     kind: data.kind as OrderKind,
+    method: data.method as OrderMethod,
     status: data.status as OrderStatus,
     amount: Number(data.amount),
     providerOrderId: data.provider_order_id ?? null,
