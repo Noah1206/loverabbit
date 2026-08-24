@@ -89,6 +89,35 @@ const items = [
       ["marketing/ads/hook-five-v1", "07-yeonae-year-horizontal-bg.png", "horizontal"],
     ],
   },
+  {
+    id: "ibyeol",
+    card: "ibyeol.jpg",
+    // 이 그림의 이야기는 폴라로이드다 - 끝난 관계를 손에 쥐고 있는 장면.
+    // attention 은 그걸 통째로 잘라내고 오른쪽 인물만 남겼다. 왼쪽을 붙잡되
+    // 120px 만 밀어, 사진과 우는 얼굴과 남자가 다 들어오게 한다.
+    vertical: { scale: 1.3933, left: 120, top: 0 },
+    // 320 에서 우는 얼굴과 폴라로이드가 같이 남는다. 150 은 사진이 너무
+    // 아래로 내려가 헤드라인 자리와 겹쳤다.
+    landscapeTop: 320,
+    out: [
+      ["marketing/ads/hook-five-v1", "08-ibyeol-vertical-bg.png", "vertical"],
+      ["marketing/ads/hook-five-v1", "08-ibyeol-horizontal-bg.png", "horizontal"],
+    ],
+  },
+  {
+    id: "sokgunghap",
+    card: "sokgunghap.jpg",
+    // 전신 춤 구도라 가운데를 그대로 두면 된다. attention 은 촛불 쪽으로
+    // 치우쳐 두 사람이 한쪽으로 몰렸다.
+    vertical: { scale: 1.3933, left: 157, top: 0 },
+    // 180 에서 두 얼굴과 양쪽 촛대가 같이 남는다. 왼쪽 3분의 1이 촛불과
+    // 금발이라 헤드라인이 앉을 자리가 빈다.
+    landscapeTop: 180,
+    out: [
+      ["marketing/ads/hook-five-v1", "09-sokgunghap-vertical-bg.png", "vertical"],
+      ["marketing/ads/hook-five-v1", "09-sokgunghap-horizontal-bg.png", "horizontal"],
+    ],
+  },
 ];
 
 for (const item of items) {

@@ -2,9 +2,9 @@
 
 ## 현재 수량
 
-- 광고 콘셉트: **13개**
-- 고유 광고 이미지: **26개** — 콘셉트마다 세로형 1개 + 가로형 1개
-- 최종 내보내기 파일: **52개** — 각 이미지를 PNG와 JPG로 저장
+- 광고 콘셉트: **15개**
+- 고유 광고 이미지: **30개** — 콘셉트마다 세로형 1개 + 가로형 1개
+- 최종 내보내기 파일: **60개** — 각 이미지를 PNG와 JPG로 저장
 - 생성용 배경과 합성 스크립트는 위 숫자에서 제외
 
 ## 광고별 구분
@@ -24,6 +24,8 @@
 | 11 | 이별 사주 · 갈림길형 | 끝낼까, 붙잡을까? | `hook-five-v1/05-breakup-ad-vertical-1080x1920.png` | `hook-five-v1/05-breakup-ad-horizontal-1200x628.png` | 이별 전용 랜딩 |
 | 12 | 재회 사주 · 빗속 포옹형 | 아직 연락 올까 싶다면 | `hook-five-v1/06-jaehoe-ad-vertical-1080x1920.png` | `hook-five-v1/06-jaehoe-ad-horizontal-1200x628.png` | `/product/jaehoe` |
 | 13 | 연애운 사주 · 촛불 커플형 | 올해는 좀 다를까 싶다면 | `hook-five-v1/07-yeonae-year-ad-vertical-1080x1920.png` | `hook-five-v1/07-yeonae-year-ad-horizontal-1200x628.png` | `/product/yeonae` |
+| 14 | 이별 사주 · 폴라로이드형 | 또 같은 데서 끝났다면 | `hook-five-v1/08-ibyeol-ad-vertical-1080x1920.png` | `hook-five-v1/08-ibyeol-ad-horizontal-1200x628.png` | `/saju/breakup-decision` |
+| 15 | 속궁합 사주 · 촛대 왈츠형 | 주도권은 어느 쪽일까 | `hook-five-v1/09-sokgunghap-ad-vertical-1080x1920.png` | `hook-five-v1/09-sokgunghap-ad-horizontal-1200x628.png` | `/saju/intimate-compatibility` |
 
 ## 형식
 
@@ -62,7 +64,7 @@
 **09 재회는 배경 출처가 다르다.** 다른 주제는 배경이 주제마다 따로 만든 AI
 원화인데, 재회는 그 원화가 없어서 상품 카드(`public/cards-pastel/jaehoe.jpg`,
 900×1200)에서 떴다 — `node marketing/ads/derive-card-bg.mjs` 가 세로 941×1672
-와 가로 1734×907 두 장을 만든다. 연애운(`yeonae.jpg`)도 같은 방식이다. 900px 원본을 늘린 **확대**라 원화와 같지
+와 가로 1734×907 두 장을 만든다. 연애운(`yeonae.jpg`) · 이별(`ibyeol.jpg`) · 속궁합(`sokgunghap.jpg`)도 같은 방식이다. 900px 원본을 늘린 **확대**라 원화와 같지
 않다. 원화가 생기면 그 배경 파일만 갈아 끼우고 생성기를 다시 돌리면 된다.
 
 대신 클릭 뒤 도착하는 `/product/jaehoe` 가 같은 그림을 쓰므로 소재와 도착

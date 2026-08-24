@@ -39,12 +39,18 @@ const ads = [
     product: "속궁합 사주 9,900 -> 990",
     headline: "겉궁합은 좋은데 속궁합은 어떨까",
     sources: [
+      [DARK, "02-intimate-compatibility-ad-feed-1080x1350.jpg"],
       [DARK, "02-intimate-compatibility-ad-vertical-1080x1920.jpg"],
       [DARK, "02-intimate-compatibility-ad-horizontal-1200x628.jpg"],
       [WHITE, "02-intimate-feed-1080x1350.jpg"],
       [WHITE, "02-intimate-story-1080x1920.jpg"],
       [SQUARE, "03-intimate-square-1080x1080.jpg"],
       [CARD, "03-intimate-square-1080x1080.jpg", "카드-"],
+      // 상품 카드 그림으로 만든 한 벌. 도착 화면과 소재의 그림이 같다.
+      // 02 와 각도가 다르다 - 02 는 속궁합 지수, 09 는 주도권. 섞어 쓰지 마라.
+      [DARK, "09-sokgunghap-ad-feed-1080x1350.jpg"],
+      [DARK, "09-sokgunghap-ad-vertical-1080x1920.jpg"],
+      [DARK, "09-sokgunghap-ad-horizontal-1200x628.jpg"],
     ],
   },
   {
@@ -65,6 +71,7 @@ const ads = [
       "새로 만드는 광고만 위 주소를 쓴다.",
     ],
     sources: [
+      [DARK, "04-romance-fortune-ad-feed-1080x1350.jpg"],
       [DARK, "04-romance-fortune-ad-vertical-1080x1920.jpg"],
       [DARK, "04-romance-fortune-ad-horizontal-1200x628.jpg"],
       [WHITE, "04-romance-timing-feed-1080x1350.jpg"],
@@ -76,6 +83,7 @@ const ads = [
       // 그림에서 나온다 (배경은 derive-card-bg.mjs 가 그 카드에서 뜬다).
       [SQUARE, "08-yeonae-year-square-1080x1080.jpg"],
       [CARD, "08-yeonae-year-square-1080x1080.jpg", "카드-"],
+      [DARK, "07-yeonae-year-ad-feed-1080x1350.jpg"],
       [DARK, "07-yeonae-year-ad-vertical-1080x1920.jpg"],
       [DARK, "07-yeonae-year-ad-horizontal-1200x628.jpg"],
     ],
@@ -87,12 +95,18 @@ const ads = [
     product: "이별 부검 리포트 29,900 -> 990",
     headline: "내가 뭘 그렇게 잘못했을까",
     sources: [
+      [DARK, "05-breakup-ad-feed-1080x1350.jpg"],
       [DARK, "05-breakup-ad-vertical-1080x1920.jpg"],
       [DARK, "05-breakup-ad-horizontal-1200x628.jpg"],
       [WHITE, "05-breakup-feed-1080x1350.jpg"],
       [WHITE, "05-breakup-story-1080x1920.jpg"],
       [SQUARE, "01-breakup-square-1080x1080.jpg"],
       [CARD, "01-breakup-square-1080x1080.jpg", "카드-"],
+      // 상품 카드 그림으로 만든 한 벌. 도착 화면과 소재의 그림이 같다.
+      // 05 와 각도가 다르다 - 05 는 자책, 08 은 반복. 섞어 쓰지 마라.
+      [DARK, "08-ibyeol-ad-feed-1080x1350.jpg"],
+      [DARK, "08-ibyeol-ad-vertical-1080x1920.jpg"],
+      [DARK, "08-ibyeol-ad-horizontal-1200x628.jpg"],
     ],
   },
   {
@@ -108,6 +122,7 @@ const ads = [
       "새로 만들면 그 배경 파일만 갈아 끼우고 생성기를 다시 돌리면 된다.",
     ],
     sources: [
+      [DARK, "06-jaehoe-ad-feed-1080x1350.jpg"],
       [DARK, "06-jaehoe-ad-vertical-1080x1920.jpg"],
       [DARK, "06-jaehoe-ad-horizontal-1200x628.jpg"],
       [WHITE, "06-jaehoe-feed-1080x1350.jpg"],
@@ -161,6 +176,16 @@ for (const ad of ads) {
     ``,
     `소재 ${lines.length}개`,
     ...lines,
+    ``,
+    `규격을 지면에 맞춰 넣어라. 안 맞으면 메타가 잘라서 보여준다.`,
+    `  1080x1350 (4:5)   피드. 세로 광고는 이걸 쓴다`,
+    `  1080x1080 (1:1)   피드 · 탐색 탭`,
+    `  1080x1920 (9:16)  스토리 · 릴스 전용`,
+    `  1200x628          링크 · 오른쪽 칸`,
+    ``,
+    `9:16 을 피드에 올리면 "This image will be masked on Mobile News Feed"`,
+    `가 뜬다. 링크 없는 이미지 광고의 피드 최대 세로비가 4:5 라서다.`,
+    `그대로 두면 가운데만 남기고 잘려서 배지 · 헤드라인 · 버튼이 다 날아간다.`,
     ``,
     ad.adult ? `만 19세 이상 소재다. "심의위험-" 이 붙은 두 장은 배경이 밀착\n장면이라 성적 암시로 거부될 수 있다. 나머지 네 장으로 먼저 심사를\n통과시킨 뒤에 올려라.` : ``,
     ...(ad.note ?? []),

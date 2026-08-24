@@ -118,6 +118,41 @@ const campaigns = [
     highlight: "#ffd08a",
     veil: "#0a0608",
   },
+  {
+    id: "08",
+    slug: "ibyeol",
+    title: "이별 사주",
+    badge: "이별 사주",
+    product: "이별 부검 리포트 (ibyeol, 29,900)",
+    // 05 와 같은 상품이다. 05 는 자책하는 사람에게 "내가 뭘 그렇게
+    // 잘못했을까", 여기는 같은 데서 반복해 끝나는 사람에게 "또 같은 데서".
+    // 사는 사람이 다르다 - 문구가 같아지면 두 광고가 한 사람을 두고 서로
+    // 예산만 갉아먹는다. 배경은 그 상품이 실제로 쓰는 카드에서 떴다.
+    // 근거: "4장 01. 네 연애가 반복해서 걸려 넘어지는 지점"
+    headline: ["또 같은 데서", "끝났다면"],
+    cta: "반복되는 지점 보기  →",
+    accent: "#c76a5a",
+    accent2: "#5c4a7a",
+    highlight: "#f0b7a4",
+    veil: "#0f0a10",
+  },
+  {
+    id: "09",
+    slug: "sokgunghap",
+    title: "속궁합 사주",
+    badge: "속궁합 사주",
+    product: "속궁합 사주 (sokgunghap, 9,900)",
+    // 이 상품으로 도는 네 번째 소재다. 앞의 셋과 각도가 겹치면 안 된다 -
+    // 01 은 부딪히는 지점, 02 는 속궁합 지수, 03 은 속도 차이. 여기는
+    // 아직 아무도 안 쓴 주도권이다. 배경은 그 상품이 실제로 쓰는 카드에서 떴다.
+    // 근거: "3장 02. 주도권은 누구에게 있는가", 키워드 "주도권 구조"
+    headline: ["주도권은", "어느 쪽일까"],
+    cta: "주도권 구조 보기  →",
+    accent: "#b8324f",
+    accent2: "#7a4a2e",
+    highlight: "#f2c98a",
+    veil: "#0d0705",
+  },
 ];
 
 const xml = (value) => value
@@ -188,6 +223,46 @@ function portraitOverlay(c) {
   `);
 }
 
+// 4:5 (1080x1350) - 모바일 피드용.
+//
+// 왜 따로 있는가. 9:16 을 피드에 올리면 메타가 "This image will be masked on
+// Mobile News Feed" 를 띄운다. 링크 없는 이미지 광고의 피드 최대 세로비가
+// 4:5 라서, 더 긴 그림은 위아래를 잘라 4:5 로 맞춰 보여준다. 그 자름은
+// 가운데 기준이라 **배지와 헤드라인(위)과 CTA(아래)가 같이 날아간다** -
+// 그림만 남고 파는 말이 사라진다.
+//
+// 그래서 피드에는 이 판을 올린다. 9:16 은 스토리·릴스 전용이다.
+function feedOverlay(c) {
+  const headSize = headFit(c, 76, 940);
+  const ctaSize = fitSize(c.cta, 36, 650 - 44);
+  return svg(1080, 1350, `
+    ${commonDefs(c)}
+    <defs>
+      <linearGradient id="veil" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${c.veil}" stop-opacity="0.80"/>
+        <stop offset="0.40" stop-color="${c.veil}" stop-opacity="0.14"/>
+        <stop offset="0.70" stop-color="${c.veil}" stop-opacity="0"/>
+        <stop offset="1" stop-color="#07040b" stop-opacity="0.80"/>
+      </linearGradient>
+    </defs>
+    <rect width="1080" height="1350" fill="url(#veil)"/>
+
+    <rect x="70" y="70" width="224" height="64" rx="32" fill="${c.accent}"/>
+    <text class="kr" x="182" y="113" fill="#fff" font-size="28" font-weight="900" text-anchor="middle">${xml(c.badge)}</text>
+
+    <text class="kr" x="70" y="248" fill="#fffaf7" font-size="${headSize}" font-weight="900" letter-spacing="-4" filter="url(#shadow)">
+      <tspan x="70" dy="0">${xml(c.headline[0])}</tspan>
+      <tspan x="70" dy="94" fill="${c.highlight}">${xml(c.headline[1])}</tspan>
+    </text>
+
+    <rect x="70" y="1086" width="650" height="108" rx="54" fill="url(#cta)" filter="url(#shadow)"/>
+    <text class="kr" x="395" y="1156" fill="#fff" font-size="${ctaSize}" font-weight="900" text-anchor="middle">${xml(c.cta)}</text>
+
+    <text class="kr" x="128" y="1312" fill="#fff" font-size="25" font-weight="900">LOVE<tspan fill="${c.highlight}">RABBIT</tspan></text>
+    <text class="kr" x="360" y="1312" fill="#c5b9ca" font-size="19" font-weight="550">오락 목적의 콘텐츠입니다.</text>
+  `);
+}
+
 function landscapeOverlay(c) {
   const headSize = headFit(c, 54, 1084);
   const ctaSize = fitSize(c.cta, 26, 350 - 30);
@@ -231,6 +306,17 @@ async function exportCampaign(c) {
     .png()
     .toBuffer();
 
+  // 4:5 는 세로 배경에서 위쪽 기준으로 뜬다. 가운데로 뜨면 얼굴이 빠져나간다 -
+  // 배경들이 인물을 위쪽에 두고 잘려 있기 때문이다.
+  const feed = await sharp(path.join(assetDir, `${c.id}-${c.slug}-vertical-bg.png`))
+    .resize(1080, 1350, { fit: "cover", position: "top" })
+    .composite([
+      { input: feedOverlay(c), top: 0, left: 0 },
+      { input: logoPortrait, top: 1276, left: 70 },
+    ])
+    .png()
+    .toBuffer();
+
   const landscape = await sharp(path.join(assetDir, `${c.id}-${c.slug}-horizontal-bg.png`))
     .resize(1200, 628, { fit: "cover", position: "center" })
     .composite([
@@ -243,6 +329,8 @@ async function exportCampaign(c) {
   await Promise.all([
     sharp(portrait).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-vertical-1080x1920.png`)),
     sharp(portrait).jpeg({ quality: 94, chromaSubsampling: "4:4:4" }).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-vertical-1080x1920.jpg`)),
+    sharp(feed).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-feed-1080x1350.png`)),
+    sharp(feed).jpeg({ quality: 94, chromaSubsampling: "4:4:4" }).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-feed-1080x1350.jpg`)),
     sharp(landscape).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-horizontal-1200x628.png`)),
     sharp(landscape).jpeg({ quality: 94, chromaSubsampling: "4:4:4" }).toFile(path.join(assetDir, `${c.id}-${c.slug}-ad-horizontal-1200x628.jpg`)),
   ]);
@@ -299,4 +387,4 @@ async function buildContactSheet() {
 await Promise.all(campaigns.map(exportCampaign));
 await buildContactSheet();
 
-console.log(`Created ${campaigns.length} campaigns x 2 aspect ratios, PNG/JPG exports, and contact sheet in marketing/ads/hook-five-v1`);
+console.log(`Created ${campaigns.length} campaigns x 3 aspect ratios (4:5 feed, 9:16 story, 1.91:1 link), PNG/JPG exports, and contact sheet in marketing/ads/hook-five-v1`);
