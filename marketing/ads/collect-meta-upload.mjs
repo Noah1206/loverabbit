@@ -206,6 +206,29 @@ const index = "﻿" + [
 
 await writeFile(path.join(outDir, "읽어보기.txt"), index, "utf8");
 
+// 링크만 모은 판. 메타 광고 만들기 화면의 "웹사이트 URL" 칸에 한 줄씩 붙여 넣는다.
+// 폴더별 읽어보기.txt 에도 같은 주소가 있지만, 광고 일곱 개를 만들 때 폴더를
+// 일곱 번 여는 것보다 이 파일 하나를 띄워 두는 편이 빠르다. 같은 배열에서 뽑으므로
+// 둘이 어긋날 수 없다.
+const links = "﻿" + [
+  `LOVERABBIT 메타 광고 링크 ${ads.length}개`,
+  ``,
+  `아래 주소를 "웹사이트 URL" 칸에 통째로 붙여 넣는다.`,
+  `URL 매개변수 칸은 비운다 - 넣으면 UTM 이 두 번 붙는다.`,
+  `{{campaign.name}} 과 {{ad.name}} 은 메타가 알아서 채운다. 그대로 둔다.`,
+  ``,
+  ...ads.flatMap((ad) => [
+    `[${ad.dir}]  ${ad.product}`,
+    `${BASE}${ad.landing}?offer=${ad.offer}&${UTM}`,
+    ``,
+  ]),
+  `확인은 이렇게 한다`,
+  `  node scripts/verify-ad-offers.mjs https://loverebbit.xyz`,
+  ``,
+].join("\r\n");
+
+await writeFile(path.join(outDir, "광고링크.txt"), links, "utf8");
+
 console.log(`Collected ${copied} files into ${ads.length} ad folders at marketing/ads/meta-upload-v1`);
 if (missing.length) {
   console.log(`\n[!] 원본을 못 찾은 파일 ${missing.length}개:`);
