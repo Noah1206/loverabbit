@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { PRODUCT_MAP } from "@/lib/products";
-import { getReading, listReadingsByUser } from "@/lib/store";
+import { getReading, listReadingsByUser, markReadingViewed } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 내 리딩 — 계정으로 묶인 리딩을 기기와 무관하게 돌려준다.
@@ -43,6 +43,10 @@ export async function POST(request: NextRequest) {
       if (!reading || reading.userId !== user.userId) {
         return NextResponse.json({ error: "리딩을 찾을 수 없어요." }, { status: 404, headers: noStore });
       }
+      // 단건 조회 = 리딩 화면이 열렸다는 뜻이다. 화면은 이 응답으로 그려진다.
+      // 전문 열람은 /api/unlock 이 따로 센다 — 여기에서는 티저까지만 나간다.
+      void markReadingViewed(reading.id);
+
       return NextResponse.json(
         {
           reading: {

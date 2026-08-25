@@ -366,6 +366,13 @@ export async function POST(req: NextRequest) {
     now,
   };
 
+  // 리딩 id 를 생성보다 먼저 뽑는다.
+  //
+  // 예전에는 저장 직전에 만들었다. 그러면 모델을 부르는 시점에 id 가 없어서
+  // 사용량이 reading_id 없이 남았고, 원가를 리딩별로 붙일 수 없었다 — 시각으로
+  // 눈대중 대조하는 수밖에 없었다. UUID 는 저장과 무관하게 미리 정할 수 있다.
+  const id = randomUUID();
+
   // 데모 분기가 생기면서 흐름이 갈라져, 타입 검사가 대입을 증명하지 못한다.
   // 빈 값으로 시작하고 아래 갈래가 반드시 채운다.
   let teaser = "";
@@ -416,6 +423,7 @@ export async function POST(req: NextRequest) {
 
     // 만들어졌든 못 만들었든 값은 나갔다. 실패한 호출을 빼고 세면 청구서와 안 맞는다.
     void recordAiUsage({
+      readingId: id,
       stage: "free_preview",
       category: body.category,
       provider: composed.provider,
@@ -481,6 +489,19 @@ export async function POST(req: NextRequest) {
               ...callOptions,
             })
           , flagged);
+          // 다시 쓴 절도 값이 든다. 무료 경로의 이 몫이 그동안 어디에도 안 남아,
+          // 청구서가 저장소 합계보다 큰 이유 중 하나였다(유료 쪽은 이미 센다 —
+          // reading-finish.ts 의 rewrite 기록과 같은 뜻이다).
+          void recordAiUsage({
+            readingId: id,
+            stage: "rewrite",
+            category: body.category,
+            provider: providerName,
+            model: generationModel,
+            calls: redone.requestCount,
+            usage: redone.usage,
+          });
+
           for (const section of redone.sections) {
             const at = report.sections.findIndex((item) => item.title === section.title);
             if (at >= 0) report.sections[at] = section;
@@ -534,7 +555,6 @@ export async function POST(req: NextRequest) {
     me: chartSummary(myChart),
     partner: partnerChart ? chartSummary(partnerChart) : null,
   };
-  const id = randomUUID();
   const createdAt = new Date().toISOString();
   const scoreSeal = sealScore(scoreResult, { band: scoreBand, label: scoreLabel, issuedAt: createdAt });
   // 운영에서는 반드시 Supabase에 저장하고, 로컬 무설정 환경만 파일 저장소를 쓴다.

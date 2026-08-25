@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getReading, markUnlocked } from "@/lib/store";
+import { getReading, markReadingViewed, markUnlocked } from "@/lib/store";
 import { open } from "@/lib/crypto";
 import type { StructuredReport } from "@/lib/reading-prompt";
 import {
@@ -143,6 +143,11 @@ export async function POST(req: NextRequest) {
         { status: 503 }
       );
     }
+    // 전문이 실제로 나가는 유일한 자리. 여기를 지나야 "돈 낸 사람이 물건을
+    // 받아 갔다"고 말할 수 있다. 계좌이체는 승인이 몇 시간 뒤에 나므로 본문이
+    // 완성된 시각과 읽은 시각이 다르고, 그 차이가 여기서만 드러난다.
+    void markReadingViewed(body.readingId, { paid: true });
+
     return NextResponse.json({
       full: finished.full,
       score,

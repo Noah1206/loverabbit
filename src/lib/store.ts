@@ -227,3 +227,28 @@ export async function markUnlocked(
   await saveReading(r);
   return r;
 }
+
+/**
+ * 리딩을 열었다고 표시한다.
+ *
+ * **세는 일이 읽는 일을 막지 않는다.** 실패해도 던지지 않고 조용히 삼킨다 —
+ * 장부를 못 적었다고 돈 낸 사람의 글까지 막을 이유가 없다(ai-usage.ts 와 같은 규칙).
+ *
+ * paid=true 는 전문이 실제로 나간 순간에만 준다. 전문이 나가는 길은 /api/unlock
+ * 하나뿐이라 무료 열람과 섞이지 않는다.
+ *
+ * 파일 폴백(로컬 무설정)에서는 아무것도 하지 않는다. 조회수는 운영에서만 뜻이 있다.
+ */
+export async function markReadingViewed(id: string, opts?: { paid?: boolean }): Promise<void> {
+  try {
+    const db = getSupabaseAdmin();
+    if (!db || !fileOf(id)) return;
+    const { error } = await db.rpc("lr_mark_reading_viewed", {
+      p_reading_id: id,
+      p_paid: opts?.paid ?? false,
+    });
+    if (error) console.error("리딩 열람 기록 실패:", error.message);
+  } catch (error) {
+    console.error("리딩 열람 기록 실패:", error);
+  }
+}
