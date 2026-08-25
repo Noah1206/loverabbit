@@ -1,0 +1,152 @@
+{
+  "product": "sokgunghap",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "SIN-DOHWA",
+    "SIN-HONGYEOM",
+    "REL-CHUNG",
+    "XING-LUCK-NOW",
+    "TG-GEOPJAE",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 65,
+    "band": "쉽게 안 식는 합",
+    "factors": [
+      {
+        "label": "일간 같은 오행",
+        "delta": 5
+      },
+      {
+        "label": "도화 1자리",
+        "delta": 4
+      },
+      {
+        "label": "오행이 무난하다",
+        "delta": 3
+      },
+      {
+        "label": "홍염 1자리",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "속궁합",
+    "outline": [
+      "1장 01. 네 일주가 만드는 끌림의 기본 패턴",
+      "1장 02. 그 사람 일주에 새겨진 관계 습관",
+      "2장 01. 두 사람이 처음부터 끌릴 수밖에 없던 구조",
+      "3장 01. 속궁합 지수 — 두 사람의 진짜 상성 판정",
+      "3장 02. 주도권은 누구에게 있는가",
+      "4장 01. 그 사람이 무너지는 순간, 네가 무너지는 순간",
+      "5장 01. 관계 온도가 식는 위험 구간",
+      "5장 02. 다투게 된다면 반드시 이 지점에서",
+      "6장 01. 권태를 피하는 두 사람만의 완급 조절법",
+      "7장 01. 이 관계를 더 깊게 만드는 실행 가이드",
+      "7장 02. 앞으로 6개월, 두 사람의 흐름",
+      "8장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

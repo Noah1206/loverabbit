@@ -1,0 +1,113 @@
+{
+  "product": "yeonae",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "LUCK-GWAN-F",
+    "XING-SPOUSE-PALACE",
+    "LUCK-SANGGWAN-GYEONGWAN-F",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "REL-YUKHAP",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "TG-SANGGWAN",
+    "TG-PYEONIN",
+    "XING-LUCK-MONTH"
+  ],
+  "score": {
+    "value": 49,
+    "band": "잔잔한 흐름",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 17
+      },
+      {
+        "label": "세운 상관",
+        "delta": -10
+      },
+      {
+        "label": "도화 없음",
+        "delta": -6
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 2
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -2
+      }
+    ]
+  },
+  "scope": {
+    "label": "올해의 연애운 (남은 해의 흐름, 고비의 달과 기회의 달, 다음 인연이 들어오는 시기와 만나게 되는 경로)",
+    "outline": [
+      "1장 01. 올해 세운과 네 명식의 상호작용",
+      "1장 02. 올해 연애운의 큰 그림",
+      "2장 01. 남은 달들의 월별 연애운 흐름",
+      "2장 02. 기회의 달 — 움직여야 할 때",
+      "3장 01. 고비의 달 — 결정을 미뤄야 할 때",
+      "3장 02. 창이 닫히는 함정 구간",
+      "4장 01. 지난 인연들이 스쳐간 이유",
+      "4장 02. 인연의 창이 열리는 시기",
+      "4장 03. 만나게 될 가능성이 높은 경로",
+      "4장 04. 다음 인연의 윤곽 — 기질과 분위기",
+      "5장 01. 새 인연 vs 지금 관계 — 올해의 우선순위",
+      "5장 02. 올해 연애운을 갉아먹는 습관",
+      "6장 01. 연말까지의 행동 캘린더",
+      "6장 02. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

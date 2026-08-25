@@ -1,0 +1,143 @@
+{
+  "product": "sokgunghap",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "TG-JEONGIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 57,
+    "band": "천천히 데워지는 합",
+    "factors": [
+      {
+        "label": "상대가 나를 받쳐준다",
+        "delta": 11
+      },
+      {
+        "label": "도화 없음",
+        "delta": -4
+      }
+    ]
+  },
+  "scope": {
+    "label": "속궁합",
+    "outline": [
+      "1장 01. 네 일주가 만드는 끌림의 기본 패턴",
+      "1장 02. 그 사람 일주에 새겨진 관계 습관",
+      "2장 01. 두 사람이 처음부터 끌릴 수밖에 없던 구조",
+      "3장 01. 속궁합 지수 — 두 사람의 진짜 상성 판정",
+      "3장 02. 주도권은 누구에게 있는가",
+      "4장 01. 그 사람이 무너지는 순간, 네가 무너지는 순간",
+      "5장 01. 관계 온도가 식는 위험 구간",
+      "5장 02. 다투게 된다면 반드시 이 지점에서",
+      "6장 01. 권태를 피하는 두 사람만의 완급 조절법",
+      "7장 01. 이 관계를 더 깊게 만드는 실행 가이드",
+      "7장 02. 앞으로 6개월, 두 사람의 흐름",
+      "8장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

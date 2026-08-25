@@ -1,0 +1,153 @@
+{
+  "product": "jaehoe",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "SPOUSE-PALACE-CHUNG",
+    "LUCK-BIGEOP",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "TG-JEONGIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "P-MONTH-BRANCH-CLASH"
+  ],
+  "score": {
+    "value": 40,
+    "band": "시간이 필요한 인연",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -9
+      },
+      {
+        "label": "세운 식신",
+        "delta": 7
+      },
+      {
+        "label": "관성 없음",
+        "delta": -4
+      }
+    ]
+  },
+  "scope": {
+    "label": "재회운",
+    "outline": [
+      "1장 01. 처음부터 끌릴 수밖에 없었던 이유",
+      "1장 02. 사주가 말해주는 이별의 진짜 원인",
+      "2장 01. 헤어지고도 지워지지 않는 흔적",
+      "3장 01. 그 사람, 아직 너에게 마음이 남아 있을까",
+      "3장 02. 상대가 널 가장 많이 떠올리는 순간",
+      "4장 01. 상대가 차마 입 밖에 꺼내지 못하는 감정",
+      "5장 01. 연락이 다시 올 확률, 그리고 그 시기",
+      "5장 02. 누가 먼저 다시 손을 내밀게 되는지",
+      "6장 01. 다시 만났을 때 두 사람 사이에 벌어질 일",
+      "6장 02. 지금 재회를 막고 있는 외부 변수",
+      "7장 01. 상대가 새 인연을 시작했을 때, 재회 가능성이 살아나는 역전 구간",
+      "8장 01. 재회한다면 반드시 달라져야 할 것",
+      "8장 02. 재회를 앞당기는 현실 행동 플랜",
+      "9장 01. 이번 재회가 마지막 기회인지, 다음 기회가 또 오는지",
+      "9장 02. 분석가가 마지막으로 꼭 해주고 싶은 말"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

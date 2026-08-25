@@ -1,0 +1,162 @@
+{
+  "product": "jaehoe",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "LUCK-GWAN-M",
+    "REL-CHUNG",
+    "XING-LUCK-NOW",
+    "SIN-YEOKMA",
+    "TG-GEOPJAE",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "XING-LUCK-MONTH",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "TG-BIGYEON",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "P-MONTH-BRANCH-HARMONY"
+  ],
+  "score": {
+    "value": 77,
+    "band": "불씨가 남은 인연",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 12
+      },
+      {
+        "label": "세운 정관",
+        "delta": 9
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": 4
+      },
+      {
+        "label": "정관 1개",
+        "delta": 4
+      },
+      {
+        "label": "편관 1개",
+        "delta": 2
+      }
+    ]
+  },
+  "scope": {
+    "label": "재회운",
+    "outline": [
+      "1장 01. 처음부터 끌릴 수밖에 없었던 이유",
+      "1장 02. 사주가 말해주는 이별의 진짜 원인",
+      "2장 01. 헤어지고도 지워지지 않는 흔적",
+      "3장 01. 그 사람, 아직 너에게 마음이 남아 있을까",
+      "3장 02. 상대가 널 가장 많이 떠올리는 순간",
+      "4장 01. 상대가 차마 입 밖에 꺼내지 못하는 감정",
+      "5장 01. 연락이 다시 올 확률, 그리고 그 시기",
+      "5장 02. 누가 먼저 다시 손을 내밀게 되는지",
+      "6장 01. 다시 만났을 때 두 사람 사이에 벌어질 일",
+      "6장 02. 지금 재회를 막고 있는 외부 변수",
+      "7장 01. 상대가 새 인연을 시작했을 때, 재회 가능성이 살아나는 역전 구간",
+      "8장 01. 재회한다면 반드시 달라져야 할 것",
+      "8장 02. 재회를 앞당기는 현실 행동 플랜",
+      "9장 01. 이번 재회가 마지막 기회인지, 다음 기회가 또 오는지",
+      "9장 02. 분석가가 마지막으로 꼭 해주고 싶은 말"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

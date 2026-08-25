@@ -1,0 +1,148 @@
+{
+  "product": "ibyeol",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "SPOUSE-PALACE-CHUNG",
+    "LUCK-BIGEOP",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "MISS-METAL"
+  ],
+  "score": {
+    "value": 48,
+    "band": "정리 시작",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -10
+      },
+      {
+        "label": "세운 식신",
+        "delta": 8
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      }
+    ]
+  },
+  "scope": {
+    "label": "이별 부검 (연애가 어디서부터 무너졌는지 사후 분석)",
+    "outline": [
+      "1장 01. 그 연애의 시작 — 왜 하필 그 사람이었나",
+      "1장 02. 처음부터 있었던 균열",
+      "2장 01. 이별의 진짜 사인(死因) 규명",
+      "2장 02. 결정적이었던 시기와 사건의 구조",
+      "3장 01. 상대의 명식에서 본 이별의 이유",
+      "4장 01. 네 연애가 반복해서 걸려 넘어지는 지점",
+      "4장 02. 미련의 정체 — 사람인가 습관인가",
+      "5장 01. 감정이 회복되는 시점",
+      "5장 02. 다음 연애를 위한 단 하나의 처방",
+      "6장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}
