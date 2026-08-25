@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { useRouter } from "next/navigation";
@@ -251,33 +251,11 @@ function BirthDateFields({
 }) {
   const set = (k: keyof PersonForm, v: string) => onChange({ ...value, [k]: v });
 
-  const yearRef = useRef<HTMLInputElement>(null);
-  const monthRef = useRef<HTMLInputElement>(null);
-  const dayRef = useRef<HTMLInputElement>(null);
-
-  // 숫자만 받고, 자리수가 차면 다음 칸으로 자동으로 넘긴다.
-  // soloJumpFrom: 한 글자만으로 값이 확정되는 경계.
-  //   월은 2~9로 시작하면 두 자리가 될 수 없고(10·11·12는 모두 1로 시작),
-  //   일은 4~9로 시작하면 두 자리가 될 수 없다(10~31은 1·2·3으로 시작).
-  const setDigits = (
-    key: "year" | "month" | "day",
-    raw: string,
-    maxLen: number,
-    next: HTMLInputElement | HTMLSelectElement | null,
-    soloJumpFrom?: number,
-  ) => {
-    const digits = raw.replace(/\D/g, "").slice(0, maxLen);
-    set(key, digits);
-    const filled = digits.length === maxLen;
-    const decided = soloJumpFrom !== undefined && digits.length === 1 && Number(digits) >= soloJumpFrom;
-    if (next && (filled || decided)) next.focus();
+  // 숫자만 받는다. 칸 사이 포커스는 옮기지 않는다 (2026-08-25 운영자 요청) -
+  // 손가락 아래에서 커서가 옮겨 가면 치던 숫자가 옆 칸에 들어간다.
+  const setDigits = (key: "year" | "month" | "day", raw: string, maxLen: number) => {
+    set(key, raw.replace(/\D/g, "").slice(0, maxLen));
   };
-
-  // 빈 칸에서 백스페이스를 누르면 앞 칸으로 되돌아간다.
-  const backspaceToPrev =
-    (current: string, prev: HTMLInputElement | null) => (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Backspace" && current === "" && prev) prev.focus();
-    };
 
   return (
     <div className="reading-birth-grid">
@@ -286,13 +264,12 @@ function BirthDateFields({
         <div className="reading-birth-control">
           <input
             id="reading-birth-year"
-            ref={yearRef}
             placeholder="1995"
             inputMode="numeric"
             autoComplete="bday-year"
             maxLength={4}
             value={value.year}
-            onChange={(e) => setDigits("year", e.target.value, 4, monthRef.current)}
+            onChange={(e) => setDigits("year", e.target.value, 4)}
           />
           <span aria-hidden="true">년</span>
         </div>
@@ -302,14 +279,12 @@ function BirthDateFields({
         <div className="reading-birth-control">
           <input
             id="reading-birth-month"
-            ref={monthRef}
             placeholder="07"
             inputMode="numeric"
             autoComplete="bday-month"
             maxLength={2}
             value={value.month}
-            onChange={(e) => setDigits("month", e.target.value, 2, dayRef.current, 2)}
-            onKeyDown={backspaceToPrev(value.month, yearRef.current)}
+            onChange={(e) => setDigits("month", e.target.value, 2)}
           />
           <span aria-hidden="true">월</span>
         </div>
@@ -319,14 +294,12 @@ function BirthDateFields({
         <div className="reading-birth-control">
           <input
             id="reading-birth-day"
-            ref={dayRef}
             placeholder="14"
             inputMode="numeric"
             autoComplete="bday-day"
             maxLength={2}
             value={value.day}
-            onChange={(e) => setDigits("day", e.target.value, 2, null, 4)}
-            onKeyDown={backspaceToPrev(value.day, monthRef.current)}
+            onChange={(e) => setDigits("day", e.target.value, 2)}
           />
           <span aria-hidden="true">일</span>
         </div>
