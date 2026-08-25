@@ -45,7 +45,12 @@ export async function POST(request: NextRequest) {
       }
       // 단건 조회 = 리딩 화면이 열렸다는 뜻이다. 화면은 이 응답으로 그려진다.
       // 전문 열람은 /api/unlock 이 따로 센다 — 여기에서는 티저까지만 나간다.
-      void markReadingViewed(reading.id);
+      //
+      // await 를 붙인다. void 로 던지면 응답을 돌려준 뒤 함수가 얼어붙어 기록이
+      // 통째로 유실된다 — 서버리스에서 실제로 그랬다. recordAiUsage 가 void 로
+      // 살아남는 것은 그 뒤에 await 가 더 있어서지, 던지는 게 안전해서가 아니다.
+      // 기록은 안에서 실패를 삼키므로 await 해도 응답을 막지 않는다.
+      await markReadingViewed(reading.id);
 
       return NextResponse.json(
         {
