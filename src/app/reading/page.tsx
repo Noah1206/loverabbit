@@ -25,6 +25,8 @@ import {
   trackSajuFormCompleted,
   trackSajuFormStarted,
 } from "@/lib/meta-events";
+import { trackFunnel } from "@/lib/funnel";
+import type { ReadingStepName } from "@/lib/funnel-events";
 
 // 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
 const CATEGORIES = PRODUCTS.map((p) => ({
@@ -38,16 +40,9 @@ type CategorySelectionMode = "loading" | "fixed" | "picker";
 // 자기 정보와 고민을 먼저 적고, 마지막에 그에 맞는 리딩을 고른다. 상대 정보가
 // 필요한지는 상품이 정하는데 상품을 아직 안 골랐으므로, 혼자 볼지 함께 볼지를
 // 먼저 묻는 mode 단계가 그 자리를 대신한다.
-type ReadingStep =
-  | "category"
-  | "meGender"
-  | "meBirth"
-  | "meDetails"
-  | "partnerBirth"
-  | "partnerDetails"
-  | "mode"
-  | "concern"
-  | "ready";
+// 단계 이름은 통계와 공유한다. 여기서만 정의하면 화면이 칸을 하나 늘렸을 때
+// 퍼널이 조용히 그 칸을 모르는 상태가 된다 — 그러면 그 칸의 이탈이 안 보인다.
+type ReadingStep = ReadingStepName;
 
 const READING_STEP_LABELS: Record<ReadingStep, string> = {
   category: "리딩 선택",
@@ -416,6 +411,31 @@ export default function ReadingPage() {
     trackSajuFormStarted(landing);
   }, [me, category, offerId]);
 
+  /*
+    어느 칸에서 손을 놓는가.
+
+    폼이 아홉 칸이고 그 사이의 이탈이 지금껏 하나도 안 보였다. 리딩이 만들어진
+    것만 남으니, 폼을 열었다 닫은 사람은 통계에 아예 존재하지 않았다.
+
+    칸이 바뀔 때마다 한 줄 남기고, 앞 칸에 머문 시간을 함께 적는다. 세션의
+    마지막 step_view 가 그 사람이 포기한 칸이다. 값은 보내지 않는다 — 칸의
+    이름만 간다.
+  */
+  const lastStep = useRef<ReadingStep | null>(null);
+  useEffect(() => {
+    if (lastStep.current === step) return;
+    lastStep.current = step;
+    // 머문 시간은 싣지 않는다. 칸을 넘어올 때 잴 수 있는 것은 "직전 칸에 있던
+    // 시간" 인데 이 줄이 이름표로 달고 가는 것은 새 칸이라, 두 값을 한 줄에
+    // 담으면 읽는 사람이 반드시 엉뚱한 칸의 시간으로 읽는다. 화면 단위 체류는
+    // page_exit 이 제대로 센다.
+    trackFunnel("step_view", {
+      step,
+      product: category || undefined,
+      landing: landingTypeForProduct(category, offerId) ?? undefined,
+    });
+  }, [step, category, offerId]);
+
   // 생성은 이 화면에서 하지 않는다. 초안만 남기고 대기 화면으로 넘겨, 18초의 기다림이
   // 폼이 아니라 결과 쪽에서 일어나게 한다.
   const startGeneration = useCallback(
@@ -425,6 +445,10 @@ export default function ReadingPage() {
       saveReadingDraft(draft);
       const landing = landingTypeForProduct(draft.category, draft.offerId);
       if (landing) trackSajuFormCompleted(landing);
+      trackFunnel("preview_requested", {
+        product: draft.category,
+        landing: landing ?? undefined,
+      });
       router.push("/reading/generating");
     },
     [router],

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import FunnelTracker from "@/components/FunnelTracker";
 import "./globals.css";
 import AttributionCapture from "@/components/AttributionCapture";
 import AuthCodeRescue from "@/components/AuthCodeRescue";
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <ThemeProvider>
           <AttributionCapture />
+          <FunnelTracker />
           <AuthCodeRescue />
           <div className="app-viewport">{children}</div>
           <BottomNav />

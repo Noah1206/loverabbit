@@ -16,6 +16,7 @@ import {
 } from "@/lib/reading-draft";
 import { landingTypeForProduct, trackPreviewGenerated } from "@/lib/meta-events";
 import { getUser } from "@/lib/user";
+import { trackFunnel } from "@/lib/funnel";
 
 // 단계 문구 - 사주를 모르는 사람이 읽는 말이므로 일간·합충 같은 용어를 쓰지
 // 않는다. 세트가 여럿이고 방문마다 하나를 뽑는다 - 두 번째 리딩에서 같은
@@ -99,6 +100,9 @@ export default function ReadingGeneratingPage() {
         // 자동 재개는 로그인 상태에서만 걸리므로 되돌이표가 생기지 않는다.
         saveReadingDraft(job);
         setNeedSignup(true);
+        // 여기서 막힌 사람은 리딩이 없다. 그래서 지금껏 통계에 흔적이 0이었다 —
+        // 폼을 다 채우고 마지막에 로그인에서 돌아선 사람이 몇인지 알 수 없었다.
+        trackFunnel("signup_required", { product: job.category });
         setError("로그인이 풀렸어요. 다시 로그인하면 입력한 정보로 이어서 풀어드릴게요.");
         return;
       }
@@ -122,6 +126,10 @@ export default function ReadingGeneratingPage() {
         const data = await res.json();
         if (!res.ok) {
           if (data.needSignup) setNeedSignup(true);
+          // 생성이 깨져서 나간 사람과 그냥 마음이 바뀐 사람은 같은 이탈이 아니다.
+          trackFunnel(data.needSignup ? "signup_required" : "preview_failed", {
+            product: job.category,
+          });
           throw new Error(data.error ?? "리딩 생성에 실패했어요.");
         }
         saveToArchive({
@@ -150,6 +158,10 @@ export default function ReadingGeneratingPage() {
         clearReadingDraft();
         const landing = landingTypeForProduct(job.category, data.offerId ?? job.offerId);
         if (landing) trackPreviewGenerated(landing);
+        trackFunnel("preview_generated", {
+          product: job.category,
+          landing: landing ?? undefined,
+        });
         // 전부 체크된 것을 잠깐 보여준다. 마지막 줄이 도는 중에 화면이 확 바뀌면
         // 끝났다는 감각 없이 끊긴다. 400ms 는 체크 전환이 눈에 들어오는 최소치다.
         setStage(STAGE_COUNT);
@@ -161,6 +173,7 @@ export default function ReadingGeneratingPage() {
         }, 400);
       } catch (reason) {
         if (reason instanceof DOMException && reason.name === "TimeoutError") {
+          trackFunnel("preview_failed", { product: job.category });
           setError("서버 응답이 너무 늦어요. 네트워크를 확인하고 다시 시도해주세요.");
           return;
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readAttribution } from "@/lib/attribution";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -12,6 +12,7 @@ import {
   trackInitiateCheckout,
   trackResultUnlockClicked,
 } from "@/lib/meta-events";
+import { trackFunnel } from "@/lib/funnel";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, saveToArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { DEMO_SOURCE_NOTE } from "@/lib/reading-demo";
@@ -293,6 +294,19 @@ export default function ReadingReportPage() {
   );
   const product = PRODUCT_MAP[entry?.category ?? ""];
   const concept = conceptFor(entry?.category);
+  // 리딩이 실제로 그려진 순간. 경로가 열린 것(page_view)과는 다르다 — 복원에
+  // 실패해 "찾을 수 없음" 으로 끝난 방문은 여기까지 오지 않는다.
+  const viewedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (status !== "ready" || !entry) return;
+    if (viewedRef.current === entry.readingId) return;
+    viewedRef.current = entry.readingId;
+    trackFunnel("reading_view", {
+      product: entry.category,
+      landing: landingTypeForProduct(entry.category, entry.offerId) ?? undefined,
+    });
+  }, [status, entry]);
+
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
 
   const chapters: ReadingChapter[] = useMemo(() => {
@@ -370,6 +384,10 @@ export default function ReadingReportPage() {
     // 잠금 해제 CTA 클릭 — 광고 랜딩에서 온 상품일 때만 landing_type을 붙인다.
     const unlockLanding = landingTypeForProduct(entry.category, entry.offerId);
     if (unlockLanding) trackResultUnlockClicked(unlockLanding);
+    trackFunnel("unlock_clicked", {
+      product: entry.category,
+      landing: unlockLanding ?? undefined,
+    });
     if (!user) {
       savePendingReading({
         source: "archive",
@@ -394,6 +412,12 @@ export default function ReadingReportPage() {
     if (checkoutLanding) {
       trackInitiateCheckout({ value: entry.price, landingType: checkoutLanding });
     }
+    // 전문 보기를 누른 사람과 결제창까지 연 사람은 다르다. 그 사이에 로그인
+    // 관문이 있어서, 두 줄의 차이가 곧 로그인에서 잃은 사람 수다.
+    trackFunnel("checkout_opened", {
+      product: entry.category,
+      landing: checkoutLanding ?? undefined,
+    });
     setShowPay(true);
   };
 
@@ -401,6 +425,8 @@ export default function ReadingReportPage() {
     if (!entry) return;
     setPaying(true);
     setError("");
+    // 결제창을 연 사람과 실제로 보낸 사람의 차이. 계좌번호를 보고 닫는 자리다.
+    trackFunnel("checkout_submitted", { product: entry.category });
     try {
       const res = await fetch("/api/unlock", {
         method: "POST",

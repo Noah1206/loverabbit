@@ -7842,3 +7842,104 @@ body:has(.product-page[data-landing]) .consent-banner {
   opacity: 0.5;
   cursor: default;
 }
+
+/* 이탈 지점 화면 — 숫자를 빽빽하게 읽는 표라, 장식보다 줄맞춤이 먼저다. */
+.admin-funnel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.admin-funnel-head h1 {
+  margin-top: 10px;
+  font-size: 1.45rem;
+}
+
+.admin-funnel-span {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-funnel-span .btn {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.admin-funnel-span .btn.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.admin-funnel-note {
+  margin: 0 0 16px;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.admin-funnel-card {
+  margin-bottom: 16px;
+  padding: 18px 16px;
+}
+
+.admin-funnel-card h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.admin-funnel-empty {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+}
+
+/* 폭이 좁은 화면에서 표가 페이지를 밀어내지 않게, 표만 옆으로 구른다. */
+.admin-funnel-card {
+  overflow-x: auto;
+}
+
+.admin-funnel-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.admin-funnel-table th,
+.admin-funnel-table td {
+  padding: 8px 10px;
+  text-align: right;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-funnel-table th:first-child,
+.admin-funnel-table td:first-child {
+  text-align: left;
+}
+
+.admin-funnel-table th {
+  color: var(--text-dim);
+  font-weight: 500;
+  font-size: 0.76rem;
+}
+
+.admin-funnel-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 잃은 사람 수. 여기가 눈에 먼저 들어와야 이 화면이 쓸모가 있다. */
+.admin-funnel-drop {
+  color: #ff6b81;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-funnel-path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

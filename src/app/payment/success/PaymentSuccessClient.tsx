@@ -5,6 +5,7 @@ import { readAttribution } from "@/lib/attribution";
 import { useEffect, useRef, useState } from "react";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { landingTypeForProduct, trackPurchase } from "@/lib/meta-events";
+import { trackFunnel } from "@/lib/funnel";
 import { getUser } from "@/lib/user";
 import type { StructuredReport } from "@/lib/reading-prompt";
 
@@ -90,6 +91,7 @@ export default function PaymentSuccessClient({
           transactionId: data.paymentId ?? referenceId,
           landingType: landingTypeForProduct(archiveEntry?.category, archiveEntry?.offerId) ?? undefined,
         });
+        trackFunnel("purchase_done", { product: archiveEntry?.category });
         setFull(data.full);
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : "결제 승인을 완료하지 못했어요.");

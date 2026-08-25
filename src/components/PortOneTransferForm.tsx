@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 
+import { trackFunnel } from "@/lib/funnel";
+
 const STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID?.trim() ?? "";
 const CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY?.trim() ?? "";
 
@@ -57,6 +59,9 @@ export default function PortOneTransferForm({
 
     setPaying(true);
     setError("");
+    // 입력 검증을 통과해 실제로 보내는 순간만 센다. 이름·전화·이메일은 보내지
+    // 않는다 — 이 통계가 아는 것은 "여기까지 왔다" 하나뿐이다.
+    trackFunnel("checkout_submitted");
     try {
       const response = await fetch(checkoutEndpoint, {
         method: "POST",
