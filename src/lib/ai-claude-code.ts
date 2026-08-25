@@ -76,7 +76,7 @@ function flatten(messages: ChatMsg[]): string {
     .join("\n\n");
 }
 
-export async function callClaudeCode(
+async function runClaudeCode(
   system: string,
   messages: ChatMsg[],
   modelOverride?: string
@@ -167,4 +167,41 @@ export async function callClaudeCode(
       reasoning: 0,
     },
   };
+}
+
+/**
+ * 동시에 띄우는 CLI 수를 묶는다.
+ *
+ * 리딩 하나가 장(章) 일곱을 한꺼번에 부르는데, 헤드리스 claude 를 그만큼 동시에
+ * 띄우면 하나도 제때 돌아오지 않았다 (2026-08-26, 전부 180초 타임아웃). 혼자
+ * 부르면 30초대다. 둘씩 보내면 순서대로 다 온다.
+ */
+const CONCURRENCY = Math.max(1, Number(process.env.CLAUDE_CODE_CONCURRENCY ?? 2));
+let running = 0;
+const waiting: (() => void)[] = [];
+
+function acquire(): Promise<void> {
+  if (running < CONCURRENCY) {
+    running += 1;
+    return Promise.resolve();
+  }
+  return new Promise((resolve) => waiting.push(() => { running += 1; resolve(); }));
+}
+
+function release(): void {
+  running -= 1;
+  waiting.shift()?.();
+}
+
+export async function callClaudeCode(
+  system: string,
+  messages: ChatMsg[],
+  modelOverride?: string
+): Promise<ChatResult> {
+  await acquire();
+  try {
+    return await runClaudeCode(system, messages, modelOverride);
+  } finally {
+    release();
+  }
 }
