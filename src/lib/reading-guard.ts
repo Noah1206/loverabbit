@@ -714,6 +714,24 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
   const violations: GuardViolation[] = [];
   const add = (v: GuardViolation) => violations.push(v);
 
+  // ── 절이 통째로 비었는가 ──
+  // 추론을 끄고 지시문을 줄인 조합에서 첫 절이 summary 362자에 문단 0개로 나왔는데,
+  // 아무도 못 잡았다. 묶음 재시도는 절 수만 보고, 여기는 문단 수를 안 봤다.
+  // 지시문은 "문단 셋, 두 개면 폐기"라고 적혀 있다 - 적혀만 있으면 안 지켜진다. 센다.
+  // 명식이 딸린 실제 생성 경로에서만 센다. 표현만 보는 옛 호출부는 절 뼈대 없이 부른다.
+  if (options.facts) report.sections.forEach((section, index) => {
+    const where = `sections[${index}]`;
+    if (section.paragraphs.length < 3 || section.paragraphs.some((p) => p.trim().length < 80)) {
+      add({
+        kind: "구조",
+        code: "SHAPE-SECTION-THIN",
+        where,
+        blocking: true,
+        detail: `"${section.title}" 문단 ${section.paragraphs.length}개 — 셋이어야 하고 각각 글이어야 한다`,
+      });
+    }
+  });
+
   // ── 지수 되풀이 ──
   // 숫자는 그것을 파는 절에서 한 번이면 된다. 열두 절이 같은 숫자를 열두 번 말하면
   // 판정이 아니라 후렴이다. 막지는 않는다 — 다시 쓰게 하면 그 절만 다른 말로 같은

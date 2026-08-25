@@ -76,3 +76,15 @@ describe("지수 되풀이", () => {
     assert.ok(!codesOf(r, { scoreValue: 54 }).includes("GUARD-SCORE-REPEATED"));
   });
 });
+
+describe("얇은 절", () => {
+  it("문단이 셋이 안 되면 막는다", () => {
+    const r = report("요약만 있고 문단이 없다.");
+    assert.ok(codesOf(r).includes("SHAPE-SECTION-THIN"));
+  });
+  it("문단 셋이 글이면 지나간다", () => {
+    const r = report("요약.");
+    r.sections[0].paragraphs = ["가".repeat(120), "나".repeat(120), "다".repeat(120)];
+    assert.ok(!codesOf(r).includes("SHAPE-SECTION-THIN"));
+  });
+});

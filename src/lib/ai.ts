@@ -299,7 +299,10 @@ async function callOpenAICompat(
         max_completion_tokens: maxTokens + 2000,
         // 리딩은 계산이 이미 끝난 상태에서 문장만 쓰는 일이라 깊은 추론이 필요 없다.
         // 기본값으로 두면 대기 시간만 늘어난다. OPENAI_REASONING_EFFORT로 조정할 수 있다.
-        reasoning_effort: process.env.OPENAI_REASONING_EFFORT ?? "low",
+        // 기본 none. 이 일은 계산이 아니라 문장 쓰기라 추론 토큰은 값만 든다 - 실측에서 출력의
+        // 20%가 추론이었고, none 으로 돌린 미리보기는 후킹·물음·가드가 low 와 같았고 35% 빨랐다.
+        // 모델이 none 을 안 받으면 환경변수로 low 로 되돌린다.
+        reasoning_effort: process.env.OPENAI_REASONING_EFFORT ?? "none",
       }
     : { max_tokens: maxTokens, temperature: 0.9 };
   const res = await fetch(`${baseUrl}/chat/completions`, {

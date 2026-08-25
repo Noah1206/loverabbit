@@ -329,8 +329,7 @@ delivery.preview 가 오면 머리(headline·summary_cards·open_loop)와 free_i
 {"report_meta":{"headline":"string","confidence_note":"string","open_loop":"string"},
 "summary_cards":[{"label":"나의 중심","value":"string","detail":"string","facts_used":["string"]},{"label":"관계의 결","value":"string","detail":"string","facts_used":["string"]},{"label":"지금의 흐름","value":"string","detail":"string","facts_used":["string"]}],
 "action_questions":[{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"}],
-"character_note":{"character_id":"string","name":"string","message":"string"},
-"next_step":{"label":"string","description":"string","recommended_focus":"relationship|work|timing"}}
+"character_note":{"character_id":"string","name":"string","message":"string"}}
 
 - summary_cards는 정확히 3개, label은 위의 것을 그대로 쓴다.
 - action_questions는 정확히 3개. 리포트를 다 읽은 사람이 오늘 해볼 수 있는 것으로 쓴다.

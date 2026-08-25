@@ -22,6 +22,7 @@ import { previewFor } from "../src/lib/reading-preview";
 import { chatComplete, effectiveProvider } from "../src/lib/ai";
 import { PRODUCT_MAP, PRODUCTS } from "../src/lib/products";
 import { computeSajuScore } from "../src/lib/saju-score";
+import { costOf } from "../src/lib/ai-pricing";
 
 const args = process.argv.slice(2);
 const argOf = (name: string) => {
@@ -134,6 +135,9 @@ for (const productId of ids) {
   };
   fs.writeFileSync(path.join(OUT_DIR, `${productId}.json`), JSON.stringify(out, null, 2), "utf8");
 
+  const u = composed.usage;
+  const cost = costOf(composed.model, u);
+  console.log(`  토큰: 입력 ${u.input} (캐시 ${u.cached}) · 출력 ${u.output} (추론 ${u.reasoning}) · 호출 ${composed.requestCount} · 실비 ${cost === null ? "?" : "$" + cost.toFixed(3)}`);
   console.log(`  ${(out.ms / 1000).toFixed(0)}초 · 위반 ${violations.length} (막는 것 ${violations.filter((v) => v.blocking).length}) · 판매문구 ${leaks.length ? leaks.join(",") : "없음"} · 장면 재료 사용 ${sceneHit}`);
   console.log(`  후킹: ${report.meta.headline}`);
   console.log(`  물음: ${report.meta.openLoop ?? "(없음!)"}`);
