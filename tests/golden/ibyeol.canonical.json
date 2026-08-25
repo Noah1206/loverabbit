@@ -105,10 +105,10 @@
     "SELF-WOOD-WEAK",
     "XING-LUCK-NOW",
     "REL-YUKHAP",
-    "SIN-HWAGAE",
-    "TG-SANGGWAN",
-    "XING-PAIR-SASIN",
-    "XING-PAIR-CHUKMI"
+    "P-ABSENT-ELEMENT",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT"
   ],
   "score": {
     "value": 54,

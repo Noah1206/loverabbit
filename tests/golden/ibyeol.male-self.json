@@ -102,9 +102,11 @@
     "MISS-WOOD",
     "TG-PYEONIN",
     "XING-LUCK-MONTH",
-    "TG-BIGYEON",
-    "SELF-METAL-EVEN",
-    "SELF-BALANCED"
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
   ],
   "score": {
     "value": 76,

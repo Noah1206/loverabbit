@@ -65,6 +65,17 @@ export interface PartnerRuleEntry {
 // 상대 이야기가 앞자리를 차지하면 자기 리딩을 사서 남의 이야기를 읽게 된다.
 const P = { high: 68, mid: 64, low: 60 } as const;
 
+// 2026-08-25: 이별·권태기·비밀연애를 열한 규칙 전부의 도메인에 더했다.
+//
+// 세 상품은 두 사람의 명식을 받으면서 상대 규칙이 하나도 없었다. 그런데 목차는
+// 상대를 판다 — "상대의 명식에서 본 이별의 이유", "상대도 지금 같은 걸 느끼고
+// 있을까", "상대는 이 관계를 어디까지 생각하는가". 가드가 상대 성향 문장을 막으니
+// 그 절은 근거 없이 쓰이거나 가드에 걸리거나 둘 중 하나였다.
+//
+// 새 주장을 만든 것이 아니다. 이미 승인된 열한 판단이 세 상품의 물음에도 닿는지를
+// 규칙마다 따졌고, 그 이유를 각 규칙의 domains 위에 적었다. claim·forbidden 은
+// 그대로다 — 같은 판단을 다른 물음 쪽으로 향하게 쓸 뿐이다.
+
 export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
   {
     status: "approved",
@@ -82,7 +93,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.high,
       when: {
         partnerAbsentElement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별: 상대가 못 채운 자리가 곧 균열의 자리다 / 권태기: 반응이 늦는 결은 식은 것이 아니다 / 비밀연애: 상대가 관계를 어디까지 생각하는지의 근거
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대 쪽에 그 기운이 쓸 뿌리째 없어서, 그 결이 필요한 대목에서는 타고나서가 아니라 " +
@@ -111,7 +123,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerHiddenOnlyElement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기: 같은 사람인데 다르게 보였던 이유 / 비밀연애: 평소 안 쓰는 결이 긴장 속에서 나온다
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대 안에 있기는 한데 평소에 꺼내 쓰지 않는 결이라, 그것이 나올 때와 안 나올 때의 " +
@@ -137,7 +150,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         pairElementComplement: ["목", "화", "토", "금", "수"],
-        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "baramgi", "jaehoe"],
+        // 2026-08-25 도메인 확장 — 이별·권태기: 한 사람에게 고정된 역할이 균열과 권태의 자리다 / 비밀연애: 두 사람을 묶는 힘
+        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "baramgi", "jaehoe", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "한쪽에 옅은 자리를 다른 쪽이 대신 맡게 되는 구조. 편해지는 만큼 그 역할이 " +
@@ -166,7 +180,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         pairMonthBranchRelation: ["충", "원진"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기: 사람들 사이에서 갈리던 자리 / 비밀연애: 들킬 위험은 바깥 자리에서 온다
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "두 사람이 바깥에서 서 있는 자리가 어긋나, 둘만 있을 때보다 사람들 사이에 있을 때 " +
@@ -192,7 +207,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         pairMonthBranchRelation: ["육합", "삼합"],
-        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "sseom", "baramgi", "jaehoe"],
+        // 2026-08-25 도메인 확장 — 이별·권태기: 밖에서는 맞았는데 안에서 어긋난 대비 / 비밀연애: 바깥에서 같은 방향을 보는 결
+        domains: ["sokgunghap", "gunghap", "gyeolhon", "jjak", "sseom", "baramgi", "jaehoe", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "바깥에서 서 있는 자리가 서로 맞아, 사람들 사이에서의 속도와 예의가 자연스럽게 " +
@@ -217,7 +233,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.high,
       when: {
         partnerDayBranchTenGod: ["정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기·비밀연애: '상대가 먼저 확인하려는 것'이 상대 절의 뼈대다
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대의 배우자 자리에 앉은 기운이 있어, 가까운 사이에서 상대가 먼저 확인하려는 것이 " +
@@ -247,7 +264,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerLuckTenGodAny: ["정인", "편인"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "yeonae", "hwanseung", "baramgi"],
+        // 2026-08-25 도메인 확장 — 권태기: 권태와 전조를 가르는 핵심 — 연락이 준 것이 구간의 성질일 수 있다 / 이별: 결정적 시기 / 비밀연애: 말수가 주는 때
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "yeonae", "hwanseung", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대가 지금 안으로 거두는 흐름을 지나고 있어, 말수와 연락이 줄어드는 것이 " +
@@ -278,7 +296,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       when: {
         strength: ["신약"],
         partnerStrength: ["신강", "중화"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기: 속도를 한쪽이 정하던 구조 / 비밀연애: 관계의 속도를 누가 정하는가
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "자기 힘을 오래 끌고 가는 쪽과 그렇지 못한 쪽이 만나, 관계의 속도를 한쪽이 정하고 " +
@@ -312,7 +331,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
         partnerDominantTenGod: [
           "정관", "편관", "정재", "편재", "식신", "상관", "정인", "편인", "비견", "겁재",
         ],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기·비밀연애: 같은 상황에서 먼저 꺼내는 카드가 다른 자리
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "yeonae", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대가 기본으로 쓰는 결이 따로 있어, 같은 상황에서 두 사람이 먼저 꺼내는 카드가 " +
@@ -343,7 +363,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.mid,
       when: {
         partnerShinsal: ["도화", "홍염", "역마", "화개", "양인", "원진"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별·권태기·비밀연애: 같은 장면에서 다른 지점에 반응하는 자리
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "jjak", "sseom", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대 명식에도 관계에서 도드라지는 자리가 있어, 두 사람이 같은 장면에서 서로 다른 " +
@@ -372,7 +393,8 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       priority: P.low,
       when: {
         partnerRelationBundle: ["합+형", "충+형"],
-        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "baramgi"],
+        // 2026-08-25 도메인 확장 — 이별: 미련의 정체 — 같은 방식으로 못 놓는다 / 권태기: 같은 방식으로 지친다 / 비밀연애: 못 놓는 힘
+        domains: ["sokgunghap", "gunghap", "jaehoe", "gyeolhon", "baramgi", "ibyeol", "gwontaegi", "bimil"],
       },
       claim:
         "상대 쪽에도 붙드는 힘과 걸리는 결이 같은 자리에서 나오는 대목이 있어, " +

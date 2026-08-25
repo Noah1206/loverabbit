@@ -137,6 +137,14 @@ export interface GuardOptions {
   matchedRules?: ReadingRule[];
   /** 상품 id — 규칙 커버리지를 상품 단위로 센다 */
   productDomain?: string;
+  /**
+   * 화면에 찍힌 지수. 있으면 본문이 그 숫자를 몇 절에서 되풀이하는지 센다.
+   *
+   * 재회 축을 켜고 본 첫 리포트가 "재회 가능성은 54, 다시 타오를 가능성이야"를
+   * 네 절에서 말했다. 지시문은 "한 번"이라고 적혀 있었다 — 지시만으로는 안 지켜진다는
+   * 것을 해요체에서도 봤다. 세는 것은 가드가 한다.
+   */
+  scoreValue?: number | null;
 }
 
 /**
@@ -681,6 +689,26 @@ function myeongriChecks(report: StructuredReport, options: GuardOptions): GuardV
 export function checkReport(report: StructuredReport, options: GuardOptions): GuardResult {
   const violations: GuardViolation[] = [];
   const add = (v: GuardViolation) => violations.push(v);
+
+  // ── 지수 되풀이 ──
+  // 숫자는 그것을 파는 절에서 한 번이면 된다. 열두 절이 같은 숫자를 열두 번 말하면
+  // 판정이 아니라 후렴이다. 막지는 않는다 — 다시 쓰게 하면 그 절만 다른 말로 같은
+  // 후렴을 부른다. 기록해서 사람이 축과 지시문을 손보게 한다.
+  if (typeof options.scoreValue === "number") {
+    const digits = new RegExp(`(^|[^0-9])${options.scoreValue}([^0-9]|$)`);
+    const repeating = report.sections.filter((section) =>
+      [section.summary, ...section.paragraphs].some((text) => digits.test(text))
+    );
+    if (repeating.length > 2) {
+      add({
+        kind: "범위",
+        code: "GUARD-SCORE-REPEATED",
+        where: "sections",
+        blocking: false,
+        detail: `지수 ${options.scoreValue} 를 ${repeating.length}개 절이 되풀이한다 — 파는 절 하나면 된다`,
+      });
+    }
+  }
 
   // ── 표현 ──
   for (const { where, text } of scannableText(report)) {

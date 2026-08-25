@@ -459,6 +459,7 @@ export async function POST(req: NextRequest) {
         partnerFacts,
         matchedRules,
         productDomain: body.category,
+        scoreValue: score,
       });
       guardViolations = guard.violations;
       if (guard.mustRetry) {
@@ -517,6 +518,7 @@ export async function POST(req: NextRequest) {
               partnerFacts,
               matchedRules,
               productDomain: body.category,
+              scoreValue: score,
             });
             guardViolations = recheck.violations;
             const left = recheck.violations.filter((v) => v.blocking);

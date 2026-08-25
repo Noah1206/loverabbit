@@ -38,10 +38,20 @@ describe("상품 축", () => {
   });
 
   it("축이 없는 상품은 그 칸 자체가 안 나간다", () => {
-    // 이별은 아직 축이 없다. 채우면 이 자리를 다음 빈 상품으로 옮긴다.
-    const payload = JSON.parse(buildReadingInput({ ...base, productId: "ibyeol" }));
+    // 열셋 전부 축이 있으므로, 없는 상품 id 로 그 길을 확인한다.
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "no-such-product" }));
     assert.equal("product_axis" in payload.delivery, false);
-    assert.equal(axisFor("ibyeol"), null);
+    assert.equal(axisFor("no-such-product"), null);
+  });
+
+  it("판매 중인 모든 상품에 축이 있다 — 제목만 다른 리포트를 팔지 않는다", () => {
+    for (const id of Object.keys(PRODUCT_MAP)) {
+      const axis = READING_AXES[id];
+      assert.ok(axis, `${id} 에 축이 없다`);
+      assert.ok(axis.axes.length >= 3, `${id} 축이 셋도 안 된다`);
+      assert.ok(axis.avoid.length >= 2, `${id} 가 옆 상품의 물음을 막지 않는다`);
+      assert.ok(axis.question.length > 20, `${id} 물음이 너무 짧다`);
+    }
   });
 
   it("재회 축 — 선이 있고, 옆 상품 셋의 물음을 막고, 지수를 판다", () => {
@@ -109,10 +119,11 @@ describe("상품 지수", () => {
     assert.equal(payload.delivery.product_score.band, "쉽게 안 식는 합");
   });
 
-  it("축이 없는 상품에는 숫자를 줘도 안 나간다", () => {
-    // 목차가 팔지 않는 숫자를 주면, 안 판 것을 말하게 된다.
-    const payload = JSON.parse(buildReadingInput({ ...base, productId: "ibyeol", score }));
+  it("지수를 팔지 않는 상품에는 숫자를 줘도 안 나간다", () => {
+    // 연애 기질의 게이지는 등급이 아니라 유형 이름이라 본문이 숫자를 부르면 어색하다.
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "bamgijil", score }));
     assert.equal("product_score" in payload.delivery, false);
+    assert.equal(READING_AXES.bamgijil.usesScore, undefined);
   });
 
   it("재회는 지수를 판다 — 화면의 재회 가능성이 본문에도 간다", () => {

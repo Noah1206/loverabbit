@@ -199,6 +199,7 @@ export async function finishReading(params: {
     partnerFacts: resume.partnerFacts,
     matchedRules,
     productDomain: category,
+    scoreValue: seal?.value ?? null,
   });
   const blocking = guard.violations.filter((v) => v.blocking);
   if (blocking.length > 0) {
@@ -231,6 +232,7 @@ export async function finishReading(params: {
           partnerFacts: resume.partnerFacts,
           matchedRules,
           productDomain: category,
+          scoreValue: seal?.value ?? null,
         }).violations.filter((v) => v.blocking);
         console.warn(
           left.length === 0

@@ -162,6 +162,7 @@ async function generate(caseId: string, axis: boolean): Promise<Variant> {
           partnerFacts: partner,
           matchedRules: rules,
           productDomain: PRODUCT_ID,
+          scoreValue: scoreResult.value,
         }).violations
       : [];
     return {
@@ -201,7 +202,7 @@ function lexicon(report: StructuredReport | null) {
       words.map((w) => [w, (body.match(new RegExp(w, "g")) ?? []).length]).filter(([, n]) => (n as number) > 0)
     );
   // 화면의 지수가 본문에 몇 번 나오는가. usesScore 가 실제로 먹었는지 여기서 보인다.
-  const scoreMentions = (body.match(/재회 가능성/g) ?? []).length;
+  const scoreMentions = product.scoreLabel ? (body.match(new RegExp(product.scoreLabel, "g")) ?? []).length : 0;
   return { own: count([...new Set(own)]), leak: count(leak), chars: body.length, scoreMentions };
 }
 

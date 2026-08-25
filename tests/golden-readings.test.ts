@@ -152,7 +152,7 @@ describe("골든: 명식·규칙·지수·범위", () => {
     }
   }
 
-  it("같은 두 명식이면 재회와 이별을 가르는 것은 상대 규칙뿐이다 — 축이 필요한 이유", () => {
+  it("같은 두 명식이면 재회와 이별은 같은 상대 규칙을 받는다 — 둘을 가르는 것은 축이다", () => {
     // 자르지 않고 전부 켠다. 목차 길이(15 vs 10)로 잘린 차이를 규칙 풀의 차이로 읽지 않기 위해서다.
     const { me, partner } = CASES.canonical;
     const meFacts = buildSajuFacts(me, NOW);
@@ -162,15 +162,14 @@ describe("골든: 명식·규칙·지수·범위", () => {
     const onlyJaehoe = [...j].filter((id) => !i.has(id));
     const onlyIbyeol = [...i].filter((id) => !j.has(id));
 
-    // 이별에는 승인된 상대 규칙이 하나도 없다. 그래서 같은 두 사람을 넣어도 이별은
-    // 상대 근거 없이 쓴다. 이 줄이 실패하면 상대 규칙 도메인이 넓혀진 것이다 —
-    // 그때는 이 테스트를 고치고 이유를 커밋에 적는다.
+    // 2026-08-25 상대 규칙(P-*) 열한 개를 이별 도메인에 더했다. 이제 이별도 같은 두
+    // 사람에서 같은 상대 근거를 받고, 남는 차이는 재회에만 켜는 편재·역마뿐이다.
     assert.deepEqual(
-      onlyJaehoe.filter((id) => !id.startsWith("P-")).sort(),
+      onlyJaehoe.sort(),
       ["SIN-YEOKMA", "TG-PYEONJAE"].filter((id) => j.has(id)),
-      "상대 규칙 말고 재회에만 있는 것은 편재·역마뿐이어야 한다"
+      "재회에만 있는 것은 편재·역마뿐이어야 한다 — 상대 규칙은 양쪽에 다 켜진다"
     );
-    assert.ok(onlyJaehoe.some((id) => id.startsWith("P-")), "재회에는 상대 규칙이 켜진다");
+    assert.ok([...i].some((id) => id.startsWith("P-")), "이별에도 상대 규칙이 켜진다");
     assert.deepEqual(onlyIbyeol, [], "이별에만 켜지는 규칙은 없다");
   });
 });

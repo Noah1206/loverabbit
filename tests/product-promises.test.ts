@@ -63,7 +63,7 @@ describe("상품 약속", () => {
           `reading-scope 가 좁혀서 내보낸다`
       );
     }
-    // 지금은 결혼 하나다. 늘어나면 여기 적어 두고 이유를 남긴다.
-    assert.deepEqual(over.map((p) => p.id), ["gyeolhon"]);
+    // 2026-08-25 결혼의 "3년"을 첫 해로 줄여 지금은 하나도 없다. 생기면 여기 적고 이유를 남긴다.
+    assert.deepEqual(over.map((p) => p.id), []);
   });
 });
