@@ -40,7 +40,7 @@ export default function RewardsPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setNotice("공유했어요. 친구가 가입하면 질문권 10장이 자동 지급돼요.");
+        setNotice("공유했어요. 친구가 가입하면 5,000원 쿠폰과 질문권 10장이 자동 지급돼요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setNotice("초대 링크를 복사했어요.");
@@ -71,7 +71,7 @@ export default function RewardsPage() {
 
       <div className="card" style={{ padding: 24 }}>
         <span className="badge">보상 02</span>
-        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>캐릭터챗 질문권 10장</h2>
+        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>5,000원 쿠폰 + 캐릭터챗 질문권 10장</h2>
         <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginBottom: 8 }}>
           현재 보유 질문권 <strong style={{ color: "var(--accent)" }}>{user?.chatCredits ?? 0}장</strong>
         </p>

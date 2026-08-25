@@ -5,7 +5,7 @@ import {
   isAdminApprovalConfigured,
   verifyAdminApprovalKey,
 } from "@/lib/admin-auth";
-import { isDatabaseConfigured, reviewTransferOrder } from "@/lib/database";
+import { isDatabaseConfigured, reviewTransferOrder, settleCouponsForOrder } from "@/lib/database";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 
 type ReviewRequest = {
@@ -42,6 +42,12 @@ export async function POST(
     const reviewed = await reviewTransferOrder(orderId, body.decision, body.note);
     if (!reviewed) {
       return NextResponse.json({ error: "승인할 주문을 찾을 수 없어요." }, { status: 404 });
+    }
+    // 주문에 붙어 있던 쿠폰의 결말. 승인이면 소진, 거절이면 다시 쓸 수 있게 놓아 준다.
+    try {
+      await settleCouponsForOrder(orderId, reviewed.status === "paid" ? "paid" : "released");
+    } catch (error) {
+      console.error("쿠폰 마감 실패:", error);
     }
 
     /*

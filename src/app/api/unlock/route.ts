@@ -6,8 +6,12 @@ import {
   createOrder,
   createPendingTransferOrder,
   getOrderByProviderOrderId,
+  getUsableCoupon,
   isDatabaseConfigured,
+  reserveCoupon,
+  settleCouponsForOrder,
 } from "@/lib/database";
+import { applyCoupon } from "@/lib/coupons";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
@@ -49,6 +53,8 @@ interface Body {
   attribution?: unknown;
   /** 마케팅 쿠키에 동의했는가. 동의는 기기에만 있어서 브라우저가 말해줘야 안다. */
   marketingConsent?: boolean;
+  /** 결제창에서 고른 쿠폰 (계좌이체). 서버가 다시 확인하고 금액을 정한다. */
+  couponId?: string;
 }
 
 interface SealedReading {
@@ -282,26 +288,39 @@ export async function POST(req: NextRequest) {
       const claim = await claimReadingForPayment(stored, user.userId);
       if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
     }
+    // 쿠폰은 여기서 금액을 깎고 주문에 붙는다. 승인이 나면 소진, 거절되면 풀린다.
+    const coupon = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+    const amount = coupon ? applyCoupon(price, coupon.discount) : price;
     try {
       const order = user.userId
         ? await createPendingTransferOrder({
             userId: user.userId,
             readingId: body.readingId,
-            amount: price,
+            amount,
             depositorCode: body.depositorCode,
-            metadata: { ...(attribution ? { attribution } : {}), meta: metaSnapshot },
+            metadata: {
+              ...(attribution ? { attribution } : {}),
+              meta: metaSnapshot,
+              ...(coupon
+                ? { coupon: { id: coupon.id, kind: coupon.kind, discount: coupon.discount, listPrice: price } }
+                : {}),
+            },
           })
         : null;
       if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
+      // 이미 대기 중이던 주문이 돌아왔으면 그 금액이 정본이다 - 쿠폰을 새로 붙이지 않는다.
+      if (coupon && order.amount === amount) await reserveCoupon(coupon.id, user.userId, order.id);
       console.log(
-        `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${price}`
+        `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${order.amount}`
       );
       // 입금 확인 요청은 사람이 승인해야 풀린다. 알리지 않으면 입금한 사람이
       // 관리자가 우연히 /admin/payments 를 열 때까지 기다린다.
       await notifyAdmin(
         [
           "[입금 확인 요청] 리딩",
-          `주문 #${order.id} · ${price.toLocaleString()}원`,
+          `주문 #${order.id} · ${order.amount.toLocaleString()}원${
+            order.amount !== price ? ` (정가 ${price.toLocaleString()}원, 쿠폰 적용)` : ""
+          }`,
           `상품 ${stored?.category ?? "리딩"} · 입금코드 ${body.depositorCode}`,
           "https://loverebbit.xyz/admin/payments",
         ].join("\n")
@@ -337,7 +356,7 @@ export async function POST(req: NextRequest) {
     if (!user?.userId) {
       return NextResponse.json({ error: "풀 리딩을 열려면 회원가입이 필요해요.", needSignup: true }, { status: 401 });
     }
-    if (!body.paymentKey || !body.orderId || body.amount !== price) {
+    if (!body.paymentKey || !body.orderId || typeof body.amount !== "number") {
       return NextResponse.json({ error: "결제 정보가 올바르지 않습니다." }, { status: 400 });
     }
     if (stored?.userId && stored.userId !== user.userId) {
@@ -348,6 +367,9 @@ export async function POST(req: NextRequest) {
       if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
     }
 
+    // 낼 돈은 주문서에 적힌 금액이다. 쿠폰이 붙었으면 정가보다 적다.
+    let expectedAmount = price;
+    let orderMetadata: Record<string, unknown> = {};
     try {
       const order = await getOrderByProviderOrderId(body.orderId);
       if (
@@ -355,10 +377,16 @@ export async function POST(req: NextRequest) {
         (!order ||
           order.userId !== user.userId ||
           order.readingId !== body.readingId ||
-          order.amount !== price ||
           order.status !== "pending")
       ) {
         return NextResponse.json({ error: "서버에 기록된 결제 주문과 일치하지 않아요." }, { status: 400 });
+      }
+      if (order) {
+        expectedAmount = order.amount;
+        orderMetadata = order.metadata;
+      }
+      if (body.amount !== expectedAmount) {
+        return NextResponse.json({ error: "결제 금액이 주문과 일치하지 않아요." }, { status: 400 });
       }
     } catch (error) {
       console.error("PG 결제 주문 검증 실패:", error);
@@ -374,7 +402,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         paymentKey: body.paymentKey,
         orderId: body.orderId,
-        amount: price, // 클라이언트 금액이 아닌 서버 확인 금액으로 승인
+        amount: expectedAmount, // 클라이언트 금액이 아닌 서버 확인 금액으로 승인
       }),
     });
     if (!res.ok) {
@@ -386,16 +414,17 @@ export async function POST(req: NextRequest) {
     }
     try {
       if (user.userId) {
-        await createOrder({
+        const paidOrderId = await createOrder({
           userId: user.userId,
           readingId: body.readingId,
           kind: "reading",
           method: "toss-pg",
           status: "paid",
-          amount: price,
+          amount: expectedAmount,
           providerOrderId: body.orderId,
-          ...(attribution ? { metadata: { attribution } } : {}),
+          metadata: { ...orderMetadata, ...(attribution ? { attribution } : {}) },
         });
+        if (paidOrderId) await settleCouponsForOrder(paidOrderId, "paid");
       }
       const unlocked = await markUnlocked(body.readingId, { method: "toss-pg", at: now }, user.userId);
       if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");

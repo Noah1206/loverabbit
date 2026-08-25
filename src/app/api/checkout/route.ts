@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { createOrder, isDatabaseConfigured } from "@/lib/database";
+import { createOrder, getUsableCoupon, isDatabaseConfigured, reserveCoupon } from "@/lib/database";
+import { applyCoupon } from "@/lib/coupons";
 import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
@@ -16,6 +17,8 @@ interface Body {
   attribution?: unknown;
   /** 마케팅 쿠키 동의. 동의는 기기에만 있어 브라우저가 말해줘야 안다. */
   marketingConsent?: boolean;
+  /** 결제창에서 고른 쿠폰. 서버가 다시 확인하고 금액을 정한다. */
+  couponId?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -73,25 +76,34 @@ export async function POST(request: NextRequest) {
     if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
   }
 
+  // 쿠폰은 클라이언트가 고르되 금액은 여기서 정한다. 남의 쿠폰·쓴 쿠폰이면
+  // 그냥 정가로 간다 - 결제를 막을 일은 아니다.
+  const coupon = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+  const amount = coupon ? applyCoupon(reading.price, coupon.discount) : reading.price;
+
   const attribution = normalizeAttribution(body.attribution);
   const orderId = `${usePortOne ? "LRP" : "LR"}_${randomUUID().replace(/-/g, "")}`;
   try {
-    await createOrder({
+    const orderRowId = await createOrder({
       userId: user.userId,
       readingId: reading.id,
       kind: "reading",
       method: usePortOne ? "portone-pg" : "toss-pg",
       status: "pending",
-      amount: reading.price,
+      amount,
       providerOrderId: orderId,
       metadata: {
         checkout_created_at: new Date().toISOString(),
+        ...(coupon
+          ? { coupon: { id: coupon.id, kind: coupon.kind, discount: coupon.discount, listPrice: reading.price } }
+          : {}),
         ...(attribution ? { attribution } : {}),
         // 결제가 웹훅으로 끝나면 그때는 브라우저가 없다. 전환을 만들 재료를
         // 사람이 화면 앞에 있는 지금 떠 둔다.
         meta: snapshotMetaMatch(request, attribution, body.marketingConsent === true),
       },
     });
+    if (coupon && orderRowId) await reserveCoupon(coupon.id, user.userId, orderRowId);
   } catch (error) {
     console.error("결제 주문 생성 실패:", error);
     return NextResponse.json({ error: "결제 주문을 만들지 못했어요." }, { status: 503 });
@@ -100,7 +112,9 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     orderId,
     paymentId: orderId,
-    amount: reading.price,
+    amount,
+    listPrice: reading.price,
+    discount: coupon?.discount ?? 0,
     orderName: "러브레빗 사주 전문 리딩",
     provider: usePortOne ? "portone" : "toss",
     ...(usePortOne ? { noticeUrl: getPortOneNoticeUrl(request.nextUrl.origin) } : {}),

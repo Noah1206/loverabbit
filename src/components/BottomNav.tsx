@@ -7,6 +7,10 @@ import { type CSSProperties, useEffect, useState } from "react";
 // 아이콘은 전부 24 격자에 stroke 로만 그린다 (fill="none" 은 svg 쪽에 걸려 있다).
 // 홈만 예외로 .tabbar-home-shape 가 채운다 — 그래서 홈 도형은 안쪽을 파지 않는다.
 // 겹치는 조각은 채워질 때 하나로 합쳐지므로 굴뚝을 따로 그려도 된다.
+//
+// 탭은 셋이다. "내 사주"(/reading 으로 가는 링크)와 "내 상담"(보관함)이 따로
+// 있었는데 둘 다 결국 내 리딩 이야기라 하나로 합쳤다 (2026-08-26). 새 사주는
+// 홈과 보관함 안의 버튼에서 시작한다. 보관함은 로그인해야 열린다.
 const NAV_ITEMS = [
   {
     href: "/",
@@ -21,26 +25,18 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/reading",
-    label: "내 사주",
-    matches: (path: string) => path.startsWith("/reading") || path.startsWith("/product") || path.startsWith("/payment"),
+    href: "/my",
+    label: "내 상담",
+    matches: (path: string) =>
+      path.startsWith("/my") ||
+      path.startsWith("/reading") ||
+      path.startsWith("/product") ||
+      path.startsWith("/payment"),
     // 초승달 + 반짝임
     icon: (
       <>
         <path d="M20.3 14.9A8.1 8.1 0 0 1 9.6 4.2a8.4 8.4 0 1 0 10.7 10.7Z" />
         <path d="M17.6 2.9l.62 1.72 1.72.62-1.72.62-.62 1.72-.62-1.72-1.72-.62 1.72-.62.62-1.72Z" />
-      </>
-    ),
-  },
-  {
-    href: "/my",
-    label: "내 상담",
-    matches: (path: string) => path.startsWith("/my"),
-    // 둥근 말풍선 + 말줄임 (점은 linecap=round 라 선분 없이 점으로 찍힌다)
-    icon: (
-      <>
-        <path d="M20.4 12.1c0 3.9-3.76 7.05-8.4 7.05-1.02 0-2-.15-2.9-.43L4.2 20.5l1.45-3.6C4.4 15.62 3.6 13.96 3.6 12.1c0-3.9 3.76-7.05 8.4-7.05s8.4 3.15 8.4 7.05Z" />
-        <path d="M8.7 12.1h.01M12 12.1h.01M15.3 12.1h.01" />
       </>
     ),
   },

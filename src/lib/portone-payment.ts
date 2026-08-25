@@ -6,6 +6,7 @@ import {
   completeChatCreditOrder,
   createOrder,
   getOrderByProviderOrderId,
+  settleCouponsForOrder,
   getReferralStatus,
   type DatabaseOrder,
   type OrderKind,
@@ -125,7 +126,7 @@ export async function finalizePortOnePayment(
       throw new PortOnePaymentError("결제 리딩을 찾지 못했어요.", 404, "READING_NOT_FOUND");
     }
     if (!alreadyPaid) {
-      await createOrder({
+      const paidOrderId = await createOrder({
         userId: order.userId,
         readingId: order.readingId,
         kind: "reading",
@@ -141,6 +142,8 @@ export async function finalizePortOnePayment(
           portone_paid_at: payment.paidAt,
         },
       });
+      // 결제창에서 붙인 쿠폰은 돈이 실제로 들어온 지금 소진된다.
+      if (paidOrderId) await settleCouponsForOrder(paidOrderId, "paid");
     }
     const unlocked = await markUnlocked(
       order.readingId,

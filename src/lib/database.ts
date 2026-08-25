@@ -3,6 +3,7 @@ import "server-only";
 import { databaseError, getSupabaseAdmin, isDatabaseConfigured } from "@/lib/supabase-admin";
 import { PRODUCT_MAP } from "@/lib/products";
 import { maskName, type ReviewSource, type ReviewStatus } from "@/lib/reviews";
+import { isCouponUsable, type Coupon } from "@/lib/coupons";
 
 export interface DatabaseUser {
   id: number;
@@ -1407,3 +1408,77 @@ export async function moderateReview(
 }
 
 export { isDatabaseConfigured };
+
+// ── 쿠폰 ──
+// 발급은 DB 트리거가 한다(가입·추천 보상). 여기는 읽기와 주문에 붙이기·마감뿐.
+
+const COUPON_COLUMNS =
+  "id,kind,discount,expires_at,used_at,reserved_at,order:lr_orders(status,method,created_at)";
+
+function mapCoupon(row: Record<string, unknown>): Coupon {
+  const order = row.order && typeof row.order === "object" && !Array.isArray(row.order)
+    ? (row.order as Record<string, unknown>)
+    : null;
+  return {
+    id: String(row.id),
+    kind: row.kind === "referral" ? "referral" : "welcome",
+    discount: Number(row.discount ?? 0),
+    expiresAt: String(row.expires_at),
+    usedAt: typeof row.used_at === "string" ? row.used_at : null,
+    reservedAt: typeof row.reserved_at === "string" ? row.reserved_at : null,
+    reservedOrder: order
+      ? { status: String(order.status), method: String(order.method), createdAt: String(order.created_at) }
+      : null,
+  };
+}
+
+export async function listUserCoupons(userId: number): Promise<Coupon[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+  const { data, error } = await db
+    .from("lr_coupons")
+    .select(COUPON_COLUMNS)
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (error) throw databaseError("쿠폰 조회", error);
+  return (data ?? []).map((row) => mapCoupon(row as unknown as Record<string, unknown>));
+}
+
+/** 이 사람이 지금 쓸 수 있는 쿠폰이면 돌려준다. 남의 것, 쓴 것, 지난 것은 null. */
+export async function getUsableCoupon(couponId: string, userId: number): Promise<Coupon | null> {
+  const coupons = await listUserCoupons(userId);
+  const found = coupons.find((coupon) => coupon.id === couponId);
+  return found && isCouponUsable(found) ? found : null;
+}
+
+/** 쿠폰을 주문에 붙인다. 결제가 끝나야 소진되고, 주문이 취소되면 풀린다. */
+export async function reserveCoupon(couponId: string, userId: number, orderId: number): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  const { error } = await db
+    .from("lr_coupons")
+    .update({ order_id: orderId, reserved_at: new Date().toISOString() })
+    .eq("id", couponId)
+    .eq("user_id", userId)
+    .is("used_at", null);
+  if (error) throw databaseError("쿠폰 예약", error);
+}
+
+/**
+ * 주문의 결말을 쿠폰에 옮긴다. 결제됐으면 소진, 취소됐으면 놓아 준다.
+ * 주문 번호로 찾으므로 metadata 를 읽을 필요가 없다 - 승인·웹훅·토스 어느 길이든 같다.
+ */
+export async function settleCouponsForOrder(orderId: number, outcome: "paid" | "released"): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  const patch =
+    outcome === "paid"
+      ? { used_at: new Date().toISOString() }
+      : { order_id: null, reserved_at: null };
+  const { error } = await db
+    .from("lr_coupons")
+    .update(patch)
+    .eq("order_id", orderId)
+    .is("used_at", null);
+  if (error) throw databaseError("쿠폰 마감", error);
+}

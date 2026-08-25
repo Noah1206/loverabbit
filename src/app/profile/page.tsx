@@ -98,7 +98,7 @@ export default function ProfilePage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setShareNotice("공유했어요. 친구가 가입하면 질문권 10장이 들어와요.");
+        setShareNotice("공유했어요. 친구가 가입하면 5,000원 쿠폰과 질문권 10장이 들어와요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareNotice("초대 링크를 복사했어요.");
@@ -197,7 +197,7 @@ export default function ProfilePage() {
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
           <span className="badge">친구 초대 보상</span>
-          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>친구 1명 가입 = 캐릭터챗 질문권 10장</h2>
+          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>친구 1명 가입 = 5,000원 쿠폰 + 질문권 10장</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
             현재 질문권 <strong style={{ color: "var(--accent)" }}>{user.chatCredits ?? 0}장</strong>
           </p>

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
+import { applyCoupon, isCouponUsable, pickBestCoupon, COUPON_LABEL, type Coupon } from "@/lib/coupons";
+import "@/app/coupons.css";
 
 const KAKAOBANK_LINK = "kakaobank://";
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
@@ -38,7 +40,8 @@ export default function PaymentModal({
   customerEmail: string;
   depositorCode?: string;
   paying?: boolean;
-  onTransferSubmitted?: () => void;
+  /** 계좌이체 확인 요청. 고른 쿠폰이 있으면 같이 넘긴다 - 서버가 금액을 다시 정한다. */
+  onTransferSubmitted?: (couponId?: string) => void;
   onClose: () => void;
 }) {
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
@@ -48,7 +51,34 @@ export default function PaymentModal({
   // 계좌번호 복사 버튼의 짧은 피드백 - 아이콘만 있는 버튼이라 눌렸는지 보여야 한다
   const [copied, setCopied] = useState(false);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT && depositorCode && onTransferSubmitted);
-  const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${price}&origin=linkgen`;
+
+  // 쿠폰함. 열리면 쓸 수 있는 것 중 가장 큰 할인이 먼저 골라져 있다 - 쿠폰이
+  // 있는 사람이 굳이 찾아 누르지 않아도 깎인 값을 본다. 금액은 서버가 다시 정한다.
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [couponId, setCouponId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/coupons", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken }),
+    })
+      .then((res) => (res.ok ? res.json() : { coupons: [] }))
+      .then((data: { coupons?: Coupon[] }) => {
+        if (!active) return;
+        const list = (data.coupons ?? []).filter((coupon) => isCouponUsable(coupon));
+        setCoupons(list);
+        setCouponId(pickBestCoupon(list)?.id ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [userToken]);
+  const coupon = coupons.find((item) => item.id === couponId) ?? null;
+  const payAmount = coupon ? applyCoupon(price, coupon.discount) : price;
+
+  const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${payAmount}&origin=linkgen`;
 
   useEffect(() => {
     // 이체가 기본 결제인 동안은 토스 SDK 를 아예 부르지 않는다 — 안 그리는
@@ -90,7 +120,7 @@ export default function PaymentModal({
       const response = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readingId, userToken }),
+        body: JSON.stringify({ readingId, userToken, couponId: coupon?.id }),
       });
       const checkout = (await response.json().catch(() => ({}))) as {
         orderId?: string;
@@ -98,7 +128,7 @@ export default function PaymentModal({
         orderName?: string;
         error?: string;
       };
-      if (!response.ok || !checkout.orderId || checkout.amount !== price) {
+      if (!response.ok || !checkout.orderId || checkout.amount !== payAmount) {
         throw new Error(checkout.error ?? "결제 주문을 만들지 못했어요.");
       }
 
@@ -128,8 +158,46 @@ export default function PaymentModal({
       <div className="card toss-payment-modal" onClick={(event) => event.stopPropagation()}>
         <span className="badge">안전한 결제</span>
         <h3 id="payment-modal-title">전문 리딩 열기</h3>
-        <p className="toss-payment-price">{price.toLocaleString()}원</p>
+        <p className="toss-payment-price">{payAmount.toLocaleString()}원</p>
+        {coupon && (
+          <p className="toss-payment-list-price">
+            정가 {price.toLocaleString()}원 · {coupon.discount.toLocaleString()}원 할인
+          </p>
+        )}
         <p className="toss-payment-intro">결제가 승인된 뒤에만 결론과 전문이 열립니다.</p>
+
+        {coupons.length > 0 && (
+          <div className="coupon-pick" role="group" aria-label="쿠폰 선택">
+            <div className="coupon-pick-title">
+              <span>쿠폰</span>
+              {coupon ? (
+                <button type="button" onClick={() => setCouponId(null)}>쿠폰 안 쓰기</button>
+              ) : (
+                <button type="button" onClick={() => setCouponId(pickBestCoupon(coupons)?.id ?? null)}>
+                  쿠폰 쓰기
+                </button>
+              )}
+            </div>
+            {coupons.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className="coupon-card"
+                aria-pressed={item.id === couponId}
+                onClick={() => setCouponId(item.id === couponId ? null : item.id)}
+              >
+                <span className="coupon-amount">{item.discount.toLocaleString()}원</span>
+                <span className="coupon-copy">
+                  <strong>{COUPON_LABEL[item.kind]}</strong>
+                  <span>{new Date(item.expiresAt).toLocaleDateString("ko-KR")}까지</span>
+                </span>
+                <em className={`coupon-state${item.id === couponId ? " on" : ""}`}>
+                  {item.id === couponId ? "적용됨" : "선택"}
+                </em>
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* 계좌이체가 기본이다 — 운영자 결정 (2026-08-21). 토스 PG 결제는 토스
             승인 API 를 거치는데, 승인 중 새로고침이 겹치면 결제한 사람이 실패
@@ -138,12 +206,13 @@ export default function PaymentModal({
             설정되지 않은 환경에서만 나온다. */}
         {PORTONE_TRANSFER_CONFIGURED ? (
           <PortOneTransferForm
-            amount={price}
+            key={payAmount}
+            amount={payAmount}
             customerEmail={customerEmail}
             checkoutEndpoint="/api/checkout"
-            checkoutBody={{ readingId, userToken }}
+            checkoutBody={{ readingId, userToken, couponId: coupon?.id }}
             redirectPath={`/payment/success?readingId=${encodeURIComponent(readingId)}`}
-            buttonLabel={`${price.toLocaleString()}원 계좌이체하고 전문 보기`}
+            buttonLabel={`${payAmount.toLocaleString()}원 계좌이체하고 전문 보기`}
           />
         ) : transferConfigured ? (
           <div className="transfer-payment-fallback">
@@ -195,7 +264,7 @@ export default function PaymentModal({
             <p className="transfer-pay-memo">입금 메모에 <strong>{depositorCode}</strong> 를 꼭 적어주세요</p>
             <button
               className="transfer-pay-confirm"
-              onClick={onTransferSubmitted}
+              onClick={() => onTransferSubmitted?.(coupon?.id)}
               disabled={transferSubmitting}
             >
               {transferSubmitting ? "확인 요청 보내는 중…" : "입금을 마쳤어요"}
@@ -207,7 +276,7 @@ export default function PaymentModal({
             <div id="toss-payment-methods" className="toss-payment-widget" />
             <div id="toss-payment-agreement" className="toss-payment-widget" />
             <button className="btn toss-payment-submit" onClick={() => void requestPayment()} disabled={!ready || paying}>
-              {paying ? "결제창 여는 중…" : `${price.toLocaleString()}원 결제하고 전문 보기`}
+              {paying ? "결제창 여는 중…" : `${payAmount.toLocaleString()}원 결제하고 전문 보기`}
             </button>
           </>
         ) : (

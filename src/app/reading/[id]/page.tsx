@@ -428,7 +428,7 @@ export default function ReadingReportPage() {
     setShowPay(true);
   };
 
-  const confirmTransfer = async () => {
+  const confirmTransfer = async (couponId?: string) => {
     if (!entry) return;
     setPaying(true);
     setError("");
@@ -444,6 +444,8 @@ export default function ReadingReportPage() {
           method: "transfer",
           depositorCode,
           userToken: user?.token,
+          // 결제창에서 고른 쿠폰. 서버가 다시 확인해 금액을 정한다.
+          couponId,
           // 어느 광고가 팔았는지를 주문에 함께 남긴다. 이 기록이 정본이다 —
           // Meta 쪽 집계는 픽셀이 막히면 비고, 그럴수록 알 수 없어진다.
           attribution: readAttribution(),

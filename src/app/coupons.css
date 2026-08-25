@@ -1,0 +1,147 @@
+/* 쿠폰함(/my)과 결제창의 쿠폰 고르기가 같이 쓴다. */
+
+.coupon-list {
+  display: grid;
+  gap: 10px;
+}
+
+.coupon-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+}
+
+.coupon-card[data-state="used"],
+.coupon-card[data-state="expired"] {
+  opacity: 0.45;
+}
+
+.coupon-card[data-state="reserved"] {
+  opacity: 0.7;
+}
+
+button.coupon-card {
+  cursor: pointer;
+}
+
+button.coupon-card[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.coupon-amount {
+  flex: 0 0 auto;
+  min-width: 72px;
+  color: var(--accent);
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.coupon-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.coupon-copy strong {
+  font-size: 0.92rem;
+}
+
+.coupon-copy span {
+  color: var(--text-dim);
+  font-size: 0.76rem;
+}
+
+.coupon-state {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.coupon-state.on {
+  background: var(--accent);
+  color: #0a0a0c;
+}
+
+.coupon-empty {
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  text-align: center;
+}
+
+/* 결제창 - 정가와 낼 돈 */
+.coupon-pick {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.coupon-pick-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.coupon-pick-title button {
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.toss-payment-list-price {
+  margin-top: -6px;
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  text-decoration: line-through;
+}
+
+/* 로그인 관문 - 보관함은 로그인해야 열린다 */
+.my-login-gate {
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.my-login-gate p {
+  margin: 10px 0 18px;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.my-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 28px 0 10px;
+}
+
+.my-section-title h2 {
+  font-size: 1.05rem;
+}
+
+.my-section-title small {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
