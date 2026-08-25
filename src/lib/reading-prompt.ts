@@ -699,8 +699,10 @@ export function parseStructuredReport(text: string): StructuredReport | null {
         .map((card) => card as Record<string, unknown>)
         .filter((card) => typeof card.label === "string" && typeof card.value === "string")
         .map((card) => ({
-          label: card.label as string,
-          value: card.value as string,
+          // 카드는 표기 없이 그린다. 짝사랑 축을 켠 리포트가 카드 값에 **굵게**를 넣었는데,
+          // 화면은 카드에서 표기를 풀지 않아 별표가 그대로 보인다. 여기서 걷어낸다.
+          label: stripMarks(card.label as string),
+          value: stripMarks(card.value as string),
           detail: typeof card.detail === "string" ? card.detail : "",
           factsUsed: asStringArray(card.facts_used),
         })),

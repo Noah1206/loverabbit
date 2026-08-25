@@ -308,6 +308,23 @@ const AMBIGUOUS_TERM: Record<string, RegExp> = {
   상관: /상관\s*(없|있|하)/,
 };
 
+/**
+ * 이름이 나올 때마다 "없다"가 따라붙는가.
+ *
+ * "도화는 없고", "도화가 0개라", "홍염이 앉지 않았어" 는 이름을 부른 것이 아니라 부재를
+ * 말한 것이다. 한 번이라도 부정 없이 나오면 거짓이다 — 그때는 원래대로 잡는다.
+ */
+function onlyNegated(text: string, term: string): boolean {
+  // "도화 지수 28" 의 도화는 화면 게이지의 이름이지 명식의 글자가 아니다. 부정과 같이 지나간다.
+  // 줄바꿈은 문자로 넣는다 - 문자열 안의 역슬래시가 겹겹의 도구를 지나며 깎여 나가서다.
+  const newline = String.fromCharCode(10);
+  const followers = "([ ]*지수|[^.。!?" + newline + "]{0,24}?(없|0개|하나도|앉지 않|안 앉|보이지 않|잡히지 않|비어))";
+  const pattern = new RegExp(term + followers, "g");
+  const total = (text.match(new RegExp(term, "g")) ?? []).length;
+  const negated = (text.match(pattern) ?? []).length;
+  return total > 0 && negated >= total;
+}
+
 function mentions(text: string, term: string): boolean {
   if (!text.includes(term)) return false;
   const ambiguous = AMBIGUOUS_TERM[term];
@@ -479,6 +496,13 @@ function myeongriChecks(report: StructuredReport, options: GuardOptions): GuardV
       if (!mentions(body, term)) continue;
       if (THREE_XING_GROUP_LABELS.includes(term)) continue; // 위에서 이미 봤다
       if (allowed.some((name) => name === term || name.includes(term))) continue;
+      // "도화는 없다"는 없는 이름을 부른 것이 아니라 없다고 말한 것이다. 바람기·도화살은
+      // 목차가 "도화는 몇 개인가"를 팔아서, 없는 명식에서는 없다고 써야 한다. 그 문장까지
+      // 막으면 그 절은 쓸 수 없다. 이름이 나온 자리마다 부정이 붙어 있으면 지나간다.
+      if (onlyNegated(body, term)) continue;
+      // 목차가 그 이름을 판다("새 인연의 실체 — 운명인가 도화인가"). 절 제목에 있는 이름을
+      // 본문이 안 쓸 수는 없다. 그때는 이름을 부른 것이 아니라 물음을 받은 것이다.
+      if (report.sections.some((s) => s.title.includes(term))) continue;
       add({
         kind: "명리",
         code: "GUARD-NAMED-TERM-ABSENT",
@@ -729,7 +753,9 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
     }
     // 구조 용어는 본문에 있으면 안 된다 — 쉬운 말로 쓸 수 있는 것들이다.
     for (const term of STRUCTURE_TERMS) {
-      if (text.includes(term)) {
+      // 앞에 한글이 붙어 있으면 다른 낱말의 일부다. "다시 지켜" 의 "시지", "그 일지" 의 "일지"
+      // 처럼 — 연애운 리포트 하나에서 "시지" 가 열두 번 잡혔는데 전부 "다시 지…" 였다.
+      if (new RegExp(`(^|[^가-힣])${term}`).test(text)) {
         add({ kind: "용어", where, detail: `구조 용어 "${term}" — 쉬운 말로 바꿔야 한다`, blocking: false });
       }
     }

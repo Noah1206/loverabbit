@@ -85,6 +85,28 @@ const CASES: Record<string, { me: Person; partner: Person; question: string; occ
 
 const NOW = new Date("2026-08-25T12:00:00+09:00");
 
+/**
+ * 상품마다 고민 문장을 바꾼다.
+ *
+ * 처음에는 모든 상품에 재회용 고민("헤어진 지 넉 달인데…")을 넣었다. 그러면 결혼·권태기
+ * 리포트가 "재결합" 이야기로 기울고, 그게 축 탓인지 고민 탓인지 가릴 수 없다.
+ * 상품의 물음에 맞는 고민을 넣어야 축이 하는 일만 보인다.
+ */
+const QUESTION_BY_PRODUCT: Record<string, string> = {
+  sokgunghap: "사귄 지 석 달인데 붙어 있을 때랑 떨어져 있을 때 온도가 너무 달라요.",
+  yeonae: "올해 안에 연애를 시작하고 싶어요. 소개팅이 나을지 그냥 기다릴지 모르겠어요.",
+  ibyeol: "두 달 전에 헤어졌는데 왜 끝났는지 아직도 정리가 안 돼요. 제 탓인지 그 사람 탓인지.",
+  bamgijil: "연애만 하면 제가 이상해져요. 평소엔 안 그런데 집착하게 돼요.",
+  baramgi: "남자친구가 요즘 폰을 뒤집어 놓고 연락이 뜸해요. 의심하는 제가 이상한 건지.",
+  gyeolhon: "1년 반 사귄 사람이 프러포즈를 준비하는 것 같아요. 이 사람과 결혼해도 될까요.",
+  gwontaegi: "3년 사귀었는데 요즘 만나도 할 말이 없어요. 권태기인지 끝나는 건지 모르겠어요.",
+  hwanseung: "애인이 있는데 새로 만난 사람한테 자꾸 마음이 가요. 갈아타면 후회할까요.",
+  sseom: "석 달째 썸인데 진도가 안 나가요. 상대가 밀당하는 건지 진심인지 모르겠어요.",
+  jjak: "같은 팀 사람을 반년째 좋아해요. 고백하면 팀이 어색해질까 봐 못 하고 있어요.",
+  bimil: "회사 사람과 비밀연애 중이에요. 요즘 눈치챈 사람이 있는 것 같아 불안해요.",
+  dohwasal: "친구들이 저더러 도화살 있다고 해요. 원치 않는 사람만 자꾸 다가와서 힘들어요.",
+};
+
 interface Variant {
   axis: boolean;
   report: StructuredReport | null;
@@ -139,7 +161,7 @@ async function generate(caseId: string, axis: boolean): Promise<Variant> {
         },
         outline: scoped.outline,
         focus: partner ? "relationship" : "self",
-        currentScene: c.question,
+        currentScene: QUESTION_BY_PRODUCT[PRODUCT_ID] ?? c.question,
         occupation: c.occupation,
         characterId: null,
         characterName: null,
