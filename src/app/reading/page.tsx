@@ -692,8 +692,12 @@ export default function ReadingPage() {
         </button>
       </header>
 
+      {/* 머리글과 아래 고정 버튼은 같은 부모의 형제다. 둘 다 key={step} 이면 React 가
+          형제를 key 로 맞춰 볼 때 한쪽이 다른 쪽을 덮어써서, 단계가 바뀔 때마다 옛
+          머리글이 지워지지 않고 쌓였다 (2026-08-25, 상대 정보 화면에 "당신의 사주부터"
+          가 남아 있던 원인). 형제끼리는 key 가 달라야 한다. */}
       {showIntroHeader && (
-        <header key={step} className="reading-flow-header" data-dir={stepDir}>
+        <header key={"header-" + step} className="reading-flow-header" data-dir={stepDir}>
           {step === "concern" ? (
             <>
               <h1>당신의 속마음을 말해주세요.</h1>
@@ -949,7 +953,7 @@ export default function ReadingPage() {
       )}
 
       {showFixedAction && (
-        <div key={step} className="reading-fixed-action">
+        <div key={"action-" + step} className="reading-fixed-action">
           <button type="button" className="btn" onClick={advanceStep} disabled={loading || !isStepComplete}>
             {loading ? "사주 푸는 중… 🔮" : step === "ready" ? "무료로 운명 보기" : "다음으로"}
           </button>
