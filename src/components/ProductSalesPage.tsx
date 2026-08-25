@@ -132,8 +132,8 @@ export default function ProductSalesPage({
         </section>
 
         {/* ── 박도사 비법서 서사 (2026-08-25, 「연담비결」을 대체) ──
-            사진은 public/lore/parkdosa-manuscript.jpg. 운영자가 준 시안에서 오려 낸
-            저해상 임시본이라, 원본 사진을 받으면 그 파일만 갈아 끼우면 된다. */}
+            사진은 public/lore/parkdosa-manuscript.jpg (운영자 제공, 2026-08-25).
+            파일만 갈아 끼우면 된다 - 비율이 바뀌면 아래 width/height 도 맞춘다. */}
         <section className="card product-story-card product-lore product-reveal">
           <p className="product-lore-kicker">본 사주 분석의 뿌리</p>
           <h2 className="product-lore-title">정재계가 줄 서서 찾던 전설, 박도사</h2>
@@ -143,7 +143,7 @@ export default function ProductSalesPage({
               src="/lore/parkdosa-manuscript.jpg"
               alt="제산 박재현(박도사)이 손으로 적은 비법서 필사본"
               width={795}
-              height={615}
+              height={373}
               sizes="(max-width: 640px) 100vw, 600px"
             />
             <figcaption>제산 박재현(박도사)가 직접 짚어 내린 비법서</figcaption>
