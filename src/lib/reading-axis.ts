@@ -137,8 +137,23 @@ export const READING_AXES: Record<string, ProductAxis> = {
   },
 };
 
+/**
+ * 축을 잠시 끄는 스위치. 쉼표로 상품 id 를 나열한다 — READING_AXIS_OFF=jaehoe,ibyeol
+ *
+ * 두 자리에서 쓴다. 비교 하네스(scripts/axis-compare.mts)가 같은 명식에서 켜고
+ * 끈 결과를 나란히 놓을 때, 그리고 운영에서 축 하나가 리포트를 망가뜨렸을 때
+ * 배포 없이 되돌릴 때. 표를 고치는 대신 환경변수로 끄는 이유는 표가 모듈마다
+ * 따로 로드될 수 있어서다 — 한 인스턴스를 고쳐도 다른 인스턴스는 모른다.
+ */
+function axisSwitchedOff(productId: string): boolean {
+  const raw = process.env.READING_AXIS_OFF;
+  if (!raw) return false;
+  return raw.split(",").map((id) => id.trim()).includes(productId);
+}
+
 export function axisFor(productId: string | undefined): ProductAxis | null {
-  return (productId && READING_AXES[productId]) || null;
+  if (!productId || axisSwitchedOff(productId)) return null;
+  return READING_AXES[productId] ?? null;
 }
 
 /** 프롬프트에 실을 꼴. 축이 없으면 아무것도 싣지 않는다 — 예전 그대로 돌아간다. */

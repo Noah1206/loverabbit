@@ -71,6 +71,23 @@ describe("상품 축", () => {
     assert.ok(READING_SYSTEM_PROMPT.includes("축은 규칙을 이기지 못한다"));
   });
 
+  it("READING_AXIS_OFF 로 상품 하나의 축을 배포 없이 끈다", () => {
+    // 비교 하네스가 쓰고, 운영에서 축 하나가 리포트를 망가뜨렸을 때 되돌리는 스위치.
+    // 표를 고치는 방식은 모듈 인스턴스가 둘일 때 안 통했다 — 환경변수는 프로세스가 같이 본다.
+    const before = process.env.READING_AXIS_OFF;
+    try {
+      process.env.READING_AXIS_OFF = "jaehoe, ibyeol";
+      assert.equal(axisFor("jaehoe"), null, "끈 상품은 축이 없다");
+      assert.ok(axisFor("sokgunghap"), "안 끈 상품은 그대로다");
+      const payload = JSON.parse(buildReadingInput({ ...base, productId: "jaehoe" }));
+      assert.equal("product_axis" in payload.delivery, false);
+      assert.equal("product_score" in payload.delivery, false, "축이 꺼지면 지수도 안 간다");
+    } finally {
+      if (before === undefined) delete process.env.READING_AXIS_OFF;
+      else process.env.READING_AXIS_OFF = before;
+    }
+  });
+
   it("축을 단 상품은 실제로 있는 상품이다", () => {
     for (const id of Object.keys(READING_AXES)) {
       assert.ok(PRODUCT_MAP[id], `${id} 는 상품 목록에 없다`);
