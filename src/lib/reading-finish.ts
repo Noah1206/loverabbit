@@ -126,7 +126,8 @@ export async function finishReading(params: {
       facts: resume.facts,
       partnerFacts: resume.partnerFacts,
       matchedRules,
-      productLabel: PRODUCT_MAP[category]?.promptLabel ?? category,
+      // 발급 때 좁힌 이름이 있으면 그것. 옛 재개 정보는 상품표로 돌아간다.
+      productLabel: resume.productLabel ?? PRODUCT_MAP[category]?.promptLabel ?? category,
       // 결제 뒤 이어 쓰는 절도 같은 물음에 답해야 한다. 여기서 빠지면 앞 절과
       // 뒤 절이 서로 다른 상품처럼 읽힌다.
       productId: category,

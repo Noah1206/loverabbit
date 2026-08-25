@@ -12,7 +12,6 @@ export const CARD_MOTION: readonly string[] = [
   "gyeolhon",
   "hwanseung",
   "ibyeol",
-  "insun",
   "jaehoe",
   "jjak",
   "sokgunghap",

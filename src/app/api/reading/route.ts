@@ -319,8 +319,11 @@ export async function POST(req: NextRequest) {
     outline: fullOutline,
     facts: myFacts,
     matchedRules,
+    label,
   });
   const outline = scoped.outline;
+  // 이름이 "3년 흐름"을 말하면 목차를 좁혀도 모델은 이름 쪽을 믿는다. 함께 좁힌다.
+  const scopedLabel = scoped.label ?? label;
   if (scoped.notes.length > 0) {
     console.warn("리딩 범위 축소:", scoped.notes.join(" / "));
   }
@@ -347,7 +350,7 @@ export async function POST(req: NextRequest) {
     facts: myFacts,
     partnerFacts,
     matchedRules,
-    productLabel: label,
+    productLabel: scopedLabel,
     // 이 리포트가 답할 물음을 고르는 열쇠(reading-axis.ts). 라벨과 따로 넘긴다.
     productId: body.category,
     // 축이 usesScore 를 켠 상품에서만 프롬프트로 나간다. 화면에 찍히는 그 숫자다.
@@ -636,6 +639,7 @@ export async function POST(req: NextRequest) {
         facts: myFacts,
         partnerFacts,
         ruleIds: matchedRules.map((rule) => rule.id),
+        productLabel: scopedLabel,
         currentScene: body.question ?? "",
         occupation: occupation || undefined,
         // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해.

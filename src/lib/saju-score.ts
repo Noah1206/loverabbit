@@ -282,9 +282,6 @@ const RECIPES: Record<string, Recipe> = {
   ibyeol: { subject: "me", base: 50, weights: { luckFavor: 1.3, stability: 0.9, pairHarmony: -0.5 } },
   // 도화 지수 — 이름 그대로
   dohwasal: { subject: "me", base: 42, weights: { dohwaLoad: 1.5, luckFavor: 0.4, stability: 0.3 } },
-  // 인연 근접도 — 상품은 2026-08-24 에 yeonae 로 합쳐졌다. 그 전에 발급된
-  // 리딩이 점수를 다시 셀 때를 위해 남겨 둔다. 새 리딩은 여기로 오지 않는다.
-  insun: { subject: "me", base: 46, weights: { luckFavor: 1.3, dohwaLoad: 0.8, officialStar: 0.5 } },
   // 올해 연애운 — 세운 중심
   yeonae: { subject: "me", base: 48, weights: { luckFavor: 1.5, dohwaLoad: 0.6, stability: 0.5 } },
 };

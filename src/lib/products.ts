@@ -31,6 +31,15 @@ export interface Product {
   audience: string[]; // 누가 보면 좋을까요
   principles: [string, string][]; // 이런 원리로 풀이해요
   toc: string[]; // 이런 결과를 받아요
+  /**
+   * 이 상품이 파는 앞날의 길이(달). 판매 문구가 숫자로 앞날을 약속할 때만 적는다.
+   *
+   * 계산이 감당하는 길이(saju-facts UPCOMING_MONTHS + 다음 해)보다 길면
+   * reading-scope 가 목차와 이름을 좁혀 내보내고, 테스트가 그 사실을 알린다.
+   * 문구가 이 값보다 긴 앞날을 말하면 테스트가 실패한다 — 약속이 코드 모르게
+   * 자라지 않게 하는 자리다.
+   */
+  timeHorizonMonths?: number;
 }
 
 export const PRODUCTS: Product[] = [
@@ -238,6 +247,9 @@ export const PRODUCTS: Product[] = [
     id: "gyeolhon", price: 49900, badge: "결혼점", title: "결혼 사주", emoji: "💍",
     shortLabel: "결혼 💍", needsPartner: true, tone: "promise",
     promptLabel: "결혼운 (이 상대와 결혼했을 때의 궁합과 3년 흐름)",
+    // 3년을 판다. 계산은 일곱 달 + 다음 해라 지금은 좁혀 나간다 — 다년 세운을
+    // 읽는 규칙을 사람이 쓸지, 약속을 줄일지는 기획이 정할 일이다 (2026-08-25).
+    timeHorizonMonths: 36,
     cardCopy: "좋아하는 마음을 넘어 함께 살아도 편안한 사람인지, 결혼 뒤의 생활 온도와 현실 궁합까지 오래 들여다봅니다.",
     desc: "이 사람과 결혼하면 어떻게 되나. 3년 후 미래까지 미리 본다.",
     ctaLabel: "우리의 결혼 미래 미리보기", ctaHook: "연애의 합 너머, 함께 살 미래",

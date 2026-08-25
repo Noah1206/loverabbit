@@ -85,6 +85,14 @@ export interface RelationFact {
  *
  * 달의 경계는 달력이 아니라 절기다. 8월 7일 입추부터 9월 7일 백로까지가 신월이다.
  */
+/**
+ * 앞으로 몇 달이 계산되어 나오는가 — 지금 달은 빼고 센 수. 여기 하나만 진실이다.
+ *
+ * 목차가 파는 약속(reading-scope.ts)과 테스트(tests/product-promises.test.ts)가
+ * 이 값에 기대어 "계산이 감당하는 길이"를 센다. 늘리면 그쪽이 함께 늘어난다.
+ */
+export const UPCOMING_MONTHS = 6;
+
 export interface UpcomingLuck {
   months: Array<{
     /** 그 절기월의 한가운데가 놓인 달력 연·월 — 사람에게 "9월"이라고 말할 때 쓰는 값 */
@@ -605,8 +613,8 @@ export function buildSajuFacts(
         tenGod: tenGodOf(dayElement, dayYang, stemElement(luck.month.ganIdx), isYangStem(luck.month.ganIdx)),
       },
       upcoming: {
-        // 6개월을 약속하는 목차가 있으므로 6개월을 낸다. 지금 달을 빼고 세려면 7칸을 걸어야 한다.
-        months: upcomingMonths(chart, now, 7),
+        // 6개월을 약속하는 목차가 있으므로 6개월을 낸다. 지금 달을 빼고 세려면 한 칸을 더 걸어야 한다.
+        months: upcomingMonths(chart, now, UPCOMING_MONTHS + 1),
         nextYear: (() => {
           const next = yearPillarOf(luck.sajuYear + 1);
           return {

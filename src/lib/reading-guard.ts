@@ -422,7 +422,7 @@ function supportsPartnerClaim(rule: ReadingRule): boolean {
 
 /** 목차가 앞으로를 약속한 절인가 */
 const TIMING_PROMISE =
-  /(앞으로|향후)\s*\d+\s*(개월|달)|다음 기회|또 오는지|마지막 기회|남은 해|내년/;
+  /(앞으로|향후)\s*\d+\s*(개월|달)|\d+\s*년|다음 기회|또 오는지|마지막 기회|남은 해|내년/;
 
 function myeongriChecks(report: StructuredReport, options: GuardOptions): GuardViolation[] {
   const out: GuardViolation[] = [];
