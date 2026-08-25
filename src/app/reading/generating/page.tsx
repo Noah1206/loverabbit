@@ -18,32 +18,6 @@ import { landingTypeForProduct, trackPreviewGenerated } from "@/lib/meta-events"
 import { getUser } from "@/lib/user";
 import { trackFunnel } from "@/lib/funnel";
 
-// 단계 문구 - 사주를 모르는 사람이 읽는 말이므로 일간·합충 같은 용어를 쓰지
-// 않는다. 세트가 여럿이고 방문마다 하나를 뽑는다 - 두 번째 리딩에서 같은
-// 문구가 또 나오면 녹음처럼 들린다. 모든 세트는 넷이고, 마지막 항목이
-// "기다리는 자리"다 - 응답이 올 때까지 그 줄에서 점이 돈다.
-const STAGE_SETS = [
-  [
-    "태어난 날의 기운을 살피는 중",
-    "인연의 흐름을 짚어보는 중",
-    "이야기로 풀어 적는 중",
-    "마지막으로 다듬는 중",
-  ],
-  [
-    "생년월일의 짝을 맞춰보는 중",
-    "사랑의 방향을 살피는 중",
-    "쉬운 말로 옮기는 중",
-    "마무리하는 중",
-  ],
-  [
-    "타고난 결을 읽어내는 중",
-    "마음이 오가는 길을 찾는 중",
-    "당신에게 맞는 문장을 고르는 중",
-    "곧 보여드릴 준비 중",
-  ],
-] as const;
-const STAGE_COUNT = 4;
-
 // 사주 생성 대기 화면.
 // 폼에서 18초를 붙잡아두는 대신 제출 즉시 이 화면으로 넘어와, 여기서 리딩을 만들고
 // 완료되면 곧바로 기사형 리포트(/reading/{id})로 교체한다(replace — 뒤로가기로 다시 오지 않게).
@@ -58,42 +32,12 @@ export default function ReadingGeneratingPage() {
   const [error, setError] = useState("");
   const [needSignup, setNeedSignup] = useState(false);
 
-  /*
-    기다림의 화면 구성 (2026-08-22 운영자 방향).
-
-    92%에서 멈추는 가짜 진행바를 버렸다. 멈춘 숫자는 "죽었나?"를 부른다.
-    대신 두 가지 진짜를 보여준다:
-
-    1. 유저 본인의 명식. 생년월일은 이미 손에 있으니 명식은 클라이언트에서
-       바로 계산된다. 네 기둥이 년주부터 하나씩 떠오른다 - 장식이 아니라
-       자기 데이터라서, 읽는 것 자체가 기다림의 콘텐츠가 된다.
-
-    2. 단계 체크리스트. 시간 배분으로 하나씩 체크되고, 마지막 단계는 응답이
-       올 때까지 점을 찍으며 기다린다. 응답이 늦어도 "마무리 중"으로 읽히지
-       "멈춤"으로 읽히지 않는다. 도착하면 전부 체크하고 400ms 뒤에 넘어간다.
-  */
-  const [stage, setStage] = useState(0);
-  const [runId, setRunId] = useState(0);
-  // 어느 문구 세트를 쓸지. 초기 렌더는 0으로 두고 마운트 뒤에 뽑는다 -
-  // useState 초기값에서 뽑으면 서버 HTML 과 어긋나 hydration 이 깨진다.
-  const [stageSet, setStageSet] = useState(0);
-
-  // 단계 전환 시각표. 실제 소요 15~20초에 맞춘 배분이고, 마지막 단계는 멈춰서
-  // 응답을 기다린다 - 그래서 시각표는 단계 수보다 하나 적다.
-  useEffect(() => {
-    const timers = [3500, 9000, 15000].map((at, index) =>
-      setTimeout(() => setStage((now) => Math.max(now, index + 1)), at)
-    );
-    return () => timers.forEach(clearTimeout);
-  }, [runId]);
-
+  // 기다림의 화면 (2026-08-25 운영자 요청으로 단계 체크리스트를 걷어냈다).
+  // 상품명과 한 문장만 두고, 응답이 오면 곧바로 리포트로 교체한다.
 
   const generate = useCallback(
     async (job: ReadingDraft) => {
       setError("");
-      setStage(0);
-      setStageSet(Math.floor(Math.random() * STAGE_SETS.length));
-      setRunId((now) => now + 1);
       // 로그인이 없어도 만든다 (2026-08-25). 토큰이 있으면 리딩이 계정에 바로
       // 붙고, 없으면 주인 없이 기기 보관함에 남았다가 결제 때 붙는다.
       const user = getUser();
@@ -154,15 +98,10 @@ export default function ReadingGeneratingPage() {
           product: job.category,
           landing: landing ?? undefined,
         });
-        // 전부 체크된 것을 잠깐 보여준다. 마지막 줄이 도는 중에 화면이 확 바뀌면
-        // 끝났다는 감각 없이 끊긴다. 400ms 는 체크 전환이 눈에 들어오는 최소치다.
-        setStage(STAGE_COUNT);
         // 리딩은 이미 보관함에 앉았다. 화면을 떠난 사람은 잡아채지 않는다 —
         // 홈에서 딴 걸 보고 있는데 갑자기 리딩으로 끌려가면 그게 더 놀랍다.
         // 떠난 경우 리딩은 내 상담에서 기다린다.
-        setTimeout(() => {
-          if (alive.current) router.replace(`/reading/${data.readingId}`);
-        }, 400);
+        if (alive.current) router.replace(`/reading/${data.readingId}`);
       } catch (reason) {
         if (reason instanceof DOMException && reason.name === "TimeoutError") {
           trackFunnel("preview_failed", { product: job.category });
@@ -226,27 +165,9 @@ export default function ReadingGeneratingPage() {
           <p className="reading-generating-kicker">{label}</p>
           <h1 style={{ fontSize: "1.15rem", marginBottom: 26 }}>사주를 푸는 중이에요</h1>
 
-          {/* role=status: 단계가 바뀔 때 보조기기가 활성 줄을 읽는다 */}
-          <ol className="reading-generating-stages" role="status" aria-label="사주 푸는 단계">
-            {STAGE_SETS[stageSet].map((text, index) => {
-              const state = index < stage ? "done" : index === stage ? "active" : "pending";
-              return (
-                <li key={text} data-state={state}>
-                  <span className="reading-generating-stage-mark" aria-hidden>
-                    {state === "done" ? "✓" : state === "active" ? "" : ""}
-                  </span>
-                  <span className="reading-generating-stage-text">
-                    {text}
-                    {state === "active" && (
-                      <span className="reading-generating-dots" aria-hidden>
-                        <i /><i /><i />
-                      </span>
-                    )}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
+          <div className="reading-generating-dots" role="status" aria-label="사주를 푸는 중" style={{ display: "inline-flex", marginTop: 4 }}>
+            <i /><i /><i />
+          </div>
 
           <p style={{ color: "var(--text-dim)", marginTop: 18, fontSize: "0.88rem" }}>
             창을 닫지 말고 잠시만 기다려주세요.
