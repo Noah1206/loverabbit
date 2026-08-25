@@ -8023,3 +8023,33 @@ body:has(.product-page[data-landing]) .consent-banner {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── 히어로 광고가 (2026-08-25) — 광고에서 본 990원을 첫 화면에서 바로 보여준다 ── */
+.product-hero-offer {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 8px;
+  margin-top: 12px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+.product-hero-offer s {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+}
+.product-hero-offer strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--accent);
+}
+.product-hero-offer span {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.74rem;
+}

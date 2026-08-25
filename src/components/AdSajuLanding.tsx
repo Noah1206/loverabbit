@@ -84,7 +84,11 @@ export default async function AdSajuLanding({
           >
             <span className="product-sticky-copy">
               <strong>무료로 운명보기</strong>
-              <small>결제 없이 무료 미리보기부터</small>
+              <small>
+                {active
+                  ? `무료 미리보기 · 전문은 ${offer.price.toLocaleString("ko-KR")}원`
+                  : "결제 없이 무료 미리보기부터"}
+              </small>
             </span>
             <span className="product-sticky-arrow" aria-hidden>→</span>
           </AdLandingCta>
