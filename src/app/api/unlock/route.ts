@@ -12,6 +12,7 @@ import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
+import { buildFbc } from "@/lib/meta-capi";
 import { notifyAdmin } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { PortOnePaymentError } from "@/lib/portone-validation";
@@ -45,6 +46,8 @@ interface Body {
   amount?: number;
   /** 광고 유입 표시 (utm/fbclid). 주소에서 온 값이라 그대로 믿지 않는다. */
   attribution?: unknown;
+  /** 마케팅 쿠키에 동의했는가. 동의는 기기에만 있어서 브라우저가 말해줘야 안다. */
+  marketingConsent?: boolean;
 }
 
 interface SealedReading {
@@ -69,6 +72,27 @@ export async function POST(req: NextRequest) {
   // 비므로, 실제로 판 소재를 아는 유일한 정본은 이 주문 기록이다.
   // normalizeAttribution 이 길이·제어문자·바깥 주소를 걸러 낸다.
   const attribution = normalizeAttribution(body.attribution);
+
+  /*
+    전환을 나중에 보내기 위해 지금을 떠 둔다.
+
+    계좌이체는 승인이 몇 시간 뒤에 난다. 그때는 브라우저도, 쿠키도, IP 도 없다 —
+    Meta 는 user_data 가 비면 이벤트를 받지 않으므로, 그 순간에 만들 수 있는
+    전환은 애초에 없다. 그래서 사람이 화면 앞에 있는 지금 떠서 주문에 적어 둔다.
+
+    동의도 지금 받아 적는다. 동의는 기기에만 있고 서버는 모른다. 승인 시점에
+    물어볼 곳이 없으니, 물어볼 수 있을 때 물어 둔다 — 동의하지 않은 사람의
+    전환은 나중에도 나가지 않는다.
+  */
+  const metaSnapshot = {
+    consent: body.marketingConsent === true,
+    fbp: req.cookies.get("_fbp")?.value,
+    fbc: buildFbc(req.cookies.get("_fbc")?.value, attribution),
+    ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+    userAgent: req.headers.get("user-agent") ?? undefined,
+    at: Date.now(),
+  };
+
   if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다. 잠시 후 다시 시도해주세요." }, { status: 503 });
   }
@@ -263,7 +287,7 @@ export async function POST(req: NextRequest) {
             readingId: body.readingId,
             amount: price,
             depositorCode: body.depositorCode,
-            ...(attribution ? { metadata: { attribution } } : {}),
+            metadata: { ...(attribution ? { attribution } : {}), meta: metaSnapshot },
           })
         : null;
       if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");

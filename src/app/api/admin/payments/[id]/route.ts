@@ -6,6 +6,7 @@ import {
   verifyAdminApprovalKey,
 } from "@/lib/admin-auth";
 import { isDatabaseConfigured, reviewTransferOrder } from "@/lib/database";
+import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 
 type ReviewRequest = {
   decision?: "paid" | "cancelled";
@@ -42,6 +43,29 @@ export async function POST(
     if (!reviewed) {
       return NextResponse.json({ error: "승인할 주문을 찾을 수 없어요." }, { status: 404 });
     }
+
+    /*
+      전환은 여기서 나간다.
+
+      계좌이체는 /payment/success 를 지나지 않는데 전환을 보내는 코드는 거기에만
+      있었다. 그래서 주력 결제 수단의 전환이 한 번도 나가지 않았고, Meta 는 이
+      서비스를 아무도 사지 않는 서비스로 보고 학습했다.
+
+      await 한다. 승인 응답을 돌려주고 나면 서버리스 함수가 얼어붙어 전송이
+      통째로 사라진다 - 리딩 열람 기록에서 똑같이 겪은 일이다. 실패해도 승인은
+      그대로 두고 로그만 남긴다.
+
+      승인 RPC 는 pending 인 주문만 바꾸므로 두 번 눌러도 여기까지 두 번 오지
+      않는다. 그래도 event_id 를 주문 번호에서 만들어, 혹시 두 번 나가도 Meta 가
+      한 건으로 합치게 해 둔다.
+    */
+    if (reviewed.status === "paid") {
+      const conversion = await reportApprovedPurchase(reviewed.orderId);
+      if (!conversion.sent) {
+        console.log(`[전환] 주문 ${reviewed.orderId} 전환 미전송: ${conversion.reason}`);
+      }
+    }
+
     return NextResponse.json(reviewed);
   } catch (error) {
     console.error("관리자 계좌이체 승인 실패:", error);

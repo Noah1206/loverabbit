@@ -934,6 +934,69 @@ export async function reviewTransferOrder(
   };
 }
 
+/**
+ * 전환 한 건을 보내는 데 필요한 것만.
+ *
+ * 승인이 끝난 뒤에 부른다. 결제를 요청하던 순간에 떠 둔 값(metadata.meta)이
+ * 여기 들어 있고, 그게 없으면 Meta 로 보낼 수 있는 전환도 없다.
+ */
+export interface OrderConversion {
+  orderId: number;
+  readingId: string | null;
+  category: string | null;
+  amount: number;
+  /** 결제를 요청한 시각(ms). 광고 성과는 승인 시각이 아니라 이 시각에 붙어야 한다. */
+  requestedAtMs: number | null;
+  attribution: unknown;
+  meta: {
+    consent?: boolean;
+    fbp?: string;
+    fbc?: string;
+    ip?: string;
+    userAgent?: string;
+    at?: number;
+  } | null;
+}
+
+export async function getOrderConversion(orderId: number): Promise<OrderConversion | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_orders")
+    .select("id,reading_id,amount,metadata,created_at")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (error) throw databaseError("전환 정보 조회", error);
+  if (!data) return null;
+
+  const metadata = (data.metadata ?? {}) as Record<string, unknown>;
+  const meta = metadata.meta && typeof metadata.meta === "object"
+    ? (metadata.meta as OrderConversion["meta"])
+    : null;
+
+  // 어느 상품이었는지. 광고 소재별 성과를 볼 때 랜딩을 되짚는 데 쓴다.
+  let category: string | null = null;
+  if (typeof data.reading_id === "string") {
+    const { data: reading } = await db
+      .from("lr_readings")
+      .select("category")
+      .eq("id", data.reading_id)
+      .maybeSingle();
+    category = typeof reading?.category === "string" ? reading.category : null;
+  }
+
+  const requestedAt = meta?.at ?? Date.parse(String(data.created_at));
+  return {
+    orderId: Number(data.id),
+    readingId: typeof data.reading_id === "string" ? data.reading_id : null,
+    category,
+    amount: Number(data.amount),
+    requestedAtMs: Number.isFinite(requestedAt) ? Number(requestedAt) : null,
+    attribution: metadata.attribution ?? null,
+    meta,
+  };
+}
+
 // ── 문의함 ───────────────────────────────────────────────────────────────────
 
 export type InquiryCategory = "payment" | "reading" | "chat" | "account" | "bug" | "etc";

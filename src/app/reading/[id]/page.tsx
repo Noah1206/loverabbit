@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readAttribution } from "@/lib/attribution";
+import { hasMarketingConsent } from "@/lib/consent";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import CardMotion from "@/components/CardMotion";
@@ -440,6 +441,9 @@ export default function ReadingReportPage() {
           // 어느 광고가 팔았는지를 주문에 함께 남긴다. 이 기록이 정본이다 —
           // Meta 쪽 집계는 픽셀이 막히면 비고, 그럴수록 알 수 없어진다.
           attribution: readAttribution(),
+          // 승인은 몇 시간 뒤에 나고 그때는 이 기기가 없다. 전환을 그때 보낼지
+          // 말지는 지금 이 값으로 정해진다 — 동의하지 않았으면 나가지 않는다.
+          marketingConsent: hasMarketingConsent(),
         }),
       });
       const data = await res.json();
