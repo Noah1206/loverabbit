@@ -30,9 +30,18 @@ interface SessionTrail {
   lastPath: string | null;
   events: number;
 }
+interface SourceRow {
+  source: string;
+  campaign: string;
+  content: string;
+  sessions: number;
+  reachedForm: number;
+}
 interface Report {
   sessions: number;
   events: number;
+  ghosts: number;
+  sources: SourceRow[];
   truncated: boolean;
   stages: StageRow[];
   formSteps: FormStepRow[];
@@ -169,6 +178,13 @@ export default function AdminFunnelPage() {
           <p className="admin-funnel-note">
             {days}일 동안 방문 <strong>{report.sessions}</strong>회 · 발자국{" "}
             {report.events.toLocaleString()}개
+            {report.ghosts > 0 && (
+              <>
+                {" · Meta 사전 로딩 "}
+                <strong>{report.ghosts}</strong>
+                {"회는 뺐습니다"}
+              </>
+            )}
             {report.truncated && " · 상한에 걸려 최근 것만 셌습니다"}
             {biggestDrop && biggestDrop.dropped > 0 && (
               <>
@@ -258,6 +274,43 @@ export default function AdminFunnelPage() {
                       <td>{row.views}</td>
                       <td className={row.exits > 0 ? "admin-funnel-drop" : ""}>{row.exits}</td>
                       <td>{seconds(row.medianDwellMs)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
+
+          <section className="card admin-funnel-card">
+            <h2>어디서 왔나</h2>
+            <p className="admin-funnel-note">
+              광고 링크의 utm 기준. 캠페인 이름이 중괄호 그대로면 Meta 광고의 URL 매개변수가
+              치환되지 않은 것이라 광고 관리자에서 고쳐야 합니다.
+            </p>
+            {report.sources.length === 0 ? (
+              <p className="admin-funnel-empty">아직 방문이 없어요.</p>
+            ) : (
+              <table className="admin-funnel-table">
+                <thead>
+                  <tr>
+                    <th>출처</th>
+                    <th>캠페인</th>
+                    <th>소재</th>
+                    <th>방문</th>
+                    <th>폼 진입</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.sources.slice(0, 30).map((row) => (
+                    <tr key={row.source + "|" + row.campaign + "|" + row.content}>
+                      <td>{row.source}</td>
+                      <td className="admin-funnel-path">{row.campaign}</td>
+                      <td className="admin-funnel-path">{row.content}</td>
+                      <td>{row.sessions}</td>
+                      <td>
+                        {row.reachedForm}
+                        {row.sessions > 0 && " (" + Math.round((row.reachedForm / row.sessions) * 100) + "%)"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -5,6 +5,7 @@
 // 그러면 망설임이 인기로 읽힌다.
 
 import { FUNNEL_ORDER, READING_STEPS, type FunnelEventName } from "@/lib/funnel-events";
+import { decodeOnce } from "@/lib/attribution";
 
 export interface FunnelEventRow {
   session_id: string;
@@ -16,6 +17,16 @@ export interface FunnelEventRow {
   dwell_ms: number | null;
   seq: number;
   created_at: string;
+  attribution?: { source?: string; campaign?: string; content?: string; fbclid?: string } | null;
+}
+
+export interface SourceRow {
+  source: string;
+  campaign: string;
+  content: string;
+  sessions: number;
+  /** 그중 리딩 폼까지 들어온 세션 */
+  reachedForm: number;
 }
 
 export interface StageRow {
@@ -60,6 +71,13 @@ export interface SessionTrail {
 export interface FunnelReport {
   sessions: number;
   events: number;
+  /**
+   * Meta 인앱 브라우저의 사전 로딩으로 보이는 방문. 광고가 화면에 뜨면 랜딩을 미리
+   * 열었다가 30초쯤 뒤 버린다 - 발자국이 열람·이탈 둘뿐이고 체류가 28~34초에 몰리며
+   * fbclid 가 달려 있다. 사람이 이렇게 균일하게 나가지 않는다. 세지 않고 따로 알린다.
+   */
+  ghosts: number;
+  sources: SourceRow[];
   /** 상한에 걸려 잘렸는가. 잘렸다면 숫자는 최근 것만 본 결과다 */
   truncated: boolean;
   stages: StageRow[];
@@ -106,8 +124,41 @@ function groupBySession(rows: FunnelEventRow[]): Map<string, FunnelEventRow[]> {
   return map;
 }
 
+/** Meta 사전 로딩으로 보이는 세션인가 */
+export function looksLikePrefetch(list: FunnelEventRow[]): boolean {
+  if (list.length !== 2) return false;
+  const [a, b] = list;
+  if (a.name !== "page_view" || b.name !== "page_exit") return false;
+  const fbclid = Boolean(a.attribution?.fbclid || b.attribution?.fbclid);
+  if (!fbclid) return false;
+  const dwell = b.dwell_ms ?? 0;
+  return dwell >= 25_000 && dwell <= 40_000;
+}
+
 export function buildFunnelReport(rows: FunnelEventRow[], truncated = false): FunnelReport {
-  const sessions = groupBySession(rows);
+  const grouped = groupBySession(rows);
+  // 유령은 걷어내고 수만 남긴다. 섞어 두면 방문이 40% 부풀고 랜딩 이탈률이 거짓말을 한다.
+  let ghosts = 0;
+  const sessions = new Map<string, FunnelEventRow[]>();
+  for (const [id, list] of grouped) {
+    if (looksLikePrefetch(list)) ghosts += 1;
+    else sessions.set(id, list);
+  }
+
+  // ── 유입 ──
+  const sourceMap = new Map<string, SourceRow>();
+  for (const list of sessions.values()) {
+    const attr = list.find((row) => row.attribution)?.attribution ?? null;
+    const source = decodeOnce(attr?.source ?? "") || "직접·기타";
+    const campaign = decodeOnce(attr?.campaign ?? "") || "-";
+    const content = decodeOnce(attr?.content ?? "") || "-";
+    const key = `${source}|${campaign}|${content}`;
+    const row = sourceMap.get(key) ?? { source, campaign, content, sessions: 0, reachedForm: 0 };
+    row.sessions += 1;
+    if (list.some((e) => e.name === "step_view")) row.reachedForm += 1;
+    sourceMap.set(key, row);
+  }
+  const sources = [...sourceMap.values()].sort((a, b) => b.sessions - a.sessions);
 
   // ── 단계별 ────────────────────────────────────────────────────────────
   const reachedBy = new Map<FunnelEventName, Set<string>>();
@@ -221,6 +272,8 @@ export function buildFunnelReport(rows: FunnelEventRow[], truncated = false): Fu
     sessions: sessions.size,
     events: rows.length,
     truncated,
+    ghosts,
+    sources,
     stages,
     formSteps,
     pages,

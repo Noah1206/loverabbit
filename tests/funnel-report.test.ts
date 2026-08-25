@@ -149,3 +149,57 @@ describe("퍼널 집계", () => {
     assert.equal(report.stages.length > 0, true);
   });
 });
+
+describe("Meta 사전 로딩 걷어내기", () => {
+  const ghost = (session: string, dwell = 31_000) => [
+    event(session, "page_view", { path: "/saju/breakup-decision", attribution: { source: "meta", fbclid: "IwAR1x" } }),
+    event(session, "page_exit", { path: "/saju/breakup-decision", dwell_ms: dwell, attribution: { source: "meta", fbclid: "IwAR1x" } }),
+  ];
+
+  it("열람·이탈 둘뿐이고 fbclid 에 체류 30초 언저리면 세지 않는다", () => {
+    const report = buildFunnelReport([...ghost("g1"), ...ghost("g2", 28_000)]);
+    assert.equal(report.ghosts, 2);
+    assert.equal(report.sessions, 0);
+  });
+
+  it("fbclid 가 없거나 체류가 다르면 사람으로 센다", () => {
+    const rows = [
+      event("h1", "page_view", { path: "/saju/breakup-decision" }),
+      event("h1", "page_exit", { path: "/saju/breakup-decision", dwell_ms: 31_000 }),
+      event("h2", "page_view", { path: "/", attribution: { source: "meta", fbclid: "IwAR1y" } }),
+      event("h2", "page_exit", { path: "/", dwell_ms: 4_000, attribution: { source: "meta", fbclid: "IwAR1y" } }),
+      ...ghost("g3"),
+    ];
+    const report = buildFunnelReport(rows);
+    assert.equal(report.ghosts, 1);
+    assert.equal(report.sessions, 2);
+  });
+
+  it("발자국이 셋 이상이면 사전 로딩이 아니다", () => {
+    const rows = [
+      ...ghost("p1"),
+      event("p1", "step_view", { step: "gender", attribution: { source: "meta", fbclid: "IwAR1x" } }),
+    ];
+    const report = buildFunnelReport(rows);
+    assert.equal(report.ghosts, 0);
+    assert.equal(report.sessions, 1);
+  });
+});
+
+describe("유입 집계", () => {
+  it("utm 을 풀어서 묶고 폼 진입을 센다", () => {
+    const attr = { source: "meta", campaign: "%EC%9D%B4%EB%B3%84%EC%82%AC%EC%A3%BC", content: "A" };
+    const rows = [
+      event("s1", "page_view", { path: "/", attribution: attr }),
+      event("s1", "step_view", { step: "gender", attribution: attr }),
+      event("s2", "page_view", { path: "/", attribution: attr }),
+      event("s2", "page_exit", { path: "/", dwell_ms: 2_000, attribution: attr }),
+      event("s3", "page_view", { path: "/" }),
+    ];
+    const report = buildFunnelReport(rows);
+    assert.deepEqual(report.sources, [
+      { source: "meta", campaign: "이별사주", content: "A", sessions: 2, reachedForm: 1 },
+      { source: "직접·기타", campaign: "-", content: "-", sessions: 1, reachedForm: 0 },
+    ]);
+  });
+});

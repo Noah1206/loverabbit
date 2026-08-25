@@ -15,7 +15,7 @@ import { buildFunnelReport, type FunnelEventRow } from "@/lib/funnel-report";
  * 전체인 줄 알고 읽게 된다 — 그게 통계에서 가장 흔한 거짓말이다.
  */
 const MAX_ROWS = 20_000;
-const COLUMNS = "session_id,user_id,name,step,path,product,dwell_ms,seq,created_at";
+const COLUMNS = "session_id,user_id,name,step,path,product,dwell_ms,seq,created_at,attribution";
 
 export async function GET(request: NextRequest) {
   if (!isAdminApprovalConfigured()) {

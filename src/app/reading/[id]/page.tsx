@@ -409,6 +409,9 @@ export default function ReadingReportPage() {
           demo: entry.demo === true,
         },
       });
+      // 로그인 관문이 폼에서 여기로 옮겨 왔다 (2026-08-25). 여기서 나간 사람이
+      // 곧 로그인에서 잃은 사람이다 - unlock_clicked 와 checkout_opened 사이.
+      trackFunnel("signup_required", { product: entry.category });
       setShowSignup(true);
       return;
     }

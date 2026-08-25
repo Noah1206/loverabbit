@@ -47,11 +47,24 @@ const FIELDS: Array<[TagField, string]> = [
  */
 export function cleanTag(value: string | null | undefined): string | undefined {
   if (!value) return undefined;
-  const trimmed = value
+  // 광고 링크의 한글 utm 은 두 번 인코딩돼 오기도 한다("%ED%8A%B8…"). 한 번 더 풀어 준다 -
+  // 못 풀면 그대로 둔다. 관리자 화면에서 캠페인 이름이 퍼센트 기호로 보이던 이유다.
+  const decoded = decodeOnce(value);
+  const trimmed = decoded
     .replace(/[\u0000-\u001f\u007f]/g, "")
     .trim()
     .slice(0, MAX);
   return trimmed || undefined;
+}
+
+/** 퍼센트 인코딩이 남아 있으면 한 번 푼다. 못 풀면 원문 그대로. */
+export function decodeOnce(value: string): string {
+  if (!/%[0-9A-Fa-f]{2}/.test(value)) return value;
+  try {
+    return decodeURIComponent(value.replace(/\+/g, " "));
+  } catch {
+    return value;
+  }
 }
 
 /** 빈 항목을 걷어낸다. 아무것도 안 남으면 null. */
