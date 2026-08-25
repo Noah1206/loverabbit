@@ -146,6 +146,7 @@ export default function ProductSalesPage({
               height={373}
               sizes="(max-width: 640px) 100vw, 600px"
             />
+            <span className="product-lore-seal" aria-hidden>秘傳</span>
             <figcaption>제산 박재현(박도사)가 직접 짚어 내린 비법서</figcaption>
           </figure>
           <ul className="product-lore-points">

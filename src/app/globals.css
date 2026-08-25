@@ -8088,6 +8088,24 @@ body:has(.product-page[data-landing]) .consent-banner {
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.14);
 }
+.product-lore-seal {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #c4232b;
+  color: #fff;
+  font-family: serif;
+  font-weight: 900;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  transform: rotate(-12deg);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
 .product-lore-figure figcaption {
   margin-top: 10px;
   font-size: 0.82rem;
