@@ -1,0 +1,160 @@
+{
+  "product": "gyeolhon",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "LUCK-GWAN-M",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "TG-BIGYEON",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "SELF-METAL-EVEN",
+    "P-MONTH-BRANCH-HARMONY",
+    "SELF-BALANCED"
+  ],
+  "score": {
+    "value": 68,
+    "band": "든든한 배필",
+    "factors": [
+      {
+        "label": "정관 1개",
+        "delta": 7
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 7
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": 4
+      },
+      {
+        "label": "편관 1개",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "오행이 무난하다",
+        "delta": 2
+      }
+    ]
+  },
+  "scope": {
+    "label": "결혼운 (이 상대와 결혼했을 때의 궁합과 결혼 첫 해의 흐름)",
+    "outline": [
+      "1장 01. 연애 궁합과 결혼 궁합이 다른 이유",
+      "1장 02. 네 배우자궁이 말하는 결혼 생활",
+      "2장 01. 그 사람 배우자궁에 새겨진 남편/아내상",
+      "3장 01. 결혼 상성 판정",
+      "3장 02. 결혼하고 나서야 보이는 그 사람의 진짜 모습",
+      "4장 01. 돈·가족·외로움 — 세 가지 리스크 점검",
+      "5장 01. 결혼 후 첫 해의 흐름",
+      "5장 02. 두 사람의 결혼 적기",
+      "6장 01. 피해야 할 시기",
+      "7장 01. 이 결혼을 지키는 조건",
+      "7장 02. 프러포즈 전 확인할 마지막 체크리스트",
+      "8장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

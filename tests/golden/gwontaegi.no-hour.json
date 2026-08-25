@@ -1,0 +1,150 @@
+{
+  "product": "gwontaegi",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "SPOUSE-PALACE-CHUNG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 46,
+    "band": "장기 침체 주의",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -9
+      },
+      {
+        "label": "세운 식신",
+        "delta": 7
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 3
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "권태기 진단 (단순 권태기인지 끝나가는 관계인지 판별)",
+    "outline": [
+      "1장 01. 지금 이 답답함의 정체",
+      "1장 02. 누가 먼저 식었나 — 온도의 비대칭",
+      "2장 01. 권태를 만든 두 사람의 반복 구조",
+      "3장 01. 권태기인가, 이별의 전조인가 — 판정",
+      "3장 02. 상대도 지금 같은 걸 느끼고 있을까",
+      "4장 01. 이 시기가 끝나는 시점",
+      "4장 02. 관계가 다시 데워지는 터닝 포인트",
+      "5장 01. 이 구간에서 절대 하면 안 되는 것",
+      "6장 01. 회복을 앞당기는 행동 처방",
+      "6장 02. 만약 정리를 택한다면 — 후회 없는 기준",
+      "7장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

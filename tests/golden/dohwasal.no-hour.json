@@ -1,0 +1,105 @@
+{
+  "product": "dohwasal",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "META-NO-HOUR",
+    "SPOUSE-PALACE-CHUNG",
+    "LUCK-BIGEOP",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "MISS-METAL"
+  ],
+  "score": {
+    "value": 26,
+    "band": "은은한 잔향",
+    "factors": [
+      {
+        "label": "도화 없음",
+        "delta": -15
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -3
+      },
+      {
+        "label": "세운 식신",
+        "delta": 2
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 1
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -1
+      }
+    ]
+  },
+  "scope": {
+    "label": "도화살 진단 (본인의 매력 기질과 이성운)",
+    "outline": [
+      "1장 01. 네 명식의 도화 판독 결과",
+      "1장 02. 도화의 위치가 말하는 매력의 종류",
+      "2장 01. 네 매력이 발동하는 순간",
+      "2장 02. 왜 원치 않는 이성만 꼬이는가",
+      "3장 01. 올해 이성운의 흐름",
+      "3장 02. 매력이 가장 강해지는 달",
+      "4장 01. 도화를 축복으로 쓰는 법",
+      "4장 02. 조심해야 할 도화의 함정",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

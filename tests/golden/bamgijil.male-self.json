@@ -1,0 +1,112 @@
+{
+  "product": "bamgijil",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "LUCK-GWAN-M",
+    "SIN-DOHWA",
+    "SIN-HONGYEOM",
+    "REL-CHUNG",
+    "SIN-YEOKMA",
+    "TG-GEOPJAE",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "TG-BIGYEON",
+    "SELF-METAL-EVEN",
+    "SELF-BALANCED"
+  ],
+  "score": {
+    "value": 80,
+    "band": "선명한 직진형",
+    "factors": [
+      {
+        "label": "도화 1자리",
+        "delta": 10
+      },
+      {
+        "label": "홍염 1자리",
+        "delta": 8
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 7
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "대운 정관",
+        "delta": 4
+      },
+      {
+        "label": "세운 정관",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "연애 기질 (감정 습관과 반복되는 끌림의 패턴)",
+    "outline": [
+      "1장 01. 네 일주가 말하는 평소의 얼굴",
+      "1장 02. 연애할 때 드러나는 관계 기질",
+      "2장 01. 일상과 연애의 차이 — 반전 매력의 정체",
+      "3장 01. 네 명식의 감정 코드",
+      "3장 02. 네가 무너지는 상대의 유형",
+      "4장 01. 반대로, 너에게 무너지는 상대",
+      "5장 01. 네 매력이 가장 강해지는 시간과 상황",
+      "5장 02. 매력을 갉아먹는 습관",
+      "6장 01. 연애 기질을 매력으로 쓰는 법",
+      "6장 02. 앞으로 6개월, 끌림이 강해지는 달",
+      "7장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

@@ -1,0 +1,144 @@
+{
+  "product": "jjak",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "LUCK-SIKSANG",
+    "SELF-WOOD-WEAK",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "MISS-METAL",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "P-MONTH-BRANCH-CLASH"
+  ],
+  "score": {
+    "value": 51,
+    "band": "가능성 잠복기",
+    "factors": [
+      {
+        "label": "상대가 나를 받쳐준다",
+        "delta": 8
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -6
+      },
+      {
+        "label": "세운 식신",
+        "delta": 5
+      }
+    ]
+  },
+  "scope": {
+    "label": "짝사랑 (고백 타이밍과 성공 가능성)",
+    "outline": [
+      "1장 01. 네가 이 사람에게 끌린 구조적 이유",
+      "1장 02. 상대 명식에서 너는 어떤 존재인가",
+      "2장 01. 상대의 현재 호감도 판독",
+      "2장 02. 상대가 너를 의식하는 순간들",
+      "3장 01. 고백 성공률 판정",
+      "3장 02. 고백에 가장 유리한 타이밍",
+      "4장 01. 상대 기질에 맞는 고백 방식",
+      "5장 01. 고백 전 호감도를 끌어올리는 행동",
+      "5장 02. 실패했을 때 관계를 지키는 퇴로",
+      "6장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

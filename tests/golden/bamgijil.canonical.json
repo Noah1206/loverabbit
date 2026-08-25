@@ -1,0 +1,108 @@
+{
+  "product": "bamgijil",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "LUCK-GWAN-F",
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "REL-YUKHAP",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "TG-SANGGWAN",
+    "XING-PAIR-SASIN",
+    "XING-PAIR-CHUKMI",
+    "TG-PYEONIN"
+  ],
+  "score": {
+    "value": 40,
+    "band": "천천히 여는 신중형",
+    "factors": [
+      {
+        "label": "도화 없음",
+        "delta": -11
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "대운 정관",
+        "delta": 4
+      },
+      {
+        "label": "세운 상관",
+        "delta": -3
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 2
+      }
+    ]
+  },
+  "scope": {
+    "label": "연애 기질 (감정 습관과 반복되는 끌림의 패턴)",
+    "outline": [
+      "1장 01. 네 일주가 말하는 평소의 얼굴",
+      "1장 02. 연애할 때 드러나는 관계 기질",
+      "2장 01. 일상과 연애의 차이 — 반전 매력의 정체",
+      "3장 01. 네 명식의 감정 코드",
+      "3장 02. 네가 무너지는 상대의 유형",
+      "4장 01. 반대로, 너에게 무너지는 상대",
+      "5장 01. 네 매력이 가장 강해지는 시간과 상황",
+      "5장 02. 매력을 갉아먹는 습관",
+      "6장 01. 연애 기질을 매력으로 쓰는 법",
+      "6장 02. 앞으로 6개월, 끌림이 강해지는 달",
+      "7장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

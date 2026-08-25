@@ -1,0 +1,145 @@
+{
+  "product": "sseom",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "LUCK-SIKSANG",
+    "SELF-WOOD-WEAK",
+    "TG-PYEONJAE",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "MISS-METAL",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "P-MONTH-BRANCH-CLASH"
+  ],
+  "score": {
+    "value": 43,
+    "band": "장기전 예고",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -7
+      },
+      {
+        "label": "세운 식신",
+        "delta": 5
+      },
+      {
+        "label": "도화 없음",
+        "delta": -5
+      }
+    ]
+  },
+  "scope": {
+    "label": "썸 해부 (진도가 안 나가는 이유와 주도권 분석)",
+    "outline": [
+      "1장 01. 두 사람의 관계 진행 속도 기본값",
+      "1장 02. 브레이크를 밟고 있는 쪽은 누구인가",
+      "2장 01. 상대의 신호 해독 — 밀당인가 진심인가",
+      "2장 02. 상대가 확신을 못 갖는 이유",
+      "3장 01. 이 썸의 성사 가능성 판정",
+      "3장 02. 관계가 움직일 타이밍",
+      "4장 01. 고백에 유리한 달, 불리한 달",
+      "5장 01. 진도를 빼는 현실 행동 가이드",
+      "5장 02. 이 썸을 접어야 하는 마지노선",
+      "6장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

@@ -51,8 +51,15 @@ const CASES: Record<string, { me: Person; partner: Person }> = {
   },
 };
 
-/** 축을 채워 나갈 상품. 하나 채울 때마다 그 상품의 골든이 어떻게 움직이는지 본다. */
-const PRODUCTS = ["sokgunghap", "jaehoe", "ibyeol", "yeonae"] as const;
+/**
+ * 열세 상품 전부. 처음에는 축을 채우는 넷만 걸었는데, 축이 다 채워진 뒤로는 어느 상품의
+ * 규칙 도메인이나 지수 배합을 건드려도 여기서 잡혀야 한다. 상품 목록과 어긋나면 아래
+ * 테스트가 실패한다 — 상품을 더하고 골든을 안 만드는 일을 막는다.
+ */
+const PRODUCTS = [
+  "sokgunghap", "jaehoe", "ibyeol", "yeonae",
+  "bamgijil", "baramgi", "gyeolhon", "gwontaegi", "hwanseung", "sseom", "jjak", "bimil", "dohwasal",
+] as const;
 
 function pillar(p: { stem: string; branch: string } | null) {
   return p ? `${p.stem}${p.branch}` : null;
@@ -127,6 +134,10 @@ function snapshot(productId: (typeof PRODUCTS)[number], caseId: keyof typeof CAS
 }
 
 describe("골든: 명식·규칙·지수·범위", () => {
+  it("판매 중인 상품은 전부 골든이 있다", () => {
+    assert.deepEqual([...PRODUCTS].sort(), Object.keys(PRODUCT_MAP).sort());
+  });
+
   for (const productId of PRODUCTS) {
     for (const caseId of Object.keys(CASES) as (keyof typeof CASES)[]) {
       it(`${productId} / ${caseId}`, () => {

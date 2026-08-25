@@ -1,0 +1,153 @@
+{
+  "product": "hwanseung",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "XING-LUCK-NOW",
+    "SIN-YEOKMA",
+    "TG-GEOPJAE",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "XING-LUCK-MONTH",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "P-MONTH-BRANCH-HARMONY"
+  ],
+  "score": {
+    "value": 81,
+    "band": "환승 청신호",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 13
+      },
+      {
+        "label": "세운 정관",
+        "delta": 10
+      },
+      {
+        "label": "도화 1자리",
+        "delta": 5
+      },
+      {
+        "label": "홍염 1자리",
+        "delta": 4
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "환승운",
+    "outline": [
+      "1장 01. 지금 관계의 남은 운 측정",
+      "1장 02. 네가 흔들리기 시작한 진짜 이유",
+      "2장 01. 새 인연의 실체 — 운명인가 도화인가",
+      "2장 02. 두 갈래 길의 6개월 후 비교",
+      "3장 01. 환승 손익 판정",
+      "3장 02. 움직인다면 최적의 타이밍",
+      "4장 01. 남는다면 반드시 바뀌어야 할 것",
+      "5장 01. 어느 쪽이든 후회를 줄이는 정리 순서",
+      "5장 02. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

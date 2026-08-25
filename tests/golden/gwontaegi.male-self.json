@@ -1,0 +1,155 @@
+{
+  "product": "gwontaegi",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "REL-CHUNG",
+    "XING-LUCK-NOW",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "TG-BIGYEON",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "SELF-METAL-EVEN",
+    "P-MONTH-BRANCH-HARMONY"
+  ],
+  "score": {
+    "value": 76,
+    "band": "회복 탄력 충분",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 12
+      },
+      {
+        "label": "세운 정관",
+        "delta": 9
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 6
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "권태기 진단 (단순 권태기인지 끝나가는 관계인지 판별)",
+    "outline": [
+      "1장 01. 지금 이 답답함의 정체",
+      "1장 02. 누가 먼저 식었나 — 온도의 비대칭",
+      "2장 01. 권태를 만든 두 사람의 반복 구조",
+      "3장 01. 권태기인가, 이별의 전조인가 — 판정",
+      "3장 02. 상대도 지금 같은 걸 느끼고 있을까",
+      "4장 01. 이 시기가 끝나는 시점",
+      "4장 02. 관계가 다시 데워지는 터닝 포인트",
+      "5장 01. 이 구간에서 절대 하면 안 되는 것",
+      "6장 01. 회복을 앞당기는 행동 처방",
+      "6장 02. 만약 정리를 택한다면 — 후회 없는 기준",
+      "7장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

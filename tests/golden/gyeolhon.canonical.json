@@ -1,0 +1,154 @@
+{
+  "product": "gyeolhon",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1991,
+      "month": 7,
+      "day": 8,
+      "hour": 20,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "신미",
+      "month": "을미",
+      "day": "기묘",
+      "hour": "갑술"
+    },
+    "dayMaster": "기토",
+    "strength": {
+      "label": "신강",
+      "score": 70
+    },
+    "dominantTenGods": [
+      "비견",
+      "편관",
+      "겁재"
+    ],
+    "missingElements": [
+      "화",
+      "수"
+    ],
+    "absentElements": [
+      "수"
+    ],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "갑기합토",
+      "묘술합"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:술미:partial"
+    ],
+    "luck": {
+      "major": "신묘 식신",
+      "yearly": "병오 정인",
+      "monthly": "병신 정인",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "LUCK-GWAN-F",
+    "XING-SPOUSE-PALACE",
+    "LUCK-SANGGWAN-GYEONGWAN-F",
+    "SELF-WOOD-WEAK",
+    "REL-YUKHAP",
+    "XING-PAIR-SASIN",
+    "XING-PAIR-CHUKMI",
+    "TG-PYEONIN",
+    "P-ABSENT-ELEMENT",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT"
+  ],
+  "score": {
+    "value": 52,
+    "band": "무난한 동반",
+    "factors": [
+      {
+        "label": "정관 1개",
+        "delta": 7
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 2
+      },
+      {
+        "label": "상대가 나를 덜어낸다",
+        "delta": -1
+      }
+    ]
+  },
+  "scope": {
+    "label": "결혼운 (이 상대와 결혼했을 때의 궁합과 결혼 첫 해의 흐름)",
+    "outline": [
+      "1장 01. 연애 궁합과 결혼 궁합이 다른 이유",
+      "1장 02. 네 배우자궁이 말하는 결혼 생활",
+      "2장 01. 그 사람 배우자궁에 새겨진 남편/아내상",
+      "3장 01. 결혼 상성 판정",
+      "3장 02. 결혼하고 나서야 보이는 그 사람의 진짜 모습",
+      "4장 01. 돈·가족·외로움 — 세 가지 리스크 점검",
+      "5장 01. 결혼 후 첫 해의 흐름",
+      "5장 02. 두 사람의 결혼 적기",
+      "6장 01. 피해야 할 시기",
+      "7장 01. 이 결혼을 지키는 조건",
+      "7장 02. 프러포즈 전 확인할 마지막 체크리스트",
+      "8장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

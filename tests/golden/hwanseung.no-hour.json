@@ -1,0 +1,144 @@
+{
+  "product": "hwanseung",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "LUCK-BIGEOP",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "TG-PYEONJAE",
+    "TG-JEONGIN",
+    "TG-SIKSIN",
+    "MISS-METAL",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 43,
+    "band": "신중한 저울질",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -10
+      },
+      {
+        "label": "세운 식신",
+        "delta": 7
+      },
+      {
+        "label": "도화 없음",
+        "delta": -6
+      }
+    ]
+  },
+  "scope": {
+    "label": "환승운",
+    "outline": [
+      "1장 01. 지금 관계의 남은 운 측정",
+      "1장 02. 네가 흔들리기 시작한 진짜 이유",
+      "2장 01. 새 인연의 실체 — 운명인가 도화인가",
+      "2장 02. 두 갈래 길의 6개월 후 비교",
+      "3장 01. 환승 손익 판정",
+      "3장 02. 움직인다면 최적의 타이밍",
+      "4장 01. 남는다면 반드시 바뀌어야 할 것",
+      "5장 01. 어느 쪽이든 후회를 줄이는 정리 순서",
+      "5장 02. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

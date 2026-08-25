@@ -1,0 +1,147 @@
+{
+  "product": "bimil",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1991,
+      "month": 7,
+      "day": 8,
+      "hour": 20,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "신미",
+      "month": "을미",
+      "day": "기묘",
+      "hour": "갑술"
+    },
+    "dayMaster": "기토",
+    "strength": {
+      "label": "신강",
+      "score": 70
+    },
+    "dominantTenGods": [
+      "비견",
+      "편관",
+      "겁재"
+    ],
+    "missingElements": [
+      "화",
+      "수"
+    ],
+    "absentElements": [
+      "수"
+    ],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "갑기합토",
+      "묘술합"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:술미:partial"
+    ],
+    "luck": {
+      "major": "신묘 식신",
+      "yearly": "병오 정인",
+      "monthly": "병신 정인",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "LUCK-SIKSANG",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "SIN-HWAGAE",
+    "TG-PYEONIN",
+    "P-ABSENT-ELEMENT",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-LUCK-INSEONG",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 53,
+    "band": "긴장 속 지속",
+    "factors": [
+      {
+        "label": "정관 1개",
+        "delta": 6
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
+    "outline": [
+      "1장 01. 이 관계가 비밀이 될 수밖에 없던 구조",
+      "1장 02. 두 사람을 묶고 있는 진짜 힘",
+      "2장 01. 관계 지속력 판정",
+      "2장 02. 상대는 이 관계를 어디까지 생각하는가",
+      "3장 01. 들킬 고비가 오는 시기",
+      "3장 02. 위험 신호 체크리스트",
+      "4장 01. 공개할 것인가 — 그 시기와 방법",
+      "4장 02. 정리를 택한다면 — 상처를 줄이는 출구",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

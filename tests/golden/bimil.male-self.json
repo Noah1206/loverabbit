@@ -1,0 +1,153 @@
+{
+  "product": "bimil",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "REL-CHUNG",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "TG-BIGYEON",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "SELF-METAL-EVEN",
+    "P-MONTH-BRANCH-HARMONY",
+    "SELF-BALANCED"
+  ],
+  "score": {
+    "value": 65,
+    "band": "은근한 장기전",
+    "factors": [
+      {
+        "label": "중화에 가깝다",
+        "delta": 8
+      },
+      {
+        "label": "정관 1개",
+        "delta": 6
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "편관 1개",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
+    "outline": [
+      "1장 01. 이 관계가 비밀이 될 수밖에 없던 구조",
+      "1장 02. 두 사람을 묶고 있는 진짜 힘",
+      "2장 01. 관계 지속력 판정",
+      "2장 02. 상대는 이 관계를 어디까지 생각하는가",
+      "3장 01. 들킬 고비가 오는 시기",
+      "3장 02. 위험 신호 체크리스트",
+      "4장 01. 공개할 것인가 — 그 시기와 방법",
+      "4장 02. 정리를 택한다면 — 상처를 줄이는 출구",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

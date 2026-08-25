@@ -1,0 +1,154 @@
+{
+  "product": "baramgi",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1994,
+      "month": 5,
+      "day": 17,
+      "hour": 9,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "갑술",
+      "month": "기사",
+      "day": "계묘",
+      "hour": "병진"
+    },
+    "dayMaster": "계수",
+    "strength": {
+      "label": "신약",
+      "score": 14
+    },
+    "dominantTenGods": [
+      "정관",
+      "정재",
+      "상관"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "역마",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "갑기합토",
+      "진술충",
+      "묘술합"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "임신 겁재",
+      "yearly": "병오 정재",
+      "monthly": "병신 정재",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "META-NO-HOUR",
+    "SPOUSE-PALACE-CHUNG",
+    "LUCK-BIGEOP",
+    "REL-CHUNG",
+    "SELF-WOOD-WEAK",
+    "XING-LUCK-NOW",
+    "SIN-HWAGAE",
+    "TG-PYEONJAE",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL"
+  ],
+  "score": {
+    "value": 40,
+    "band": "안정 지향",
+    "factors": [
+      {
+        "label": "정관 2개",
+        "delta": -13
+      },
+      {
+        "label": "도화 1자리",
+        "delta": 12
+      },
+      {
+        "label": "편관 1개",
+        "delta": -3
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": 3
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 1
+      }
+    ]
+  },
+  "scope": {
+    "label": "바람기 분석 (상대 사주의 도화 기운과 바람 조심 시기)",
+    "outline": [
+      "1장 01. 상대 명식의 이성 기운 총량",
+      "1장 02. 도화는 몇 개이고 어디에 있는가",
+      "2장 01. 그 사람의 관계 습관 — 타고난 구조",
+      "3장 01. 바람기 지수 판정",
+      "3장 02. 흔들린다면 어떤 유형에게 흔들리는가",
+      "4장 01. 겉으로 드러나는 신호 체크리스트",
+      "5장 01. 올해 조심해야 할 위험 시기",
+      "5장 02. 위험 시기에 나타나는 전조",
+      "6장 01. 의심이 아닌 관리 — 관계를 지키는 법",
+      "6장 02. 만약의 상황에 대한 판단 기준",
+      "7장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

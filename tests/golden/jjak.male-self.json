@@ -1,0 +1,150 @@
+{
+  "product": "jjak",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "SIN-HONGYEOM",
+    "TG-GEOPJAE",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "P-DOMINANT-TENGOD",
+    "P-SPOUSE-PALACE",
+    "TG-BIGYEON",
+    "P-ELEMENT-COMPLEMENT",
+    "P-HIDDEN-ELEMENT",
+    "P-SHINSAL",
+    "SELF-METAL-EVEN",
+    "P-MONTH-BRANCH-HARMONY"
+  ],
+  "score": {
+    "value": 66,
+    "band": "승산 있는 싸움",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 9
+      },
+      {
+        "label": "세운 정관",
+        "delta": 6
+      },
+      {
+        "label": "일간 같은 오행",
+        "delta": 5
+      },
+      {
+        "label": "오행이 무난하다",
+        "delta": 2
+      }
+    ]
+  },
+  "scope": {
+    "label": "짝사랑 (고백 타이밍과 성공 가능성)",
+    "outline": [
+      "1장 01. 네가 이 사람에게 끌린 구조적 이유",
+      "1장 02. 상대 명식에서 너는 어떤 존재인가",
+      "2장 01. 상대의 현재 호감도 판독",
+      "2장 02. 상대가 너를 의식하는 순간들",
+      "3장 01. 고백 성공률 판정",
+      "3장 02. 고백에 가장 유리한 타이밍",
+      "4장 01. 상대 기질에 맞는 고백 방식",
+      "5장 01. 고백 전 호감도를 끌어올리는 행동",
+      "5장 02. 실패했을 때 관계를 지키는 퇴로",
+      "6장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}
