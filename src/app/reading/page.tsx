@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent }
 import { PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { useRouter } from "next/navigation";
-import SignupModal from "@/components/SignupModal";
 import {
   emptyPerson,
   peekReadingDraft,
@@ -397,7 +396,6 @@ export default function ReadingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState<User | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
 
   // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
@@ -534,11 +532,9 @@ export default function ReadingPage() {
       occupation: occupation.trim(),
       createdAt: Date.now(),
     };
-    if (!user) {
-      saveReadingDraft(draft);
-      setShowSignup(true);
-      return;
-    }
+    // 로그인은 여기서 묻지 않는다 (2026-08-25). 폼을 다 채운 사람 4명 중 3명이
+    // 이 자리의 가입 팝업에서 나갔다. 미리보기는 익명으로 만들고, 로그인은
+    // 전문(결제) 앞에서만 받는다 - /reading/[id] 의 startUnlock 이 그 자리다.
     startGeneration(draft);
   };
 
@@ -576,22 +572,6 @@ export default function ReadingPage() {
   }, [hasChosenCategory, selectedCategory?.needsPartner]);
   const activeOffer = resolveAdOffer(category, offerId);
 
-  // 로그인 팝업 문구.
-  //
-  // 광고로 들어온 사람에게는 그 광고가 파는 각도로 말한다 - 오퍼가 자기
-  // loginTitle/loginReason 을 들고 있다(ad-offers.ts). 예전에는 랜딩의 CTA 가
-  // 그 문구로 팝업을 띄웠는데, 로그인을 묻는 자리가 폼 끝으로 옮겨오면서
-  // 문구도 같이 따라왔다.
-  //
-  // 어느 쪽이든 **입력한 것이 이어진다**고 말한다. "안 하면 사라진다"로
-  // 겁주지 않는다 - 여기까지 온 사람은 이미 들인 게 있어서 그 자체가
-  // 미는 힘이고, 위협을 붙이면 불안과 불신만 얹혀 닫는다.
-  const signupCopy = activeOffer
-    ? { title: activeOffer.loginTitle, reason: activeOffer.loginReason }
-    : {
-        title: "운명의 답, 지금 열어보세요",
-        reason: "로그인하면 입력한 내용 그대로 무료 미리보기로 이어져요.",
-      };
 
   const moveTo = (nextStep: ReadingStep) => {
     setError("");
@@ -1054,45 +1034,6 @@ export default function ReadingPage() {
         </div>
       )}
 
-      {showSignup && (
-        <SignupModal
-          title={signupCopy.title}
-          onDone={(u) => {
-            setUser(u);
-            setShowSignup(false);
-            setPendingReferral(null);
-            const draft = peekReadingDraft();
-            if (draft) {
-              setCategory(draft.category);
-              setOfferId(draft.offerId);
-              setMe(draft.me);
-              setPartner(draft.partner);
-              setWithPartner(draft.withPartner);
-              setQuestion(draft.question ?? "");
-              setOccupation(draft.occupation ?? "");
-              setCategorySelectionMode("fixed");
-              startGeneration(draft);
-            }
-          }}
-          reason={
-            pendingReferral
-              ? "로그인하면 무료 미리보기와 친구 보상이 함께 연결돼요."
-              : signupCopy.reason
-          }
-          // 닫아도 draft 를 지우지 않는다 (2026-08-24).
-          //
-          // 예전에는 여기서 clearReadingDraft() 를 불렀다. 그런데 이 팝업은
-          // 생년월일·시간·상대 정보·고민까지 다 받은 **뒤에** 뜬다. 닫는 사람은
-          // 그만두는 게 아니라 "잠깐만" 인 경우가 많은데, 그 한 번에 입력이
-          // 통째로 날아가면 돌아와도 처음부터 다시다. 그러면 진짜로 나간다.
-          //
-          // 남겨 두면 새로고침하고 돌아와도 이어서 쓴다. 값이 새는 것도 아니다 -
-          // draft 는 이 브라우저에만 있고, 리딩은 로그인해야 만들어진다.
-          onClose={() => {
-            setShowSignup(false);
-          }}
-        />
-      )}
     </main>
   );
 }

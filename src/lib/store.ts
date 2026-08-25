@@ -196,6 +196,35 @@ export async function getReading(id: string): Promise<StoredReading | null> {
   }
 }
 
+/**
+ * 주인 없는 리딩을 계정에 붙인다.
+ *
+ * 무료 미리보기는 로그인 없이 만들어진다(2026-08-25). 그 리딩은 user_id 가 비어
+ * 있고 기기 보관함에만 산다. 결제를 시작하는 순간 - 주문이 생기는 순간 - 그때의
+ * 계정에 붙여 둔다. 계좌이체 승인 RPC(lr_review_transfer_order)는 user_id 를
+ * 건드리지 않으므로, 여기서 안 붙이면 입금 승인 뒤 다른 기기에서 열 때
+ * "내 리딩"에 없다.
+ *
+ * 이미 주인이 있는 리딩은 절대 바꾸지 않는다(.is user_id null). 호출부는 그
+ * 전에 "주인이 있으면 나여야 한다"를 따로 검사한다.
+ */
+export async function claimReading(id: string, userId: number): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (db) {
+    const { error } = await db
+      .from("lr_readings")
+      .update({ user_id: userId, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .is("user_id", null);
+    if (error) throw databaseError("리딩 귀속", error);
+    return;
+  }
+  const r = await getReading(id);
+  if (!r || r.userId) return;
+  r.userId = userId;
+  await saveReading(r);
+}
+
 export async function markUnlocked(
   id: string,
   payment: StoredReading["payment"],

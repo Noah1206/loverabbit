@@ -163,26 +163,29 @@ function isAdultBirth(p: Body["me"]): boolean {
 export async function POST(req: NextRequest) {
   const body = (await req.json()) as Body;
 
-  if (!body.userToken) {
-    return NextResponse.json(
-      { error: "무료 사주를 보려면 먼저 로그인해주세요.", needSignup: true },
-      { status: 401 }
-    );
-  }
+  /*
+    무료 미리보기는 로그인 없이 만든다 (2026-08-25).
 
-  let user: Awaited<ReturnType<typeof resolveUserToken>>;
-  try {
-    user = await resolveUserToken(body.userToken);
-  } catch (error) {
-    console.error("무료 미리보기 회원 확인 실패:", error);
-    return NextResponse.json({ error: "회원 정보를 확인하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    예전에는 여기서 토큰이 없으면 401 을 냈고, 폼은 아홉 칸을 다 채운 사람에게
+    마지막에 가입 팝업을 띄웠다. 퍼널을 재 보니 그 칸까지 온 4명 중 3명이 거기서
+    나갔다 - 하루 결제 0건의 직접 원인이었다. 이제 로그인은 전문(결제) 앞에서만
+    묻는다. 주인 없는 리딩은 user_id 가 비어 기기 보관함에만 살고, 결제를 시작할
+    때 claimReading 으로 그 계정에 붙는다.
+
+    토큰이 왔는데 만료됐으면 익명으로 이어 간다. 여기서 막으면 "로그인했다고
+    믿는" 사람이 빈손으로 튕기고, 어차피 결제 앞에서 다시 로그인하며 리딩이
+    붙는다.
+  */
+  let user: Awaited<ReturnType<typeof resolveUserToken>> = null;
+  if (body.userToken) {
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("무료 미리보기 회원 확인 실패(익명으로 진행):", error);
+      user = null;
+    }
   }
-  if (!user) {
-    return NextResponse.json(
-      { error: "로그인 정보가 만료됐어요. 다시 로그인해주세요.", needSignup: true },
-      { status: 401 }
-    );
-  }
+  const userId = user?.userId ?? null;
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
     return NextResponse.json({ error: "생년월일을 입력해주세요." }, { status: 400 });
@@ -244,43 +247,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "유효하지 않은 광고 오퍼입니다." }, { status: 400 });
   }
 
-  if (!user.userId) {
-    return NextResponse.json(
-      { error: "회원 정보를 연결하지 못했어요. 다시 로그인해주세요.", needSignup: true },
-      { status: 401 }
-    );
-  }
-
   // 광고 오퍼는 첫 구매 전까지만. 오퍼 id 는 광고 URL 에 실리는 공개값이라,
   // 이 검사가 없으면 링크를 아는 누구든 언제까지고 990원에 산다.
   // 확인이 안 되면 오퍼를 살려 둔다 — DB 가 잠깐 흔들렸다고 광고에서 온
   // 사람의 전환을 잃는 쪽이 990원 몇 번 더 파는 것보다 비싸다.
-  if (offer) {
+  // 익명이면 여기서는 알 수 없다 - 결제 앞(unlock/checkout)에서 같은 검사를
+  // 한 번 더 한다.
+  if (offer && userId) {
     try {
-      if (await hasPaidReadingOrder(user.userId)) offer = null;
+      if (await hasPaidReadingOrder(userId)) offer = null;
     } catch (error) {
       console.error("오퍼 자격 확인 실패:", error);
     }
   }
 
-  try {
-    const birthdate = [
-      String(body.me.year).padStart(4, "0"),
-      String(body.me.month).padStart(2, "0"),
-      String(body.me.day).padStart(2, "0"),
-    ].join("-");
-    await saveUserSajuProfile(user.userId, {
-      birthdate,
-      birthHour: body.me.hour,
-      birthTimeUnknown: body.me.hour === null,
-      gender: body.me.gender as "F" | "M",
-    });
-  } catch (error) {
-    console.error("사주 기본 정보 저장 실패:", error);
-    return NextResponse.json(
-      { error: "입력한 사주 정보를 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
-      { status: 503 }
-    );
+  if (userId) {
+    try {
+      const birthdate = [
+        String(body.me.year).padStart(4, "0"),
+        String(body.me.month).padStart(2, "0"),
+        String(body.me.day).padStart(2, "0"),
+      ].join("-");
+      await saveUserSajuProfile(userId, {
+        birthdate,
+        birthHour: body.me.hour,
+        birthTimeUnknown: body.me.hour === null,
+        gender: body.me.gender as "F" | "M",
+      });
+    } catch (error) {
+      console.error("사주 기본 정보 저장 실패:", error);
+      return NextResponse.json(
+        { error: "입력한 사주 정보를 안전하게 저장하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 503 }
+      );
+    }
   }
 
   const myChart = computeSaju(body.me);
@@ -569,7 +569,7 @@ export async function POST(req: NextRequest) {
     await saveReading({
       id,
       // 무료 리딩부터 로그인한 사용자에게 귀속한다.
-      userId: user.userId,
+      userId: userId ?? undefined,
       createdAt,
       category: body.category,
       teaser,

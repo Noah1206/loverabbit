@@ -94,18 +94,9 @@ export default function ReadingGeneratingPage() {
       setStage(0);
       setStageSet(Math.floor(Math.random() * STAGE_SETS.length));
       setRunId((now) => now + 1);
+      // 로그인이 없어도 만든다 (2026-08-25). 토큰이 있으면 리딩이 계정에 바로
+      // 붙고, 없으면 주인 없이 기기 보관함에 남았다가 결제 때 붙는다.
       const user = getUser();
-      if (!user) {
-        // 로그인이 없을 때만 초안을 되돌려 둔다. 폼으로 돌아가면 입력값이 복원되고,
-        // 자동 재개는 로그인 상태에서만 걸리므로 되돌이표가 생기지 않는다.
-        saveReadingDraft(job);
-        setNeedSignup(true);
-        // 여기서 막힌 사람은 리딩이 없다. 그래서 지금껏 통계에 흔적이 0이었다 —
-        // 폼을 다 채우고 마지막에 로그인에서 돌아선 사람이 몇인지 알 수 없었다.
-        trackFunnel("signup_required", { product: job.category });
-        setError("로그인이 풀렸어요. 다시 로그인하면 입력한 정보로 이어서 풀어드릴게요.");
-        return;
-      }
       try {
         const res = await fetch("/api/reading", {
           method: "POST",
@@ -120,7 +111,7 @@ export default function ReadingGeneratingPage() {
             partner: job.withPartner && job.partner.year ? parsePerson(job.partner) : null,
             question: job.question ?? "",
             occupation: job.occupation ?? "",
-            userToken: user.token,
+            userToken: user?.token,
           }),
         });
         const data = await res.json();

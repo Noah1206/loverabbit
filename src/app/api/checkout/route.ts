@@ -6,6 +6,7 @@ import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/porton
 import { getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 import { normalizeAttribution } from "@/lib/attribution";
+import { claimReadingForPayment } from "@/lib/reading-claim";
 import { snapshotMetaMatch } from "@/lib/meta-capi";
 
 interface Body {
@@ -66,6 +67,10 @@ export async function POST(request: NextRequest) {
   }
   if (reading.unlocked) {
     return NextResponse.json({ error: "이미 열린 리딩이에요." }, { status: 409 });
+  }
+  {
+    const claim = await claimReadingForPayment(reading, user.userId);
+    if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
   }
 
   const attribution = normalizeAttribution(body.attribution);

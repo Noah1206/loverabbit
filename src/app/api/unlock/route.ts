@@ -15,6 +15,7 @@ import { normalizeAttribution } from "@/lib/attribution";
 import { snapshotMetaMatch } from "@/lib/meta-capi";
 import { notifyAdmin } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
+import { claimReadingForPayment } from "@/lib/reading-claim";
 import { PortOnePaymentError } from "@/lib/portone-validation";
 
 // 유료 본문을 여기서 만든다. 이 경로가 이 서비스에서 가장 오래 도는 자리다.
@@ -220,6 +221,10 @@ export async function POST(req: NextRequest) {
     if (stored?.userId && stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
     }
+    {
+      const claim = await claimReadingForPayment(stored, user.userId);
+      if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
+    }
 
     try {
       const completed = await finalizePortOnePayment(body.paymentId, {
@@ -272,6 +277,10 @@ export async function POST(req: NextRequest) {
     }
     if (stored?.userId && stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
+    }
+    {
+      const claim = await claimReadingForPayment(stored, user.userId);
+      if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
     }
     try {
       const order = user.userId
@@ -333,6 +342,10 @@ export async function POST(req: NextRequest) {
     }
     if (stored?.userId && stored.userId !== user.userId) {
       return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
+    }
+    {
+      const claim = await claimReadingForPayment(stored, user.userId);
+      if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
     }
 
     try {
