@@ -234,9 +234,12 @@ function outlineBrief(outline: string[], mine: string[]): string {
 }
 
 /** 머리·본문마다 달라지는 지시만 만든다. 공통 입력 JSON은 별도 캐시 블록이다. */
-function headPrompt(outline: string[]): string {
+function headPrompt(outline: string[], freeItems: string[] = []): string {
+  const free = freeItems.length
+    ? `\n결제 전에 공개되는 절: ${freeItems.join(" / ")} — 머리는 PREVIEW CONTRACT 를 따른다.`
+    : "";
   return `지시: 머리. 리포트 전체가 다룰 내용은 아래와 같고, 본문은 다른 조각이 쓴다.
-${outline.join(" / ")}`;
+${outline.join(" / ")}${free}`;
 }
 
 function chapterPrompt(
@@ -244,8 +247,14 @@ function chapterPrompt(
   outline: string[],
   season: string,
   /** 가드가 잡은 지적. 다시 쓸 때만 붙는다 */
-  notes: string[] = []
+  notes: string[] = [],
+  /** 이 묶음 안에서 결제 전에 공개되는 절. 그 절만 PREVIEW CONTRACT 를 따른다 */
+  freeItems: string[] = []
 ): string {
+  const free = chapter.items.filter((item) => freeItems.includes(item));
+  const freeLine = free.length
+    ? `\n결제 전에 공개되는 절: ${free.join(" / ")} — 이 절은 PREVIEW CONTRACT 를 따른다. 나머지 절은 따르지 않는다.`
+    : "";
   // 어떤 모양(extra)을 얹을지는 서버가 정해서 알려준다. 묶음마다 따로 생성되므로
   // 모델에게 고르라고 맡기면 옆 묶음이 뭘 골랐는지 몰라 결국 한 가지로 몰린다.
   const shape = (item: string) => {
@@ -255,7 +264,7 @@ function chapterPrompt(
   return `지시: 본문 ${chapter.items.length}개. 아래 항목을 하나씩 빠짐없이 쓰고, 각 절의 n에 그 번호를 적는다.
 대괄호 안의 extra 지정을 그대로 따른다.
 ${chapter.items.map((item, i) => `${i + 1}. ${item}${shape(item)}`).join("\n")}
-${season ? `${season}\n` : ""}${notes.length ? `${rewriteBrief(notes)}\n` : ""}${outlineBrief(outline, chapter.items)}`;
+${season ? `${season}\n` : ""}${notes.length ? `${rewriteBrief(notes)}\n` : ""}${outlineBrief(outline, chapter.items)}${freeLine}`;
 }
 
 /**
@@ -448,13 +457,13 @@ export async function composeReport(
     run(
       chapter.label,
       "body",
-      chapterPrompt(chapter, input.outline, index === 0 ? season : ""),
+      chapterPrompt(chapter, input.outline, index === 0 ? season : "", [], resuming ? [] : input.freeItems ?? []),
       chapterBudget(chapter.items.length)
     )
   );
   // 이어 만들 때는 머리가 이미 있다. 다시 만들면 헤드라인과 요약 카드가 바뀌어,
   // 결제 전에 본 화면과 결제 후에 보는 화면이 달라진다.
-  const headCall = resuming ? Promise.resolve(null) : run("head", "head", headPrompt(input.outline), 2600);
+  const headCall = resuming ? Promise.resolve(null) : run("head", "head", headPrompt(input.outline, input.freeItems ?? []), 2600);
   const [headText, ...chapterTexts] = await Promise.all([headCall, ...batchCalls]);
 
   // 머리가 없으면 리포트가 성립하지 않는다 (이어 만들기는 애초에 머리를 안 만든다).

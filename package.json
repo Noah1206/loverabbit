@@ -24,6 +24,7 @@
     "myeongri:audit:advanced": "tsx scripts/advanced-audit.mts",
     "reading:preview": "tsx --env-file=.env.local --env-file=.env scripts/reading-preview.mts",
     "axis:compare": "tsx --env-file=.env.local --env-file=.env scripts/axis-compare.mts",
+    "preview:check": "tsx --env-file=.env.local --env-file=.env scripts/preview-check.mts",
     "demo:fixture": "tsx --env-file=.env.local --env-file=.env scripts/demo-fixture.mts",
     "reading:cost": "tsx scripts/reading-cost.mts",
     "reading:sweep": "tsx scripts/reading-sweep.mts",

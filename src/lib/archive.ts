@@ -26,6 +26,8 @@ export interface ArchiveEntry {
    */
   previewSections?: { title: string; excerpt: string; paragraphs?: string[] }[];
   lockedSectionTitles?: string[];
+  /** 공개분이 남긴 물음 한 줄. "이어서 보기" 창이 이 문장으로 연다. 옛 리딩에는 없다. */
+  openLoop?: string | null;
   scoreLabel?: string | null;
   score?: number | null;
   /** 지수가 어느 구간인지 — 상품 meterLabels의 문구 */

@@ -146,6 +146,7 @@ export default function ReadingGeneratingPage() {
           createdAt: Date.now(),
           previewSections: data.previewSections ?? [],
           lockedSectionTitles: data.lockedSectionTitles ?? [],
+          openLoop: typeof data.openLoop === "string" ? data.openLoop : null,
           scoreLabel: data.scoreLabel ?? null,
           // 지수는 이제 미리보기에도 실려 온다. 근거(scoreFactors)는 해금 뒤에.
           score: data.score ?? null,

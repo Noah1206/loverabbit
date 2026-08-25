@@ -14,6 +14,7 @@ import { xingLine } from "@/lib/myeongri/xing-name";
 import { advancedForPrompt } from "@/lib/myeongri/advanced-facts";
 import { rulesForPrompt, type ReadingRule } from "@/lib/reading-rules";
 import { axisFor, axisForPrompt } from "@/lib/reading-axis";
+import { previewFor } from "@/lib/reading-preview";
 
 export interface ReportSectionOut {
   id: string; // core | relationship | work | timing
@@ -60,6 +61,11 @@ export interface StructuredReport {
     readingTimeMin: number;
     disclaimer: string;
     confidenceNote: string;
+    /**
+     * 공개분이 답하지 않고 남긴 핵심 변수 한 줄. 결제 전 화면의 "이어서 보기" 창이
+     * 이 문장으로 연다 — 무엇을 못 보는지가 보이면 파는 말이 따로 필요 없다.
+     */
+    openLoop?: string;
   };
   summaryCards: SummaryCardOut[];
   sections: ReportSectionOut[];
@@ -69,7 +75,7 @@ export interface StructuredReport {
 }
 
 /** 무료 초안과 결제 후 이어쓰기가 같은 생성 계약을 썼는지 확인하는 버전. */
-export const READING_PROMPT_VERSION = "reading-v4-product-axis";
+export const READING_PROMPT_VERSION = "reading-v5-preview-loop";
 
 export const READING_SYSTEM_PROMPT = `# ROLE
 너는 러브레빗의 '사주 리포트 에디터'다.
@@ -167,6 +173,35 @@ product_axis 는 근거가 아니다. facts_used 에 적지 않는다.
   에서만 나온다. 지수를 근거로 새 판단을 세우지 않는다.
 - product_score 도 근거가 아니다. facts_used 에 적지 않는다 — 거기에는 saju_facts 의
   경로만 적는다.
+
+# PREVIEW CONTRACT — 결제 전에 공개되는 몫이 하는 일
+delivery.preview 가 오면 머리(headline·summary_cards·open_loop)와 free_items 에 적힌 절은
+결제 전에 공개된다. 그 글은 설명이 아니라 **진단**이다. 독자가 "이거 내 얘기인데" →
+"그럼 앞으로 어떻게 된다는 거지" → "나머지를 봐야겠다" 로 움직이게 쓴다. 순서가 있다.
+
+  ① 후킹 — headline. 운세 문장이 아니라 장면이나 반전으로 연다.
+     "무심한 사람처럼 보이지만…", "상대가 나를 잊었는지보다, 왜 아직 내가 묶여 있는지가 먼저 보인다" 꼴.
+  ② 장면 — 독자가 실제로 겪었을 법한 것. preview.scenes 에서 고르거나 같은 결로 새로 그린다.
+     메신저를 여는 손, 답장 간격, 애매한 말투, 되풀이되는 자리. "외로울 수 있다" 같은 넓은
+     감정이 아니라 **행동**으로 쓴다.
+  ③ 숨은 질문 — 독자의 표면 질문(surface_question) 뒤에 있는 것(hidden_question)을 대신
+     말해 준다. 한 번, 독자의 말투로.
+  ④ 장점과 그림자 — 한 세트로. "…을 빨리 읽는 편이야. 다만 그래서 …" 꼴. 칭찬 뒤에 반전.
+  ⑤ 조건을 남긴 판단 — "된다/안 된다" 로 닫지 않는다. "흐름은 있어. 다만 이번엔 A 보다 B 가
+     중요해" 꼴. 가능성은 열고 조건은 남긴다.
+  ⑥ 공개하지 않은 핵심 변수 — report_meta.open_loop. preview.hidden_variable 을 **이 명식의
+     말로** 바꿔 60~120자 한 문장으로 쓴다. 물음으로 남기고 답하지 않는다. 잠긴 절의 제목을
+     그대로 옮기지 않는다 — 그 절이 답할 물음을 가리킨다.
+
+- free_items 의 절: summary 의 첫 문장이 장면이다. 마지막 문단은 open_loop 가 가리키는
+  변수 앞에서 멈춘다 — 그 답은 뒤의 절이 갖고 있다. "…는 다음 장에서" 같은 안내 문장은
+  쓰지 않는다. 물음이 남아 있으면 그것으로 충분하다.
+- summary_cards 의 "지금의 흐름" 은 조건으로 끝난다 — "…할 때" 가 아니라 "…하면 …, 아니면 …".
+- **판매 문구를 쓰지 않는다.** "결제", "구매", "해금", "원", "전체 풀이에서 확인" 같은 말은
+  머리에도 절에도 open_loop 에도 없다. 파는 것은 화면이 한다.
+- **날카롭되 근거는 규칙 안이다.** 팩폭은 matched_rules 가 허락한 판단을 장면으로 옮긴
+  것이지, 규칙에 없는 성향을 찌르는 것이 아니다. 축의 line 은 그대로 걸려 있다.
+- delivery.preview 가 없으면 이 절은 무시한다. 결제 뒤 이어 쓰는 절은 후킹할 자리가 아니다.
 
 # EVIDENCE POLICY
 - matched_rules는 이 명식에서 검수를 통과한 해석 목록이다. 해석의 뼈대는 여기서만 가져온다.
@@ -291,7 +326,7 @@ product_axis 는 근거가 아니다. facts_used 에 적지 않는다.
   쓰지 않는다. '특히', '주로', '이 지점에서' 처럼 단정하지 않는 말로 바꾼다.
 
 ## 지시가 "머리"일 때
-{"report_meta":{"headline":"string","confidence_note":"string"},
+{"report_meta":{"headline":"string","confidence_note":"string","open_loop":"string"},
 "summary_cards":[{"label":"나의 중심","value":"string","detail":"string","facts_used":["string"]},{"label":"관계의 결","value":"string","detail":"string","facts_used":["string"]},{"label":"지금의 흐름","value":"string","detail":"string","facts_used":["string"]}],
 "action_questions":[{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"}],
 "character_note":{"character_id":"string","name":"string","message":"string"},
@@ -299,7 +334,8 @@ product_axis 는 근거가 아니다. facts_used 에 적지 않는다.
 
 - summary_cards는 정확히 3개, label은 위의 것을 그대로 쓴다.
 - action_questions는 정확히 3개. 리포트를 다 읽은 사람이 오늘 해볼 수 있는 것으로 쓴다.
-- headline 42~65자. 계산값에 근거한 판단을 담는다.
+- headline 42~65자. 계산값에 근거한 판단을 담는다. delivery.preview 가 오면 PREVIEW CONTRACT 의 후킹이다.
+- open_loop 는 delivery.preview 가 올 때만 60~120자로 쓴다. 안 오면 빈 문자열.
 - character_note.message는 2문장 이하. sections는 만들지 않는다.
 
 ## 지시가 "본문"일 때
@@ -443,6 +479,11 @@ export interface ReadingInput {
    */
   score?: ReadingScore | null;
   outline: string[];
+  /**
+   * 결제 전에 공개되는 절. 있으면 delivery.preview 가 실리고 머리와 이 절은 PREVIEW
+   * CONTRACT 를 따른다. 결제 뒤 이어 쓰기에는 넘기지 않는다 — 그 절들은 공개분이 아니다.
+   */
+  freeItems?: string[];
   focus: string;
   currentScene: string;
   /**
@@ -608,6 +649,7 @@ export function buildReadingInput(input: ReadingInput): string {
   // usesScore 는 지시가 아니라 스위치라 프롬프트에 실리지 않는다. 그래서 축 원본을
   // 따로 본다 - axis 쪽에서 찾으면 언제나 undefined 라 숫자가 조용히 안 나간다.
   const usesScore = axisFor(input.productId)?.usesScore === true;
+  const preview = previewFor(input.productId);
   const payload = {
     saju_facts: slimFacts(input.facts),
     partner_saju_facts: input.partnerFacts ? slimFacts(input.partnerFacts) : null,
@@ -632,6 +674,18 @@ export function buildReadingInput(input: ReadingInput): string {
             product_score: {
               ...input.score,
               factors: scoreFactorsForPrompt(input.score.factors),
+            },
+          }
+        : {}),
+      // 공개분이 있을 때만. 결제 뒤 이어 쓰는 호출에는 없다 — 그 절들은 후킹할 자리가 아니다.
+      ...(preview && input.freeItems?.length
+        ? {
+            preview: {
+              free_items: input.freeItems,
+              surface_question: preview.surfaceQuestion,
+              hidden_question: preview.hiddenQuestion,
+              scenes: preview.scenes,
+              hidden_variable: preview.hiddenVariable,
             },
           }
         : {}),
@@ -687,13 +741,17 @@ export function parseStructuredReport(text: string): StructuredReport | null {
         // title과 reading_time_min은 화면 어디에도 쓰이지 않는다. 모델에게 시키지 않고
         // 여기서 채운다 — 출력 토큰이 곧 비용이라, 안 읽는 글자를 사지 않는다.
         title: typeof meta.title === "string" ? meta.title : "",
-        headline: typeof meta.headline === "string" ? meta.headline : "",
+        // 표지 제목은 표기 없이 그린다. 후킹으로 쓰게 한 뒤로 **굵게**가 들어오기 시작했다.
+        headline: typeof meta.headline === "string" ? stripMarks(meta.headline) : "",
         readingTimeMin: typeof meta.reading_time_min === "number" ? meta.reading_time_min : 6,
         disclaimer:
           typeof meta.disclaimer === "string" && meta.disclaimer.trim()
             ? meta.disclaimer
             : "오락 및 자기성찰을 위한 참고 해석이에요.",
         confidenceNote: typeof meta.confidence_note === "string" ? meta.confidence_note : "",
+        ...(typeof meta.open_loop === "string" && meta.open_loop.trim()
+          ? { openLoop: stripMarks(meta.open_loop.trim()).slice(0, 160) }
+          : {}),
       },
       summaryCards: (Array.isArray(raw.summary_cards) ? raw.summary_cards : [])
         .map((card) => card as Record<string, unknown>)

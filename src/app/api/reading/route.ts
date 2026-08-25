@@ -361,6 +361,8 @@ export async function POST(req: NextRequest) {
       factors: scoreResult.factors.map((f) => ({ label: f.label, delta: f.delta, basis: f.basis })),
     },
     outline,
+    // 결제 전에 공개되는 절. 머리와 이 절이 PREVIEW CONTRACT 를 따른다.
+    freeItems: outline.slice(0, previewSections()),
     focus: partnerFacts ? "relationship" : "self",
     currentScene: body.question ?? "",
     occupation: occupation || undefined,
@@ -628,8 +630,10 @@ export async function POST(req: NextRequest) {
             : {}),
         })),
         lockedTitles: outline.slice(previewSections()),
+        // 공개분이 남긴 물음. "이어서 보기" 창이 이 문장으로 연다.
+        openLoop: report.meta.openLoop ?? null,
       }
-    : previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]);
+    : { ...previewOf(full, product?.toc ?? ["명식 분석", "기질 분석", "시기 판단", "행동 가이드"]), openLoop: null };
 
   // 나머지 본문을 결제 후에 이어 만들기 위한 정보. 클라이언트 blob에만 두면
   // 계좌이체처럼 며칠 뒤에 승인되는 경우 기기를 바꾼 사용자에게 못 준다.
@@ -674,6 +678,7 @@ export async function POST(req: NextRequest) {
     // 섹션별 핵심만 공개한다. 실제 나머지 원문은 서버 밖으로 보내지 않는다.
     previewSections: preview.sections,
     lockedSectionTitles: preview.lockedTitles,
+    openLoop: preview.openLoop,
     // 지수는 결제 전에도 공개한다 (운영자 결정, 2026-08-22). "상위 N%" 가
     // 표지의 미끼가 되고, 그 숫자가 왜 나왔는지(scoreFactors)는 여전히 해금
     // 뒤에만 온다 — 숫자는 무료, 근거는 유료다.

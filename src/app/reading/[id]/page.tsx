@@ -8,6 +8,7 @@ import { useParams, useRouter } from "next/navigation";
 import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
+import ContinueSheet from "@/components/ContinueSheet";
 import {
   landingTypeForProduct,
   trackInitiateCheckout,
@@ -70,6 +71,8 @@ export default function ReadingReportPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
   const [user, setUser] = useState<User | null>(null);
   const [showPay, setShowPay] = useState(false);
+  // "이어서 보기" 창. 값보다 무엇을 못 보는지를 먼저 보여 준다(ContinueSheet).
+  const [showContinue, setShowContinue] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [showIndex, setShowIndex] = useState(false);
   // 장마다 한 장씩 뒤따라 오는 그림. 한 장에 60초라 글보다 늦다.
@@ -594,10 +597,8 @@ export default function ReadingReportPage() {
             입금 승인 상태 확인 →
           </Link>
         ) : (
-          <button className="btn" onClick={startUnlock} disabled={paying}>
-            {paying
-              ? "결제 준비 중…"
-              : `🔒 ${entry.price.toLocaleString()}원으로 끝까지 운명보기`}
+          <button className="btn" onClick={() => setShowContinue(true)} disabled={paying}>
+            {paying ? "결제 준비 중…" : "이어서 보기 →"}
           </button>
         )}
       </div>
@@ -840,6 +841,23 @@ export default function ReadingReportPage() {
           }}
           onClose={() => setShowSignup(false)}
           reason="전문 리딩을 열려면 로그인이 필요해요"
+        />
+      )}
+
+      {showContinue && !unlocked && (
+        <ContinueSheet
+          productId={entry.category}
+          label={entry.label}
+          price={entry.price}
+          openLoop={entry.openLoop}
+          seenTitles={(entry.previewSections ?? []).map((section) => section.title)}
+          lockedTitles={entry.lockedSectionTitles ?? []}
+          scoreLabel={entry.scoreLabel}
+          onContinue={() => {
+            setShowContinue(false);
+            startUnlock();
+          }}
+          onClose={() => setShowContinue(false)}
         />
       )}
 
