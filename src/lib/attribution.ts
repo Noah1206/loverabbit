@@ -57,14 +57,25 @@ export function cleanTag(value: string | null | undefined): string | undefined {
   return trimmed || undefined;
 }
 
-/** 퍼센트 인코딩이 남아 있으면 한 번 푼다. 못 풀면 원문 그대로. */
+/**
+ * 퍼센트 인코딩이 남아 있으면 한 번 푼다. 못 풀면 원문 그대로.
+ * 광고 URL 매개변수가 중간에서 잘려 오는 일이 있다("…%EA%B3%" - 마지막 글자의 바이트가
+ * 모자란다). 그럴 땐 꼬리를 한 조각씩 떼어 가며 읽히는 데까지만 푼다 - 통째로
+ * 퍼센트 기호로 남기는 것보다 "연애운_사주광" 이 훨씬 알아보기 쉽다.
+ */
 export function decodeOnce(value: string): string {
   if (!/%[0-9A-Fa-f]{2}/.test(value)) return value;
-  try {
-    return decodeURIComponent(value.replace(/\+/g, " "));
-  } catch {
-    return value;
+  let text = value.replace(/\+/g, " ");
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    try {
+      return decodeURIComponent(text);
+    } catch {
+      const shorter = text.replace(/%[0-9A-Fa-f]{0,2}$/, "");
+      if (shorter === text || !shorter) return value;
+      text = shorter;
+    }
   }
+  return value;
 }
 
 /** 빈 항목을 걷어낸다. 아무것도 안 남으면 null. */
