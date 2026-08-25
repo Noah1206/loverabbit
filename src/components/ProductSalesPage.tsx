@@ -2,11 +2,12 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import CardMotion from "@/components/CardMotion";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
+import HomeReviews from "@/components/HomeReviews";
 import type { AdOffer } from "@/lib/ad-offers";
 import type { Product } from "@/lib/products";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
-// 후킹 질문 -> ??% 게이지 -> 비전(秘傳) 서사 -> 리포트 구성 -> 대상 -> 원리 -> 목차 -> CTA
+// 후킹 질문 -> ??% 게이지 -> 박도사 비법서 서사 -> 리포트 구성 표 -> 대상 -> 목차 -> 후기 -> CTA
 //
 // 이 화면으로 들어오는 문은 둘이다. /product/[id] 로 직접 들어오는 길과, 광고가
 // 데려오는 /saju/<랜딩> 길.
@@ -17,6 +18,24 @@ import type { Product } from "@/lib/products";
 //
 // 그래서 화면은 여기 하나뿐이다. 문마다 다른 것 - 히어로 문구, 값을 말하는 방식,
 // 하단 CTA 연출 - 만 인자로 받는다.
+/** "3장 01. 속궁합 지수 — 두 사람의 진짜 상성 판정" -> "속궁합 지수" */
+function tocTopic(title: string | undefined): string {
+  if (!title) return "";
+  return title
+    .replace(/^\d+장\s*\d+\.\s*/, "")
+    .split(/\s[—–-]\s|,|\?/)[0]
+    .trim();
+}
+
+/** 절당 약 800자 (실측 최소치) 를 "약 1만 2천 자" 꼴로 */
+function approxChars(sections: number): string {
+  const chars = sections * 800;
+  const man = Math.floor(chars / 10000);
+  const cheon = Math.round((chars % 10000) / 1000);
+  if (man > 0) return cheon > 0 ? `${man}만 ${cheon}천 자` : `${man}만 자`;
+  return `${cheon}천 자`;
+}
+
 export default function ProductSalesPage({
   product,
   activeOffer,
@@ -112,27 +131,52 @@ export default function ProductSalesPage({
           </div>
         </section>
 
-        {/* ── 비전(秘傳) 서사 ── */}
-        <section className="card product-story-card product-reveal" style={{ position: "relative", overflow: "hidden" }}>
-          <span aria-hidden style={{ position: "absolute", right: -6, top: -18, fontSize: "5.5rem", fontFamily: "serif", fontWeight: 900, color: "var(--accent)", opacity: 0.08 }}>秘傳</span>
-          <p style={{ fontSize: "0.78rem", fontWeight: 800, color: "var(--gold)", letterSpacing: "0.1em", marginBottom: 6 }}>본 사주 분석의 뿌리</p>
-          <strong style={{ fontSize: "1.05rem" }}>필사본으로만 전해진 연애 명리 비전, 「연담비결(戀談秘訣)」</strong>
-          <ul style={{ margin: "10px 0 0 18px", display: "grid", gap: 6, fontSize: "0.88rem", color: "var(--text)" }}>
-            <li className="product-reveal-item">이름을 남기지 않은 한 명리가가 평생 연애 사주만 파고들어 남긴 필사본</li>
-            <li className="product-reveal-item">책으로 출간된 적 없이 필사로만 이어져 온 관계 풀이 원리</li>
-            <li className="product-reveal-item">그 풀이 체계를 현대 명리로 복원해, 당신의 명식에 그대로 적용합니다</li>
+        {/* ── 박도사 비법서 서사 (2026-08-25, 「연담비결」을 대체) ──
+            사진은 public/lore/parkdosa-manuscript.jpg. 운영자가 준 시안에서 오려 낸
+            저해상 임시본이라, 원본 사진을 받으면 그 파일만 갈아 끼우면 된다. */}
+        <section className="card product-story-card product-lore product-reveal">
+          <p className="product-lore-kicker">본 사주 분석의 뿌리</p>
+          <h2 className="product-lore-title">정재계가 줄 서서 찾던 전설, 박도사</h2>
+          <p className="product-lore-name">제산 박재현(박도사)</p>
+          <figure className="product-lore-figure product-reveal-item">
+            <Image
+              src="/lore/parkdosa-manuscript.jpg"
+              alt="제산 박재현(박도사)이 손으로 적은 비법서 필사본"
+              width={795}
+              height={615}
+              sizes="(max-width: 640px) 100vw, 600px"
+            />
+            <figcaption>제산 박재현(박도사)가 직접 짚어 내린 비법서</figcaption>
+          </figure>
+          <ul className="product-lore-points">
+            <li className="product-reveal-item">제산 박재현, 부산·함양을 무대로 한 시대를 풍미한 전설급 사주가</li>
+            <li className="product-reveal-item">당대 정·재계 인사들이 운명을 묻고자 줄을 섰던 인물</li>
+            <li className="product-reveal-item">책 한 권 남기지 않고, 오직 손으로 적은 비법서만 남겼다</li>
           </ul>
+          <p className="product-lore-close product-reveal-item">
+            세상에 거의 남지 않은 그의 비법서, 그 풀이 원리를 현대 명리로 복원해, 당신의 사주에 그대로 적용합니다.
+          </p>
         </section>
 
-        {/* ── 리포트 구성 ── */}
-        <section className="product-reveal">
-          <h2 style={{ fontSize: "1.1rem", marginBottom: 4 }}>전체 리포트 구성</h2>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginBottom: 12 }}>
-            무료 미리보기 이후, {product.toc.length}개 섹션의 심층 리포트로 정리해드립니다
+        {/* ── 리포트 구성 표 (2026-08-25) ──
+            줄의 내용은 products.ts 의 reportFacets 로, 목차에 실제로 있는 장만
+            요약한 것이다. 분량의 글자 수는 실제 발급본(재회 15절 11,197자,
+            속궁합 12절 10,965자, 이별 10절 8,619자)에서 잰 절당 약 800자를
+            보수적으로 곱한 값이다 - 부풀리지 않는다. */}
+        <section className="card product-report product-reveal">
+          <p className="product-lore-kicker">전체 리포트 구성</p>
+          <h2 className="product-report-title">전체 리포트에서 확인하는 것</h2>
+          <p className="product-report-sub">
+            무료 미리보기 이후에는 {tocTopic(product.toc[0])}부터 {tocTopic(product.toc[product.toc.length - 2])}까지{" "}
+            {product.toc.length}개 섹션으로 정리해드려요
           </p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {product.keywords.map((keyword) => <span key={keyword} className="badge product-reveal-item">{keyword}</span>)}
-          </div>
+          <dl className="product-report-rows">
+            <div className="product-reveal-item"><dt>분량</dt><dd>{product.toc.length}개 섹션 · 약 {approxChars(product.toc.length)} 제공</dd></div>
+            <div className="product-reveal-item"><dt>핵심 판단</dt><dd>{product.reportFacets.judgement}</dd></div>
+            <div className="product-reveal-item"><dt>관계 리스크</dt><dd>{product.reportFacets.risk}</dd></div>
+            <div className="product-reveal-item"><dt>실행 가이드</dt><dd>{product.reportFacets.action}</dd></div>
+          </dl>
+          <p className="product-report-close product-reveal-item">{product.ctaHook}</p>
         </section>
 
         {/* ── 대상 ── */}
@@ -143,19 +187,6 @@ export default function ProductSalesPage({
               <div key={item} className="card product-reveal-item" style={{ padding: "12px 16px", display: "flex", gap: 10, alignItems: "center" }}>
                 <span style={{ color: "var(--accent)", fontWeight: 900 }}>✓</span>
                 <span style={{ fontSize: "0.9rem" }}>{item}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── 풀이 원리 ── */}
-        <section className="product-reveal">
-          <h2 style={{ fontSize: "1.1rem", marginBottom: 12 }}>이런 원리로 풀이해요</h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {product.principles.map(([title, description]) => (
-              <div key={title} className="card product-reveal-item" style={{ padding: "14px 16px" }}>
-                <strong style={{ fontSize: "0.95rem" }}>{title}</strong>
-                <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginTop: 4 }}>{description}</p>
               </div>
             ))}
           </div>
@@ -176,6 +207,11 @@ export default function ProductSalesPage({
             ))}
           </div>
         </section>
+
+        {/* ── 이 사주를 본 사람들의 후기 (2026-08-25) ──
+            홈의 전체 후기를 상품별로 가른 것. /api/reviews?product= 가 걸러 준다.
+            후기가 없으면 컴포넌트가 스스로 빠진다. */}
+        <HomeReviews productId={product.id} heading={`💬 ${product.title} 먼저 본 사람들`} />
 
         {/* ── 광고 특별가 — 오퍼가 살아 있을 때만 ── */}
         {activeOffer ? (

@@ -28,6 +28,7 @@ function promises(product: (typeof PRODUCTS)[number]): string[] {
     product.cardCopy,
     ...product.keywords,
     ...product.principles.flat(),
+    ...Object.values(product.reportFacets),
     ...product.toc,
   ];
 }

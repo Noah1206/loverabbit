@@ -56,13 +56,22 @@ function ReviewCard({ review }: { review: PublicReview }) {
   );
 }
 
-export default function HomeReviews() {
+export default function HomeReviews({
+  productId,
+  heading = "💬 먼저 본 사람들",
+}: {
+  /** 상품 상세에서 그 상품 후기만 볼 때. 없으면 홈처럼 전체. */
+  productId?: string;
+  heading?: string;
+} = {}) {
   const [data, setData] = useState<ReviewSummary | null>(null);
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/reviews?limit=100")
+    const query = new URLSearchParams({ limit: "100" });
+    if (productId) query.set("product", productId);
+    fetch(`/api/reviews?${query.toString()}`)
       .then((res) => res.json())
       .then((json: ReviewSummary) => {
         if (alive) setData(json);
@@ -74,7 +83,7 @@ export default function HomeReviews() {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [productId]);
 
   if (!data || data.reviews.length === 0) return null;
 
@@ -84,7 +93,7 @@ export default function HomeReviews() {
   return (
     <section className="review-section" aria-labelledby="review-heading">
       <div className="review-head">
-        <h3 id="review-heading">💬 먼저 본 사람들</h3>
+        <h3 id="review-heading">{heading}</h3>
         <span className="review-head-score">
           {/* 평균은 별점이 달린 후기로만 낸 값이다. 몇 개를 세었는지 같이 밝힌다. */}
           {data.average !== null && (
