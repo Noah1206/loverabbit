@@ -28,6 +28,8 @@ function event(
 describe("경로 접기", () => {
   it("리딩 id 를 한 줄로 모은다", () => {
     assert.equal(normalizePath("/reading/9c1f2b3a-1111-2222-3333-444455556666"), "/reading/[id]");
+    assert.equal(normalizePath("/reading/generating"), "/reading/generating");
+    assert.equal(normalizePath("/reading/generating?x=1"), "/reading/generating");
   });
 
   it("쿼리와 해시를 버린다", () => {

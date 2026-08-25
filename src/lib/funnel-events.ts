@@ -89,8 +89,10 @@ export function normalizePath(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const path = raw.split("?")[0].split("#")[0].trim();
   if (!path.startsWith("/")) return null;
+  // /reading/generating 은 결과가 아니라 대기 화면이다. 같이 접으면 생성만
+  // 보고 나간 사람이 "리딩 열람"으로 세어져 열람 단계가 부풀었다.
   const folded = path
-    .replace(/\/reading\/[^/]+/, "/reading/[id]")
+    .replace(/\/reading\/(?!generating(?:\/|$))[^/]+/, "/reading/[id]")
     .replace(/\/shrine\/[^/]+/, "/shrine/[id]")
     .replace(/\/product\/[^/]+/, "/product/[id]")
     .replace(/\/dark\/[^/]+/, "/dark/[id]");
