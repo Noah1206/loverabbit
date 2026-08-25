@@ -27,13 +27,9 @@ function tocTopic(title: string | undefined): string {
     .trim();
 }
 
-/** 절당 약 800자 (실측 최소치) 를 "약 1만 2천 자" 꼴로 */
+/** 절당 약 800자 (실측 최소치) 를 "약 12,000자" 꼴로 */
 function approxChars(sections: number): string {
-  const chars = sections * 800;
-  const man = Math.floor(chars / 10000);
-  const cheon = Math.round((chars % 10000) / 1000);
-  if (man > 0) return cheon > 0 ? `${man}만 ${cheon}천 자` : `${man}만 자`;
-  return `${cheon}천 자`;
+  return `${(sections * 800).toLocaleString("ko-KR")}자`;
 }
 
 export default function ProductSalesPage({
