@@ -2552,9 +2552,12 @@ label {
   font-weight: 750;
 }
 
+/* 한 줄에 하나. 두 칸으로 나누면 "태어난 시간" 이 화면 반폭짜리 작은 버튼이 된다 -
+   혼자 서는 화면(내 정보)에서는 더 그렇다. 상대 정보는 시간·성별이 위아래로 선다
+   (2026-08-25 운영자 요청 - 너비 두 배 이상). */
 .reading-details-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -2570,6 +2573,7 @@ label {
 }
 
 .reading-details-grid select {
+  width: 100%;
   border-color: var(--line);
   background-color: var(--bg-card2);
   transition:
