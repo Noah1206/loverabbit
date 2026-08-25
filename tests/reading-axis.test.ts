@@ -38,9 +38,26 @@ describe("상품 축", () => {
   });
 
   it("축이 없는 상품은 그 칸 자체가 안 나간다", () => {
-    const payload = JSON.parse(buildReadingInput({ ...base, productId: "jaehoe" }));
+    // 이별은 아직 축이 없다. 채우면 이 자리를 다음 빈 상품으로 옮긴다.
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "ibyeol" }));
     assert.equal("product_axis" in payload.delivery, false);
-    assert.equal(axisFor("jaehoe"), null);
+    assert.equal(axisFor("ibyeol"), null);
+  });
+
+  it("재회 축 — 선이 있고, 옆 상품 셋의 물음을 막고, 지수를 판다", () => {
+    // 2026-08-25 초안. 속궁합과 달리 선(line)이 하나 있다 — 재접근을 부추기는 글이
+    // 되면 안 되기 때문이다. 선이 있으면 그대로 실려야 한다.
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "jaehoe" }));
+    const axis = payload.delivery.product_axis;
+    assert.ok(axis, "재회에 축이 없다");
+    assert.equal(axis.question, READING_AXES.jaehoe.question);
+    assert.equal(axis.axes.length, 4);
+    assert.ok(Array.isArray(axis.line) && axis.line.length === 1, "재접근을 부추기지 않는 선 하나");
+    // 옆 상품이 답할 물음은 여기서 답하지 않는다. 셋 다 이름이 적혀 있어야 한다.
+    for (const neighbour of ["속궁합", "결혼", "이별"]) {
+      assert.ok(axis.avoid.some((a: string) => a.includes(neighbour)), `${neighbour} 의 물음을 막는 줄이 없다`);
+    }
+    assert.equal(READING_AXES.jaehoe.usesScore, true);
   });
 
   it("productId 를 안 넘기면 예전 그대로다", () => {
@@ -77,8 +94,13 @@ describe("상품 지수", () => {
 
   it("축이 없는 상품에는 숫자를 줘도 안 나간다", () => {
     // 목차가 팔지 않는 숫자를 주면, 안 판 것을 말하게 된다.
-    const payload = JSON.parse(buildReadingInput({ ...base, productId: "jaehoe", score }));
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "ibyeol", score }));
     assert.equal("product_score" in payload.delivery, false);
+  });
+
+  it("재회는 지수를 판다 — 화면의 재회 가능성이 본문에도 간다", () => {
+    const payload = JSON.parse(buildReadingInput({ ...base, productId: "jaehoe", score }));
+    assert.equal(payload.delivery.product_score.value, 71);
   });
 
   it("숫자가 없으면 그 칸도 없다", () => {
