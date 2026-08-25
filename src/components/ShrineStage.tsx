@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 
-import AdultToggle from "@/components/AdultToggle";
 import CharacterMotion from "@/components/CharacterMotion";
 import ShrineAudioToggle from "@/components/ShrineAudioToggle";
 import { DEFAULT_EMOTION, type Emotion } from "@/lib/character-emotions";
@@ -108,7 +107,6 @@ export default function ShrineStage({
         </button>
         <strong style={{ color: "#fff", letterSpacing: "0.14em" }}>LOVERABBIT</strong>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <AdultToggle compact />
           <ShrineAudioToggle src={character.bgm} shrineName={character.title} />
         </div>
       </header>

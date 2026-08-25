@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
-import AdultToggle from "@/components/AdultToggle";
 import CharacterMotion from "@/components/CharacterMotion";
 import { CHARACTERS, participantCount } from "@/lib/characters";
 import SignupModal from "@/components/SignupModal";
@@ -49,7 +48,7 @@ function CardArt({ p, height, className }: { p: Product; height?: number; classN
 }
 
 export default function AppHome() {
-  const { theme, showMatureLabels } = useTheme();
+  const { theme } = useTheme();
   const dark = theme === "dark";
   const [notice, setNotice] = useState(0);
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
@@ -81,10 +80,8 @@ export default function AppHome() {
               sizes="30px"
             />
             LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
-            {showMatureLabels && <span className="app-header-mature-badge">19+</span>}
           </strong>
           <div className="app-header-actions">
-            <AdultToggle />
             <button
               onClick={async () => {
                 if (user) {
