@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { buildFbc, eventTimeSeconds } from "@/lib/meta-capi";
-import { purchaseEventId } from "@/lib/purchase-conversion";
+import { purchaseEventId } from "@/lib/purchase-event-id";
 
 const NOW = 1_800_000_000_000;
 const DAY = 24 * 60 * 60 * 1000;
@@ -50,5 +50,7 @@ describe("전환 열쇠", () => {
     assert.equal(purchaseEventId(11), "order-11");
     assert.equal(purchaseEventId(11), purchaseEventId(11));
     assert.notEqual(purchaseEventId(11), purchaseEventId(12));
+    // 포트원은 결제 번호로 가리킨다. 브라우저와 서버가 같은 값을 만들어야 한다.
+    assert.equal(purchaseEventId("LRP_abc123"), "order-LRP_abc123");
   });
 });

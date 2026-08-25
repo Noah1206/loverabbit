@@ -12,7 +12,7 @@ import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
-import { buildFbc } from "@/lib/meta-capi";
+import { snapshotMetaMatch } from "@/lib/meta-capi";
 import { notifyAdmin } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { PortOnePaymentError } from "@/lib/portone-validation";
@@ -84,14 +84,7 @@ export async function POST(req: NextRequest) {
     물어볼 곳이 없으니, 물어볼 수 있을 때 물어 둔다 — 동의하지 않은 사람의
     전환은 나중에도 나가지 않는다.
   */
-  const metaSnapshot = {
-    consent: body.marketingConsent === true,
-    fbp: req.cookies.get("_fbp")?.value,
-    fbc: buildFbc(req.cookies.get("_fbc")?.value, attribution),
-    ip: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
-    userAgent: req.headers.get("user-agent") ?? undefined,
-    at: Date.now(),
-  };
+  const metaSnapshot = snapshotMetaMatch(req, attribution, body.marketingConsent === true);
 
   if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다. 잠시 후 다시 시도해주세요." }, { status: 503 });

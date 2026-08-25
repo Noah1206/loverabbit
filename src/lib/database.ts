@@ -958,14 +958,20 @@ export interface OrderConversion {
   } | null;
 }
 
-export async function getOrderConversion(orderId: number): Promise<OrderConversion | null> {
+/**
+ * @param ref 숫자면 주문 번호, 문자열이면 결제사 주문 번호(LRP_...)로 찾는다.
+ *   계좌이체는 우리 주문 번호로, 포트원은 결제 번호로 가리키는 게 자연스럽다 —
+ *   각각 그 경로에서 브라우저와 서버가 함께 아는 값이다.
+ */
+export async function getOrderConversion(ref: number | string): Promise<OrderConversion | null> {
   const db = getSupabaseAdmin();
   if (!db) return null;
-  const { data, error } = await db
-    .from("lr_orders")
-    .select("id,reading_id,amount,metadata,created_at")
-    .eq("id", orderId)
-    .maybeSingle();
+  const query = db.from("lr_orders").select("id,reading_id,amount,metadata,created_at");
+  const { data, error } = await (typeof ref === "number"
+    ? query.eq("id", ref).maybeSingle()
+    // 같은 결제 번호로 pending 과 paid 두 줄이 남는다(결제 완료가 새 줄을 만든다).
+    // 스냅샷은 처음 만든 줄에 있으므로 오래된 것부터 본다.
+    : query.eq("provider_order_id", ref).order("id", { ascending: true }).limit(1).maybeSingle());
   if (error) throw databaseError("전환 정보 조회", error);
   if (!data) return null;
 

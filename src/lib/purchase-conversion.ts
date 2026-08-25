@@ -14,16 +14,9 @@ import { getOrderConversion } from "@/lib/database";
 import { landingTypeForProduct } from "@/lib/meta-events";
 import { sendMetaConversion } from "@/lib/meta-capi";
 import { SITE_URL } from "@/lib/site";
+import { purchaseEventId } from "@/lib/purchase-event-id";
 
-/**
- * 이 주문의 전환 열쇠.
- *
- * 주문 번호에서 그대로 만든다 — 무작위로 만들면 같은 주문이 두 길로 나갈 때
- * 두 건으로 세어진다. 이 값이 같으면 Meta 가 하나로 합친다.
- */
-export function purchaseEventId(orderId: number): string {
-  return `order-${orderId}`;
-}
+export { purchaseEventId } from "@/lib/purchase-event-id";
 
 /**
  * 승인된 주문 하나를 전환으로 보낸다.
@@ -32,10 +25,10 @@ export function purchaseEventId(orderId: number): string {
  * 입금 승인이 실패하면, 돈은 받고 글은 안 열린 상태가 된다.
  */
 export async function reportApprovedPurchase(
-  orderId: number
+  orderRef: number | string
 ): Promise<{ sent: boolean; reason?: string }> {
   try {
-    const order = await getOrderConversion(orderId);
+    const order = await getOrderConversion(orderRef);
     if (!order) return { sent: false, reason: "order_not_found" };
 
     // 결제를 요청할 때 동의하지 않았으면 지금도 보내지 않는다. 승인 시점에는
@@ -44,10 +37,12 @@ export async function reportApprovedPurchase(
 
     const result = await sendMetaConversion({
       eventName: "Purchase",
-      eventId: purchaseEventId(order.orderId),
+      // 브라우저가 같은 결제를 보낼 수도 있다(포트원 완료 화면). 가리키는 값이
+      // 같아야 Meta 가 한 건으로 합치므로, 부를 때 쓴 참조를 그대로 쓴다.
+      eventId: purchaseEventId(orderRef),
       value: order.amount,
       currency: "KRW",
-      transactionId: String(order.orderId),
+      transactionId: String(orderRef),
       landingType: landingTypeForProduct(order.category),
       attribution: order.attribution,
       // 광고 성과는 승인을 누른 시각이 아니라 사람이 결제를 요청한 시각에 붙어야

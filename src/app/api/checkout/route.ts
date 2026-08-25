@@ -5,10 +5,16 @@ import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
+import { normalizeAttribution } from "@/lib/attribution";
+import { snapshotMetaMatch } from "@/lib/meta-capi";
 
 interface Body {
   readingId?: string;
   userToken?: string;
+  /** 광고 유입 표시. 주소에서 온 값이라 그대로 믿지 않는다. */
+  attribution?: unknown;
+  /** 마케팅 쿠키 동의. 동의는 기기에만 있어 브라우저가 말해줘야 안다. */
+  marketingConsent?: boolean;
 }
 
 export async function POST(request: NextRequest) {
@@ -62,6 +68,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "이미 열린 리딩이에요." }, { status: 409 });
   }
 
+  const attribution = normalizeAttribution(body.attribution);
   const orderId = `${usePortOne ? "LRP" : "LR"}_${randomUUID().replace(/-/g, "")}`;
   try {
     await createOrder({
@@ -72,7 +79,13 @@ export async function POST(request: NextRequest) {
       status: "pending",
       amount: reading.price,
       providerOrderId: orderId,
-      metadata: { checkout_created_at: new Date().toISOString() },
+      metadata: {
+        checkout_created_at: new Date().toISOString(),
+        ...(attribution ? { attribution } : {}),
+        // 결제가 웹훅으로 끝나면 그때는 브라우저가 없다. 전환을 만들 재료를
+        // 사람이 화면 앞에 있는 지금 떠 둔다.
+        meta: snapshotMetaMatch(request, attribution, body.marketingConsent === true),
+      },
     });
   } catch (error) {
     console.error("결제 주문 생성 실패:", error);

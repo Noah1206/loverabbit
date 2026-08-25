@@ -117,10 +117,18 @@ export async function trackPurchase(input: {
   currency?: string;
   transactionId: string;
   landingType?: LandingType;
+  /**
+   * 서버도 같은 결제를 보낼 때 맞춰 쓸 이름표.
+   *
+   * 없으면 무작위로 만든다 — 서버가 보내지 않는 경로에서는 그래도 된다.
+   * 서버가 함께 보내는 경로(포트원)에서는 **반드시** 넘겨야 한다. 안 넘기면
+   * 같은 결제가 서로 다른 이름표로 두 번 도착해 매출이 두 배로 보인다.
+   */
+  eventId?: string;
 }): Promise<void> {
   if (!hasMarketingConsent()) return;
 
-  const eventId = newEventId();
+  const eventId = input.eventId ?? newEventId();
   const currency = input.currency ?? "KRW";
   // 랜딩이 다섯 개뿐이라 landing_type 만으로는 같은 랜딩에 걸린 소재들이 한 덩어리로
   // 뭉친다. 링크에 붙여 보낸 utm 을 함께 실어 소재별로 갈라 본다.

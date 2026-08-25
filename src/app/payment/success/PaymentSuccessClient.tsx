@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { landingTypeForProduct, trackPurchase } from "@/lib/meta-events";
 import { trackFunnel } from "@/lib/funnel";
+import { purchaseEventId } from "@/lib/purchase-event-id";
 import { getUser } from "@/lib/user";
 import type { StructuredReport } from "@/lib/reading-prompt";
 
@@ -85,10 +86,14 @@ export default function PaymentSuccessClient({
         });
         // 전환 기록 — 클라이언트 Pixel과 서버 CAPI가 같은 event_id로 한 번씩 보낸다.
         const archiveEntry = listArchive().find((entry) => entry.readingId === readingId);
+        // 서버도 같은 결제를 보낸다(포트원 완료·웹훅 어느 쪽이든). 이름표를 맞춰야
+        // Meta 가 한 건으로 합친다 — 안 맞추면 매출이 두 배로 보인다.
+        const reference = data.paymentId ?? referenceId;
         void trackPurchase({
           value: data.amount ?? amount,
           currency: "KRW",
-          transactionId: data.paymentId ?? referenceId,
+          transactionId: reference,
+          eventId: purchaseEventId(reference),
           landingType: landingTypeForProduct(archiveEntry?.category, archiveEntry?.offerId) ?? undefined,
         });
         trackFunnel("purchase_done", { product: archiveEntry?.category });

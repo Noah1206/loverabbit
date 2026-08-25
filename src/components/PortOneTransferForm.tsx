@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 
 import { trackFunnel } from "@/lib/funnel";
+import { readAttribution } from "@/lib/attribution";
+import { hasMarketingConsent } from "@/lib/consent";
 
 const STORE_ID = process.env.NEXT_PUBLIC_PORTONE_STORE_ID?.trim() ?? "";
 const CHANNEL_KEY = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY?.trim() ?? "";
@@ -29,7 +31,7 @@ export default function PortOneTransferForm({
   amount: number;
   customerEmail: string;
   checkoutEndpoint: string;
-  checkoutBody: Record<string, string>;
+  checkoutBody: Record<string, unknown>;
   redirectPath: string;
   buttonLabel: string;
 }) {
@@ -66,7 +68,14 @@ export default function PortOneTransferForm({
       const response = await fetch(checkoutEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(checkoutBody),
+        // 결제가 웹훅으로 끝나면 그때는 이 기기가 없다. 전환을 만들 재료와
+        // 동의 여부를 여기서 함께 보낸다 — 리딩 결제와 대화권 결제가 같은 폼을
+        // 쓰므로 한 곳에 두면 둘 다 덮인다.
+        body: JSON.stringify({
+          ...checkoutBody,
+          attribution: readAttribution(),
+          marketingConsent: hasMarketingConsent(),
+        }),
       });
       const checkout = (await response.json().catch(() => ({}))) as CheckoutResponse;
       if (

@@ -15,6 +15,7 @@ import {
   validatePortOneTransferPayment,
 } from "@/lib/portone-validation";
 import { markUnlocked } from "@/lib/store";
+import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 
 const PAYMENT_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
@@ -149,6 +150,28 @@ export async function finalizePortOnePayment(
     if (!unlocked) {
       throw new PortOnePaymentError("결제 리딩을 찾지 못했어요.", 404, "READING_NOT_FOUND");
     }
+    /*
+      전환은 여기서 나간다.
+
+      이 함수는 두 길에서 불린다 — 결제 후 돌아온 브라우저와, 돌아오지 않았을
+      때를 받아내는 웹훅이다. 완료 화면에만 전환을 걸어 두면 브라우저가 안
+      돌아온 결제는 통째로 빠진다. 여기 두면 어느 길로 끝나든 한 번은 나간다.
+
+      alreadyPaid 가 이 호출이 실제로 결제를 완료시켰는지 알려준다. 두 길이
+      겹치면 진 쪽은 true 를 받으므로, false 일 때만 보내면 두 번 나가지 않는다.
+      그래도 event_id 는 결제 번호에서 만들어, 완료 화면의 픽셀과도 한 건으로
+      합쳐지게 해 둔다.
+
+      await 한다 — 응답 뒤에는 함수가 얼어 전송이 사라진다. 실패해도 결제는
+      그대로 둔다.
+    */
+    if (!alreadyPaid) {
+      const conversion = await reportApprovedPurchase(paymentId);
+      if (!conversion.sent) {
+        console.log(`[전환] 포트원 ${paymentId} 전환 미전송: ${conversion.reason}`);
+      }
+    }
+
     return {
       paymentId,
       userId: order.userId,

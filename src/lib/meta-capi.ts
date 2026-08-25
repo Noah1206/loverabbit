@@ -39,6 +39,32 @@ export interface MetaMatchSnapshot {
   sourceUrl?: string;
 }
 
+/**
+ * 지금 이 요청에서 사람을 알아볼 수 있는 값들을 떠 둔다.
+ *
+ * 결제가 끝나는 시각과 사람이 화면 앞에 있는 시각이 다르기 때문에 필요하다.
+ * 계좌이체는 승인이 몇 시간 뒤고, 포트원도 브라우저가 안 돌아오면 웹훅만 남는다.
+ * 둘 다 그 순간에는 쿠키도 IP 도 없다 — Meta 는 user_data 가 비면 이벤트를
+ * 받지 않으므로, 그때 만들 수 있는 전환은 애초에 없다.
+ *
+ * 동의도 함께 적는다. 동의는 기기에만 있고 서버는 모른다. 나중에 물어볼 곳이
+ * 없으니 물어볼 수 있을 때 물어 둔다.
+ */
+export function snapshotMetaMatch(
+  request: { cookies: { get(name: string): { value: string } | undefined }; headers: Headers },
+  attribution: Attribution | null,
+  consent: boolean
+): MetaMatchSnapshot & { consent: boolean; at: number } {
+  return {
+    consent,
+    fbp: request.cookies.get("_fbp")?.value,
+    fbc: buildFbc(request.cookies.get("_fbc")?.value, attribution),
+    ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
+    userAgent: request.headers.get("user-agent") ?? undefined,
+    at: Date.now(),
+  };
+}
+
 export interface MetaConversionInput {
   eventName: "Purchase" | "InitiateCheckout";
   /** 같은 전환이 두 길로 나가도 한 번으로 세어지게 하는 열쇠 */
