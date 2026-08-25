@@ -702,57 +702,6 @@ export default function ReadingPage() {
             : step === "concern"
               ? true
               : validateForm() === null;
-  /*
-    입력이 다 차면 자동으로 다음 단계로 넘어간다 (운영자 요청, 2026-08-22).
-
-    다만 세 가지는 지킨다.
-
-    1. 이미 채워진 채로 들어온 화면에서는 안 넘어간다. 뒤로가기로 돌아온 사람을
-       그 자리에서 다시 앞으로 튕기면, 고치러 온 사람이 고칠 수가 없다.
-       화면에 들어온 순간 이미 완료였는지를 기억해 두고, 그 화면에 있는 동안
-       미완료 -> 완료로 "바뀐" 경우에만 넘어간다.
-
-    2. 타이핑 필드는 오래 기다린다. 일(日)에 "1"까지 친 순간도 유효한 값이라,
-       바로 넘기면 "14"를 치려던 사람을 낚아챈다. 생년월일은 1.1초 손을 떼야
-       넘어가고, 클릭·선택(시각/성별, 혼자/함께, 리딩 선택)은 뜻이 분명하니 짧다.
-
-    3. 마지막 확인(ready)과 고민(concern)은 자동으로 안 넘어간다. 확인 화면의
-       버튼은 제출이라 자동 제출이 되고, 고민은 선택 입력이라 "다 찼다"가 없다.
-  */
-  const AUTO_ADVANCE_DELAY: Partial<Record<ReadingStep, number>> = {
-    meGender: 350,
-    meBirth: 1100,
-    meDetails: 450,
-    mode: 350,
-    partnerBirth: 1100,
-    partnerDetails: 450,
-    category: 350,
-  };
-  const advanceRef = useRef(advanceStep);
-  useEffect(() => {
-    advanceRef.current = advanceStep;
-  });
-  // 화면에 들어온 순간 이미 완료였는가 — 선언 순서가 중요하다. 이 효과가 아래
-  // 자동 진행 효과보다 먼저 돌아야 뒤로가기 직후의 완료 상태가 먼저 기록된다.
-  const completeAtEntry = useRef(false);
-  useEffect(() => {
-    completeAtEntry.current = isStepComplete;
-    // step 이 바뀐 순간의 완료 여부만 기록한다
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
-  useEffect(() => {
-    const delay = AUTO_ADVANCE_DELAY[step];
-    if (delay === undefined || loading) return;
-    if (!isStepComplete) {
-      // 들어와서 값을 지웠다 = 고치는 중. 다시 차면 그때는 넘어간다.
-      completeAtEntry.current = false;
-      return;
-    }
-    if (completeAtEntry.current) return;
-    const timer = setTimeout(() => advanceRef.current(), delay);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step, isStepComplete, loading]);
 
   const visibleMeBirthError = step === "meBirth" && me.year && me.month && me.day
     ? birthError(me, "내", true)
