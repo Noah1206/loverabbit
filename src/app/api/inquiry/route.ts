@@ -6,6 +6,8 @@ import {
   isDatabaseConfigured,
   type InquiryCategory,
 } from "@/lib/database";
+import { SITE_URL } from "@/lib/site";
+import { notifyAdmin } from "@/lib/telegram";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 앱 하단 원버튼에서 들어오는 문의 접수.
@@ -17,6 +19,15 @@ const MIN_LEN = 5;
 const MAX_LEN = 2000;
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_PER_WINDOW = 3;
+
+const CATEGORY_LABEL: Record<InquiryCategory, string> = {
+  payment: "결제",
+  reading: "리딩",
+  chat: "신당 대화",
+  account: "계정",
+  bug: "오류",
+  etc: "기타",
+};
 
 interface Body {
   category?: string;
@@ -91,6 +102,18 @@ export async function POST(request: NextRequest) {
     });
     if (!saved) throw new Error("문의를 저장하지 못했습니다.");
     console.log(`[문의접수] id=${saved.id} userId=${userId ?? "-"} category=${category}`);
+    // 접수되는 순간 운영자 텔레그램으로 알린다. 안 알리면 문의는 /admin/inquiries 를
+    // 우연히 열 때까지 묻힌다. notifyAdmin 은 던지지 않고 4초 상한이라 접수를 막지 않는다.
+    await notifyAdmin(
+      [
+        `[문의] #${saved.id} · ${CATEGORY_LABEL[category]}`,
+        `${email || "(이메일 없음)"}${userId ? ` · 회원 #${userId}` : " · 비회원"}${pagePath ? ` · ${pagePath}` : ""}`,
+        "",
+        message.length > 600 ? `${message.slice(0, 600)}…` : message,
+        "",
+        `답변: ${SITE_URL}/admin/inquiries`,
+      ].join("\n")
+    );
     return NextResponse.json({ inquiryId: saved.id, status: saved.status });
   } catch (error) {
     console.error("문의 저장 실패:", error);
