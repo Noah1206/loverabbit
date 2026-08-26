@@ -239,7 +239,6 @@ export default function ChatPaymentModal({
                 )}
               </button>
             </div>
-            <p className="transfer-pay-memo">입금 메모에 <strong>{depositorCode}</strong> 를 꼭 적어주세요</p>
             <button className="transfer-pay-confirm" onClick={() => void submitTransfer()} disabled={paying}>
               {paying ? "확인 요청 보내는 중…" : "입금을 마쳤어요"}
               <span aria-hidden>→</span>

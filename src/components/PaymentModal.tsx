@@ -306,7 +306,6 @@ export default function PaymentModal({
                 )}
               </button>
             </div>
-            <p className="transfer-pay-memo">입금 메모에 <strong>{depositorCode}</strong> 를 꼭 적어주세요</p>
             <button
               className="transfer-pay-confirm"
               onClick={() => onTransferSubmitted?.(coupon?.id)}

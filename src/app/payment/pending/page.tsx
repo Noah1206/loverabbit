@@ -126,7 +126,7 @@ export default function PaymentPendingPage() {
         <span className="badge">계좌이체 확인</span>
         <h1>{rejected ? "입금 승인이 보류됐어요" : "입금 확인을 기다리고 있어요"}</h1>
         <p>
-          관리자가 통장 입금 내역과 입금코드를 확인하면 자동으로 풀 리딩이 열리고
+          관리자가 통장 입금 내역을 확인하면 자동으로 풀 리딩이 열리고
           <strong> 내 상담 페이지로 이동합니다.</strong>
         </p>
 
@@ -134,7 +134,6 @@ export default function PaymentPendingPage() {
           <dl className="payment-order-summary">
             <div><dt>주문번호</dt><dd>#{order.orderId}</dd></div>
             <div><dt>결제금액</dt><dd>{order.amount.toLocaleString()}원</dd></div>
-            <div><dt>입금코드</dt><dd>{order.depositorCode ?? "확인 중"}</dd></div>
             <div><dt>현재상태</dt><dd>{rejected ? "확인 필요" : "승인 대기"}</dd></div>
           </dl>
         )}

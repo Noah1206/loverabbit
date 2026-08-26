@@ -185,7 +185,7 @@ export default function AdminPaymentsPage() {
                 <span className="badge">{order.kind === "chat_credits" ? "대화권" : "리딩"} · 승인 대기</span>
               </div>
               <dl>
-                <div><dt>입금코드</dt><dd>{order.depositorCode ?? "없음"}</dd></div>
+                <div><dt>주문코드</dt><dd>{order.depositorCode ?? "없음"}</dd></div>
                 <div><dt>회원</dt><dd>{order.email ?? `회원 #${order.userId}`}</dd></div>
                 <div><dt>상품</dt><dd>{order.category ?? "사주 리딩"}</dd></div>
                 <div><dt>요청시각</dt><dd>{new Date(order.createdAt).toLocaleString("ko-KR")}</dd></div>

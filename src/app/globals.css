@@ -7553,17 +7553,6 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 14px;
 }
 
-.transfer-pay-memo {
-  margin: 10px 0 0;
-  font-size: 0.8rem;
-  color: var(--text-dim);
-  word-break: keep-all;
-}
-
-.transfer-pay-memo strong {
-  color: var(--gold);
-}
-
 /* 확인 버튼. 흰 알약(.btn)과 일부러 다르게 - 금색 실선에 화살표가 있는
    문장형 버튼이라 '기계가 만든 결제 버튼' 냄새를 뺀다. */
 .transfer-pay-confirm {
