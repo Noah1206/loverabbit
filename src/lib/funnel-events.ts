@@ -70,7 +70,15 @@ export function isReadingStep(value: unknown): value is ReadingStepName {
 export const FUNNEL_ORDER: { name: FunnelEventName; label: string }[] = [
   { name: "step_view", label: "리딩 폼 진입" },
   { name: "preview_requested", label: "폼 제출" },
-  { name: "preview_generated", label: "리딩 생성" },
+  /*
+    이름은 preview_generated 로 둔다 — 바꾸면 이 이름으로 쌓인 지난 기록이
+    통째로 끊긴다. 다만 보이는 말은 실제와 맞춘다.
+
+    결제 선불로 바꾼 뒤(reading-gate.ts) 이 자리에서 만들어지는 것은 글이
+    아니라 명식·지수·목차다. "리딩 생성" 이라고 적어 두면, 생성 129건에 AI
+    비용이 0원인 표를 보고 무엇이 고장 났는지 찾게 된다.
+  */
+  { name: "preview_generated", label: "명식 세움" },
   { name: "reading_view", label: "리딩 열람" },
   { name: "unlock_clicked", label: "전문 보기 클릭" },
   { name: "checkout_opened", label: "결제창 열림" },

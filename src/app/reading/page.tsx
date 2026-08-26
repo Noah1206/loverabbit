@@ -55,7 +55,7 @@ const READING_STEP_LABELS: Record<ReadingStep, string> = {
   partnerBirth: "그 사람 생년월일",
   partnerDetails: "그 사람 출생 정보",
   concern: "지금의 고민",
-  ready: "무료 운명보기",
+  ready: "마지막 확인",
 };
 
 // 생년월일 유효성 검사 — 서버에서도 한 번 더 검증하지만, 여기서 먼저 친절하게 막는다
