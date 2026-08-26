@@ -98,7 +98,7 @@ export default function ProductSalesPage({
             <p className="product-hero-offer">
               <s>{product.price.toLocaleString("ko-KR")}원</s>
               <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
-              <span>무료 미리보기 먼저, 결제는 그다음</span>
+              <span>첫 사주 990원 · 명식은 결제 전에 확인</span>
             </p>
           )}
           {hero?.adultOnly && (
@@ -164,7 +164,7 @@ export default function ProductSalesPage({
           <p className="product-lore-kicker">전체 리포트 구성</p>
           <h2 className="product-report-title">전체 리포트에서 확인하는 것</h2>
           <p className="product-report-sub">
-            무료 미리보기 이후에는 {tocTopic(product.toc[0])}부터 {tocTopic(product.toc[product.toc.length - 2])}까지{" "}
+            {tocTopic(product.toc[0])}부터 {tocTopic(product.toc[product.toc.length - 2])}까지{" "}
             {product.toc.length}개 섹션으로 정리해드려요
           </p>
           <dl className="product-report-rows">
@@ -221,13 +221,13 @@ export default function ProductSalesPage({
               <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
             </h2>
             <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", lineHeight: 1.6 }}>
-              무료 미리보기를 확인한 뒤, 전체 리포트가 필요할 때만 결제합니다.
+              사주 여덟 글자와 목차를 먼저 확인하고, 결제하면 전문이 열립니다.
             </p>
           </section>
         ) : null}
 
         <p className="product-reveal" style={{ fontSize: "0.75rem", color: "var(--text-dim)", textAlign: "center" }}>
-          본 리딩은 오락 목적의 콘텐츠이며, 무료 미리보기 후 결제 여부를 결정할 수 있습니다.
+          본 리딩은 오락 목적의 콘텐츠이며, 결제 전에 명식과 목차를 확인할 수 있습니다.
         </p>
       </div>
 

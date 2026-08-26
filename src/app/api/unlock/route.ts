@@ -126,7 +126,15 @@ export async function POST(req: NextRequest) {
   const scoreAsOf = seal ? { ...seal.asOf, issuedAt: seal.issuedAt } : null;
   const report = fromBlob?.report ?? null;
 
-  if (!full || !price) {
+  /*
+    없는 리딩과 아직 안 쓴 리딩은 다르다.
+
+    결제 전에 만들지 않는 흐름(reading-gate.ts)에서는 발급 직후 full 이 빈
+    문자열이다. 여기서 !full 로 걸러 버리면 그 리딩은 결제 자체를 시작할 수
+    없다 — 만들어지지 않았으니 팔 수 없고, 팔리지 않으니 만들어지지 않는다.
+    확인해야 할 것은 "글이 있는가" 가 아니라 "리딩을 찾았는가" 다.
+  */
+  if (typeof full !== "string" || !price) {
     return NextResponse.json({ error: "리딩을 찾을 수 없습니다." }, { status: 404 });
   }
 

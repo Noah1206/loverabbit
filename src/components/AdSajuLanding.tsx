@@ -83,11 +83,11 @@ export default async function AdSajuLanding({
             className="product-sticky-cta"
           >
             <span className="product-sticky-copy">
-              <strong>무료로 운명보기</strong>
+              <strong>내 사주 세우기</strong>
               <small>
                 {active
-                  ? `무료 미리보기 · 전문은 ${offer.price.toLocaleString("ko-KR")}원`
-                  : "결제 없이 무료 미리보기부터"}
+                  ? `첫 리딩 ${offer.price.toLocaleString("ko-KR")}원 · 명식은 결제 전에 확인`
+                  : "첫 리딩 990원 · 명식은 결제 전에 확인"}
               </small>
             </span>
             <span className="product-sticky-arrow" aria-hidden>→</span>

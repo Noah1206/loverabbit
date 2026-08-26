@@ -494,9 +494,9 @@ export default function ReadingReportPage() {
       if (!state?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
       const params = new URLSearchParams({ ref: state.referralCode, reward: "chat_credits" });
       const url = `${window.location.origin}/reading?${params.toString()}`;
-      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 무료 사주 10문장도 볼 수 있어 🐰";
+      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 첫 사주 990원이야 🐰";
       if (navigator.share) {
-        await navigator.share({ title: "러브레빗 무료 사주", text, url });
+        await navigator.share({ title: "러브레빗 사주", text, url });
         setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
@@ -545,7 +545,17 @@ export default function ReadingReportPage() {
     );
   }
 
-  const minutes = readingMinutes(entry.teaser, entry.full);
+  /*
+    아직 안 쓰인 리딩의 분량.
+
+    결제 전에 만들지 않는 흐름에서는 표지에 셀 글이 없다. readingMinutes 는
+    바닥이 1분이라 "약 1분" 이 찍히는데, 그건 1분짜리를 판다는 말로 읽힌다.
+    글이 없을 때는 목차 길이로 어림한다 — 상품 상세가 "약 12,000자" 를 셀 때
+    쓰는 것과 같은 절당 800자다.
+  */
+  const minutes = entry.teaser || entry.full
+    ? readingMinutes(entry.teaser, entry.full)
+    : Math.max(1, Math.round(((product?.toc?.length ?? 0) * 800) / 450));
   const createdAt = new Date(entry.createdAt);
   const summaryCards = entry.summaryCards ?? [];
 

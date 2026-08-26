@@ -7,7 +7,7 @@ import InnerMindFlow, { LandingTracker } from "./InnerMindLandingClient";
 export const metadata: Metadata = {
   title: "이 썸, 왜 진도가 안 나갈까? — 썸 해부 사주 | 러브레빗",
   description:
-    "정체된 썸의 브레이크와 상대의 신호, 관계가 움직일 타이밍을 무료 미리보기로 확인해 보세요.",
+    "정체된 썸의 브레이크와 상대의 신호, 관계가 움직일 타이밍을 첫 리딩 990원에 확인해 보세요.",
   robots: { index: true, follow: true },
 };
 
@@ -36,9 +36,9 @@ export default async function InnerMindLanding({
 
       <section className="lp-section">
         <div className="card lp-tier">
-          <h2 className="lp-h2">무료 미리보기와 전체 리포트</h2>
+          <h2 className="lp-h2">첫 리딩 990원, 전체 리포트</h2>
           <p className="lp-tier-body">
-            무료 미리보기에서는 두 사람의 관계 속도와 흐름을 먼저 확인합니다. 전체 리포트에서는
+            결제 전에 두 사람의 명식과 목차를 확인합니다. 전체 리포트에서는
             성사 가능성, 브레이크를 밟는 쪽, 상대의 신호와 고백 타이밍까지 살펴봅니다.
           </p>
           <p className="lp-disclaimer">오락 목적의 콘텐츠입니다.</p>

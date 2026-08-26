@@ -31,6 +31,7 @@ import {
   rewriteFlagged,
 } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
+import { PAY_BEFORE_GENERATE } from "@/lib/reading-gate";
 import { recordAiUsage } from "@/lib/ai-usage";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
@@ -186,6 +187,20 @@ export async function POST(req: NextRequest) {
     }
   }
   const userId = user?.userId ?? null;
+
+  /*
+    결제 전에 만들지 않기로 한 뒤로, 이 자리가 로그인 관문이다.
+
+    전에는 익명으로 미리보기를 만들고 결제 앞에서 로그인을 받았다. 그때는 관문을
+    뒤로 미룰수록 폼을 끝내는 사람이 늘었기 때문이다. 지금은 폼 뒤에 오는 것이
+    무료 글이 아니라 주문이라, 주인 없는 주문을 만들 수가 없다.
+  */
+  if (PAY_BEFORE_GENERATE && !userId) {
+    return NextResponse.json(
+      { error: "사주를 세우려면 먼저 로그인해주세요.", needSignup: true },
+      { status: 401 }
+    );
+  }
 
   if (!body?.me?.year || !body?.me?.month || !body?.me?.day) {
     return NextResponse.json({ error: "생년월일을 입력해주세요." }, { status: 400 });
@@ -398,7 +413,17 @@ export async function POST(req: NextRequest) {
   // 제대로 봐야 화면이 자기 것으로 읽힌다. 글이 남의 것이라는 사실은 숨기지 않는다.
   const demo = hasDemoReport(body.category) ? demoReport(body.category) : null;
 
+  // 결제 전에는 글을 만들지 않는다 (reading-gate.ts). 데모보다 앞에 둔다 —
+  // 데모 글도 값은 안 들지만, 안 산 사람에게 보여 줄 글 자체가 없어야 한다.
+  const deferGeneration = PAY_BEFORE_GENERATE;
+
   try {
+    if (deferGeneration) {
+      // 글은 결제가 확인된 뒤 /api/unlock 이 만든다. 여기서는 아무것도 안 쓴다 —
+      // teaser 도 full 도 빈 채로 저장되고, 아래에서 재개 정보만 남긴다.
+      providerName = effectiveProvider() || "demo";
+      throw new SkipGeneration();
+    }
     if (demo) {
       report = demo;
       providerName = "demo-fixture";
@@ -618,7 +643,9 @@ export async function POST(req: NextRequest) {
   // 무료 공개분: 확정된 첫 절 일부를 읽히고, 나머지는 제목만 목차에 남긴다.
   // 잠긴 제목은 상품 목차에서 뽑는다 — 그 절은 아직 만들지도 않았고, 어차피 모델이
   // 목차 문구를 그대로 옮겨 적게 돼 있어 결과가 같다.
-  const preview = report
+  const preview = deferGeneration
+    ? { sections: [], lockedTitles: outline, openLoop: null }
+    : report
     ? {
         sections: report.sections.slice(0, previewSections()).map((section, index) => ({
           title: section.title,
@@ -637,7 +664,11 @@ export async function POST(req: NextRequest) {
 
   // 나머지 본문을 결제 후에 이어 만들기 위한 정보. 클라이언트 blob에만 두면
   // 계좌이체처럼 며칠 뒤에 승인되는 경우 기기를 바꾼 사용자에게 못 준다.
-  if (report && report.sections.length < outline.length) {
+  //
+  // 결제 전에 만들지 않는 흐름(deferGeneration)에서는 report 가 없다. 그래도 —
+  // 아니, 그래서 더더욱 — 재개 정보를 남겨야 한다. 이게 없으면 결제 뒤에
+  // finishReading 이 "만들 것이 없다"고 판단해 빈 리딩을 열어 준다.
+  if (deferGeneration || (report && report.sections.length < outline.length)) {
     try {
       const provider = effectiveProvider();
       await saveResume(id, {
@@ -651,10 +682,11 @@ export async function POST(req: NextRequest) {
         // 발급 시각 — 나머지를 만들 때 대운·세운을 같은 기준으로 잡기 위해.
         // 리딩 계산에 쓴 now를 그대로 쓴다(다른 변수에 기대지 않는다).
         issuedAt: now.toISOString(),
-        doneSections: report.sections.length,
+        // 결제 전 예약이면 0 절. finishReading 이 처음부터 만든다.
+        doneSections: report?.sections.length ?? 0,
         outline,
         partialReport: report,
-        continuity: continuityFromReport(report),
+        ...(report ? { continuity: continuityFromReport(report) } : {}),
         ...(provider ? { provider } : {}),
         ...(generationModel ? { model: generationModel } : {}),
         promptVersion: READING_PROMPT_VERSION,

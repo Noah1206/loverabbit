@@ -63,14 +63,14 @@ function CtaButton({ className, children }: { className: string; children: React
 
 export function HeroCta() {
   return (
-    <CtaButton className="btn lp-cta">무료 관계 판정 시작하기</CtaButton>
+    <CtaButton className="btn lp-cta">관계 판정 시작하기</CtaButton>
   );
 }
 
 export function StickyCta() {
   return (
     <div className="lp-sticky">
-      <CtaButton className="btn lp-cta lp-cta-sticky">무료 판정 이어서 보기</CtaButton>
+      <CtaButton className="btn lp-cta lp-cta-sticky">판정 이어서 보기</CtaButton>
     </div>
   );
 }

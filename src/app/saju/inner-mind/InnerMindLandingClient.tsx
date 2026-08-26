@@ -82,7 +82,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           </p>
           <div className="lp-intro-actions">
             <button type="button" className="btn lp-cta" onClick={() => setStage("situation")}>
-              이 썸의 속도 무료로 확인하기
+              이 썸의 속도 990원에 확인하기
             </button>
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
 
       {showSignup ? (
         <SignupModal
-          title="로그인하고 무료로 시작하기"
+          title="로그인하고 시작하기"
           nextPath={formPath}
           reason="로그인 후 썸 해부 사주 입력 화면으로 바로 이어져요."
           onDone={() => {

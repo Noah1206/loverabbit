@@ -25,6 +25,8 @@ import {
   trackSajuFormStarted,
 } from "@/lib/meta-events";
 import { trackFunnel } from "@/lib/funnel";
+import SignupModal from "@/components/SignupModal";
+import { PAY_BEFORE_GENERATE } from "@/lib/reading-gate";
 import type { ReadingStepName } from "@/lib/funnel-events";
 
 // 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
@@ -372,6 +374,8 @@ export default function ReadingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [user, setUser] = useState<User | null>(null);
+  // 로그인하고 나면 그대로 이어 보낼 입력. 누른 순간의 값을 들고 간다.
+  const [pendingDraft, setPendingDraft] = useState<ReadingDraft | null>(null);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
 
   // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
@@ -508,9 +512,22 @@ export default function ReadingPage() {
       occupation: occupation.trim(),
       createdAt: Date.now(),
     };
-    // 로그인은 여기서 묻지 않는다 (2026-08-25). 폼을 다 채운 사람 4명 중 3명이
-    // 이 자리의 가입 팝업에서 나갔다. 미리보기는 익명으로 만들고, 로그인은
-    // 전문(결제) 앞에서만 받는다 - /reading/[id] 의 startUnlock 이 그 자리다.
+    /*
+      로그인 관문이 다시 여기로 왔다 (2026-08-26).
+
+      8/25 에 이 자리의 가입 팝업을 없앤 이유는 폼을 다 채운 사람 4명 중 3명이
+      여기서 나갔기 때문이다. 그때는 뒤에 오는 것이 무료 글이었으니, 관문을
+      미룰수록 이득이었다.
+
+      지금은 뒤에 오는 것이 주문이다 (reading-gate.ts). 사흘 동안 리딩 115건을
+      만들어 4건을 팔았고 AI 값이 매출을 넘었다. 안 사는 사람의 글을 먼저 만드는
+      구조에서는 트래픽이 늘수록 손해가 커진다. 주인 없는 주문은 만들 수도 없다.
+    */
+    if (PAY_BEFORE_GENERATE && !user) {
+      setPendingDraft(draft);
+      trackFunnel("signup_required", { product: draft.category });
+      return;
+    }
     startGeneration(draft);
   };
 
@@ -1002,12 +1019,29 @@ export default function ReadingPage() {
             {loading
               ? "사주 푸는 중… 🔮"
               : step === "ready"
-                ? "무료로 운명 보기"
+                // 무료가 아니게 됐다. 버튼이 무료라고 말해 놓고 다음 화면이
+                // 결제를 요구하면, 속인 것이 된다.
+                ? PAY_BEFORE_GENERATE ? "내 사주 세우기" : "무료로 운명 보기"
                 : step === "partnerChoice" && !partnerChoiceIsOpen
                   ? "그 사람 사주 넣기"
                   : "다음으로"}
           </button>
         </div>
+      )}
+
+      {/* 로그인하면 그 자리에서 이어 간다. 폼으로 돌려보내면 방금 채운 것을
+          다시 보게 되고, 그 화면에서 사람이 나간다. */}
+      {pendingDraft && (
+        <SignupModal
+          onDone={(nextUser) => {
+            setUser(nextUser);
+            const draft = pendingDraft;
+            setPendingDraft(null);
+            if (draft) startGeneration(draft);
+          }}
+          onClose={() => setPendingDraft(null)}
+          reason="내 사주를 세우려면 로그인이 필요해요"
+        />
       )}
 
     </main>
