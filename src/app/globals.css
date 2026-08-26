@@ -8775,11 +8775,25 @@ body:has(.product-page[data-landing]) .consent-banner {
 /* ══ 관리자 화면 — 노트북 폭과 눈금들 ══════════════════════════════════ */
 
 /*
-  서비스 화면은 480px 폰 폭에 갇혀 있다. 운영자는 앉아서 보는 사람이라
-  변수 하나만 덮어 폭을 연다 — 안쪽 카드·표·버튼은 이미 이 변수를 보고 있다.
+  서비스 화면은 480px 폰 폭에 갇혀 있다. 운영자는 앉아서 보는 사람이라 폭을 연다.
+
+  변수를 .admin-shell 에 걸어서는 안 된다 — 폭을 잡는 .app-viewport 가 그 위
+  조상이고, 자식이 조상의 폭을 되돌릴 수는 없다. 처음에 그렇게 걸었다가 노트북
+  화면 한가운데에 폰 한 대가 그대로 서 있었다.
+
+  그래서 조상 쪽에서 건다. :has() 로 "관리자 화면을 품고 있는 body" 를 짚는다 —
+  이 저장소가 이미 쓰는 방식이다(.consent-banner 참조).
 */
-.admin-shell {
+body:has(.admin-shell) .app-viewport {
   --app-max-width: 1180px;
+  /* 탭바를 감추므로 그 자리를 비워 둘 이유도 없다. */
+  padding-bottom: 32px;
+}
+
+/* 홈·내 상담·마이는 손님의 길이다. 승인 화면 위에 떠서 표 아랫줄을 가린다. */
+body:has(.admin-shell) .tabbar,
+body:has(.admin-shell) .tabbar-dock {
+  display: none;
 }
 
 .admin-shell .admin-payments-page {
@@ -9057,4 +9071,17 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 @media (prefers-reduced-motion: reduce) {
   .fc-bar { transition: none; }
+}
+
+/* 넓은 화면에서만 두 줄. 좁으면 자연히 한 줄로 떨어진다. */
+.admin-funnel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.admin-funnel-grid > .admin-funnel-card {
+  min-width: 0;
+  margin-top: 0;
 }

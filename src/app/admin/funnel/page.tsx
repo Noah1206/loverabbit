@@ -226,6 +226,9 @@ export default function AdminFunnelPage() {
             <FunnelSteps rows={report.stages} />
           </section>
 
+          {/* 넓은 화면에서는 두 표를 나란히 둔다. 폼 안쪽과 화면 바깥쪽은 서로를
+              보며 읽는 값이라, 위아래로 두면 스크롤하며 머리로 맞춰야 한다. */}
+          <div className="admin-funnel-grid">
           <section className="card admin-funnel-card">
             <h2>리딩 폼의 어느 칸에서</h2>
             <BarRows
@@ -266,6 +269,7 @@ export default function AdminFunnelPage() {
               }))}
             />
           </section>
+          </div>
 
           <section className="card admin-funnel-card">
             <h2>어디서 왔나</h2>
