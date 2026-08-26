@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
+import { BarRows, FunnelSteps, StatTile } from "@/components/FunnelCharts";
+
 interface StageRow {
   name: string;
   label: string;
@@ -175,6 +177,30 @@ export default function AdminFunnelPage() {
 
       {report && (
         <>
+          {/* 맨 위는 차트가 아니라 숫자다. 한 값짜리 막대를 그리는 것보다
+              크게 쓴 숫자가 빠르게 읽힌다. */}
+          <div className="fc-stats">
+            <StatTile label="방문" value={report.sessions.toLocaleString("ko-KR")} sub={`${days}일 · 발자국 ${report.events.toLocaleString("ko-KR")}개`} />
+            <StatTile
+              label="리딩 폼 진입"
+              value={(report.stages.find((row) => row.name === "step_view")?.sessions ?? 0).toLocaleString("ko-KR")}
+              sub={`방문의 ${report.sessions ? Math.round(((report.stages.find((row) => row.name === "step_view")?.sessions ?? 0) / report.sessions) * 100) : 0}%`}
+            />
+            <StatTile
+              label="결제 완료"
+              value={(report.stages.find((row) => row.name === "purchase_done")?.sessions ?? 0).toLocaleString("ko-KR")}
+              sub="결제까지 간 세션"
+            />
+            {biggestDrop && biggestDrop.dropped > 0 && (
+              <StatTile
+                alert
+                label="가장 많이 잃는 칸"
+                value={biggestDrop.label}
+                sub={`${biggestDrop.dropped.toLocaleString("ko-KR")}명이 여기서 그만둠`}
+              />
+            )}
+          </div>
+
           <p className="admin-funnel-note">
             {days}일 동안 방문 <strong>{report.sessions}</strong>회 · 발자국{" "}
             {report.events.toLocaleString()}개
@@ -195,90 +221,50 @@ export default function AdminFunnelPage() {
             )}
           </p>
 
-          <section className="card admin-funnel-card">
-            <h2>단계별</h2>
-            {report.stages.every((row) => row.sessions === 0) ? (
-              <p className="admin-funnel-empty">아직 쌓인 발자국이 없어요.</p>
-            ) : (
-              <table className="admin-funnel-table">
-                <thead>
-                  <tr>
-                    <th>단계</th>
-                    <th>도달</th>
-                    <th>통과율</th>
-                    <th>여기서 이탈</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.stages.map((row) => (
-                    <tr key={row.name}>
-                      <td>{row.label}</td>
-                      <td>{row.sessions}</td>
-                      <td>{row.passRate === null ? "-" : row.passRate + "%"}</td>
-                      <td className={row.dropped > 0 ? "admin-funnel-drop" : ""}>
-                        {row.dropped > 0 ? "-" + row.dropped : "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <section className="card admin-funnel-card admin-funnel-wide">
+            <h2>단계별 — 어디서 사람이 빠지는가</h2>
+            <FunnelSteps rows={report.stages} />
           </section>
 
           <section className="card admin-funnel-card">
             <h2>리딩 폼의 어느 칸에서</h2>
-            {report.formSteps.length === 0 ? (
-              <p className="admin-funnel-empty">폼에 들어온 사람이 아직 없어요.</p>
-            ) : (
-              <table className="admin-funnel-table">
-                <thead>
-                  <tr>
-                    <th>칸</th>
-                    <th>본 사람</th>
-                    <th>여기서 손 놓음</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.formSteps.map((row) => (
-                    <tr key={row.step}>
-                      <td>{row.label}</td>
-                      <td>{row.reached}</td>
-                      <td className={row.abandoned > 0 ? "admin-funnel-drop" : ""}>
-                        {row.abandoned > 0 ? row.abandoned : "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <BarRows
+              emptyText="폼에 들어온 사람이 아직 없어요."
+              partLabel="여기서 손 놓음"
+              rows={report.formSteps
+                .filter((row) => row.reached > 0)
+                .map((row) => ({
+                  key: row.step,
+                  label: row.label,
+                  value: row.reached,
+                  part: row.abandoned,
+                  note: row.abandoned > 0 ? "-" + row.abandoned : "",
+                  tip: [
+                    ["이 칸을 본 세션", row.reached.toLocaleString("ko-KR")],
+                    ["여기서 손 놓음", row.abandoned.toLocaleString("ko-KR")],
+                  ] as [string, string][],
+                }))}
+            />
           </section>
 
           <section className="card admin-funnel-card">
             <h2>어느 화면에서 나갔는가</h2>
-            {report.pages.length === 0 ? (
-              <p className="admin-funnel-empty">아직 쌓인 발자국이 없어요.</p>
-            ) : (
-              <table className="admin-funnel-table">
-                <thead>
-                  <tr>
-                    <th>화면</th>
-                    <th>열람</th>
-                    <th>여기서 이탈</th>
-                    <th>머문 시간(중앙값)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.pages.slice(0, 20).map((row) => (
-                    <tr key={row.path}>
-                      <td className="admin-funnel-path">{row.path}</td>
-                      <td>{row.views}</td>
-                      <td className={row.exits > 0 ? "admin-funnel-drop" : ""}>{row.exits}</td>
-                      <td>{seconds(row.medianDwellMs)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <BarRows
+              emptyText="아직 쌓인 발자국이 없어요."
+              partLabel="여기서 이탈"
+              rows={report.pages.slice(0, 12).map((row) => ({
+                key: row.path,
+                label: row.path,
+                value: row.views,
+                part: row.exits,
+                note: seconds(row.medianDwellMs),
+                tip: [
+                  ["열람", row.views.toLocaleString("ko-KR")],
+                  ["여기서 이탈", row.exits.toLocaleString("ko-KR")],
+                  ["머문 시간(중앙값)", seconds(row.medianDwellMs)],
+                ] as [string, string][],
+              }))}
+            />
           </section>
 
           <section className="card admin-funnel-card">

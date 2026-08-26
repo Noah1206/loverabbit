@@ -8771,3 +8771,290 @@ body:has(.product-page[data-landing]) .consent-banner {
   line-height: 1.6;
   word-break: keep-all;
 }
+
+/* ══ 관리자 화면 — 노트북 폭과 눈금들 ══════════════════════════════════ */
+
+/*
+  서비스 화면은 480px 폰 폭에 갇혀 있다. 운영자는 앉아서 보는 사람이라
+  변수 하나만 덮어 폭을 연다 — 안쪽 카드·표·버튼은 이미 이 변수를 보고 있다.
+*/
+.admin-shell {
+  --app-max-width: 1180px;
+}
+
+.admin-shell .admin-payments-page {
+  padding-bottom: 48px;
+}
+
+/* 한눈에 보는 숫자들. 한 값짜리 막대 대신 크게 쓴 숫자. */
+.fc-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 18px 0 22px;
+}
+
+.fc-stat {
+  min-width: 0;
+  padding: 15px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--bg-card);
+}
+
+.fc-stat small {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.fc-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+
+.fc-stat span {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+/* 빨강은 여기 하나뿐이고, 언제나 글자와 함께 선다 — 색만으로 뜻을 전하면
+   색을 못 보는 사람에게는 이 칸이 사라진다. */
+.fc-stat.is-alert {
+  border-color: color-mix(in srgb, var(--fc-alert) 55%, var(--line));
+  background: color-mix(in srgb, var(--fc-alert) 8%, var(--bg-card));
+}
+
+.fc-stat.is-alert strong {
+  font-size: 1.15rem;
+  color: var(--fc-alert);
+}
+
+/*
+  막대 색은 하나다. 이 화면의 모든 막대가 "얼마나" 하나만 답하므로 계열을
+  나눌 이유가 없다. 여러 색을 쓰면 색이 분류를 뜻하는 것처럼 읽힌다.
+*/
+/*
+  단계는 검증기로 골랐다(dataviz/scripts/validate_palette.js). 색을 눈으로
+  고르면 배경 대비가 3:1 아래로 떨어지는 것을 못 알아챈다 — 처음 잡았던
+  짙은 금색은 2.54:1 이었고, 밝은 테마의 기본 금색조차 2.82:1 이었다.
+  아래 값들은 각 테마의 카드 위에서 셋 다 3:1 을 넘긴 것들이다.
+
+  bar 와 part 는 같은 색의 두 단계다. 다른 색을 쓰면 부분집합이 아니라
+  나란한 두 계열처럼 읽힌다. 밝은 테마에서는 순서를 뒤집어 part 를 더
+  어둡게 둔다 — 흰 바탕에서는 어두울수록 무거워 보인다.
+*/
+.admin-shell {
+  --fc-bar: #e8b84b;
+  --fc-part: #8a6d2c;
+  --fc-track: color-mix(in srgb, var(--text) 8%, transparent);
+  --fc-alert: #d9544a;
+}
+
+[data-theme="light"] .admin-shell,
+.theme-light .admin-shell {
+  --fc-bar: #a9761f;
+  --fc-part: #5d4210;
+  --fc-track: color-mix(in srgb, var(--text) 10%, transparent);
+  --fc-alert: #b0362c;
+}
+
+.fc-chart {
+  margin-top: 12px;
+}
+
+.fc-legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.fc-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fc-swatch {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+}
+
+.fc-swatch-base { background: var(--fc-bar); }
+.fc-swatch-part { background: var(--fc-part); }
+
+.fc-rows,
+.fc-steps {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fc-row,
+.fc-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 168px) minmax(0, 1fr) 62px 96px;
+  align-items: center;
+  gap: 12px;
+}
+
+.fc-step {
+  grid-template-columns: minmax(0, 168px) minmax(0, 1fr) 62px;
+}
+
+.fc-label,
+.fc-step-label {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 막대가 앉는 자리. 트랙은 배경일 뿐이라 색을 갖지 않는다. */
+.fc-track {
+  min-width: 0;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--fc-track);
+  overflow: hidden;
+}
+
+.fc-bar {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 4px;
+  background: var(--fc-bar);
+  transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 이탈은 막대의 부분집합이라 같은 색의 짙은 단계로 겹친다. 두 색을 쓰면
+   따로 있는 두 계열처럼 읽힌다. 사이의 2px 틈이 경계를 만든다. */
+.fc-part {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--fc-part);
+  box-shadow: 2px 0 0 var(--bg-card);
+}
+
+.fc-value {
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fc-note {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fc-row.is-alert .fc-bar,
+.fc-step.is-alert .fc-bar {
+  background: var(--fc-alert);
+}
+
+/* 단계 사이에서 잃은 수. 앞뒤 막대를 눈으로 빼지 않아도 되게 직접 적는다. */
+.fc-gap {
+  margin: 5px 0 5px 180px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fc-gap.is-alert {
+  color: var(--fc-alert);
+}
+
+.fc-gap strong {
+  font-weight: 800;
+}
+
+.fc-steps > li {
+  margin: 0;
+}
+
+/* 값을 정확히 읽어야 할 때만 뜨는 창. 막대 위에 숫자를 늘 박아 두면
+   막대가 아니라 숫자를 읽게 된다. */
+.fc-tip {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 180px;
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-card2);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
+  font-size: 0.76rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.fc-tip strong {
+  margin-bottom: 3px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.fc-tip span {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fc-tip em {
+  color: var(--text-dim);
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* 좁은 화면에서는 이름을 위로 올리고 막대를 한 줄 통째로 쓴다. */
+@media (max-width: 720px) {
+  .fc-row,
+  .fc-step {
+    grid-template-columns: minmax(0, 1fr) 58px;
+    grid-template-areas:
+      "label label"
+      "track value";
+    gap: 5px 10px;
+  }
+  .fc-label,
+  .fc-step-label { grid-area: label; }
+  .fc-track { grid-area: track; }
+  .fc-value { grid-area: value; }
+  .fc-note { display: none; }
+  .fc-gap { margin-left: 0; }
+  .fc-tip { left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-bar { transition: none; }
+}
