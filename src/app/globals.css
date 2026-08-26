@@ -8200,3 +8200,574 @@ body:has(.product-page[data-landing]) .consent-banner {
 .product-page .review-section {
   padding: 0;
 }
+
+/* ── 만세력 계산기 (/manseryeok) ──────────────────────────────────────
+   마케팅 진입점이라 첫 화면이 곧 인상이다. 색은 오행에만 준다 —
+   나머지를 무채색으로 비워 둬야 여덟 글자의 색이 정보로 읽힌다.
+   오행 색값은 위쪽 .sj-wood ~ .sj-water 가 --sj-c 로 이미 세워 둔 것을 쓴다. */
+.ms {
+  padding: 26px 18px 8px;
+}
+
+.ms-hero {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.ms-h1 {
+  margin: 12px 0 8px;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.ms-lede {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+/* ── 입력 폼 ─────────────────────────────────────────────────────── */
+.ms-form {
+  display: grid;
+  gap: 20px;
+  padding: 20px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+
+.ms-field {
+  display: grid;
+  gap: 9px;
+  border: 0;
+}
+
+.ms-field legend {
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+}
+
+.ms-hint {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.ms-seg {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--bg-card2);
+}
+
+.ms-seg button {
+  padding: 10px 0;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.ms-seg button.on {
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.ms-date {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+}
+
+.ms-date label {
+  display: grid;
+  gap: 5px;
+}
+
+.ms-date span {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  padding-left: 2px;
+}
+
+.ms-date input,
+.ms-field select {
+  width: 100%;
+  padding: 12px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--bg-card2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.ms-date input:focus-visible,
+.ms-field select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.ms-leap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.ms-leap.off {
+  color: var(--text-dim);
+}
+
+.ms-leap small {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+}
+
+.ms-error {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, #e2564f 40%, transparent);
+  border-radius: 11px;
+  background: color-mix(in srgb, #e2564f 12%, transparent);
+  color: var(--text);
+  font-size: 0.8rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.ms-submit {
+  padding: 14px 0;
+  border: 0;
+  border-radius: 13px;
+  background: var(--accent);
+  color: var(--bg);
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── 결과 ────────────────────────────────────────────────────────── */
+.ms-result {
+  display: grid;
+  /* 기본값 auto 로 두면 대운 여덟 칸의 max-content 가 열 폭을 밀어 올려
+     카드 전체가 화면 밖으로 나간다. 가로로 흐르는 것은 대운 표 하나뿐이어야 한다. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.ms-card {
+  min-width: 0;
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+}
+
+.ms-card--quiet {
+  background: transparent;
+}
+
+.ms-card-head {
+  margin-bottom: 14px;
+}
+
+.ms-card-head h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ms-card-head p {
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+/* 명식 표 — 왼쪽 축 한 칸 + 시·일·월·년 네 칸 */
+.ms-grid {
+  display: grid;
+  gap: 6px;
+}
+
+.ms-row {
+  display: grid;
+  grid-template-columns: 34px repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+}
+
+.ms-axis {
+  color: var(--text-dim);
+  font-size: 0.64rem;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ms-col-head {
+  padding: 6px 0;
+  border-radius: 9px;
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.ms-tengod {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.ms-glyph {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  border: 1px solid color-mix(in srgb, var(--sj-c, var(--line)) 34%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sj-c, var(--line)) 13%, transparent);
+}
+
+.ms-glyph--lg {
+  padding: 11px 4px 8px;
+}
+
+.ms-glyph--sm {
+  padding: 7px 2px 5px;
+}
+
+.ms-glyph strong {
+  color: var(--sj-c, var(--text));
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.ms-glyph--lg strong {
+  font-size: 1.7rem;
+}
+
+.ms-glyph--sm strong {
+  font-size: 1.1rem;
+}
+
+.ms-glyph span {
+  color: color-mix(in srgb, var(--sj-c, var(--text-dim)) 70%, var(--text-dim));
+  font-size: 0.64rem;
+}
+
+.ms-glyph--empty {
+  --sj-c: var(--line);
+}
+
+.ms-glyph--empty strong {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+}
+
+/* 지장간 — 한 칸에 최대 세 글자가 세로로 선다 */
+.ms-hidden {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: 5px 2px;
+  border-radius: 9px;
+  background: var(--bg-card2);
+}
+
+.ms-hidden em {
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.ms-hidden span {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.ms-hidden b {
+  color: var(--sj-c, var(--text));
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.ms-hidden i {
+  color: var(--text-dim);
+  font-size: 0.6rem;
+  font-style: normal;
+}
+
+.ms-summary {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.ms-summary div {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+  text-align: center;
+}
+
+.ms-summary span {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+}
+
+.ms-summary strong {
+  font-size: 0.86rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.ms-summary strong.sj-wood,
+.ms-summary strong.sj-fire,
+.ms-summary strong.sj-earth,
+.ms-summary strong.sj-metal,
+.ms-summary strong.sj-water {
+  color: var(--sj-c);
+}
+
+/* 오행 막대 */
+.ms-bars {
+  display: grid;
+  gap: 8px;
+}
+
+.ms-bar {
+  display: grid;
+  grid-template-columns: 20px 1fr 18px;
+  align-items: center;
+  gap: 9px;
+}
+
+.ms-bar-name {
+  color: var(--sj-c, var(--text));
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.ms-bar-track {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--bg-card2);
+  overflow: hidden;
+}
+
+.ms-bar-track i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--sj-c, var(--accent));
+}
+
+.ms-bar-count {
+  color: var(--text-dim);
+  font-size: 0.74rem;
+  text-align: right;
+}
+
+.ms-note {
+  margin-top: 12px;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+.ms-note b {
+  color: var(--text);
+}
+
+/* 합·충·형·신살 칩 */
+.ms-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ms-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--bg-card2);
+  font-size: 0.78rem;
+}
+
+.ms-chip i {
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  font-style: normal;
+}
+
+.ms-chip--plain {
+  background: transparent;
+}
+
+/* 대운 — 여덟 칸이 480px 를 넘으므로 이 표만 가로로 흐른다 */
+.ms-luck-scroll {
+  /* 카드 안쪽 여백만큼 밖으로 내밀어, 스크롤이 카드 가장자리에서 시작하게 한다 */
+  margin: 0 -16px;
+  padding: 0 16px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ms-luck {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 58px;
+  gap: 6px;
+  min-width: min-content;
+}
+
+.ms-luck-col {
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+}
+
+.ms-luck-col.on {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+.ms-luck-col .ms-glyph {
+  width: 100%;
+}
+
+.ms-luck-age {
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.ms-luck-meta {
+  color: var(--text-dim);
+  font-size: 0.62rem;
+}
+
+.ms-luck-year {
+  opacity: 0.7;
+}
+
+.ms-notes {
+  display: grid;
+  gap: 6px;
+  padding-left: 15px;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+
+/* ── 전환 ────────────────────────────────────────────────────────── */
+.ms-cta {
+  display: grid;
+  gap: 10px;
+  padding: 22px 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--bg-card);
+  text-align: center;
+}
+
+.ms-cta h2 {
+  font-size: 1.02rem;
+  font-weight: 700;
+  word-break: keep-all;
+}
+
+.ms-cta p {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.ms-cta-btn {
+  margin-top: 4px;
+  padding: 14px 0;
+  border-radius: 13px;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ms-cta-link {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+
+/* ── 설명 (검색 유입이 읽는 자리) ─────────────────────────────────── */
+.ms-about {
+  margin-top: 22px;
+}
+
+.ms-about h2 {
+  margin-bottom: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.ms-about dt {
+  margin-top: 12px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.ms-about dt:first-of-type {
+  margin-top: 0;
+}
+
+.ms-about dd {
+  margin-top: 4px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+
+.ms-disclaimer {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}

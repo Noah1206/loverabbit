@@ -462,10 +462,24 @@ function collectTenGods(chart: SajuChart): TenGodFact[] {
 }
 
 /**
- * 대운 — 월주에서 출발해 10년마다 한 칸씩 옮겨 간다.
- * 양간년 남자와 음간년 여자는 순행, 나머지는 역행. 시작 나이는 절입까지의 거리를 3일=1년으로 환산한다.
+ * 대운의 뼈대 — 방향과 시작 나이, 그리고 n번째 칸의 간지.
+ *
+ * 원래 이 계산은 computeMajorLuck 안에 묻혀 있었고, 지금 걸린 한 칸만 내놓았다.
+ * 만세력 화면은 여덟 칸을 한 줄로 늘어놓아야 해서 밖에서도 부를 수 있게 꺼냈다.
+ * 규칙은 한 벌만 둔다 — 표에 찍히는 대운과 리딩이 근거로 쓰는 대운이 다르면
+ * 같은 사람에게 두 가지 답을 준 것이 된다.
+ *
+ * 양간년 남자와 음간년 여자는 순행, 나머지는 역행. 시작 나이는 절입까지의
+ * 거리를 3일=1년으로 환산한다.
  */
-function computeMajorLuck(chart: SajuChart, gender: Gender, ageNow: number): MajorLuck | null {
+export interface MajorLuckPlan {
+  direction: "순행" | "역행";
+  startAge: number;
+  /** step 번째 칸(0부터)의 간지 */
+  pillarAt(step: number): Pillar;
+}
+
+export function majorLuckPlan(chart: SajuChart, gender: Gender): MajorLuckPlan {
   const yearYang = isYangStem(chart.year.ganIdx);
   const forward = (yearYang && gender === "M") || (!yearYang && gender === "F");
 
@@ -473,28 +487,35 @@ function computeMajorLuck(chart: SajuChart, gender: Gender, ageNow: number): Maj
     ? nextMonthTerm(chart.moment.instantUtcMs).utcMs
     : previousMonthTerm(chart.moment.instantUtcMs).utcMs;
   const days = Math.abs(boundary - chart.moment.instantUtcMs) / 86400000;
-  const startAge = Math.max(1, Math.round(days / 3));
 
-  if (ageNow < startAge) return null; // 아직 대운에 들지 않음
-
-  // 대운은 월주에서 60갑자를 따라 한 칸씩 옮겨 간다.
-  // 월 순서(0~11)로 돌리면 12에서 되감기면서 천간이 어긋나므로, 간지를 각각 밀어야 한다.
-  const step = Math.floor((ageNow - startAge) / 10);
-  const moves = forward ? step + 1 : -(step + 1);
-  const pillar = {
-    gan: CHEONGAN[(((chart.month.ganIdx + moves) % 10) + 10) % 10],
-    ji: JIJI[(((chart.month.jiIdx + moves) % 12) + 12) % 12],
-    ganIdx: (((chart.month.ganIdx + moves) % 10) + 10) % 10,
-    jiIdx: (((chart.month.jiIdx + moves) % 12) + 12) % 12,
+  return {
+    direction: forward ? "순행" : "역행",
+    startAge: Math.max(1, Math.round(days / 3)),
+    pillarAt(step: number): Pillar {
+      // 대운은 월주에서 60갑자를 따라 한 칸씩 옮겨 간다.
+      // 월 순서(0~11)로 돌리면 12에서 되감기면서 천간이 어긋나므로, 간지를 각각 밀어야 한다.
+      const moves = forward ? step + 1 : -(step + 1);
+      const ganIdx = (((chart.month.ganIdx + moves) % 10) + 10) % 10;
+      const jiIdx = (((chart.month.jiIdx + moves) % 12) + 12) % 12;
+      return { gan: CHEONGAN[ganIdx], ji: JIJI[jiIdx], ganIdx, jiIdx };
+    },
   };
+}
 
-  const from = startAge + step * 10;
+/** 지금 걸린 대운 한 칸. 아직 첫 대운에 들지 않았으면 null. */
+function computeMajorLuck(chart: SajuChart, gender: Gender, ageNow: number): MajorLuck | null {
+  const plan = majorLuckPlan(chart, gender);
+  if (ageNow < plan.startAge) return null; // 아직 대운에 들지 않음
+
+  const step = Math.floor((ageNow - plan.startAge) / 10);
+  const pillar = plan.pillarAt(step);
+  const from = plan.startAge + step * 10;
   const dayElement = stemElement(chart.day.ganIdx);
   const dayYang = isYangStem(chart.day.ganIdx);
 
   return {
-    direction: forward ? "순행" : "역행",
-    startAge,
+    direction: plan.direction,
+    startAge: plan.startAge,
     currentPillar: pillarLabel(pillar),
     currentRange: `${from}~${from + 9}세`,
     currentTenGod: tenGodOf(dayElement, dayYang, stemElement(pillar.ganIdx), isYangStem(pillar.ganIdx)),
