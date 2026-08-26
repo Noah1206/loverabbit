@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, getUsableCoupon, isDatabaseConfigured, reserveCoupon } from "@/lib/database";
-import { applyCoupon } from "@/lib/coupons";
+import { couponPrice, couponSaving } from "@/lib/coupons";
 import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
@@ -78,8 +78,12 @@ export async function POST(request: NextRequest) {
 
   // 쿠폰은 클라이언트가 고르되 금액은 여기서 정한다. 남의 쿠폰·쓴 쿠폰이면
   // 그냥 정가로 간다 - 결제를 막을 일은 아니다.
-  const coupon = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
-  const amount = coupon ? applyCoupon(reading.price, coupon.discount) : reading.price;
+  //
+  // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다. 광고로 이미 990원에 들어온 사람의
+  // 990원 환영 쿠폰이 여기 붙으면, 아무것도 못 깎은 채 소진된다.
+  const picked = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+  const coupon = picked && couponSaving(reading.price, picked) > 0 ? picked : null;
+  const amount = coupon ? couponPrice(reading.price, coupon) : reading.price;
 
   const attribution = normalizeAttribution(body.attribution);
   const orderId = `${usePortOne ? "LRP" : "LR"}_${randomUUID().replace(/-/g, "")}`;
@@ -95,7 +99,16 @@ export async function POST(request: NextRequest) {
       metadata: {
         checkout_created_at: new Date().toISOString(),
         ...(coupon
-          ? { coupon: { id: coupon.id, kind: coupon.kind, discount: coupon.discount, listPrice: reading.price } }
+          ? {
+              coupon: {
+                id: coupon.id,
+                kind: coupon.kind,
+                // 쿠폰에 적힌 값이 아니라 이 주문에서 실제로 깎인 금액을 남긴다.
+                discount: reading.price - amount,
+                fixedPrice: coupon.fixedPrice,
+                listPrice: reading.price,
+              },
+            }
           : {}),
         ...(attribution ? { attribution } : {}),
         // 결제가 웹훅으로 끝나면 그때는 브라우저가 없다. 전환을 만들 재료를

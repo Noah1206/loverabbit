@@ -4,7 +4,15 @@ import { useEffect, useState } from "react";
 import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
-import { applyCoupon, isCouponUsable, pickBestCoupon, COUPON_LABEL, type Coupon } from "@/lib/coupons";
+import {
+  couponPrice,
+  couponSaving,
+  isCouponUsable,
+  pickBestCoupon,
+  COUPON_LABEL,
+  type Coupon,
+} from "@/lib/coupons";
+import { METHOD_LABEL, OFFER_MANUAL_TRANSFER, type PayMethod } from "@/lib/pay-method";
 import "@/app/coupons.css";
 
 const KAKAOBANK_LINK = "kakaobank://";
@@ -52,6 +60,26 @@ export default function PaymentModal({
   const [copied, setCopied] = useState(false);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT && depositorCode && onTransferSubmitted);
 
+  /*
+    쓸 수 있는 수단을 모으고, 둘 이상이면 고르게 한다.
+
+    지금은 직접 송금이 닫혀 있어(OFFER_MANUAL_TRANSFER) 포트원 계좌이체 하나만
+    나간다 — 선택줄도 서지 않는다. 포트원이 없는 환경에서는 직접 송금이 그대로
+    나온다. 그때는 그게 유일한 결제 수단이다.
+
+    토스 위젯은 계속 마지막 수단이다. 승인 API 를 거치는 동안 새로고침이 겹치면
+    결제한 사람이 실패 화면을 보는 레이스가 있고, 그건 이체 두 갈래에는 없는
+    문제다 (2026-08-21 운영자 결정).
+  */
+  const methods: PayMethod[] = [];
+  if (PORTONE_TRANSFER_CONFIGURED) methods.push("portone");
+  if (transferConfigured && (OFFER_MANUAL_TRANSFER || methods.length === 0)) methods.push("manual");
+  if (methods.length === 0 && TOSS_CLIENT_KEY) methods.push("toss");
+
+  // 고른 값이 아직 없거나 더 이상 쓸 수 없는 수단이면 첫 번째로 되돌아간다.
+  const [picked, setPicked] = useState<PayMethod | null>(null);
+  const method = picked && methods.includes(picked) ? picked : methods[0] ?? null;
+
   // 쿠폰함. 열리면 쓸 수 있는 것 중 가장 큰 할인이 먼저 골라져 있다 - 쿠폰이
   // 있는 사람이 굳이 찾아 누르지 않아도 깎인 값을 본다. 금액은 서버가 다시 정한다.
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -66,24 +94,28 @@ export default function PaymentModal({
       .then((res) => (res.ok ? res.json() : { coupons: [] }))
       .then((data: { coupons?: Coupon[] }) => {
         if (!active) return;
-        const list = (data.coupons ?? []).filter((coupon) => isCouponUsable(coupon));
+        // 이 상품에서 한 푼도 못 깎는 쿠폰은 보여 주지 않는다. 고를 수 있게
+        // 두면 0원어치로 태우고, 태운 사람은 그걸 나중에 안다.
+        const list = (data.coupons ?? []).filter(
+          (coupon) => isCouponUsable(coupon) && couponSaving(price, coupon) > 0
+        );
         setCoupons(list);
-        setCouponId(pickBestCoupon(list)?.id ?? null);
+        setCouponId(pickBestCoupon(list, price)?.id ?? null);
       })
       .catch(() => {});
     return () => {
       active = false;
     };
-  }, [userToken]);
+  }, [userToken, price]);
   const coupon = coupons.find((item) => item.id === couponId) ?? null;
-  const payAmount = coupon ? applyCoupon(price, coupon.discount) : price;
+  const payAmount = coupon ? couponPrice(price, coupon) : price;
 
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${payAmount}&origin=linkgen`;
 
   useEffect(() => {
-    // 이체가 기본 결제인 동안은 토스 SDK 를 아예 부르지 않는다 — 안 그리는
-    // 위젯을 위해 스크립트만 내려받는다.
-    if (!TOSS_CLIENT_KEY || PORTONE_TRANSFER_CONFIGURED || transferConfigured) return;
+    // 토스 위젯을 고르기 전에는 SDK 를 부르지 않는다 — 안 그리는 위젯을 위해
+    // 스크립트만 내려받는 꼴이 된다.
+    if (!TOSS_CLIENT_KEY || method !== "toss") return;
     let active = true;
 
     const setup = async () => {
@@ -110,7 +142,7 @@ export default function PaymentModal({
     return () => {
       active = false;
     };
-  }, [price]);
+  }, [price, method]);
 
   const requestPayment = async () => {
     if (!widgets) return;
@@ -161,7 +193,7 @@ export default function PaymentModal({
         <p className="toss-payment-price">{payAmount.toLocaleString()}원</p>
         {coupon && (
           <p className="toss-payment-list-price">
-            정가 {price.toLocaleString()}원 · {coupon.discount.toLocaleString()}원 할인
+            정가 {price.toLocaleString()}원 · {couponSaving(price, coupon).toLocaleString()}원 할인
           </p>
         )}
         <p className="toss-payment-intro">결제가 승인된 뒤에만 결론과 전문이 열립니다.</p>
@@ -173,7 +205,7 @@ export default function PaymentModal({
               {coupon ? (
                 <button type="button" onClick={() => setCouponId(null)}>쿠폰 안 쓰기</button>
               ) : (
-                <button type="button" onClick={() => setCouponId(pickBestCoupon(coupons)?.id ?? null)}>
+                <button type="button" onClick={() => setCouponId(pickBestCoupon(coupons, price)?.id ?? null)}>
                   쿠폰 쓰기
                 </button>
               )}
@@ -186,7 +218,7 @@ export default function PaymentModal({
                 aria-pressed={item.id === couponId}
                 onClick={() => setCouponId(item.id === couponId ? null : item.id)}
               >
-                <span className="coupon-amount">{item.discount.toLocaleString()}원</span>
+                <span className="coupon-amount">{couponSaving(price, item).toLocaleString()}원</span>
                 <span className="coupon-copy">
                   <strong>{COUPON_LABEL[item.kind]}</strong>
                   <span>{new Date(item.expiresAt).toLocaleDateString("ko-KR")}까지</span>
@@ -199,12 +231,26 @@ export default function PaymentModal({
           </div>
         )}
 
-        {/* 계좌이체가 기본이다 — 운영자 결정 (2026-08-21). 토스 PG 결제는 토스
-            승인 API 를 거치는데, 승인 중 새로고침이 겹치면 결제한 사람이 실패
-            화면을 볼 수 있는 레이스가 있다. 이체는 관리자가 입금을 눈으로 확인해
-            승인하는 흐름이라 그 문제 자체가 없다. 토스 위젯은 이체 계좌가
-            설정되지 않은 환경에서만 나온다. */}
-        {PORTONE_TRANSFER_CONFIGURED ? (
+        {/* 수단이 둘 이상일 때만 고르게 한다. 하나뿐인데 선택줄을 세우면
+            고를 것이 없는 선택을 시키는 셈이다. */}
+        {methods.length > 1 && (
+          <div className="pay-method-pick" role="group" aria-label="결제 수단 선택">
+            {methods.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={method === option ? "on" : ""}
+                aria-pressed={method === option}
+                onClick={() => setPicked(option)}
+              >
+                <strong>{METHOD_LABEL[option].title}</strong>
+                <span>{METHOD_LABEL[option].detail}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {method === "portone" ? (
           <PortOneTransferForm
             key={payAmount}
             amount={payAmount}
@@ -214,7 +260,7 @@ export default function PaymentModal({
             redirectPath={`/payment/success?readingId=${encodeURIComponent(readingId)}`}
             buttonLabel={`${payAmount.toLocaleString()}원 계좌이체하고 전문 보기`}
           />
-        ) : transferConfigured ? (
+        ) : method === "manual" ? (
           <div className="transfer-payment-fallback">
             <p className="toss-payment-config-error">
               계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 전문이 열립니다.
@@ -271,7 +317,7 @@ export default function PaymentModal({
               <span aria-hidden>→</span>
             </button>
           </div>
-        ) : TOSS_CLIENT_KEY ? (
+        ) : method === "toss" ? (
           <>
             <div id="toss-payment-methods" className="toss-payment-widget" />
             <div id="toss-payment-agreement" className="toss-payment-widget" />
@@ -288,10 +334,12 @@ export default function PaymentModal({
         {error && <p className="toss-payment-error" role="alert">{error}</p>}
         <button className="btn btn-ghost toss-payment-close" onClick={onClose}>닫기</button>
         <p className="toss-payment-note">
-          {transferConfigured
-            ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
-            : PORTONE_TRANSFER_CONFIGURED
-              ? "결제 완료는 포트원 서버 검증과 KG이니시스 웹훅으로 안전하게 확인해요."
+          {/* 고른 수단을 그대로 따라간다. 분기 순서를 따로 적어 두면 다시 어긋난다 —
+              KG이니시스로 결제한 사람이 "관리자가 입금을 확인해드려요" 를 읽던 이유다. */}
+          {method === "portone"
+            ? "결제 완료는 포트원 서버 검증과 KG이니시스 웹훅으로 안전하게 확인해요."
+            : method === "manual"
+              ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
               : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
         </p>
       </div>

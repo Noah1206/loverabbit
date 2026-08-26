@@ -327,6 +327,48 @@ body {
   margin: 5px 0 12px;
 }
 
+/* ── 결제 수단 고르기 — 계좌이체 두 갈래(바로 열림 / 직접 송금)를 나란히 ── */
+.pay-method-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+  margin: 4px 0 16px;
+}
+
+.pay-method-pick button {
+  display: grid;
+  gap: 3px;
+  padding: 11px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-card2);
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.pay-method-pick button strong {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.pay-method-pick button span {
+  color: var(--text-dim);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.pay-method-pick button.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-card2));
+}
+
+.pay-method-pick button.on strong {
+  color: var(--accent);
+}
+
 .toss-payment-widget {
   overflow: hidden;
   border-radius: 14px;

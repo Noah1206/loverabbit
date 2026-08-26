@@ -7,6 +7,7 @@ import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
+import { METHOD_LABEL, OFFER_MANUAL_TRANSFER, type PayMethod } from "@/lib/pay-method";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
 const KAKAOBANK_LINK = "kakaobank://";
@@ -47,11 +48,21 @@ export default function ChatPaymentModal({
   const [copied, setCopied] = useState(false);
   const depositorCode = chatDepositorCode(userToken);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT);
+
+  // 리딩 결제 모달과 같은 사다리, 같은 스위치. 두 화면이 다른 수단을 내보내면
+  // 두 번째 결제에서 처음 보는 결제 방식을 또 배워야 한다.
+  const methods: PayMethod[] = [];
+  if (PORTONE_TRANSFER_CONFIGURED) methods.push("portone");
+  if (transferConfigured && (OFFER_MANUAL_TRANSFER || methods.length === 0)) methods.push("manual");
+  if (methods.length === 0 && TOSS_CLIENT_KEY) methods.push("toss");
+
+  const [picked, setPicked] = useState<PayMethod | null>(null);
+  const method = picked && methods.includes(picked) ? picked : methods[0] ?? null;
   const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${product.price}&origin=linkgen`;
 
   useEffect(() => {
-    // 이체가 기본 결제인 동안은 토스 SDK 를 부르지 않는다 (PaymentModal 과 같은 이유)
-    if (!TOSS_CLIENT_KEY || PORTONE_TRANSFER_CONFIGURED || transferConfigured) return;
+    // 토스 위젯을 고르기 전에는 SDK 를 부르지 않는다 (PaymentModal 과 같은 이유)
+    if (!TOSS_CLIENT_KEY || method !== "toss") return;
     let active = true;
     const setup = async () => {
       try {
@@ -76,7 +87,7 @@ export default function ChatPaymentModal({
     return () => {
       active = false;
     };
-  }, [product.price]);
+  }, [product.price, method]);
 
   const requestPayment = async () => {
     if (!widgets) return;
@@ -152,7 +163,30 @@ export default function ChatPaymentModal({
         <p className="toss-payment-price">{product.price.toLocaleString()}원</p>
         <p className="toss-payment-intro">결제가 승인되면 지금 대화하던 캐릭터에게 바로 이어서 말할 수 있어요.</p>
 
-        {PORTONE_TRANSFER_CONFIGURED ? (
+        {/* 입금 확인 요청을 이미 보냈으면 고를 것이 없다 — 그 화면만 남는다. */}
+        {methods.length > 1 && !submittedOrderId && (
+          <div className="pay-method-pick" role="group" aria-label="결제 수단 선택">
+            {methods.map((option) => (
+              <button
+                key={option}
+                type="button"
+                className={method === option ? "on" : ""}
+                aria-pressed={method === option}
+                onClick={() => setPicked(option)}
+              >
+                <strong>{METHOD_LABEL[option].title}</strong>
+                <span>{METHOD_LABEL[option].detail}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {submittedOrderId ? (
+          <div className="transfer-payment-fallback">
+            <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
+            <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>
+          </div>
+        ) : method === "portone" ? (
           <PortOneTransferForm
             amount={product.price}
             customerEmail={customerEmail}
@@ -161,12 +195,7 @@ export default function ChatPaymentModal({
             redirectPath={`/payment/chat-success?characterId=${encodeURIComponent(characterId)}&productId=${encodeURIComponent(product.id)}`}
             buttonLabel={`${product.price.toLocaleString()}원 계좌이체하기`}
           />
-        ) : submittedOrderId ? (
-          <div className="transfer-payment-fallback">
-            <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
-            <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>
-          </div>
-        ) : transferConfigured ? (
+        ) : method === "manual" ? (
           <div className="transfer-payment-fallback">
             {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
                 두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
@@ -216,9 +245,7 @@ export default function ChatPaymentModal({
               <span aria-hidden>→</span>
             </button>
           </div>
-        ) : TOSS_CLIENT_KEY ? (
-          // 계좌이체가 기본이다 — 운영자 결정 (2026-08-21, PaymentModal 참조).
-          // 이 분기는 이체 계좌가 설정되지 않은 환경에서만 나온다.
+        ) : method === "toss" ? (
           <>
             <div id="chat-toss-payment-methods" className="toss-payment-widget" />
             <div id="chat-toss-payment-agreement" className="toss-payment-widget" />

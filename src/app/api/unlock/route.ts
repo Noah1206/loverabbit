@@ -11,7 +11,7 @@ import {
   reserveCoupon,
   settleCouponsForOrder,
 } from "@/lib/database";
-import { applyCoupon } from "@/lib/coupons";
+import { couponPrice, couponSaving } from "@/lib/coupons";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
@@ -289,8 +289,10 @@ export async function POST(req: NextRequest) {
       if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
     }
     // 쿠폰은 여기서 금액을 깎고 주문에 붙는다. 승인이 나면 소진, 거절되면 풀린다.
-    const coupon = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
-    const amount = coupon ? applyCoupon(price, coupon.discount) : price;
+    // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다 (api/checkout 과 같은 이유).
+    const picked = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+    const coupon = picked && couponSaving(price, picked) > 0 ? picked : null;
+    const amount = coupon ? couponPrice(price, coupon) : price;
     try {
       const order = user.userId
         ? await createPendingTransferOrder({
@@ -302,7 +304,15 @@ export async function POST(req: NextRequest) {
               ...(attribution ? { attribution } : {}),
               meta: metaSnapshot,
               ...(coupon
-                ? { coupon: { id: coupon.id, kind: coupon.kind, discount: coupon.discount, listPrice: price } }
+                ? {
+                    coupon: {
+                      id: coupon.id,
+                      kind: coupon.kind,
+                      discount: price - amount,
+                      fixedPrice: coupon.fixedPrice,
+                      listPrice: price,
+                    },
+                  }
                 : {}),
             },
           })

@@ -1413,16 +1413,19 @@ export { isDatabaseConfigured };
 // 발급은 DB 트리거가 한다(가입·추천 보상). 여기는 읽기와 주문에 붙이기·마감뿐.
 
 const COUPON_COLUMNS =
-  "id,kind,discount,expires_at,used_at,reserved_at,order:lr_orders(status,method,created_at)";
+  "id,kind,discount,fixed_price,expires_at,used_at,reserved_at,order:lr_orders(status,method,created_at)";
 
 function mapCoupon(row: Record<string, unknown>): Coupon {
   const order = row.order && typeof row.order === "object" && !Array.isArray(row.order)
     ? (row.order as Record<string, unknown>)
     : null;
+  // 할인 쿠폰은 discount 만, 정액가 쿠폰은 fixed_price 만 차 있다 (DB 제약).
+  // 없는 쪽을 0 으로 접으면 "0원 할인"과 구분이 사라지므로 null 로 남긴다.
   return {
     id: String(row.id),
     kind: row.kind === "referral" ? "referral" : "welcome",
-    discount: Number(row.discount ?? 0),
+    discount: row.discount == null ? null : Number(row.discount),
+    fixedPrice: row.fixed_price == null ? null : Number(row.fixed_price),
     expiresAt: String(row.expires_at),
     usedAt: typeof row.used_at === "string" ? row.used_at : null,
     reservedAt: typeof row.reserved_at === "string" ? row.reserved_at : null,

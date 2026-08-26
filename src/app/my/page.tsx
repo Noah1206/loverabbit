@@ -7,7 +7,13 @@ import { listArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive
 import BrandMark from "@/components/BrandMark";
 import SignupModal from "@/components/SignupModal";
 import { getUser, saveUser, type User } from "@/lib/user";
-import { COUPON_LABEL, type Coupon, type CouponState } from "@/lib/coupons";
+import {
+  COUPON_LABEL,
+  couponHeadline,
+  couponMeaning,
+  type Coupon,
+  type CouponState,
+} from "@/lib/coupons";
 import "../coupons.css";
 
 // 계정으로 묶인 리딩 — 이 기기의 보관함에는 없지만 DB 에는 있는 것.
@@ -188,13 +194,13 @@ export default function MyPage() {
         <div className="coupon-list">
           {coupons.map((coupon) => (
             <div key={coupon.id} className="coupon-card" data-state={coupon.state}>
-              <span className="coupon-amount">{coupon.discount.toLocaleString()}원</span>
+              <span className="coupon-amount">{couponHeadline(coupon)}</span>
               <span className="coupon-copy">
                 <strong>{COUPON_LABEL[coupon.kind]}</strong>
                 <span>
                   {coupon.state === "used"
                     ? "사용한 쿠폰이에요"
-                    : `${new Date(coupon.expiresAt).toLocaleDateString("ko-KR")}까지 · 전문 리딩 결제에 적용`}
+                    : `${new Date(coupon.expiresAt).toLocaleDateString("ko-KR")}까지 · ${couponMeaning(coupon)}`}
                 </span>
               </span>
               <em className={`coupon-state${coupon.state === "available" ? " on" : ""}`}>
