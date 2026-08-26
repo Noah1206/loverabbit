@@ -75,6 +75,34 @@ export async function saveResume(readingId: string, input: ResumeInput): Promise
   await fs.writeFile(f, JSON.stringify(input), "utf8");
 }
 
+/**
+ * 이 리딩을 만들 권리를 집는다. 집은 쪽만 모델을 부른다.
+ *
+ * 승인 라우트와 /api/unlock 이 같은 리딩을 동시에 만들 수 있다 — 승인 대기
+ * 화면이 3초마다 묻다가 paid 가 뜨는 즉시 unlock 을 부르기 때문이다. 값이 두 배로
+ * 나가고 늦게 끝난 쪽이 먼저 끝난 쪽을 덮는다.
+ *
+ * DB 가 없는 로컬에서는 늘 집힌다 — 거기서는 부르는 곳이 하나뿐이다.
+ */
+export async function claimGeneration(readingId: string): Promise<boolean> {
+  const db = getSupabaseAdmin();
+  if (!db) return true;
+  const { data, error } = await db.rpc("lr_claim_reading_generation", { p_reading_id: readingId });
+  if (error) {
+    // 표식을 못 집었다고 생성을 막지 않는다. 두 번 만드는 것보다 못 만드는 쪽이 나쁘다.
+    console.error("생성 표식 조회 실패(그대로 진행):", error);
+    return true;
+  }
+  return data !== false;
+}
+
+/** 만들다 실패했으면 표식을 놓아 준다. 성공하면 재개 정보째 지워지므로 부를 필요가 없다. */
+export async function releaseGeneration(readingId: string): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  await db.from("lr_reading_resume").update({ generating_at: null }).eq("reading_id", readingId);
+}
+
 /** 없으면 null — 재개 정보가 없는 옛 리딩은 저장된 전문을 그대로 쓴다 */
 export async function loadResume(readingId: string): Promise<ResumeInput | null> {
   const db = getSupabaseAdmin();

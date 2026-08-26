@@ -23,7 +23,14 @@ import {
   type StructuredReport,
 } from "@/lib/reading-prompt";
 import { checkReport, flaggedSections } from "@/lib/reading-guard";
-import { clearResume, loadResume, saveResume, type ResumeInput } from "@/lib/reading-resume";
+import {
+  claimGeneration,
+  clearResume,
+  loadResume,
+  releaseGeneration,
+  saveResume,
+  type ResumeInput,
+} from "@/lib/reading-resume";
 import { getReading, saveReading, type StoredReading } from "@/lib/store";
 import { recordAiUsage } from "@/lib/ai-usage";
 
@@ -153,10 +160,32 @@ export async function finishReading(params: {
       now: new Date(resume.issuedAt),
   };
 
-  const rest = await composeReport(readingInput, complete, {
-    doneSections: done,
-    continuity: resume.continuity ?? (partialReport ? continuityFromReport(partialReport) : undefined),
-  });
+  /*
+    만들 권리를 집는다.
+
+    승인 라우트가 승인 즉시 만들기 시작하고, 승인 대기 화면은 3초마다 묻다가
+    paid 가 뜨면 곧바로 /api/unlock 을 부른다. 둘 다 여기까지 온다 — 집지 않으면
+    같은 리딩을 두 번 만들고 값도 두 배로 나간다.
+
+    못 집은 쪽은 "아직 준비 중" 으로 돌아간다. 호출부는 이미 그 답을 다룰 줄
+    안다(503 + 잠시 후 다시 열어주세요), 그리고 다시 열면 그때는 완성돼 있다.
+  */
+  if (!(await claimGeneration(readingId))) {
+    console.log(`리딩 ${readingId}: 다른 쪽이 만드는 중 — 이번 호출은 비켜난다`);
+    return { full: storedFull, report: partialReport, incomplete: true, generated: false };
+  }
+
+  let rest;
+  try {
+    rest = await composeReport(readingInput, complete, {
+      doneSections: done,
+      continuity: resume.continuity ?? (partialReport ? continuityFromReport(partialReport) : undefined),
+    });
+  } catch (error) {
+    // 표식을 쥔 채 죽으면 10분 동안 아무도 못 만든다. 놓고 나간다.
+    await releaseGeneration(readingId).catch(() => {});
+    throw error;
+  }
 
   // 결제 뒤에 만든 몫. 무료에서 확정한 머리와 첫 절은 이 원가에 다시 들어가지 않는다.
   void recordAiUsage({
@@ -173,6 +202,7 @@ export async function finishReading(params: {
   const head = partialReport ?? rest.report;
   if (!head) {
     console.error(`리딩 ${readingId}: 머리를 만들지 못해 본문을 이을 수 없음`);
+    await releaseGeneration(readingId).catch(() => {});
     return { full: storedFull, report: null, incomplete: true, generated: true };
   }
   const sections = [...(partialReport?.sections ?? []), ...rest.sections];
@@ -188,6 +218,8 @@ export async function finishReading(params: {
       await persist(stored, full);
       await persistResumeProgress(readingId, resume, report, rest.model);
     }
+    // 다 못 만들었으니 다음 호출이 이어 만들 수 있게 표식을 놓는다.
+    await releaseGeneration(readingId).catch(() => {});
     return { full, report, incomplete: true, generated: true };
   }
 

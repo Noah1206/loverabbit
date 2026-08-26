@@ -5,8 +5,12 @@ import {
   isAdminApprovalConfigured,
   verifyAdminApprovalKey,
 } from "@/lib/admin-auth";
+import { waitUntil } from "@vercel/functions";
+
 import { isDatabaseConfigured, reviewTransferOrder, settleCouponsForOrder } from "@/lib/database";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
+import { finishReading } from "@/lib/reading-finish";
+import { getReading } from "@/lib/store";
 
 type ReviewRequest = {
   decision?: "paid" | "cancelled";
@@ -70,6 +74,45 @@ export async function POST(
       if (!conversion.sent) {
         console.log(`[전환] 주문 ${reviewed.orderId} 전환 미전송: ${conversion.reason}`);
       }
+    }
+
+    /*
+      승인이 곧 생성 시작이다.
+
+      전에는 산 사람이 리딩을 열러 돌아온 순간에 만들기 시작했다. 돈 안 낸
+      사람 몫을 만들지 않는다는 점에서는 그것으로 충분했지만, 산 사람은 승인
+      알림을 받고 들어와서 열두 절이 만들어지는 동안 빈 화면을 봤다. 승인과
+      열람 사이에는 보통 몇 분에서 몇 시간이 있고, 그 시간이 비어 있었다.
+
+      waitUntil 로 응답 뒤에 돌린다. 그냥 두면 응답을 돌려주는 순간 서버리스
+      함수가 얼어 생성이 중간에 끊긴다 — 위 전환 전송에서 겪은 그 문제다.
+      다만 전환과 달리 이건 분 단위라 await 하면 승인 버튼이 그만큼 멈춘다.
+
+      실패해도 승인은 그대로 둔다. 리딩은 이미 해금돼 있어서, 산 사람이 열면
+      /api/unlock 이 예전처럼 그 자리에서 한 번 더 만든다 — 이건 앞당기는
+      장치이지 유일한 길이 아니다.
+    */
+    if (reviewed.status === "paid" && reviewed.readingId) {
+      const readingId = reviewed.readingId;
+      waitUntil(
+        (async () => {
+          try {
+            const stored = await getReading(readingId);
+            if (!stored?.unlocked) return;
+            const finished = await finishReading({
+              readingId,
+              stored,
+              partialReport: null,
+              storedFull: stored.full ?? "",
+            });
+            console.log(
+              `[승인생성] ${readingId} ${finished.incomplete ? "미완성 — 열 때 이어서 만든다" : "완성"}`
+            );
+          } catch (error) {
+            console.error(`[승인생성] ${readingId} 실패 — 열 때 다시 시도한다:`, error);
+          }
+        })()
+      );
     }
 
     return NextResponse.json(reviewed);
