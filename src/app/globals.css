@@ -9085,3 +9085,38 @@ body:has(.admin-shell) .tabbar-dock {
   min-width: 0;
   margin-top: 0;
 }
+
+/* ── 결제 화면 (리딩 앞칸) ── */
+.reading-checkout-card {
+  margin-top: 48px;
+  text-align: center;
+}
+
+.reading-checkout-card h1 {
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+.reading-checkout-card p {
+  margin-bottom: 18px;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.reading-checkout-note {
+  margin-top: 14px;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.reading-checkout-error {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
+  color: var(--accent);
+  font-size: 0.82rem;
+  text-align: center;
+}

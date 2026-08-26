@@ -101,7 +101,8 @@ export default function ReadingGeneratingPage() {
         // 리딩은 이미 보관함에 앉았다. 화면을 떠난 사람은 잡아채지 않는다 —
         // 홈에서 딴 걸 보고 있는데 갑자기 리딩으로 끌려가면 그게 더 놀랍다.
         // 떠난 경우 리딩은 내 상담에서 기다린다.
-        if (alive.current) router.replace(`/reading/${data.readingId}`);
+        // 결제 화면으로 보낸다. 리딩 주소는 이제 돈을 낸 사람만 들어간다.
+        if (alive.current) router.replace(`/reading/${data.readingId}/checkout`);
       } catch (reason) {
         if (reason instanceof DOMException && reason.name === "TimeoutError") {
           trackFunnel("preview_failed", { product: job.category });

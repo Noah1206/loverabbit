@@ -207,7 +207,21 @@ export default function ReadingReportPage() {
         // 확인에 실패한 것뿐이다. 다음에 열 때 다시 확인한다.
       }
     };
-    if (found && !found.full && stored) void syncUnlock();
+    /*
+      서버 해금 확인이 끝나기 전에는 이 주소를 잠그지 않는다.
+
+      승인받은 사람이 승인 대기 화면이 아니라 리딩 주소로 바로 돌아오는 일이
+      있다 — 은행 앱에 갔다가 돌아오는 길이 그렇다. 그때 이 기기 보관함의 full 은
+      아직 null 이라, 확인을 기다리지 않고 튕겨내면 이미 돈을 낸 사람이 결제
+      화면을 다시 본다.
+    */
+    if (found && !found.full && stored) {
+      void syncUnlock().finally(() => {
+        if (alive) setUnlockChecked(true);
+      });
+    } else {
+      setUnlockChecked(true);
+    }
 
     if (Number.isInteger(wanted) && wanted > 0) {
       setPage(wanted);
@@ -300,6 +314,8 @@ export default function ReadingReportPage() {
   const concept = conceptFor(entry?.category);
   // 리딩이 실제로 그려진 순간. 경로가 열린 것(page_view)과는 다르다 — 복원에
   // 실패해 "찾을 수 없음" 으로 끝난 방문은 여기까지 오지 않는다.
+  // 서버에 해금 여부를 물어봤는가. 묻기 전에는 잠금 판단을 미룬다.
+  const [unlockChecked, setUnlockChecked] = useState(false);
   const viewedRef = useRef<string | null>(null);
   useEffect(() => {
     if (status !== "ready" || !entry) return;
@@ -310,6 +326,26 @@ export default function ReadingReportPage() {
       landing: landingTypeForProduct(entry.category, entry.offerId) ?? undefined,
     });
   }, [status, entry]);
+
+  /*
+    이 주소는 돈을 낸 사람만 들어온다 (2026-08-26 운영자 결정).
+
+    전에는 여기가 표지 겸 결제 화면이었다 — 명식·지수·목차를 펼쳐 놓고 아래에
+    결제 버튼을 두었다. 그 화면에서 하루 119명이 그만뒀다. 사기 전에 읽을 것을
+    한 상 차려 두면, 결제는 그 상을 다 물린 뒤에 꺼내는 청구서가 된다.
+
+    그래서 결제는 앞 칸(/reading/[id]/checkout)으로 옮기고 이 주소는 잠근다.
+    입금 확인을 보낸 사람은 승인 대기 화면이 제자리다 — 결제 화면으로 돌려보내면
+    두 번 내라는 말로 읽힌다.
+  */
+  useEffect(() => {
+    if (status !== "ready" || !entry || unlocked || !unlockChecked) return;
+    router.replace(
+      entry.pendingOrderId
+        ? `/payment/pending?orderId=${encodeURIComponent(String(entry.pendingOrderId))}`
+        : `/reading/${entry.readingId}/checkout`
+    );
+  }, [status, entry, unlocked, unlockChecked, router]);
 
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
 
