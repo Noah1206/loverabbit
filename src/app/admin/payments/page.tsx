@@ -2,6 +2,11 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { normalizeAttribution } from "@/lib/attribution";
+import {
+  passkeySupported,
+  registerPasskey,
+  unlockWithPasskey,
+} from "@/lib/admin-passkey-client";
 
 type PendingOrder = {
   id: number;
@@ -36,6 +41,15 @@ function adSource(order: PendingOrder): string | null {
 }
 
 const STORAGE_KEY = "loverabbit_admin_approval_key";
+/*
+  Face ID 로 받은 표는 localStorage 에 둔다.
+
+  승인 키를 sessionStorage 에 두는 것은 탭을 닫으면 지우려는 뜻이다. 이 표는
+  다르다 — 12시간이면 서버가 스스로 만료시키고, 훔쳐도 그 시간 뒤에는 죽는다.
+  아이폰에서 탭이 정리될 때마다 Face ID 를 다시 대야 한다면 이 기능의 요점이
+  없어지므로, 여기서는 남는 쪽이 맞다.
+*/
+const PASSKEY_STORAGE_KEY = "loverabbit_admin_passkey_session";
 
 export default function AdminPaymentsPage() {
   const [adminKey, setAdminKey] = useState("");
@@ -45,6 +59,11 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busyPasskey, setBusyPasskey] = useState(false);
+  const [canUsePasskey, setCanUsePasskey] = useState(false);
+  // 승인 키로 들어왔는가, Face ID 표로 들어왔는가. 등록 버튼은 앞쪽에만 뜬다.
+  const [unlockedBy, setUnlockedBy] = useState<"key" | "passkey" | null>(null);
 
   const loadOrders = async (key: string) => {
     setLoading(true);
@@ -58,13 +77,14 @@ export default function AdminPaymentsPage() {
       if (!response.ok) throw new Error(data.error ?? "승인 대기 주문을 불러오지 못했어요.");
       setOrders(data.orders ?? []);
       setAdminKey(key);
-      sessionStorage.setItem(STORAGE_KEY, key);
     } catch (reason) {
       setOrders([]);
       setError(reason instanceof Error ? reason.message : "승인 대기 주문을 불러오지 못했어요.");
       if (reason instanceof Error && reason.message.includes("인증")) {
         setAdminKey("");
+        setUnlockedBy(null);
         sessionStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(PASSKEY_STORAGE_KEY);
       }
     } finally {
       setLoading(false);
@@ -72,17 +92,65 @@ export default function AdminPaymentsPage() {
   };
 
   useEffect(() => {
+    setCanUsePasskey(passkeySupported());
+    // Face ID 표가 살아 있으면 그걸로 연다. 없으면 예전처럼 승인 키를 본다.
+    const session = localStorage.getItem(PASSKEY_STORAGE_KEY);
+    if (session) {
+      setUnlockedBy("passkey");
+      void loadOrders(session);
+      return;
+    }
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved) {
       setInputKey(saved);
+      setUnlockedBy("key");
       void loadOrders(saved);
     }
   }, []);
+
+  const unlockByFace = async () => {
+    setBusyPasskey(true);
+    setError("");
+    try {
+      const token = await unlockWithPasskey();
+      localStorage.setItem(PASSKEY_STORAGE_KEY, token);
+      setUnlockedBy("passkey");
+      await loadOrders(token);
+    } catch (reason) {
+      // 사용자가 그냥 취소한 것을 오류로 떠들지 않는다.
+      const message = reason instanceof Error ? reason.message : "인증에 실패했어요.";
+      if (!/NotAllowedError|취소/.test(message)) setError(message);
+    } finally {
+      setBusyPasskey(false);
+    }
+  };
+
+  const enrollThisDevice = async () => {
+    const key = unlockedBy === "key" ? adminKey : "";
+    if (!key) {
+      setError("기기를 등록하려면 관리자 키로 먼저 들어와야 해요.");
+      return;
+    }
+    setBusyPasskey(true);
+    setError("");
+    setNotice("");
+    try {
+      await registerPasskey(key, "관리자 기기");
+      setNotice("이 기기를 등록했어요. 다음부터 Face ID 로 열 수 있어요.");
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : "기기를 등록하지 못했어요.";
+      if (!/NotAllowedError|취소/.test(message)) setError(message);
+    } finally {
+      setBusyPasskey(false);
+    }
+  };
 
   const login = (event: FormEvent) => {
     event.preventDefault();
     const key = inputKey.trim();
     if (!key) return;
+    sessionStorage.setItem(STORAGE_KEY, key);
+    setUnlockedBy("key");
     void loadOrders(key);
   };
 
@@ -120,7 +188,21 @@ export default function AdminPaymentsPage() {
         <form className="card admin-login-card" onSubmit={login}>
           <span className="badge">관리자 전용</span>
           <h1>계좌이체 승인 관리</h1>
-          <p>운영 환경에 등록된 관리자 승인 키를 입력해주세요.</p>
+          <p>등록한 기기면 Face ID 로 바로 열 수 있어요.</p>
+
+          {canUsePasskey && (
+            <>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => void unlockByFace()}
+                disabled={busyPasskey || loading}
+              >
+                {busyPasskey ? "확인 중…" : "Face ID 로 열기"}
+              </button>
+              <p className="admin-passkey-divider">또는 승인 키로</p>
+            </>
+          )}
           <label>
             관리자 승인 키
             <input
@@ -131,7 +213,11 @@ export default function AdminPaymentsPage() {
               placeholder="16자 이상의 승인 키"
             />
           </label>
-          <button className="btn" type="submit" disabled={loading || !inputKey.trim()}>
+          <button
+            className={canUsePasskey ? "btn btn-ghost" : "btn"}
+            type="submit"
+            disabled={loading || !inputKey.trim()}
+          >
             {loading ? "확인 중…" : "승인 목록 열기"}
           </button>
           {error && <p className="payment-error">{error}</p>}
@@ -152,12 +238,22 @@ export default function AdminPaymentsPage() {
           <button className="btn btn-ghost" onClick={() => void loadOrders(adminKey)} disabled={loading}>
             새로고침
           </button>
+          {/* 등록은 승인 키로 들어왔을 때만. Face ID 표로 새 기기를 심게 두면
+              표를 한 번 훔친 사람이 영구 접근을 만든다 — 서버도 같은 이유로
+              등록에 승인 키를 요구한다. */}
+          {canUsePasskey && unlockedBy === "key" && (
+            <button className="btn btn-ghost" onClick={() => void enrollThisDevice()} disabled={busyPasskey}>
+              {busyPasskey ? "등록 중…" : "이 기기 등록"}
+            </button>
+          )}
           <button
             className="btn btn-ghost"
             onClick={() => {
               sessionStorage.removeItem(STORAGE_KEY);
+              localStorage.removeItem(PASSKEY_STORAGE_KEY);
               setAdminKey("");
               setInputKey("");
+              setUnlockedBy(null);
             }}
           >
             잠금
@@ -166,6 +262,7 @@ export default function AdminPaymentsPage() {
       </header>
 
       {error && <p className="payment-error">{error}</p>}
+      {notice && <p className="admin-passkey-notice">{notice}</p>}
 
       {orders.length === 0 ? (
         <section className="card admin-empty-orders">

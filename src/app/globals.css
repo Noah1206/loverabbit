@@ -3925,6 +3925,24 @@ label {
   padding-bottom: 32px;
 }
 
+/* Face ID 와 승인 키 사이의 칸막이. 둘 다 정상 경로라 한쪽을 숨기지 않는다. */
+.admin-passkey-divider {
+  margin: 4px 0;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
+.admin-passkey-notice {
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
+  color: var(--accent);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 .admin-login-card {
   max-width: 420px;
   margin: 12vh auto 0;
