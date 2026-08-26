@@ -12,7 +12,7 @@ import {
   COUPON_LABEL,
   type Coupon,
 } from "@/lib/coupons";
-import { METHOD_LABEL, OFFER_MANUAL_TRANSFER, type PayMethod } from "@/lib/pay-method";
+import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
 import "@/app/coupons.css";
 
 const KAKAOBANK_LINK = "kakaobank://";
@@ -63,18 +63,17 @@ export default function PaymentModal({
   /*
     쓸 수 있는 수단을 모으고, 둘 이상이면 고르게 한다.
 
-    지금은 직접 송금이 닫혀 있어(OFFER_MANUAL_TRANSFER) 포트원 계좌이체 하나만
-    나간다 — 선택줄도 서지 않는다. 포트원이 없는 환경에서는 직접 송금이 그대로
-    나온다. 그때는 그게 유일한 결제 수단이다.
+    설정돼 있는 것과 지금 받을 수 있는 것은 다르다 — PAYMENT_METHOD_OPEN 이
+    그 차이를 든다. 지금은 직접 송금 하나만 열려 있어 선택줄도 서지 않는다.
 
-    토스 위젯은 계속 마지막 수단이다. 승인 API 를 거치는 동안 새로고침이 겹치면
-    결제한 사람이 실패 화면을 보는 레이스가 있고, 그건 이체 두 갈래에는 없는
-    문제다 (2026-08-21 운영자 결정).
+    토스 위젯은 마지막 수단이다. 승인 API 를 거치는 동안 새로고침이 겹치면
+    결제한 사람이 실패 화면을 보는 레이스가 있고, 그건 이체에는 없는 문제다
+    (2026-08-21 운영자 결정).
   */
   const methods: PayMethod[] = [];
-  if (PORTONE_TRANSFER_CONFIGURED) methods.push("portone");
-  if (transferConfigured && (OFFER_MANUAL_TRANSFER || methods.length === 0)) methods.push("manual");
-  if (methods.length === 0 && TOSS_CLIENT_KEY) methods.push("toss");
+  if (PORTONE_TRANSFER_CONFIGURED && PAYMENT_METHOD_OPEN.portone) methods.push("portone");
+  if (transferConfigured && PAYMENT_METHOD_OPEN.manual) methods.push("manual");
+  if (methods.length === 0 && TOSS_CLIENT_KEY && PAYMENT_METHOD_OPEN.toss) methods.push("toss");
 
   // 고른 값이 아직 없거나 더 이상 쓸 수 없는 수단이면 첫 번째로 되돌아간다.
   const [picked, setPicked] = useState<PayMethod | null>(null);

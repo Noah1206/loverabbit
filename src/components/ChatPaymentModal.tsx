@@ -7,7 +7,7 @@ import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
-import { METHOD_LABEL, OFFER_MANUAL_TRANSFER, type PayMethod } from "@/lib/pay-method";
+import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
 const KAKAOBANK_LINK = "kakaobank://";
@@ -52,9 +52,9 @@ export default function ChatPaymentModal({
   // 리딩 결제 모달과 같은 사다리, 같은 스위치. 두 화면이 다른 수단을 내보내면
   // 두 번째 결제에서 처음 보는 결제 방식을 또 배워야 한다.
   const methods: PayMethod[] = [];
-  if (PORTONE_TRANSFER_CONFIGURED) methods.push("portone");
-  if (transferConfigured && (OFFER_MANUAL_TRANSFER || methods.length === 0)) methods.push("manual");
-  if (methods.length === 0 && TOSS_CLIENT_KEY) methods.push("toss");
+  if (PORTONE_TRANSFER_CONFIGURED && PAYMENT_METHOD_OPEN.portone) methods.push("portone");
+  if (transferConfigured && PAYMENT_METHOD_OPEN.manual) methods.push("manual");
+  if (methods.length === 0 && TOSS_CLIENT_KEY && PAYMENT_METHOD_OPEN.toss) methods.push("toss");
 
   const [picked, setPicked] = useState<PayMethod | null>(null);
   const method = picked && methods.includes(picked) ? picked : methods[0] ?? null;
