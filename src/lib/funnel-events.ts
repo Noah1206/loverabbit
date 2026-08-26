@@ -9,6 +9,7 @@ export const READING_STEPS = [
   "meGender",
   "meBirth",
   "meDetails",
+  "partnerChoice",
   "partnerBirth",
   "partnerDetails",
   "mode",

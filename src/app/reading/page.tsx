@@ -49,6 +49,7 @@ const READING_STEP_LABELS: Record<ReadingStep, string> = {
   meGender: "성별",
   meBirth: "내 생년월일",
   meDetails: "내 출생 정보",
+  partnerChoice: "그 사람 사주",
   partnerBirth: "그 사람 생년월일",
   partnerDetails: "그 사람 출생 정보",
   concern: "지금의 고민",
@@ -360,6 +361,8 @@ export default function ReadingPage() {
   const [hasChosenCategory, setHasChosenCategory] = useState(false);
   // 혼자/함께 를 골랐는가. withPartner 의 기본값(true)과 "골랐다"는 별개라 따로 든다.
   const [modeChosen, setModeChosen] = useState(false);
+  // 상대 사주를 넣을지 이 화면에서 골랐는가. 같은 이유로 withPartner 와 따로 든다.
+  const [partnerChosen, setPartnerChosen] = useState(false);
   const [me, setMe] = useState<PersonForm>(emptyPerson);
   const [partner, setPartner] = useState<PersonForm>(emptyPerson);
   const [withPartner, setWithPartner] = useState(true);
@@ -543,6 +546,20 @@ export default function ReadingPage() {
     // 이 효과가 마운트에서 돌면 mode 단계에서 고른 "혼자"가 덮인다.
     if (hasChosenCategory && selectedCategory?.needsPartner) setWithPartner(true);
   }, [hasChosenCategory, selectedCategory?.needsPartner]);
+  /*
+    이 화면에서 "넣을지 말지" 를 고를 수 있는가.
+
+    두 사람을 보는 상품에서는 고를 수 없다. 상대를 안 넣으면 12절 중 못 채우는
+    절이 1%에서 70%로 뛴다 — 리포트는 그래도 나오지만 상대 이야기가 본인 이야기의
+    되풀이가 되고, 그 값을 치른 사람은 두 사람을 보러 온 사람이다. 그 상품에서
+    이 화면은 "이제 그 사람 차례" 를 알리는 자리로만 선다.
+
+    앞의 mode 단계에서 혼자/함께를 이미 고른 흐름도 마찬가지다. 같은 질문을 두 번
+    하면 앞에서 고른 것이 무효가 된 줄 안다.
+  */
+  const partnerChoiceIsOpen =
+    categorySelectionMode === "fixed" && !selectedCategory?.needsPartner;
+
   const activeOffer = resolveAdOffer(category, offerId);
 
 
@@ -591,15 +608,17 @@ export default function ReadingPage() {
     }
     if (step === "meDetails") {
       // 입구에서 상품이 정해진 흐름은 상품이 상대 필요 여부를 이미 정했다.
-      // 고르는 흐름은 mode 단계가 그걸 묻는다.
-      if (categorySelectionMode === "fixed") {
-        moveTo(withPartner ? "partnerBirth" : "concern");
-      } else {
-        moveTo("mode");
-      }
+      // 고르는 흐름은 mode 단계가 그걸 묻는다. 어느 쪽이든 상대 입력 앞에는
+      // partnerChoice 가 한 칸 선다 — 내 정보 다음에 곧바로 남의 생년월일 칸이
+      // 나오면 무엇을 적는 자리인지 모른 채 적게 된다.
+      moveTo(categorySelectionMode === "fixed" ? "partnerChoice" : "mode");
       return;
     }
     if (step === "mode") {
+      moveTo(withPartner ? "partnerChoice" : "concern");
+      return;
+    }
+    if (step === "partnerChoice") {
       moveTo(withPartner ? "partnerBirth" : "concern");
       return;
     }
@@ -625,10 +644,12 @@ export default function ReadingPage() {
   const workflowSteps: readonly ReadingStep[] =
     categorySelectionMode === "fixed"
       ? withPartner
-        ? ["meGender", "meBirth", "meDetails", "partnerBirth", "partnerDetails", "concern", "ready"]
-        : ["meGender", "meBirth", "meDetails", "concern", "ready"]
+        ? ["meGender", "meBirth", "meDetails", "partnerChoice", "partnerBirth", "partnerDetails", "concern", "ready"]
+        // 안 넣기로 해도 partnerChoice 는 지나온 칸이다. 빼면 뒤로가기가 그 화면을
+        // 건너뛰어, 방금 고른 것을 되돌릴 길이 없어진다.
+        : ["meGender", "meBirth", "meDetails", "partnerChoice", "concern", "ready"]
       : withPartner
-        ? ["meGender", "meBirth", "meDetails", "mode", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
+        ? ["meGender", "meBirth", "meDetails", "mode", "partnerChoice", "partnerBirth", "partnerDetails", "concern", "category", "ready"]
         : ["meGender", "meBirth", "meDetails", "mode", "concern", "category", "ready"];
   const workflowStepIndex = Math.max(0, workflowSteps.indexOf(step));
 
@@ -651,6 +672,7 @@ export default function ReadingPage() {
     step === "meGender" ||
     step === "meBirth" ||
     step === "category" ||
+    step === "partnerChoice" ||
     step === "concern";
   const isDataEntryStep = step === "meGender"
     || step === "meBirth"
@@ -660,6 +682,9 @@ export default function ReadingPage() {
     || step === "concern";
   const isStepComplete = step === "category"
     ? hasChosenCategory
+    : step === "partnerChoice"
+    // 고를 수 없는 자리면 읽고 넘어가는 화면이다. 고를 수 있으면 골라야 넘어간다.
+    ? !partnerChoiceIsOpen || partnerChosen
     : step === "mode"
     ? modeChosen
     : step === "meGender"
@@ -707,6 +732,15 @@ export default function ReadingPage() {
             <h1>사주를 위한 성별을 알려주세요.</h1>
           ) : step === "meBirth" ? (
             <h1>당신의 사주부터 세워볼게요.</h1>
+          ) : step === "partnerChoice" ? (
+            partnerChoiceIsOpen ? (
+              <h1>그 사람 사주도 넣을까요?</h1>
+            ) : (
+              <>
+                <h1>이제 그 사람 차례예요.</h1>
+                <p>두 명식을 나란히 놓아야 관계가 읽혀요.</p>
+              </>
+            )
           ) : (
             <h1>어떤 운명을 읽어볼까요?</h1>
           )}
@@ -825,35 +859,45 @@ export default function ReadingPage() {
             )}
 
             {step === "meDetails" && (
-              <>
-                <PersonDetailsFields value={me} onChange={setMe} showGender={false} />
-                {/*
-                  두 사람을 보는 상품에서는 끄지 못하게 한다.
+              /* 상대를 넣을지 묻던 체크박스는 여기 있었다. 내 정보 칸 아래 붙은
+                 작은 체크 하나라 눈에 안 걸렸고, 그래서 두 사람 상품에서는 내
+                 정보 다음 화면이 곧바로 남의 생년월일이었다. 이제 partnerChoice
+                 화면이 그 일을 한다. */
+              <PersonDetailsFields value={me} onChange={setMe} showGender={false} />
+            )}
 
-                  끌 수 있던 동안 궁합을 상대 없이 살 수 있었다. 그러면 두 명식을
-                  잇는 규칙이 통째로 죽는다 — 상대를 넣으면 12절 중 못 채우는 절이
-                  1%인데, 안 넣으면 70%가 된다. 리포트는 그래도 나오지만 상대 이야기가
-                  본인 이야기의 되풀이가 되고, 그 값을 치른 사람은 두 사람을 보러 온
-                  사람이다.
+            {step === "partnerChoice" && partnerChoiceIsOpen && (
+              <div className="reading-category-grid">
+                <button
+                  type="button"
+                  className={"reading-category-option" + (partnerChosen && withPartner ? " is-selected" : "")}
+                  aria-pressed={partnerChosen && withPartner}
+                  onClick={() => {
+                    setWithPartner(true);
+                    setPartnerChosen(true);
+                  }}
+                >
+                  <strong>넣을게요</strong>
+                </button>
+                <button
+                  type="button"
+                  className={"reading-category-option" + (partnerChosen && !withPartner ? " is-selected" : "")}
+                  aria-pressed={partnerChosen && !withPartner}
+                  onClick={() => {
+                    setWithPartner(false);
+                    setPartnerChosen(true);
+                  }}
+                >
+                  <strong>나만 볼래요</strong>
+                </button>
+              </div>
+            )}
 
-                  그래서 그 상품에서는 이 자리에 아무것도 두지 않는다 — 끌 수 없는
-                  것을 안내로 알리지도 않는다. 다음 화면에서 상대 정보를 받으면
-                  그때 알게 된다. 혼자 보는 상품에서만 고를 수 있게 둔다.
-                */}
-                {categorySelectionMode === "fixed" && !selectedCategory?.needsPartner && (
-                  <label className="reading-partner-toggle">
-                    <input
-                      type="checkbox"
-                      checked={withPartner}
-                      onChange={(event) => setWithPartner(event.target.checked)}
-                    />
-                    <span>
-                      <strong>그 사람 정보도 넣기</strong>
-                      <small>체크하면 같은 순서로 그 사람의 정보를 입력해요.</small>
-                    </span>
-                  </label>
-                )}
-              </>
+            {step === "partnerChoice" && !partnerChoiceIsOpen && (
+              <p className="reading-partner-intro">
+                생년월일과 태어난 시간만 있으면 돼요. 모르는 시간은 모른다고 두셔도
+                나머지 세 기둥은 그대로 섭니다.
+              </p>
             )}
 
             {step === "partnerBirth" && (
@@ -955,7 +999,13 @@ export default function ReadingPage() {
       {showFixedAction && (
         <div key={"action-" + step} className="reading-fixed-action">
           <button type="button" className="btn" onClick={advanceStep} disabled={loading || !isStepComplete}>
-            {loading ? "사주 푸는 중… 🔮" : step === "ready" ? "무료로 운명 보기" : "다음으로"}
+            {loading
+              ? "사주 푸는 중… 🔮"
+              : step === "ready"
+                ? "무료로 운명 보기"
+                : step === "partnerChoice" && !partnerChoiceIsOpen
+                  ? "그 사람 사주 넣기"
+                  : "다음으로"}
           </button>
         </div>
       )}

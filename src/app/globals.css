@@ -2635,61 +2635,13 @@ label {
   transform: translateY(-1px);
 }
 
-.reading-partner-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  margin: 18px 0 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  background-color: var(--bg-card2);
-  color: var(--text);
-  cursor: pointer;
-  transition:
-    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 440ms ease,
-    background-color 440ms ease,
-    box-shadow 440ms ease;
-}
-
-.reading-partner-toggle:active {
-  transform: scale(0.985);
-}
-
-.reading-partner-toggle:has(input:checked) {
-  border-color: var(--accent);
-  background-color: rgba(255, 255, 255, 0.14);
-  background-color: color-mix(in srgb, var(--accent) 16%, var(--bg-card2));
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
-}
-
-.reading-partner-toggle input {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
-  margin-top: 1px;
-  padding: 0;
-  accent-color: var(--accent);
-}
-
-.reading-partner-toggle span,
-.reading-partner-toggle strong,
-.reading-partner-toggle small {
-  display: block;
-}
-
-.reading-partner-toggle strong {
-  font-size: 0.9rem;
-}
-
-.reading-partner-toggle small {
-  margin-top: 4px;
+/* 상대 사주 안내 화면의 한 줄. 고를 것이 없는 화면이라 카드 안이 비지 않게
+   무엇을 준비하면 되는지만 적는다. */
+.reading-partner-intro {
+  margin: 0;
   color: var(--text-dim);
-  font-size: 0.72rem;
-  font-weight: 500;
-  line-height: 1.45;
+  font-size: 0.86rem;
+  line-height: 1.65;
 }
 
 .reading-fixed-action {
@@ -2879,7 +2831,6 @@ label {
   .reading-category-option,
   .reading-birth-control,
   .reading-details-grid select,
-  .reading-partner-toggle,
   .reading-fixed-action .btn {
     transition: none;
   }
