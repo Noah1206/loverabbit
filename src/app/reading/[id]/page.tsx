@@ -654,6 +654,22 @@ export default function ReadingReportPage() {
               </div>
             </section>
 
+            {/*
+              글맛이 먼저다.
+
+              전에는 명식 · 지수 · 요약 카드 · 목차를 다 지나야 본문 두 덩어리가
+              나왔다. 그 순서로 읽으면 결제를 만나는 시점에 이미 "답을 받았다" 는
+              느낌이 쌓여 있다 — 사주 여덟 글자도, 점수도, 한눈에 보기 카드도
+              저마다 결론처럼 읽히기 때문이다. 정작 파는 것은 글인데 글은 맨 끝에
+              조금 나오고 끊긴다.
+
+              그래서 본문을 표지 바로 뒤로 올리고, 흐려지는 자리도 함께 올린다.
+              명식과 요약은 사라지지 않고 그 아래에 남는다 — 결론이 아니라 근거의
+              자리로 내려가는 것이다.
+            */}
+            {taste}
+            {taste && paywall}
+
             <ChartPanel
               chart={entry.chart}
               scoreLabel={entry.scoreLabel}
@@ -691,9 +707,10 @@ export default function ReadingReportPage() {
               <ChapterIndex items={indexItems} current={page} onJump={goto} />
             </section>
 
-            {taste}
             {entry.demo && <p className="rv-demo-note">{DEMO_SOURCE_NOTE}</p>}
-            {paywall}
+            {/* 맛보기가 없는 리딩(광고로 들어오지 않은 흐름)은 흐려질 본문이
+                위에 없다. 그때는 예전처럼 목차 끝에서 끊는다. */}
+            {!taste && paywall}
 
             {/*
               광고에서 들어온 사람에게는 이 버튼을 두지 않는다. 표지에서 끊기로 한
