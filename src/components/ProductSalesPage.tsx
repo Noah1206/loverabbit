@@ -217,9 +217,6 @@ export default function ProductSalesPage({
           </section>
         ) : null}
 
-        <p className="product-reveal" style={{ fontSize: "0.75rem", color: "var(--text-dim)", textAlign: "center" }}>
-          본 리딩은 오락 목적의 콘텐츠이며, 결제 전에 명식과 목차를 확인할 수 있습니다.
-        </p>
       </div>
 
       {sticky}
