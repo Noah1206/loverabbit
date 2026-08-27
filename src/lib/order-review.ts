@@ -2,6 +2,7 @@ import "server-only";
 
 import { waitUntil } from "@vercel/functions";
 
+import { notifyCustomerReviewed } from "@/lib/customer-notify";
 import { reviewTransferOrder, settleCouponsForOrder } from "@/lib/database";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 import { finishReading } from "@/lib/reading-finish";
@@ -42,6 +43,10 @@ export async function reviewOrderAndFollowUp(
   } catch (error) {
     console.error("쿠폰 마감 실패:", error);
   }
+
+  // 손님에게 알린다. 승인은 요청보다 몇 시간 뒤라 그때 손님은 화면 앞에 없다 —
+  // 알리지 않으면 열리지 않는 리딩이 생긴다 (18건 중 3건, 2026-08-27).
+  await notifyCustomerReviewed(orderId, reviewed.status);
 
   /*
     전환은 여기서 나간다.

@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
         redirectTo: redirectTo.toString(),
         skipBrowserRedirect: true,
         ...(provider === "kakao"
-          ? { scopes: "account_email profile_nickname" }
+          ? { scopes: "account_email profile_nickname talk_message" }
           : provider === "google"
             ? { queryParams: { prompt: "select_account" } }
             : {}),
