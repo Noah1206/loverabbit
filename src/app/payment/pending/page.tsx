@@ -159,7 +159,7 @@ export default function PaymentPendingPage() {
         </div>
         <span className="badge">계좌이체 확인</span>
         <h1>
-          {rejected ? "입금 승인이 보류됐어요" : receipt === "sent" ? "확인 중이에요" : "이체 화면을 올려주세요"}
+          {rejected ? "입금 승인이 보류됐어요" : "입금 확인을 기다리고 있어요"}
         </h1>
         {rejected ? (
           <p>
@@ -169,16 +169,27 @@ export default function PaymentPendingPage() {
           </p>
         ) : (
           <p>
-            {receipt === "sent" ? (
-              <>사진을 보고 <strong>바로 승인해드릴게요.</strong> 열리면 내 상담 페이지로 이동합니다.</>
-            ) : (
-              <>
-                이체 완료 화면을 캡처해서 올려주시면 <strong>사진을 보고 바로 승인</strong>해드려요.
-                안 올리면 통장 입금 내역을 확인한 뒤에 열려서 시간이 더 걸립니다.
-              </>
-            )}
+            관리자가 입금을 확인하면 자동으로 풀 리딩이 열리고
+            <strong> 내 상담 페이지로 이동합니다.</strong>
           </p>
         )}
+
+        {order && (
+          <dl className="payment-order-summary">
+            <div><dt>주문번호</dt><dd>#{order.orderId}</dd></div>
+            <div><dt>결제금액</dt><dd>{order.amount.toLocaleString()}원</dd></div>
+            <div><dt>현재상태</dt><dd>{rejected ? "확인 필요" : "승인 대기"}</dd></div>
+          </dl>
+        )}
+
+        {!rejected && (
+          <div className="payment-polling-note">
+            <span className="payment-polling-dot" aria-hidden />
+            {checking ? "3초마다 승인 여부를 확인하고 있어요" : "상태 확인을 다시 시도해주세요"}
+          </div>
+        )}
+
+        {error && <p className="payment-error">{error}</p>}
 
         {/* 캡처 한 장이 통장 대조보다 빠르다. 운영자는 사진을 보고 승인하고,
             통장은 나중에 맞춘다. 사진 없이도 승인은 되므로 강요하지 않는다. */}
@@ -191,7 +202,7 @@ export default function PaymentPendingPage() {
             ) : (
               <>
                 <p>
-                  <strong>1.</strong> 은행 앱에서 이체 완료 화면 캡처 → <strong>2.</strong> 아래 버튼으로 올리기
+                  <strong>더 빨리 열고 싶다면</strong> 이체 완료 화면을 올려주세요. 사진을 보고 바로 승인해드려요.
                 </p>
                 <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
                   {receipt === "sending" ? "보내는 중…" : "📷 이체 완료 화면 올리기"}
@@ -219,22 +230,6 @@ export default function PaymentPendingPage() {
           </div>
         )}
 
-        {order && (
-          <dl className="payment-order-summary">
-            <div><dt>주문번호</dt><dd>#{order.orderId}</dd></div>
-            <div><dt>결제금액</dt><dd>{order.amount.toLocaleString()}원</dd></div>
-            <div><dt>현재상태</dt><dd>{rejected ? "확인 필요" : "승인 대기"}</dd></div>
-          </dl>
-        )}
-
-        {!rejected && (
-          <div className="payment-polling-note">
-            <span className="payment-polling-dot" aria-hidden />
-            {checking ? "3초마다 승인 여부를 확인하고 있어요" : "상태 확인을 다시 시도해주세요"}
-          </div>
-        )}
-
-        {error && <p className="payment-error">{error}</p>}
 
         <div className="payment-pending-actions">
           {rejected && order?.readingId ? (

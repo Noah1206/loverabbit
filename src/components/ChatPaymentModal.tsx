@@ -9,7 +9,6 @@ import PortOneTransferForm, {
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
 import { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
 import TransferSteps from "@/components/TransferSteps";
-import { uploadReceipt } from "@/lib/receipt-upload";
 import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
@@ -122,7 +121,7 @@ export default function ChatPaymentModal({
     }
   };
 
-  const submitTransfer = async (receipt: File) => {
+  const submitTransfer = async () => {
     setPaying(true);
     setError("");
     try {
@@ -143,8 +142,6 @@ export default function ChatPaymentModal({
         throw new Error(data.error ?? "입금 확인 요청을 저장하지 못했어요.");
       }
       const orderId = Number(data.orderId);
-      // 사진은 주문 뒤에 붙는다. 실패해도 주문은 살아 있다 — 운영자가 통장으로 확인한다.
-      await uploadReceipt(orderId, userToken, receipt);
       setSubmittedOrderId(orderId);
       onTransferSubmitted(orderId);
     } catch (reason) {
@@ -182,7 +179,7 @@ export default function ChatPaymentModal({
 
         {submittedOrderId ? (
           <div className="transfer-payment-fallback">
-            <p className="toss-payment-config-error">이체 화면을 받았어요. 사진을 보고 바로 승인해드릴게요 — 승인되면 대화권이 지급됩니다.</p>
+            <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 입금을 확인하면 대화권이 지급됩니다.</p>
             <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>
           </div>
         ) : method === "portone" ? (
@@ -198,7 +195,7 @@ export default function ChatPaymentModal({
           <div className="transfer-payment-fallback">
             {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
                 두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
-            <TransferSteps amount={product.price} submitting={paying} onSubmit={(receipt) => void submitTransfer(receipt)} />
+            <TransferSteps amount={product.price} submitting={paying} onSubmit={() => void submitTransfer()} />
           </div>
         ) : method === "toss" ? (
           <>

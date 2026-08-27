@@ -47,7 +47,7 @@ export default function PaymentModal({
   depositorCode?: string;
   paying?: boolean;
   /** 계좌이체 확인 요청. 고른 쿠폰이 있으면 같이 넘긴다 - 서버가 금액을 다시 정한다. */
-  onTransferSubmitted?: (couponId: string | undefined, receipt: File) => void;
+  onTransferSubmitted?: (couponId?: string) => void;
   onClose: () => void;
 }) {
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
@@ -260,7 +260,7 @@ export default function PaymentModal({
             <TransferSteps
               amount={payAmount}
               submitting={transferSubmitting}
-              onSubmit={(receipt) => onTransferSubmitted?.(coupon?.id, receipt)}
+              onSubmit={() => onTransferSubmitted?.(coupon?.id)}
             />
           </div>
         ) : method === "toss" ? (
