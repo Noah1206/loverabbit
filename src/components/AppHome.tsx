@@ -12,6 +12,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
+import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { PRODUCTS, type Product } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 import HomeReviews from "@/components/HomeReviews";
@@ -196,10 +197,20 @@ export default function AppHome() {
                       <span aria-hidden>🔥</span>인기
                     </span>
                   )}
+                  {/* 첫 리딩 값 — 어떤 카드든 가입 쿠폰으로 이 값에 산다. 할인율은
+                      정가에서 계산하므로 값이 바뀌면 여기도 따라온다. */}
+                  <span className="fortune-grid-badge fortune-grid-badge-sale">
+                    {Math.round((1 - FIRST_READING_PRICE / p.price) * 100)}% 할인
+                  </span>
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
                     <strong>{p.title}</strong>
                     <p>{p.cardCopy}</p>
+                    <span className="fortune-grid-price">
+                      <s>{p.price.toLocaleString("ko-KR")}원</s>
+                      <b>{FIRST_READING_PRICE.toLocaleString("ko-KR")}원</b>
+                      <small>첫 리딩</small>
+                    </span>
                     <span className="fortune-grid-cta">
                       <span aria-hidden>{p.emoji}</span>
                       <span className="fortune-grid-cta-label">{p.ctaLabel}</span>

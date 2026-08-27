@@ -844,6 +844,41 @@ label {
     0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+/* 할인율 — 오른쪽 위, 인기 배지와 반대편. 색은 카드 톤이 아니라 항상 같은
+   빨강. 값은 어느 카드에서나 같은 뜻이어야 한다. */
+.fortune-grid-badge-sale {
+  left: auto;
+  right: 10px;
+  padding: 4px 9px;
+  background: #ff3b5c;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.fortune-grid-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 6px 0 2px;
+  color: #fff;
+}
+
+.fortune-grid-price s {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.72rem;
+}
+
+.fortune-grid-price b {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #ffd166;
+}
+
+.fortune-grid-price small {
+  font-size: 0.66rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .fortune-grid-copy {
   position: absolute;
   left: 12px;
