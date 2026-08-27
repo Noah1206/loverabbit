@@ -1727,6 +1727,14 @@ label {
   line-height: 1.25;
 }
 
+/* 버튼 안의 정가 — 긋고 흐리게. 옆의 1,900원이 답이다. */
+.product-sticky-copy strong s {
+  margin-right: 4px;
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+  font-size: 0.82em;
+}
+
 .product-sticky-copy small {
   margin-top: 3px;
   overflow: hidden;

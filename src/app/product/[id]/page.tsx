@@ -56,9 +56,20 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
               <span>🔥</span>
             </span>
             <span className="product-sticky-copy">
-              <strong>{p.ctaLabel}</strong>
-              {activeOffer && (
-                <small>첫 리딩 1,900원 · 전문은 {activeOffer.price.toLocaleString("ko-KR")}원</small>
+              {/* 값을 버튼에 바로 적는다 — 정가를 긋고 첫 리딩 값을 옆에. 사람은 버튼에서
+                  "얼마인지"를 먼저 찾고, 그 답이 없으면 누르기 전에 스크롤을 올린다.
+                  (전에는 오퍼 값을 정가 자리에 넣어 "전문은 1,900원"으로 나가고 있었다.) */}
+              {activeOffer ? (
+                <>
+                  <strong>
+                    <s>{p.price.toLocaleString("ko-KR")}원</s> {activeOffer.price.toLocaleString("ko-KR")}원에 확인하기
+                  </strong>
+                  <small>
+                    첫 리딩 {Math.round((1 - activeOffer.price / p.price) * 100)}% 할인 · {p.ctaHook}
+                  </small>
+                </>
+              ) : (
+                <strong>{p.ctaLabel}</strong>
               )}
             </span>
             <span className="product-sticky-arrow" aria-hidden>→</span>
