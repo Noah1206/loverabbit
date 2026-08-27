@@ -125,10 +125,18 @@ export default function PaymentPendingPage() {
         </div>
         <span className="badge">계좌이체 확인</span>
         <h1>{rejected ? "입금 승인이 보류됐어요" : "입금 확인을 기다리고 있어요"}</h1>
-        <p>
-          관리자가 통장 입금 내역을 확인하면 자동으로 풀 리딩이 열리고
-          <strong> 내 상담 페이지로 이동합니다.</strong>
-        </p>
+        {rejected ? (
+          <p>
+            <strong>계좌에서 입금을 찾지 못했어요.</strong> 이체가 실제로 빠져나갔는지
+            확인한 뒤 다시 요청해주세요. 이미 보냈다면 입금자명과 금액을 문의로 알려주시면
+            바로 확인해드릴게요.
+          </p>
+        ) : (
+          <p>
+            관리자가 통장 입금 내역을 확인하면 자동으로 풀 리딩이 열리고
+            <strong> 내 상담 페이지로 이동합니다.</strong>
+          </p>
+        )}
 
         {order && (
           <dl className="payment-order-summary">
@@ -148,9 +156,15 @@ export default function PaymentPendingPage() {
         {error && <p className="payment-error">{error}</p>}
 
         <div className="payment-pending-actions">
-          <button className="btn" onClick={() => setRetryNonce((value) => value + 1)} disabled={checking && !error}>
-            지금 다시 확인하기
-          </button>
+          {rejected && order?.readingId ? (
+            <Link className="btn" href={`/reading/${encodeURIComponent(order.readingId)}/checkout`}>
+              이체 확인하고 다시 요청하기
+            </Link>
+          ) : (
+            <button className="btn" onClick={() => setRetryNonce((value) => value + 1)} disabled={checking && !error}>
+              지금 다시 확인하기
+            </button>
+          )}
           <Link className="btn btn-ghost" href="/my">내 상담으로 돌아가기</Link>
         </div>
         <small>입금코드가 다르면 확인이 늦어질 수 있어요. 이 페이지는 닫지 않아도 됩니다.</small>

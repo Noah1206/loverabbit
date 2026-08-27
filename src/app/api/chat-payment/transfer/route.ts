@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { chatDepositorCode, getChatProduct } from "@/lib/chat-products";
 import { createPendingChatTransferOrder, isDatabaseConfigured } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
-import { notifyAdmin } from "@/lib/telegram";
+import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 
 interface Body {
   productId?: string;
@@ -57,7 +57,8 @@ export async function POST(request: NextRequest) {
         `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${product.credits}회권`,
         `입금코드 ${order.depositorCode}`,
         "https://loverebbit.xyz/admin/payments",
-      ].join("\n")
+      ].join("\n"),
+      reviewButtons(order.id)
     );
     return NextResponse.json({
       orderId: order.id,

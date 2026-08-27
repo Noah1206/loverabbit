@@ -17,7 +17,7 @@ import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
 import { snapshotMetaMatch } from "@/lib/meta-capi";
-import { notifyAdmin } from "@/lib/telegram";
+import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { claimReadingForPayment } from "@/lib/reading-claim";
 import { PortOnePaymentError } from "@/lib/portone-validation";
@@ -343,7 +343,8 @@ export async function POST(req: NextRequest) {
           }`,
           `상품 ${stored?.category ?? "리딩"} · 입금코드 ${body.depositorCode}`,
           "https://loverebbit.xyz/admin/payments",
-        ].join("\n")
+        ].join("\n"),
+        reviewButtons(order.id)
       );
       return NextResponse.json({
         orderId: order.id,
