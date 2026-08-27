@@ -157,8 +157,8 @@ export default function PaymentPendingPage() {
         {rejected ? (
           <p>
             <strong>계좌에서 입금을 찾지 못했어요.</strong> 이체가 실제로 빠져나갔는지
-            확인한 뒤 다시 요청해주세요. 이미 보냈다면 입금자명과 금액을 문의로 알려주시면
-            바로 확인해드릴게요.
+            확인한 뒤 다시 요청해주세요. 이미 보내셨다면 다시 요청하면서
+            <strong> 이체 완료 화면 캡처를 올려주세요</strong> — 사진을 보고 바로 승인해드릴게요.
           </p>
         ) : (
           <p>
@@ -225,7 +225,7 @@ export default function PaymentPendingPage() {
         <div className="payment-pending-actions">
           {rejected && order?.readingId ? (
             <Link className="btn" href={`/reading/${encodeURIComponent(order.readingId)}/checkout`}>
-              이체 확인하고 다시 요청하기
+              다시 요청하고 이체 화면 올리기
             </Link>
           ) : (
             <button className="btn" onClick={() => setRetryNonce((value) => value + 1)} disabled={checking && !error}>
