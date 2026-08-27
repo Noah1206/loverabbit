@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import ConsentBanner from "@/components/ConsentBanner";
 import MetaPixel from "@/components/MetaPixel";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import WelcomePopup from "@/components/WelcomePopup";
 
 const themeInitScript = `
   (function () {
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AttributionCapture />
           <FunnelTracker />
           <AuthCodeRescue />
+          <WelcomePopup />
           <div className="app-viewport">{children}</div>
           <BottomNav />
         </ThemeProvider>
