@@ -524,6 +524,10 @@ export default function ReadingPage() {
       구조에서는 트래픽이 늘수록 손해가 커진다. 주인 없는 주문은 만들 수도 없다.
     */
     if (PAY_BEFORE_GENERATE && !user) {
+      // 소셜 로그인은 페이지를 통째로 떠났다가 돌아온다. 상태에만 둔 초안은 그때
+      // 사라져서, 다 채운 사람이 성별 칸부터 다시 봤다. 여기서 저장해 두면 위의
+      // 복귀 복원이 값을 찾고, 로그인이 돼 있으니 그대로 생성으로 넘어간다.
+      saveReadingDraft(draft);
       setPendingDraft(draft);
       trackFunnel("signup_required", { product: draft.category });
       return;
