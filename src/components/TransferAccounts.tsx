@@ -40,6 +40,11 @@ export const TRANSFER_ACCOUNTS: BankAccount[] = [KAKAOBANK_ACCOUNT];
 
 const KAKAOBANK_LINK = "kakaobank://";
 
+/** 토스 앱 송금창. 받는 은행이 카카오뱅크여도 계좌·금액을 채워서 연다. */
+function tossSendLink(item: BankAccount, amount: number) {
+  return `supertoss://send?bank=${encodeURIComponent(item.bank)}&accountNo=${item.account.replace(/-/g, "")}&amount=${amount}&origin=linkgen`;
+}
+
 function CopyChip({ item, onCopy }: { item: BankAccount; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
@@ -65,15 +70,18 @@ function CopyChip({ item, onCopy }: { item: BankAccount; onCopy?: () => void }) 
  * 칩은 앱 없이 직접 옮겨 적는 사람의 길이다.
  */
 export default function TransferAccounts({
+  amount,
   onStarted,
 }: {
-  amount?: number;
+  amount: number;
   /** 버튼이나 복사를 눌렀다 — 이체를 시작했다는 신호. 다음 버튼이 이걸 기다린다. */
   onStarted?: () => void;
 }) {
   const item = KAKAOBANK_ACCOUNT;
   return (
     <div className="transfer-pay-apps">
+      {/* 두 줄 다 같은 카카오뱅크 계좌로 보낸다. 토스 줄은 토스 앱을 쓰는 사람의 길 —
+          토스는 계좌·금액까지 채운 송금창을 열어 준다. */}
       <div className="transfer-pay-bank kakaobank">
         <a
           className="transfer-pay-app"
@@ -87,6 +95,16 @@ export default function TransferAccounts({
           <span className="transfer-pay-label">
             원클릭 카카오뱅크 이체
             {item.holder && <small>예금주 {item.holder}</small>}
+          </span>
+        </a>
+        <CopyChip item={item} onCopy={onStarted} />
+      </div>
+      <div className="transfer-pay-bank toss">
+        <a className="transfer-pay-app" href={tossSendLink(item, amount)} onClick={onStarted}>
+          <img src="/pay/toss.png" alt="toss" className="transfer-pay-logo" draggable={false} />
+          <span className="transfer-pay-label">
+            원클릭 토스로 이체
+            <small>같은 카카오뱅크 계좌로 보내요</small>
           </span>
         </a>
         <CopyChip item={item} onCopy={onStarted} />
