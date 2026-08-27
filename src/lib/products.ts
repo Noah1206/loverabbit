@@ -13,7 +13,7 @@ export interface Product {
   desc: string;
   grad: [string, string];
   tags: ("popular" | "new")[];
-  price: number; // 판매가(원) — 단품 티어: 9,900 / 12,900 / 14,900 / 29,900 / 49,900
+  price: number; // 판매가(원) — 단품 티어: 9,900 / 12,000 (상한 12,000원, 2026-08-27)
   shortLabel: string; // 리딩 폼 선택 칩에 쓰는 짧은 이름
   needsPartner: boolean; // 상대방 생년월일이 필요한 리딩인지
   promptLabel: string; // AI에 전달하는 리딩 종류 설명
@@ -94,7 +94,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jaehoe", price: 14900, badge: "재회신점", title: "재회 사주", emoji: "🥀",
+    id: "jaehoe", price: 12000, badge: "재회신점", title: "재회 사주", emoji: "🥀",
     shortLabel: "재회 🥀", needsPartner: true, tone: "rose",
     promptLabel: "재회운",
     cardCopy: "끝난 대화 뒤에도 남아 있는 감정의 잔향, 다시 연락이 닿을 가능성과 먼저 움직여야 할 단 한 번의 때를 읽습니다.",
@@ -143,7 +143,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "ibyeol", price: 29900, badge: "연애부검", title: "이별 부검 리포트", emoji: "🕯️",
+    id: "ibyeol", price: 12000, badge: "연애부검", title: "이별 부검 리포트", emoji: "🕯️",
     shortLabel: "이별 부검 🕯️", needsPartner: true, tone: "candle",
     promptLabel: "이별 부검 (연애가 어디서부터 무너졌는지 사후 분석)",
     cardCopy: "그 연애가 처음 금이 간 순간부터 끝내 말하지 못한 진짜 사인까지, 다음 사랑에서 반복하지 않을 흔적을 남깁니다.",
@@ -230,7 +230,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "baramgi", price: 12900, badge: "바람감지", title: "바람기 레이더", emoji: "🚨",
+    id: "baramgi", price: 12000, badge: "바람감지", title: "바람기 레이더", emoji: "🚨",
     shortLabel: "바람기 🚨", needsPartner: true, tone: "warning",
     promptLabel: "바람기 분석 (상대 사주의 도화 기운과 바람 조심 시기)",
     cardCopy: "설렘을 좇는 기질인지 관계에서 도망치는 습관인지, 흔들리는 순간과 반드시 확인해야 할 위험 신호를 추적합니다.",
@@ -274,7 +274,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gyeolhon", price: 49900, badge: "결혼점", title: "결혼 사주", emoji: "💍",
+    id: "gyeolhon", price: 12000, badge: "결혼점", title: "결혼 사주", emoji: "💍",
     shortLabel: "결혼 💍", needsPartner: true, tone: "promise",
     promptLabel: "결혼운 (이 상대와 결혼했을 때의 궁합과 결혼 첫 해의 흐름)",
     // 2026-08-25: "3년 흐름"을 "첫 해"로 줄였다. 계산이 감당하는 앞날은 여섯 달과 다음
@@ -366,7 +366,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "hwanseung", price: 12900, badge: "환승연애", title: "환승 사주", emoji: "🚇",
+    id: "hwanseung", price: 12000, badge: "환승연애", title: "환승 사주", emoji: "🚇",
     shortLabel: "환승 🚇", needsPartner: true, tone: "midnight",
     promptLabel: "환승운",
     cardCopy: "지금 사랑에 남을지 새로운 떨림을 따라갈지, 두 갈래 인연이 데려갈 다음 계절과 후회의 크기를 비교합니다.",
@@ -408,7 +408,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "sseom", price: 12900, badge: "썸수사", title: "썸 해부 사주", emoji: "💘",
+    id: "sseom", price: 12000, badge: "썸수사", title: "썸 해부 사주", emoji: "💘",
     shortLabel: "썸 해부 💘", needsPartner: true, tone: "blush",
     promptLabel: "썸 해부 (진도가 안 나가는 이유와 주도권 분석)",
     cardCopy: "다정함인지 호감인지 애매했던 신호를 하나씩 해부해, 이 썸을 연애로 바꿀 수 있는 가장 자연스러운 순간을 찾습니다.",
@@ -494,7 +494,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "bimil", price: 14900, badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
+    id: "bimil", price: 12000, badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
     shortLabel: "비밀연애 🤐", needsPartner: true, tone: "midnight",
     promptLabel: "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
     cardCopy: "아무에게도 말하지 못한 관계의 수명과 새어 나가는 틈, 사랑을 지키거나 놓아야 할 마지막 경계선을 조용히 비춥니다.",
@@ -585,7 +585,7 @@ export const PRODUCTS: Product[] = [
     //
     // 규칙 표에서 `insun` 도메인으로 켜지던 해석은 전부 `yeonae` 로 옮겼다
     // (reading-rules.ts). 그게 없으면 새로 붙은 절들이 근거 없이 남는다.
-    id: "yeonae", price: 14900, badge: "연간운세", title: "올해의 연애운", emoji: "✨",
+    id: "yeonae", price: 12000, badge: "연간운세", title: "올해의 연애운", emoji: "✨",
     shortLabel: "올해 연애운 ✨", needsPartner: false, tone: "starlight",
     promptLabel: "올해의 연애운 (남은 해의 흐름, 고비의 달과 기회의 달, 다음 인연이 들어오는 시기와 만나게 되는 경로)",
     cardCopy: "올해 남은 달의 설렘과 고비를 달력처럼 펼치고, 다음 인연이 들어오는 달과 만나게 될 경로까지 함께 표시합니다.",
