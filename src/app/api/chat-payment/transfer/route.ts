@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
     });
     if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
     // 리딩 이체와 같은 이유 — 사람이 승인해야 풀리는 주문은 사람에게 알린다.
-    await notifyAdmin(
+    // 새로 만든 주문일 때만. 다시 누르면 기존 대기 주문이 돌아오고, 알림은 이미 갔다.
+    if (order.created) await notifyAdmin(
       [
         "[입금 확인 요청] 대화권",
         `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${product.credits}회권`,

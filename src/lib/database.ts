@@ -70,6 +70,8 @@ export interface TransferOrderRecord {
   createdAt: string;
   paidAt: string | null;
   metadata: Record<string, unknown>;
+  /** 이 호출에서 새로 만들어졌는지. 이미 대기 중이던 주문이 돌아오면 false — 알림을 다시 보내지 않기 위해 */
+  created?: boolean;
 }
 
 const SOCIAL_USER_COLUMNS =
@@ -739,7 +741,7 @@ export async function createPendingTransferOrder(input: {
   if (!db) return null;
 
   const existing = await findPendingTransferOrder(input.userId, input.readingId);
-  if (existing) return existing;
+  if (existing) return { ...existing, created: false };
 
   const now = new Date().toISOString();
   const { data, error } = await db
@@ -759,10 +761,11 @@ export async function createPendingTransferOrder(input: {
     .maybeSingle();
 
   if (error?.code === "23505") {
-    return findPendingTransferOrder(input.userId, input.readingId);
+    const raced = await findPendingTransferOrder(input.userId, input.readingId);
+    return raced ? { ...raced, created: false } : null;
   }
   if (error) throw databaseError("계좌이체 승인 요청 저장", error);
-  return data ? mapTransferOrder(data as Record<string, unknown>) : null;
+  return data ? { ...mapTransferOrder(data as Record<string, unknown>), created: true } : null;
 }
 
 async function findPendingChatTransferOrder(userId: number) {
@@ -793,7 +796,7 @@ export async function createPendingChatTransferOrder(input: {
   if (!db) return null;
 
   const existing = await findPendingChatTransferOrder(input.userId);
-  if (existing) return existing;
+  if (existing) return { ...existing, created: false };
 
   const now = new Date().toISOString();
   const { data, error } = await db
@@ -816,9 +819,12 @@ export async function createPendingChatTransferOrder(input: {
     .select(TRANSFER_ORDER_COLUMNS)
     .maybeSingle();
 
-  if (error?.code === "23505") return findPendingChatTransferOrder(input.userId);
+  if (error?.code === "23505") {
+    const raced = await findPendingChatTransferOrder(input.userId);
+    return raced ? { ...raced, created: false } : null;
+  }
   if (error) throw databaseError("캐릭터챗 계좌이체 승인 요청 저장", error);
-  return data ? mapTransferOrder(data as Record<string, unknown>) : null;
+  return data ? { ...mapTransferOrder(data as Record<string, unknown>), created: true } : null;
 }
 
 export async function completeChatCreditOrder(

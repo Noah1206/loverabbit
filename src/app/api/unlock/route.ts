@@ -333,7 +333,9 @@ export async function POST(req: NextRequest) {
       );
       // 입금 확인 요청은 사람이 승인해야 풀린다. 알리지 않으면 입금한 사람이
       // 관리자가 우연히 /admin/payments 를 열 때까지 기다린다.
-      await notifyAdmin(
+      // 단, 같은 주문은 한 번만 알린다 — "이체했어요"를 다시 눌러도 이미 대기 중인
+      // 주문이 돌아오므로, 그때마다 텔레그램에 같은 요청이 쌓이면 안 된다.
+      if (order.created) await notifyAdmin(
         [
           "[입금 확인 요청] 리딩",
           `주문 #${order.id} · ${order.amount.toLocaleString()}원${
