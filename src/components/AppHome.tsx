@@ -139,7 +139,6 @@ export default function AppHome() {
             /shrine 주소와 리딩 뒤 이어지는 대화는 그대로 살아 있다 — 다시 보이려면
             SHOW_SHRINE_ON_HOME 을 true 로. */}
         {SHOW_SHRINE_ON_HOME && (
-          {/* ── 신당 — 도령 캐릭터 챗 ── */}
           <section style={{ padding: "30px 0 0" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 16px" }}>
               <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
