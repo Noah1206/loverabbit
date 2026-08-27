@@ -7478,76 +7478,88 @@ body:has(.product-page[data-landing]) .consent-banner {
 /* ── 계좌이체 결제 — 앱 두 개 나란히, 계좌줄 + 복사, 확인 버튼 ── */
 .transfer-pay-apps {
   display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 14px;
 }
 
+/* 은행 한 줄 = 그 은행의 색을 입은 가로 막대. 왼쪽은 앱을 여는 버튼(로고·이름·
+   예금주), 오른쪽은 계좌번호 복사 칩. 토스는 흰 바탕, 카카오뱅크는 노랑 —
+   다크 모드에서도 바꾸지 않는다. 브랜드 색이 바뀌면 다른 앱처럼 보인다. */
 .transfer-pay-bank {
-  display: grid;
-  grid-template-rows: 1fr auto auto;
-  gap: 6px;
-  justify-items: stretch;
-}
-
-/* 은행 버튼은 그 은행의 색을 입는다 — 토스는 흰 바탕, 카카오뱅크는 노랑.
-   손님은 글자보다 색으로 자기 앱을 먼저 찾는다. 다크 모드에서도 이 둘은 바꾸지
-   않는다. 브랜드 색이 바뀌면 다른 앱처럼 보인다. */
-.transfer-pay-app {
-  display: grid;
-  align-content: center;
-  gap: 6px;
-  justify-items: center;
-  padding: 14px 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  padding: 8px 8px 8px 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;
-  text-align: center;
-  text-decoration: none;
-  transition: transform 200ms ease, box-shadow 200ms ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
-.transfer-pay-app.toss {
+.transfer-pay-bank.toss {
   background: #ffffff;
   color: #191f28;
 }
 
-.transfer-pay-app.kakaobank {
+.transfer-pay-bank.kakaobank {
   background: #ffde00;
   color: #1a1a1a;
   border-color: rgba(0, 0, 0, 0.05);
 }
 
+.transfer-pay-app {
+  /* 줄어들지 않는다. 자리가 모자라면 복사 칩이 다음 줄로 내려간다 —
+     글자와 칩이 겹치는 것보다 낫다. */
+  flex: 1 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms ease;
+}
+
 .transfer-pay-app:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
 .transfer-pay-logo {
   display: block;
-  height: 22px;
+  height: 18px;
   width: auto;
-  max-width: 100%;
+  flex: none;
 }
 
-.transfer-pay-app span {
-  font-size: 0.78rem;
+.transfer-pay-label {
+  display: grid;
+  gap: 1px;
+  font-size: 0.82rem;
   font-weight: 800;
-  color: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-/* 버튼 밑의 복사 칩. 계좌번호 자체가 버튼이다 — 누르면 복사되고 '복사됨'으로 답한다. */
+.transfer-pay-label small {
+  font-size: 0.66rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* 계좌번호 복사 칩. 번호 자체가 버튼이다 — 누르면 복사되고 '복사됨'으로 답한다.
+   은행 색 위에 얹히므로 색은 은행에서 물려받고 테두리만 반투명으로. */
 .transfer-pay-copychip {
+  flex: none;
+  margin-left: auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border: 1px dashed var(--line);
+  gap: 5px;
+  padding: 6px 7px;
+  border: 1px dashed rgba(0, 0, 0, 0.25);
   border-radius: 9px;
-  background: transparent;
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.35);
+  color: inherit;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   white-space: nowrap;
@@ -7555,21 +7567,20 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 .transfer-pay-copychip.on {
   border-style: solid;
-  border-color: var(--gold);
+  border-color: rgba(0, 0, 0, 0.5);
 }
 
 .transfer-pay-copychip-act {
   padding: 1px 6px;
   border-radius: 6px;
-  background: color-mix(in srgb, var(--gold) 18%, transparent);
-  color: var(--gold);
+  background: rgba(0, 0, 0, 0.08);
   font-size: 0.66rem;
 }
 
-.transfer-pay-holder {
-  text-align: center;
-  color: var(--text-dim);
-  font-size: 0.68rem;
+@media (max-width: 360px) {
+  .transfer-pay-label small {
+    display: none;
+  }
 }
 
 .transfer-pay-account {

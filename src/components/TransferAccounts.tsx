@@ -99,18 +99,20 @@ function BankButton({
   onClick?: () => void;
 }) {
   return (
-    <div className="transfer-pay-bank">
-      <a className={`transfer-pay-app ${brand}`} href={href} onClick={onClick}>
+    <div className={`transfer-pay-bank ${brand}`}>
+      <a className="transfer-pay-app" href={href} onClick={onClick}>
         <img
           src={brand === "toss" ? "/pay/toss.png" : "/pay/kakaobank.png"}
           alt={brand === "toss" ? "toss" : "kakaobank"}
           className="transfer-pay-logo"
           draggable={false}
         />
-        <span>{label}</span>
+        <span className="transfer-pay-label">
+          {label}
+          {item.holder && <small>예금주 {item.holder}</small>}
+        </span>
       </a>
       <CopyChip item={item} />
-      {item.holder && <small className="transfer-pay-holder">예금주 {item.holder}</small>}
     </div>
   );
 }
