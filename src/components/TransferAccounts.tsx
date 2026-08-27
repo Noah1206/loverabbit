@@ -132,13 +132,13 @@ export default function TransferAccounts({ amount }: { amount: number }) {
           item={tossTarget}
           brand="toss"
           href={tossSendLink(tossTarget, amount)}
-          label={toss ? "토스뱅크로 이체" : "토스로 이체"}
+          label={toss ? "원클릭 토스뱅크 이체" : "원클릭 토스 이체"}
         />
         <BankButton
           item={kakaoTarget}
           brand="kakaobank"
           href={KAKAOBANK_LINK}
-          label="카카오뱅크로 이체"
+          label="원클릭 카카오뱅크 이체"
           onClick={() => void navigator.clipboard.writeText(kakaoTarget.account).catch(() => {})}
         />
       </div>
