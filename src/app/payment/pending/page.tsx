@@ -151,7 +151,9 @@ export default function PaymentPendingPage() {
           {rejected ? "×" : order?.status === "paid" ? "✓" : "₩"}
         </div>
         <span className="badge">계좌이체 확인</span>
-        <h1>{rejected ? "입금 승인이 보류됐어요" : "입금 확인을 기다리고 있어요"}</h1>
+        <h1>
+          {rejected ? "입금 승인이 보류됐어요" : receipt === "sent" ? "확인 중이에요" : "이체 화면을 올려주세요"}
+        </h1>
         {rejected ? (
           <p>
             <strong>계좌에서 입금을 찾지 못했어요.</strong> 이체가 실제로 빠져나갔는지
@@ -160,10 +162,48 @@ export default function PaymentPendingPage() {
           </p>
         ) : (
           <p>
-            관리자가 통장 입금 내역을 확인하면 자동으로 풀 리딩이 열리고
-            <strong> 내 상담 페이지로 이동합니다.</strong>
+            {receipt === "sent" ? (
+              <>사진을 보고 <strong>바로 승인해드릴게요.</strong> 열리면 내 상담 페이지로 이동합니다.</>
+            ) : (
+              <>
+                이체 완료 화면을 캡처해서 올려주시면 <strong>사진을 보고 바로 승인</strong>해드려요.
+                안 올리면 통장 입금 내역을 확인한 뒤에 열려서 시간이 더 걸립니다.
+              </>
+            )}
           </p>
         )}
+
+        {/* 캡처 한 장이 통장 대조보다 빠르다. 운영자는 사진을 보고 승인하고,
+            통장은 나중에 맞춘다. 사진 없이도 승인은 되므로 강요하지 않는다. */}
+        {!rejected && order?.status === "pending" && (
+          <div className={`payment-receipt${receipt === "sent" ? " sent" : ""}`}>
+            {receipt === "sent" ? (
+              <p>
+                <strong>이체 화면을 받았어요.</strong> 관리자가 사진을 보고 바로 승인해드릴게요.
+              </p>
+            ) : (
+              <>
+                <p>
+                  <strong>1.</strong> 은행 앱에서 이체 완료 화면 캡처 → <strong>2.</strong> 아래 버튼으로 올리기
+                </p>
+                <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
+                  {receipt === "sending" ? "보내는 중…" : "📷 이체 완료 화면 올리기"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={receipt === "sending"}
+                    onChange={(event) => {
+                      void uploadReceipt(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </>
+            )}
+            {receiptError && <p className="payment-error">{receiptError}</p>}
+          </div>
+        )}
+
 
         {order && (
           <dl className="payment-order-summary">
@@ -181,38 +221,6 @@ export default function PaymentPendingPage() {
         )}
 
         {error && <p className="payment-error">{error}</p>}
-
-        {/* 캡처 한 장이 통장 대조보다 빠르다. 운영자는 사진을 보고 승인하고,
-            통장은 나중에 맞춘다. 사진 없이도 승인은 되므로 강요하지 않는다. */}
-        {!rejected && order?.status === "pending" && (
-          <div className={`payment-receipt${receipt === "sent" ? " sent" : ""}`}>
-            {receipt === "sent" ? (
-              <p>
-                <strong>이체 화면을 받았어요.</strong> 관리자가 사진을 보고 바로 승인해드릴게요.
-              </p>
-            ) : (
-              <>
-                <p>
-                  <strong>더 빨리 열고 싶다면</strong> 이체 완료 화면을 캡처해서 올려주세요.
-                  통장을 뒤지지 않고 사진만 보고 바로 승인해드려요.
-                </p>
-                <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
-                  {receipt === "sending" ? "보내는 중…" : "이체 완료 화면 올리기"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={receipt === "sending"}
-                    onChange={(event) => {
-                      void uploadReceipt(event.target.files?.[0]);
-                      event.target.value = "";
-                    }}
-                  />
-                </label>
-              </>
-            )}
-            {receiptError && <p className="payment-error">{receiptError}</p>}
-          </div>
-        )}
 
         <div className="payment-pending-actions">
           {rejected && order?.readingId ? (
