@@ -291,14 +291,14 @@ export default function AdminPaymentsPage() {
                 )}
               </dl>
               <label>
-                운영 메모
+                손님에게 남길 말
                 <input
                   value={notes[order.id] ?? ""}
                   onChange={(event) =>
                     setNotes((current) => ({ ...current, [order.id]: event.target.value }))
                   }
                   maxLength={500}
-                  placeholder="예: 입금자명 확인 완료"
+                  placeholder="손님 화면에 그대로 보여요 — 예: 입금자명이 달라 확인이 늦었어요"
                 />
               </label>
               <div className="admin-order-actions">

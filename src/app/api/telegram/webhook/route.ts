@@ -70,11 +70,9 @@ export async function POST(request: NextRequest) {
   }
 
   const who = query.from?.username ? `@${query.from.username}` : query.from?.first_name ?? "관리자";
-  const result = await reviewOrderAndFollowUp(
-    orderId,
-    decision,
-    decision === "cancelled" ? "텔레그램에서 미입금 거절" : "텔레그램에서 승인"
-  );
+  // 메모는 남기지 않는다. 메모는 손님 화면에 그대로 뜨는 칸이라(payment/status),
+  // "텔레그램에서 거절" 같은 내부 말이 들어가면 안 된다. 출처는 로그에 남는다.
+  const result = await reviewOrderAndFollowUp(orderId, decision);
 
   const stamp = new Date().toLocaleString("ko-KR", { timeZone: "Asia/Seoul", hour12: false });
   const original = query.message.text ?? `주문 #${orderId}`;

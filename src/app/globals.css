@@ -3938,6 +3938,28 @@ label {
   display: none;
 }
 
+/* 운영자가 승인·거절하며 남긴 말. 손님이 읽는 칸이다. */
+.payment-admin-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--gold) 8%, transparent);
+  text-align: left;
+}
+.payment-admin-note strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+.payment-admin-note p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .payment-pending-actions {
   display: grid;
   gap: 10px;

@@ -17,6 +17,8 @@ type StatusResponse = {
   depositorCode: string | null;
   requestedAt: string;
   paidAt: string | null;
+  /** 운영자가 승인·거절하며 손님에게 남긴 말 */
+  note?: string | null;
 };
 
 export default function PaymentPendingPage() {
@@ -209,6 +211,13 @@ export default function PaymentPendingPage() {
           </div>
         )}
 
+
+        {order?.note && (
+          <div className="payment-admin-note" role="status">
+            <strong>운영자 메모</strong>
+            <p>{order.note}</p>
+          </div>
+        )}
 
         {order && (
           <dl className="payment-order-summary">
