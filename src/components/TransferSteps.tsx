@@ -97,7 +97,7 @@ export default function TransferSteps({
             입금을 마쳤어요
             <span aria-hidden>→</span>
           </button>
-          {!started && <p className="transfer-pay-hint">먼저 위에서 이체하거나 계좌번호를 복사해주세요.</p>}
+          {!started && <p className="transfer-pay-hint">먼저 위 버튼으로 이체하거나 계좌번호를 복사해주세요.</p>}
         </>
       )}
     </>

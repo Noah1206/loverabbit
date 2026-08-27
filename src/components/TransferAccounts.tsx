@@ -3,17 +3,16 @@
 import { useState } from "react";
 
 /*
-  계좌이체 안내 — 토스뱅크 한 줄.
+  계좌이체 안내 — 카카오뱅크 한 줄.
 
   리딩 결제(PaymentModal)와 대화권 결제(ChatPaymentModal)가 같은 것을 그린다.
   두 화면이 따로 그리면 계좌를 바꿀 때 한쪽만 바뀐다.
 
-  받는 계좌는 토스뱅크 하나다 (2026-08-27 운영자 결정 — 카카오뱅크 뺌). 통장이
-  둘이면 입금 대조를 두 군데서 해야 하고, 알림에는 어느 통장인지 안 찍힌다.
-  토스 버튼은 토스 앱의 송금창을 계좌·금액까지 채워서 연다.
+  받는 계좌는 카카오뱅크 하나다 (2026-08-27 — 토스뱅크를 잠깐 넣었다가 뺌).
+  카카오뱅크는 송금 딥링크를 공개하지 않아서 버튼은 앱만 열고, 누르는 순간
+  계좌번호를 클립보드에 실어 둔다. 오른쪽 칩은 번호를 직접 복사하는 길.
 
-  환경변수 NEXT_PUBLIC_BANK2_* 가 있으면 그것이 이기고, 없으면 아래 기본값.
-  계좌번호는 손님 화면에 그대로 찍히는 값이라 코드에 있어도 새는 것이 없다.
+  계좌는 NEXT_PUBLIC_BANK_* 환경변수에서 온다 (운영에 들어 있다). 없으면 기본값.
 */
 
 export interface BankAccount {
@@ -30,18 +29,16 @@ function fromEnv(bank?: string, account?: string, holder?: string): BankAccount 
 }
 
 // NEXT_PUBLIC_ 값은 빌드 때 글자 그대로 박히므로 process.env 를 통째로 넘길 수 없다.
-export const TOSS_ACCOUNT: BankAccount =
+export const KAKAOBANK_ACCOUNT: BankAccount =
   fromEnv(
-    process.env.NEXT_PUBLIC_BANK2_NAME,
-    process.env.NEXT_PUBLIC_BANK2_ACCOUNT,
-    process.env.NEXT_PUBLIC_BANK2_HOLDER
-  ) ?? { bank: "토스뱅크", account: "1002-1047-8563", holder: "조현웅" };
+    process.env.NEXT_PUBLIC_BANK_NAME,
+    process.env.NEXT_PUBLIC_BANK_ACCOUNT,
+    process.env.NEXT_PUBLIC_BANK_HOLDER
+  ) ?? { bank: "카카오뱅크", account: "3333362382600", holder: "러브레빗" };
 
-export const TRANSFER_ACCOUNTS: BankAccount[] = [TOSS_ACCOUNT];
+export const TRANSFER_ACCOUNTS: BankAccount[] = [KAKAOBANK_ACCOUNT];
 
-function tossSendLink(item: BankAccount, amount: number) {
-  return `supertoss://send?bank=${encodeURIComponent(item.bank)}&accountNo=${item.account.replace(/-/g, "")}&amount=${amount}&origin=linkgen`;
-}
+const KAKAOBANK_LINK = "kakaobank://";
 
 function CopyChip({ item, onCopy }: { item: BankAccount; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false);
@@ -68,21 +65,27 @@ function CopyChip({ item, onCopy }: { item: BankAccount; onCopy?: () => void }) 
  * 칩은 앱 없이 직접 옮겨 적는 사람의 길이다.
  */
 export default function TransferAccounts({
-  amount,
   onStarted,
 }: {
-  amount: number;
-  /** 토스 버튼이나 복사를 눌렀다 — 이체를 시작했다는 신호. 다음 버튼이 이걸 기다린다. */
+  amount?: number;
+  /** 버튼이나 복사를 눌렀다 — 이체를 시작했다는 신호. 다음 버튼이 이걸 기다린다. */
   onStarted?: () => void;
 }) {
-  const item = TOSS_ACCOUNT;
+  const item = KAKAOBANK_ACCOUNT;
   return (
     <div className="transfer-pay-apps">
-      <div className="transfer-pay-bank toss">
-        <a className="transfer-pay-app" href={tossSendLink(item, amount)} onClick={onStarted}>
-          <img src="/pay/toss.png" alt="toss" className="transfer-pay-logo" draggable={false} />
+      <div className="transfer-pay-bank kakaobank">
+        <a
+          className="transfer-pay-app"
+          href={KAKAOBANK_LINK}
+          onClick={() => {
+            void navigator.clipboard.writeText(item.account).catch(() => {});
+            onStarted?.();
+          }}
+        >
+          <img src="/pay/kakaobank.png" alt="kakaobank" className="transfer-pay-logo" draggable={false} />
           <span className="transfer-pay-label">
-            원클릭 토스뱅크 이체
+            원클릭 카카오뱅크 이체
             {item.holder && <small>예금주 {item.holder}</small>}
           </span>
         </a>
