@@ -142,9 +142,6 @@ export default function TransferAccounts({ amount }: { amount: number }) {
           onClick={() => void navigator.clipboard.writeText(kakaoTarget.account).catch(() => {})}
         />
       </div>
-      {toss && kakao && (
-        <p className="transfer-pay-either">둘 중 편한 계좌로 보내면 돼요. 금액과 입금코드는 같아요.</p>
-      )}
     </>
   );
 }

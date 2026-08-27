@@ -195,7 +195,6 @@ export default function ChatPaymentModal({
           <div className="transfer-payment-fallback">
             {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
                 두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
-            <p className="toss-payment-config-error">계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
             <TransferAccounts amount={product.price} />
             {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
                 그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
