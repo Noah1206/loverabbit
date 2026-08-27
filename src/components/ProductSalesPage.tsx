@@ -100,7 +100,7 @@ export default function ProductSalesPage({
         </div>
       </section>
 
-      <div style={{ padding: "20px 20px 0", display: "grid", gap: 26 }}>
+      <div style={{ padding: "20px 10px 0", display: "grid", gap: 26 }}>
         {/* ── ??% 게이지 ──
             "우리의 {이름}은?" 으로 묻지 않는다. 조사가 이름 끝소리를 안 따라가
             "속궁합 지수은?" 이 나오고, 혼자 보는 상품에서는 "우리의" 도 틀린다. */}
