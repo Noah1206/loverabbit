@@ -59,65 +59,88 @@ function tossSendLink(item: BankAccount, amount: number) {
   return `supertoss://send?bank=${encodeURIComponent(item.bank)}&accountNo=${item.account.replace(/-/g, "")}&amount=${amount}&origin=linkgen`;
 }
 
-function CopyButton({ value }: { value: string }) {
+function CopyChip({ item }: { item: BankAccount }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
       type="button"
-      className="transfer-pay-copy"
-      aria-label="계좌번호 복사"
+      className={`transfer-pay-copychip${copied ? " on" : ""}`}
+      aria-label={`${item.bank} 계좌번호 복사`}
       onClick={() => {
-        void navigator.clipboard.writeText(value).catch(() => {});
+        void navigator.clipboard.writeText(item.account).catch(() => {});
         setCopied(true);
         setTimeout(() => setCopied(false), 1600);
       }}
     >
-      {copied ? (
-        "복사됨"
-      ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <rect x="9" y="9" width="11" height="11" rx="2" />
-          <path d="M5 15V6a2 2 0 0 1 2-2h9" />
-        </svg>
-      )}
+      <span className="transfer-pay-copychip-no">{item.account}</span>
+      <span className="transfer-pay-copychip-act">{copied ? "복사됨" : "복사"}</span>
     </button>
+  );
+}
+
+/**
+ * 은행 버튼 + 그 밑의 복사 칩.
+ *
+ * 버튼은 앱을 연다 — 토스는 계좌·금액까지 채운 송금창, 카카오뱅크는 딥링크가
+ * 공개돼 있지 않아 앱만 열고 계좌번호를 클립보드에 실어 둔다. 칩은 앱 없이
+ * 직접 옮겨 적는 사람의 길이다.
+ */
+function BankButton({
+  item,
+  href,
+  brand,
+  label,
+  onClick,
+}: {
+  item: BankAccount;
+  href: string;
+  brand: "toss" | "kakaobank";
+  label: string;
+  onClick?: () => void;
+}) {
+  return (
+    <div className="transfer-pay-bank">
+      <a className={`transfer-pay-app ${brand}`} href={href} onClick={onClick}>
+        <img
+          src={brand === "toss" ? "/pay/toss.png" : "/pay/kakaobank.png"}
+          alt={brand === "toss" ? "toss" : "kakaobank"}
+          className="transfer-pay-logo"
+          draggable={false}
+        />
+        <span>{label}</span>
+      </a>
+      <CopyChip item={item} />
+      {item.holder && <small className="transfer-pay-holder">예금주 {item.holder}</small>}
+    </div>
   );
 }
 
 export default function TransferAccounts({ amount }: { amount: number }) {
   if (TRANSFER_ACCOUNTS.length === 0) return null;
-  const tossTarget = TRANSFER_ACCOUNTS.find(isTossBank) ?? TRANSFER_ACCOUNTS[0];
-  const kakaoTarget = TRANSFER_ACCOUNTS.find(isKakaoBank) ?? TRANSFER_ACCOUNTS[0];
+  const toss = TRANSFER_ACCOUNTS.find(isTossBank);
+  const kakao = TRANSFER_ACCOUNTS.find(isKakaoBank);
+  // 둘 중 하나만 있는 배포라도 버튼은 둘 다 그린다 — 손님의 은행 앱이 그 둘이다.
+  const tossTarget = toss ?? TRANSFER_ACCOUNTS[0];
+  const kakaoTarget = kakao ?? TRANSFER_ACCOUNTS[0];
 
   return (
     <>
-      {/* 이체 앱 두 개를 가로로 나란히. 토스는 계좌·금액까지 채워 열리고,
-          카카오뱅크는 이체 딥링크가 공개돼 있지 않아 앱만 연다 - 대신 누르는
-          순간 계좌번호를 클립보드에 실어 두어 앱에서 붙여넣으면 된다. */}
       <div className="transfer-pay-apps">
-        <a className="transfer-pay-app" href={tossSendLink(tossTarget, amount)}>
-          <strong>토스</strong>
-          <span>{isTossBank(tossTarget) ? "토스뱅크로 이체" : "계좌이체"}</span>
-        </a>
-        <a
-          className="transfer-pay-app"
+        <BankButton
+          item={tossTarget}
+          brand="toss"
+          href={tossSendLink(tossTarget, amount)}
+          label={toss ? "토스뱅크로 이체" : "토스로 이체"}
+        />
+        <BankButton
+          item={kakaoTarget}
+          brand="kakaobank"
           href={KAKAOBANK_LINK}
+          label="카카오뱅크로 이체"
           onClick={() => void navigator.clipboard.writeText(kakaoTarget.account).catch(() => {})}
-        >
-          <strong>카카오뱅크</strong>
-          <span>계좌이체</span>
-        </a>
+        />
       </div>
-      {TRANSFER_ACCOUNTS.map((item) => (
-        <div className="transfer-pay-account" key={item.account}>
-          <p>
-            <strong>{item.bank}</strong> {item.account}
-            {item.holder && <> · {item.holder}</>}
-          </p>
-          <CopyButton value={item.account} />
-        </div>
-      ))}
-      {TRANSFER_ACCOUNTS.length > 1 && (
+      {toss && kakao && (
         <p className="transfer-pay-either">둘 중 편한 계좌로 보내면 돼요. 금액과 입금코드는 같아요.</p>
       )}
     </>

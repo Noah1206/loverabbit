@@ -7483,33 +7483,93 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 14px;
 }
 
+.transfer-pay-bank {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: 6px;
+  justify-items: stretch;
+}
+
+/* 은행 버튼은 그 은행의 색을 입는다 — 토스는 흰 바탕, 카카오뱅크는 노랑.
+   손님은 글자보다 색으로 자기 앱을 먼저 찾는다. 다크 모드에서도 이 둘은 바꾸지
+   않는다. 브랜드 색이 바뀌면 다른 앱처럼 보인다. */
 .transfer-pay-app {
   display: grid;
-  gap: 2px;
-  padding: 13px 10px;
-  border: 1px solid var(--line);
+  align-content: center;
+  gap: 6px;
+  justify-items: center;
+  padding: 14px 10px 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;
-  background: var(--bg-card2);
   text-align: center;
   text-decoration: none;
-  color: var(--text);
-  transition: border-color 200ms ease, transform 200ms ease;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.transfer-pay-app.toss {
+  background: #ffffff;
+  color: #191f28;
+}
+
+.transfer-pay-app.kakaobank {
+  background: #ffde00;
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.05);
 }
 
 .transfer-pay-app:active {
   transform: scale(0.97);
-  border-color: var(--accent);
 }
 
-.transfer-pay-app strong {
-  font-size: 0.95rem;
-  font-weight: 800;
+.transfer-pay-logo {
+  display: block;
+  height: 22px;
+  width: auto;
+  max-width: 100%;
 }
 
 .transfer-pay-app span {
-  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: inherit;
+}
+
+/* 버튼 밑의 복사 칩. 계좌번호 자체가 버튼이다 — 누르면 복사되고 '복사됨'으로 답한다. */
+.transfer-pay-copychip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px dashed var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text);
   font-size: 0.72rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.transfer-pay-copychip.on {
+  border-style: solid;
+  border-color: var(--gold);
+}
+
+.transfer-pay-copychip-act {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
+  color: var(--gold);
+  font-size: 0.66rem;
+}
+
+.transfer-pay-holder {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.68rem;
 }
 
 .transfer-pay-account {
