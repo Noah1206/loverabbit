@@ -15,8 +15,8 @@ import WelcomePopup from "@/components/WelcomePopup";
 const themeInitScript = `
   (function () {
     try {
-      var savedTheme = window.localStorage.getItem("loverabbit-theme");
-      var theme = savedTheme === "light" ? "light" : "dark";
+      // 테마 선택은 뺐다 (2026-08-27). 예전에 라이트를 저장한 기기도 블랙으로.
+      var theme = "dark";
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme;
     } catch (error) {

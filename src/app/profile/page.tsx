@@ -6,11 +6,12 @@ import { useTheme, type Theme } from "@/components/ThemeProvider";
 import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
 
 export default function ProfilePage() {
-  const { theme, setTheme, showMatureLabels, setShowMatureLabels } = useTheme();
+  const { setTheme, showMatureLabels, setShowMatureLabels } = useTheme();
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(theme);
+  // 테마 선택은 뺐다 (2026-08-27). 블랙 하나다. 저장 형식은 그대로 두고 값만 고정한다.
+  const selectedTheme: Theme = "dark";
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileNotice, setProfileNotice] = useState("");
@@ -27,9 +28,8 @@ export default function ProfilePage() {
         theme?: Theme;
         showMatureLabels?: boolean;
       };
-      if (response.ok && (data.theme === "dark" || data.theme === "light")) {
-        setSelectedTheme(data.theme);
-        setTheme(data.theme);
+      if (response.ok) {
+        setTheme("dark");
         if (typeof data.showMatureLabels === "boolean") {
           setShowMatureLabels(data.showMatureLabels);
         }
@@ -142,32 +142,7 @@ export default function ProfilePage() {
       </div>
       <section className="card profile-theme-card">
         <span className="badge">화면 설정</span>
-        <h2>테마</h2>
-        <p>기본은 블랙입니다. 여기에서만 라이트 모드로 바꾸고 저장할 수 있어요.</p>
-        <div className="profile-theme-options" role="radiogroup" aria-label="화면 테마">
-          <button
-            type="button"
-            role="radio"
-            aria-checked={selectedTheme === "dark"}
-            className={selectedTheme === "dark" ? "on" : ""}
-            onClick={() => setSelectedTheme("dark")}
-          >
-            <span className="theme-preview theme-preview-dark" aria-hidden />
-            <strong>블랙</strong>
-            <small>기본 테마</small>
-          </button>
-          <button
-            type="button"
-            role="radio"
-            aria-checked={selectedTheme === "light"}
-            className={selectedTheme === "light" ? "on" : ""}
-            onClick={() => setSelectedTheme("light")}
-          >
-            <span className="theme-preview theme-preview-light" aria-hidden />
-            <strong>라이트</strong>
-            <small>밝은 테마</small>
-          </button>
-        </div>
+        <h2>화면</h2>
         <div className="profile-label-toggle">
           <div>
             <strong>연령 안내 표시</strong>

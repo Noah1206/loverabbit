@@ -35,7 +35,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    const initialTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    // 테마는 블랙 하나다 (2026-08-27). 저장된 값·서버 값이 라이트여도 따르지 않는다.
+    const initialTheme: Theme = "dark";
     setThemeState(initialTheme);
     applyTheme(initialTheme);
     setShowMatureLabelsState(window.localStorage.getItem(MATURE_LABEL_STORAGE_KEY) === "show");
@@ -51,7 +52,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         .then((response) => (response.ok ? response.json() : null))
         .then((profile: { theme?: Theme; showMatureLabels?: boolean } | null) => {
           if (!active || !profile) return;
-          if (profile.theme === "dark" || profile.theme === "light") {
+          if (profile.theme === "dark") {
             setThemeState(profile.theme);
             applyTheme(profile.theme);
             window.localStorage.setItem(THEME_STORAGE_KEY, profile.theme);
@@ -69,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const syncPreferences = (event: StorageEvent) => {
       if (event.key === THEME_STORAGE_KEY) {
-        const nextTheme: Theme = event.newValue === "light" ? "light" : "dark";
+        const nextTheme: Theme = "dark";
         setThemeState(nextTheme);
         applyTheme(nextTheme);
       }
