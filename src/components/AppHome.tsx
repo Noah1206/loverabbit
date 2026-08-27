@@ -18,8 +18,9 @@ import InquiryButton from "@/components/InquiryButton";
 import HomeReviews from "@/components/HomeReviews";
 
 
+const SHOW_SHRINE_ON_HOME = false;
+
 const NOTICES = [
-  { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 로그인하면 신당 대화 5번 무료" },
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
@@ -133,42 +134,49 @@ export default function AppHome() {
           </div>
         </div>
 
-        {/* ── 신당 — 도령 캐릭터 챗 ── */}
-        <section style={{ padding: "30px 0 0" }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 16px" }}>
-            <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
-            <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령·신녀와 비밀 상담 — 로그인 후 무료 5번</span>
-          </div>
-          <div className="shrine-scroll">
-            {Object.values(CHARACTERS).map((ch, index) => (
-              <Link key={ch.id} href={`/shrine/${ch.id}`} className="hero-card shrine-card">
-                <div aria-hidden className="shrine-card-art">
-                  <Image
-                    src={ch.img}
-                    alt=""
-                    fill
-                    priority={index === 0}
-                    sizes="(max-width: 640px) calc(100vw - 40px), 600px"
-                    style={{ objectFit: "cover", objectPosition: "center 10%" }}
-                  />
-                  {/* 상세에 들어가지 않아도 여기서 이미 움직인다. 화면에 들어온
-                      카드만 재생하므로 가로 스크롤에서 한두 편만 돌아간다. */}
-                  <CharacterMotion characterId={ch.id} objectPosition="center 10%" />
-                </div>
-                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,10,12,0.95) 85%)" }} />
-                <div className="shrine-card-copy">
-                  <span className="shrine-card-label">
-                    {ch.title}
-                    {ch.isNew ? <em>NEW</em> : null}
-                  </span>
-                  <strong>{ch.name}</strong>
-                  <p>{ch.tagline}</p>
-                  <span className="shrine-card-enter">🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* ── 신당(캐릭터 챗)은 홈에서 뺐다 (2026-08-27). 8/25~27 페이지뷰 3,157 중
+            신당은 31 (1%), 대화권 결제 0. 첫 화면은 사주 카드에 집중한다.
+            /shrine 주소와 리딩 뒤 이어지는 대화는 그대로 살아 있다 — 다시 보이려면
+            SHOW_SHRINE_ON_HOME 을 true 로. */}
+        {SHOW_SHRINE_ON_HOME && (
+          {/* ── 신당 — 도령 캐릭터 챗 ── */}
+          <section style={{ padding: "30px 0 0" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, margin: "0 20px 16px" }}>
+              <h3 style={{ fontSize: "1.05rem" }}>🏮 신당</h3>
+              <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>도령·신녀와 비밀 상담 — 로그인 후 무료 5번</span>
+            </div>
+            <div className="shrine-scroll">
+              {Object.values(CHARACTERS).map((ch, index) => (
+                <Link key={ch.id} href={`/shrine/${ch.id}`} className="hero-card shrine-card">
+                  <div aria-hidden className="shrine-card-art">
+                    <Image
+                      src={ch.img}
+                      alt=""
+                      fill
+                      priority={index === 0}
+                      sizes="(max-width: 640px) calc(100vw - 40px), 600px"
+                      style={{ objectFit: "cover", objectPosition: "center 10%" }}
+                    />
+                    {/* 상세에 들어가지 않아도 여기서 이미 움직인다. 화면에 들어온
+                        카드만 재생하므로 가로 스크롤에서 한두 편만 돌아간다. */}
+                    <CharacterMotion characterId={ch.id} objectPosition="center 10%" />
+                  </div>
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(10,10,12,0.95) 85%)" }} />
+                  <div className="shrine-card-copy">
+                    <span className="shrine-card-label">
+                      {ch.title}
+                      {ch.isNew ? <em>NEW</em> : null}
+                    </span>
+                    <strong>{ch.name}</strong>
+                    <p>{ch.tagline}</p>
+                    <span className="shrine-card-enter">🔥 {participantCount(ch.id).toLocaleString()}명 참여 · 입장하기 →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+  
+        )}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 20px 0" }}>
