@@ -7,14 +7,11 @@ import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
+import TransferAccounts, { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
 import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
-const KAKAOBANK_LINK = "kakaobank://";
 const CUSTOMER_KEY_STORAGE = "loverabbit_toss_customer_key_v1";
-const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME?.trim() ?? "";
-const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT?.trim() ?? "";
-const BANK_HOLDER = process.env.NEXT_PUBLIC_BANK_HOLDER?.trim() ?? "";
 
 function getCustomerKey() {
   const stored = sessionStorage.getItem(CUSTOMER_KEY_STORAGE);
@@ -45,10 +42,9 @@ export default function ChatPaymentModal({
   const [submittedOrderId, setSubmittedOrderId] = useState<number | null>(null);
   const [error, setError] = useState("");
   // 계좌번호 복사 피드백 - PaymentModal 과 같은 이유, 같은 모양
-  const [copied, setCopied] = useState(false);
   const [transferConfirming, setTransferConfirming] = useState(false);
   const depositorCode = chatDepositorCode(userToken);
-  const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT);
+  const transferConfigured = TRANSFER_ACCOUNTS.length > 0;
 
   // 리딩 결제 모달과 같은 사다리, 같은 스위치. 두 화면이 다른 수단을 내보내면
   // 두 번째 결제에서 처음 보는 결제 방식을 또 배워야 한다.
@@ -59,7 +55,6 @@ export default function ChatPaymentModal({
 
   const [picked, setPicked] = useState<PayMethod | null>(null);
   const method = picked && methods.includes(picked) ? picked : methods[0] ?? null;
-  const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${product.price}&origin=linkgen`;
 
   useEffect(() => {
     // 토스 위젯을 고르기 전에는 SDK 를 부르지 않는다 (PaymentModal 과 같은 이유)
@@ -201,45 +196,7 @@ export default function ChatPaymentModal({
             {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
                 두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
             <p className="toss-payment-config-error">계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
-            <div className="transfer-pay-apps">
-              <a className="transfer-pay-app" href={tossLink}>
-                <strong>토스</strong>
-                <span>계좌이체</span>
-              </a>
-              <a
-                className="transfer-pay-app"
-                href={KAKAOBANK_LINK}
-                onClick={() => void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {})}
-              >
-                <strong>카카오뱅크</strong>
-                <span>계좌이체</span>
-              </a>
-            </div>
-            <div className="transfer-pay-account">
-              <p>
-                <strong>{BANK_NAME}</strong> {BANK_ACCOUNT}
-                {BANK_HOLDER && <> · {BANK_HOLDER}</>}
-              </p>
-              <button
-                type="button"
-                className="transfer-pay-copy"
-                aria-label="계좌번호 복사"
-                onClick={() => {
-                  void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {});
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1600);
-                }}
-              >
-                {copied ? (
-                  "복사됨"
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <rect x="9" y="9" width="11" height="11" rx="2" />
-                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
-                  </svg>
-                )}
-              </button>
-            </div>
+            <TransferAccounts amount={product.price} />
             {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
                 그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
                 기다린다. 한 번 더 묻는 값이 그 기다림보다 싸다. */}

@@ -13,16 +13,13 @@ import {
   type Coupon,
 } from "@/lib/coupons";
 import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
+import TransferAccounts, { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
 import "@/app/coupons.css";
 
-const KAKAOBANK_LINK = "kakaobank://";
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
 const CUSTOMER_KEY_STORAGE = "loverabbit_toss_customer_key_v1";
-const BANK_NAME = process.env.NEXT_PUBLIC_BANK_NAME?.trim() ?? "";
-const BANK_ACCOUNT = process.env.NEXT_PUBLIC_BANK_ACCOUNT?.trim() ?? "";
-const BANK_HOLDER = process.env.NEXT_PUBLIC_BANK_HOLDER?.trim() ?? "";
 
 function getCustomerKey() {
   const stored = sessionStorage.getItem(CUSTOMER_KEY_STORAGE);
@@ -57,9 +54,8 @@ export default function PaymentModal({
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   // 계좌번호 복사 버튼의 짧은 피드백 - 아이콘만 있는 버튼이라 눌렸는지 보여야 한다
-  const [copied, setCopied] = useState(false);
   const [transferConfirming, setTransferConfirming] = useState(false);
-  const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT && depositorCode && onTransferSubmitted);
+  const transferConfigured = Boolean(TRANSFER_ACCOUNTS.length > 0 && depositorCode && onTransferSubmitted);
 
   /*
     쓸 수 있는 수단을 모으고, 둘 이상이면 고르게 한다.
@@ -110,7 +106,6 @@ export default function PaymentModal({
   const coupon = coupons.find((item) => item.id === couponId) ?? null;
   const payAmount = coupon ? couponPrice(price, coupon) : price;
 
-  const tossLink = `supertoss://send?bank=${encodeURIComponent(BANK_NAME)}&accountNo=${BANK_ACCOUNT.replace(/-/g, "")}&amount=${payAmount}&origin=linkgen`;
 
   useEffect(() => {
     // 토스 위젯을 고르기 전에는 SDK 를 부르지 않는다 — 안 그리는 위젯을 위해
@@ -265,48 +260,7 @@ export default function PaymentModal({
             <p className="toss-payment-config-error">
               계좌이체로 결제해요. 관리자가 실제 입금을 확인하면 전문이 열립니다.
             </p>
-            {/* 이체 앱 두 개를 가로로 나란히. 토스는 계좌·금액까지 채워 열리고,
-                카카오뱅크는 이체 딥링크가 공개돼 있지 않아 앱만 연다 - 대신 누르는
-                순간 계좌번호를 클립보드에 실어 두어 앱에서 붙여넣으면 된다. */}
-            <div className="transfer-pay-apps">
-              <a className="transfer-pay-app" href={tossLink}>
-                <strong>토스</strong>
-                <span>계좌이체</span>
-              </a>
-              <a
-                className="transfer-pay-app"
-                href={KAKAOBANK_LINK}
-                onClick={() => void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {})}
-              >
-                <strong>카카오뱅크</strong>
-                <span>계좌이체</span>
-              </a>
-            </div>
-            <div className="transfer-pay-account">
-              <p>
-                <strong>{BANK_NAME}</strong> {BANK_ACCOUNT}
-                {BANK_HOLDER && <> · {BANK_HOLDER}</>}
-              </p>
-              <button
-                type="button"
-                className="transfer-pay-copy"
-                aria-label="계좌번호 복사"
-                onClick={() => {
-                  void navigator.clipboard.writeText(BANK_ACCOUNT).catch(() => {});
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 1600);
-                }}
-              >
-                {copied ? (
-                  "복사됨"
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                    <rect x="9" y="9" width="11" height="11" rx="2" />
-                    <path d="M5 15V6a2 2 0 0 1 2-2h9" />
-                  </svg>
-                )}
-              </button>
-            </div>
+            <TransferAccounts amount={payAmount} />
             {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
                 그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
                 기다린다. 한 번 더 묻는 값이 그 기다림보다 싸다. */}

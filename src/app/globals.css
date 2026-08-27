@@ -7486,6 +7486,12 @@ body:has(.product-page[data-landing]) .consent-banner {
   border-radius: 12px;
 }
 
+.transfer-pay-either {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
 .transfer-pay-account p {
   margin: 0;
   font-size: 0.85rem;
