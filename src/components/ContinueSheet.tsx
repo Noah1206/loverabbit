@@ -13,7 +13,7 @@ import { previewFor } from "@/lib/reading-preview";
  * 여기 있는 말은 상품마다 다르다(reading-preview.ts). 리딩이 남긴 물음(openLoop)이
  * 있으면 그것을 쓰고, 옛 리딩처럼 없으면 상품의 숨은 변수로 대신한다.
  *
- * 광고로 들어온 990원 리딩도 같은 창을 쓴다 — 값만 다르다.
+ * 광고로 들어온 4,900원 리딩도 같은 창을 쓴다 — 값만 다르다.
  */
 export default function ContinueSheet({
   productId,

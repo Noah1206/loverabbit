@@ -1189,11 +1189,11 @@ function mapReview(row: Record<string, unknown>): ReviewRecord {
 }
 
 /**
- * 리딩을 결제해 본 적이 있는가 — 광고 오퍼(990원 미끼)의 자격 검사.
+ * 리딩을 결제해 본 적이 있는가 — 광고 오퍼(4,900원 미끼)의 자격 검사.
  *
  * 미끼는 첫 구매 전까지만이다 (운영자 결정, 2026-08-22: 광고 보고 온 유저
  * 한정, 유저별 한 번). 오퍼 id 는 광고 URL 에 그대로 실리는 공개값이라,
- * 이 검사가 없으면 링크를 아는 누구든 언제까지고 990원에 산다.
+ * 이 검사가 없으면 링크를 아는 누구든 언제까지고 4,900원에 산다.
  * 대화권만 산 사람은 아직 리딩 첫 구매 전이므로 미끼 대상으로 남긴다.
  */
 export async function hasPaidReadingOrder(userId: number): Promise<boolean> {

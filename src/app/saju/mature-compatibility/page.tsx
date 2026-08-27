@@ -3,7 +3,7 @@ import AdSajuLanding from "@/components/AdSajuLanding";
 
 export const metadata: Metadata = {
   title: "그 사람과 나는, 가까워질수록 더 잘 맞을까? — 19금 속궁합 사주 | 러브레빗",
-  description: "두 사람의 끌림 구조와 친밀도 상성, 주도권과 완급을 첫 리딩 990원에 확인해 보세요.",
+  description: "두 사람의 끌림 구조와 친밀도 상성, 주도권과 완급을 첫 리딩 4,900원에 확인해 보세요.",
 };
 
 export default async function MatureCompatibilityLanding({

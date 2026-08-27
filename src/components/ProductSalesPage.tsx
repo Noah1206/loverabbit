@@ -91,14 +91,14 @@ export default function ProductSalesPage({
           <h1 style={{ color: "#fff", fontSize: "1.7rem", lineHeight: 1.3, margin: "8px 0 6px" }}>{headline}</h1>
           <p style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.9rem", lineHeight: 1.55 }}>{sub}</p>
           {/* 광고가 말한 값을 첫 화면에서 바로 보여준다 (2026-08-25).
-              990원 카드는 원래 목차 뒤 맨 아래에만 있었다. 광고에서 990원을 보고
+              4,900원 카드는 원래 목차 뒤 맨 아래에만 있었다. 광고에서 4,900원을 보고
               온 사람이 첫 화면에서 그 숫자를 못 찾으면 "이게 아닌데" 하고 닫는다 -
               상품 상세 이탈 중앙값이 8초였다. */}
           {activeOffer && (
             <p className="product-hero-offer">
               <s>{product.price.toLocaleString("ko-KR")}원</s>
               <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
-              <span>첫 사주 990원 · 명식은 결제 전에 확인</span>
+              <span>첫 사주 4,900원 · 명식은 결제 전에 확인</span>
             </p>
           )}
           {hero?.adultOnly && (

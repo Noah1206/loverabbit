@@ -19,7 +19,7 @@ import HomeReviews from "@/components/HomeReviews";
 
 const NOTICES = [
   { text: "💬 리딩 후 추가 상담 기능 오픈!", sub: "첫 질문은 무료 · 로그인하면 신당 대화 5번 무료" },
-  { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 990원", sub: "어떤 사주든 첫 한 장은 990원" },
+  { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 4,900원", sub: "어떤 사주든 첫 한 장은 4,900원" },
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 

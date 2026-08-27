@@ -58,7 +58,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             <span className="product-sticky-copy">
               <strong>{p.ctaLabel}</strong>
               {activeOffer && (
-                <small>첫 리딩 990원 · 전문은 {activeOffer.price.toLocaleString("ko-KR")}원</small>
+                <small>첫 리딩 4,900원 · 전문은 {activeOffer.price.toLocaleString("ko-KR")}원</small>
               )}
             </span>
             <span className="product-sticky-arrow" aria-hidden>→</span>

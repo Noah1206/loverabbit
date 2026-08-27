@@ -95,16 +95,16 @@ const welcome = (over: Partial<Coupon> = {}) =>
 test("환영 쿠폰은 상품가가 얼마든 990원으로 만든다", () => {
   // 9,900 / 14,900 / 29,900 / 49,900 — 카탈로그의 티어 전부
   for (const price of [9900, 12900, 14900, 29900, 49900]) {
-    assert.equal(couponPrice(price, welcome()), 990, `${price}원 상품`);
-    assert.equal(couponSaving(price, welcome()), price - 990);
+    assert.equal(couponPrice(price, welcome()), 4900, `${price}원 상품`);
+    assert.equal(couponSaving(price, welcome()), price - 4900);
   }
 });
 
 test("환영 쿠폰이 값을 올리지는 않는다 - 광고로 이미 990원에 온 사람", () => {
-  assert.equal(couponPrice(990, welcome()), 990);
+  assert.equal(couponPrice(4900, welcome()), 4900);
   // 깎이는 게 없으므로 후보에서 빠진다. 넣으면 0원어치로 태운다.
-  assert.equal(couponSaving(990, welcome()), 0);
-  assert.equal(pickBestCoupon([welcome()], 990, NOW), null);
+  assert.equal(couponSaving(4900, welcome()), 0);
+  assert.equal(pickBestCoupon([welcome()], 4900, NOW), null);
 });
 
 test("섞이면 쿠폰에 적힌 값이 아니라 이 상품에서 깎이는 금액으로 고른다", () => {
@@ -118,7 +118,7 @@ test("섞이면 쿠폰에 적힌 값이 아니라 이 상품에서 깎이는 금
 });
 
 test("쿠폰함에 적히는 값은 정액가와 할인을 구분한다", () => {
-  assert.equal(couponHeadline(welcome()), "990원");
+  assert.equal(couponHeadline(welcome()), "4,900원");
   assert.equal(couponHeadline(coupon({ discount: 5000 })), "5,000원");
 });
 
@@ -135,8 +135,8 @@ test("주문 metadata 의 쿠폰 메모를 읽는다", () => {
   // 환영 쿠폰 주문은 깎인 금액과 정액가를 함께 남긴다
   assert.deepEqual(
     readOrderCoupon({
-      coupon: { id: "w1", kind: "welcome", discount: 48910, fixedPrice: 990, listPrice: 49900 },
+      coupon: { id: "w1", kind: "welcome", discount: 45000, fixedPrice: 4900, listPrice: 49900 },
     }),
-    { id: "w1", kind: "welcome", discount: 48910, fixedPrice: 990, listPrice: 49900 }
+    { id: "w1", kind: "welcome", discount: 45000, fixedPrice: 4900, listPrice: 49900 }
   );
 });

@@ -83,7 +83,7 @@ export function chapterNumbersFromToc(toc: string[]): number[] {
       last = Number(matched[1]);
       return last;
     }
-    // "01. ..." 처럼 장 표기가 없는 목차(990원 입문 리포트)는 항목 하나가 곧 한 장이다
+    // "01. ..." 처럼 장 표기가 없는 목차(4,900원 입문 리포트)는 항목 하나가 곧 한 장이다
     last = index + 1;
     return last;
   });

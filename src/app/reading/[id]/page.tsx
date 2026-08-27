@@ -530,7 +530,7 @@ export default function ReadingReportPage() {
       if (!state?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
       const params = new URLSearchParams({ ref: state.referralCode, reward: "chat_credits" });
       const url = `${window.location.origin}/reading?${params.toString()}`;
-      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 첫 사주 990원이야 🐰";
+      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 첫 사주 4,900원이야 🐰";
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 사주", text, url });
         setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
