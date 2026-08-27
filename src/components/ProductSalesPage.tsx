@@ -1,6 +1,5 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
-import CardMotion from "@/components/CardMotion";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import HomeReviews from "@/components/HomeReviews";
 import type { AdOffer } from "@/lib/ad-offers";
@@ -66,11 +65,28 @@ export default function ProductSalesPage({
       {children}
       <ProductRevealObserver />
 
-      {/* ── 히어로 ── */}
-      <section className="product-hero">
+      {/* ── 히어로 ──
+          글이 위, 그림이 아래 (2026-08-27). 전에는 그림 위에 글을 얹고 그림이
+          떠오르며 숨쉬고 그 위에 영상까지 겹쳤다. 지금은 아이콘 → 물음 → 상품명
+          → 설명 → 값 → 그림 순서로 그냥 세운다. 움직이는 것은 없다 — 그림은
+          정지 사진 한 장이고 첫 화면에서 바로 뜬다. */}
+      <section className="product-hero-stack">
+        <span className="product-hero-icon" aria-hidden>{product.emoji}</span>
+        <p className="product-hero-question">{headline}</p>
+        <h1 className="product-hero-title">{product.title}</h1>
+        <p className="product-hero-sub">{sub}</p>
+        {activeOffer && (
+          <p className="product-hero-offer">
+            <s>{product.price.toLocaleString("ko-KR")}원</s>
+            <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
+            <span>첫 사주 4,900원 · 명식은 결제 전에 확인</span>
+          </p>
+        )}
+        {hero?.adultOnly && (
+          <p className="product-hero-adult">성인 대상 · 노골적 묘사가 아닌 관계 친밀도 해석입니다.</p>
+        )}
         <div
-          aria-hidden
-          className="product-hero-art"
+          className="product-hero-photo"
           style={{ background: `linear-gradient(160deg, ${product.grad[0]}, ${product.grad[1]})` }}
         >
           <Image
@@ -81,31 +97,6 @@ export default function ProductSalesPage({
             sizes="(max-width: 640px) 100vw, 640px"
             style={{ objectFit: "cover", objectPosition: "center 18%" }}
           />
-          {/* 그림이 파는 장면을 실제로 일어나게 한다 - 클립이 있는 카드만.
-              정지 그림은 위 <Image> 그대로 남아 LCP 와 무영상 환경을 책임진다. */}
-          <CardMotion category={product.id} objectPosition="center 18%" />
-        </div>
-        <div aria-hidden className="product-hero-shade" />
-        <div className="product-hero-copy">
-          <span className="badge">{badge}</span>
-          <h1 style={{ color: "#fff", fontSize: "1.7rem", lineHeight: 1.3, margin: "8px 0 6px" }}>{headline}</h1>
-          <p style={{ color: "rgba(255,255,255,0.82)", fontSize: "0.9rem", lineHeight: 1.55 }}>{sub}</p>
-          {/* 광고가 말한 값을 첫 화면에서 바로 보여준다 (2026-08-25).
-              4,900원 카드는 원래 목차 뒤 맨 아래에만 있었다. 광고에서 4,900원을 보고
-              온 사람이 첫 화면에서 그 숫자를 못 찾으면 "이게 아닌데" 하고 닫는다 -
-              상품 상세 이탈 중앙값이 8초였다. */}
-          {activeOffer && (
-            <p className="product-hero-offer">
-              <s>{product.price.toLocaleString("ko-KR")}원</s>
-              <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
-              <span>첫 사주 4,900원 · 명식은 결제 전에 확인</span>
-            </p>
-          )}
-          {hero?.adultOnly && (
-            <p style={{ marginTop: 8, color: "rgba(255,255,255,0.68)", fontSize: "0.74rem" }}>
-              성인 대상 · 노골적 묘사가 아닌 관계 친밀도 해석입니다.
-            </p>
-          )}
         </div>
       </section>
 

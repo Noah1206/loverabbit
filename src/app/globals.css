@@ -8216,6 +8216,63 @@ body:has(.product-page[data-landing]) .consent-banner {
   font-size: 0.74rem;
 }
 
+/* ── 상품 히어로: 글 위, 그림 아래 (2026-08-27) ── */
+.product-hero-stack {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  padding: 34px 20px 0;
+}
+
+.product-hero-icon {
+  font-size: 3.4rem;
+  line-height: 1;
+  margin-bottom: 22px;
+  filter: drop-shadow(0 6px 18px rgba(255, 120, 200, 0.28));
+}
+
+.product-hero-question {
+  margin: 0 0 8px;
+  color: #b9a6ff;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+
+.product-hero-title {
+  margin: 0 0 12px;
+  color: #ff7ac8;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+
+.product-hero-sub {
+  margin: 0;
+  max-width: 34ch;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 1rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.product-hero-adult {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.74rem;
+}
+
+.product-hero-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-top: 22px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
 /* ── 박도사 비법서 서사 (2026-08-25) ── */
 .product-lore {
   text-align: center;
