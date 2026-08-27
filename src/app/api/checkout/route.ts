@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
   // 쿠폰은 클라이언트가 고르되 금액은 여기서 정한다. 남의 쿠폰·쓴 쿠폰이면
   // 그냥 정가로 간다 - 결제를 막을 일은 아니다.
   //
-  // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다. 광고로 이미 4,900원에 들어온 사람의
-  // 4,900원 환영 쿠폰이 여기 붙으면, 아무것도 못 깎은 채 소진된다.
+  // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다. 광고로 이미 1,900원에 들어온 사람의
+  // 1,900원 환영 쿠폰이 여기 붙으면, 아무것도 못 깎은 채 소진된다.
   const picked = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
   const coupon = picked && couponSaving(reading.price, picked) > 0 ? picked : null;
   const amount = coupon ? couponPrice(reading.price, coupon) : reading.price;

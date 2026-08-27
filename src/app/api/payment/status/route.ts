@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
         requestedAt: order.createdAt,
         paidAt: order.paidAt,
         // 운영자가 승인·거절하며 적은 메모. 손님에게 보여 주려고 적는 것이다
-        // (2026-08-27) — "입금자명이 달라요", "금액이 4,900원이 아니에요" 같은 것.
+        // (2026-08-27) — "입금자명이 달라요", "금액이 1,900원이 아니에요" 같은 것.
         note: typeof order.metadata.review_note === "string" ? order.metadata.review_note : null,
       },
       { headers: { "Cache-Control": "private, no-store, max-age=0" } }

@@ -72,7 +72,7 @@ test("광고 랜딩은 990원 오퍼를 유지하면서 실제 앱 상품으로 
   for (const item of cases) {
     const offer = AD_OFFERS[item.offerId];
     assert.equal(offer.route, item.route);
-    assert.equal(offer.price, 4900);
+    assert.equal(offer.price, 1900);
     assert.equal(offer.category, item.productId);
     const product = PRODUCT_MAP[offer.category];
     assert.equal(product?.title, item.productTitle);

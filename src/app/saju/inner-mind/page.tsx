@@ -7,11 +7,11 @@ import InnerMindFlow, { LandingTracker } from "./InnerMindLandingClient";
 export const metadata: Metadata = {
   title: "이 썸, 왜 진도가 안 나갈까? — 썸 해부 사주 | 러브레빗",
   description:
-    "정체된 썸의 브레이크와 상대의 신호, 관계가 움직일 타이밍을 첫 리딩 4,900원에 확인해 보세요.",
+    "정체된 썸의 브레이크와 상대의 신호, 관계가 움직일 타이밍을 첫 리딩 1,900원에 확인해 보세요.",
   robots: { index: true, follow: true },
 };
 
-// 4,900원은 광고 링크로 들어왔을 때만이다. 주소에 이 랜딩의 offer 가 실려 있는지
+// 1,900원은 광고 링크로 들어왔을 때만이다. 주소에 이 랜딩의 offer 가 실려 있는지
 // 여기서 보고 아래로 내려 준다 - 흐름 화면이 클라이언트 컴포넌트라 주소를 직접
 // 읽으면 Suspense 경계가 따로 필요해진다.
 export default async function InnerMindLanding({
@@ -36,7 +36,7 @@ export default async function InnerMindLanding({
 
       <section className="lp-section">
         <div className="card lp-tier">
-          <h2 className="lp-h2">첫 리딩 4,900원, 전체 리포트</h2>
+          <h2 className="lp-h2">첫 리딩 1,900원, 전체 리포트</h2>
           <p className="lp-tier-body">
             결제 전에 두 사람의 명식과 목차를 확인합니다. 전체 리포트에서는
             성사 가능성, 브레이크를 밟는 쪽, 상대의 신호와 고백 타이밍까지 살펴봅니다.

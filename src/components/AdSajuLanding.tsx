@@ -18,12 +18,12 @@ import { AD_PARTICIPANT_COUNTS } from "@/lib/participant-counts";
     - 하단 CTA: 참여 배지 · 불꽃 여섯 · 픽셀 이벤트가 붙는다
     - 랜딩 표식: 픽셀이 이 값으로 랜딩을 가른다
 
-  4,900원은 광고 링크로 들어왔을 때만 붙는다.
+  1,900원은 광고 링크로 들어왔을 때만 붙는다.
 
-  예전에는 이 랜딩이 주소를 보지 않고 늘 4,900원을 말했다. /saju/dohwasal 을 그냥
+  예전에는 이 랜딩이 주소를 보지 않고 늘 1,900원을 말했다. /saju/dohwasal 을 그냥
   열기만 해도 CTA 에 offer 가 실려 나갔고, 서버는 그 offer 를 그대로 받아 리딩
-  값을 4,900원으로 박았다 - 광고를 한 번도 안 거친 사람이 정가 9,900원짜리를
-  4,900원에 사고 있었다.
+  값을 1,900원으로 박았다 - 광고를 한 번도 안 거친 사람이 정가 9,900원짜리를
+  1,900원에 사고 있었다.
 
   이제 주소에 그 랜딩의 offer 가 실려 있을 때만 오퍼가 산다. 광고 링크에는
   실려 있고(?offer=...), 검색이나 직접 입력으로 들어온 주소에는 없다.
@@ -87,7 +87,7 @@ export default async function AdSajuLanding({
               <small>
                 {active
                   ? `첫 리딩 ${offer.price.toLocaleString("ko-KR")}원 · 명식은 결제 전에 확인`
-                  : "첫 리딩 4,900원 · 명식은 결제 전에 확인"}
+                  : "첫 리딩 1,900원 · 명식은 결제 전에 확인"}
               </small>
             </span>
             <span className="product-sticky-arrow" aria-hidden>→</span>

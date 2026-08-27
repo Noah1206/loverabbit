@@ -79,7 +79,7 @@ export default function ProductSalesPage({
           <p className="product-hero-offer">
             <s>{product.price.toLocaleString("ko-KR")}원</s>
             <strong>{activeOffer.price.toLocaleString("ko-KR")}원</strong>
-            <span>첫 사주 4,900원 · 명식은 결제 전에 확인</span>
+            <span>첫 사주 1,900원 · 명식은 결제 전에 확인</span>
           </p>
         )}
         {hero?.adultOnly && (

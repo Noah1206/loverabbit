@@ -9,7 +9,7 @@ import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 import { INNER_MIND_PARTICIPANT_COUNT } from "@/lib/participant-counts";
 
 const LANDING = "inner_mind" as const;
-// 4,900원은 광고 링크로 들어왔을 때만이다 - 주소에 offer 가 실려 있어야 한다.
+// 1,900원은 광고 링크로 들어왔을 때만이다 - 주소에 offer 가 실려 있어야 한다.
 // 그냥 /saju/inner-mind 를 연 사람의 CTA 에는 offer 를 싣지 않는다.
 // 유저당 한 번만 먹는 것은 서버가 따로 본다.
 const OFFER_ID = "inner_mind_990";
@@ -82,7 +82,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           </p>
           <div className="lp-intro-actions">
             <button type="button" className="btn lp-cta" onClick={() => setStage("situation")}>
-              이 썸의 속도 4,900원에 확인하기
+              이 썸의 속도 1,900원에 확인하기
             </button>
             <button
               type="button"

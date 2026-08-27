@@ -38,7 +38,7 @@ export const MIN_PAYABLE = 1000;
  * 광고 오퍼(ad-offers.ts)가 쓰는 값과 같다. 새 가격대를 여는 게 아니라, 광고를
  * 안 거치고 들어온 사람에게도 같은 문을 열어 주는 것이다.
  */
-export const FIRST_READING_PRICE = 4900;
+export const FIRST_READING_PRICE = 1900;
 
 /** 금액 계산에 필요한 부분만. 화면과 서버가 같은 것을 보고 값을 낸다. */
 export type CouponValue = Pick<Coupon, "discount" | "fixedPrice">;
@@ -77,7 +77,7 @@ export function applyCoupon(price: number, discount: number): number {
  * 이 쿠폰을 쓰면 낼 돈.
  *
  * 정액가 쿠폰은 정가를 그 값으로 바꾼다. 다만 **정가보다 비싸지지는 않는다** -
- * 광고로 이미 4,900원에 들어온 사람에게 4,900원 쿠폰이 값을 올려서는 안 된다.
+ * 광고로 이미 1,900원에 들어온 사람에게 1,900원 쿠폰이 값을 올려서는 안 된다.
  */
 export function couponPrice(price: number, coupon: CouponValue): number {
   if (!Number.isFinite(price) || price <= 0) return 0;
@@ -95,8 +95,8 @@ export function couponSaving(price: number, coupon: CouponValue): number {
 /**
  * 쓸 수 있는 것 중 이 상품에서 가장 많이 깎이는 것, 같으면 먼저 만료되는 것.
  *
- * 값이 상품마다 달라지므로 가격 없이는 고를 수 없다. 4,900원 정액가 쿠폰은
- * 49,900원짜리에서 48,910원을 깎지만 4,900원짜리에서는 한 푼도 깎지 않는다 -
+ * 값이 상품마다 달라지므로 가격 없이는 고를 수 없다. 1,900원 정액가 쿠폰은
+ * 49,900원짜리에서 48,910원을 깎지만 1,900원짜리에서는 한 푼도 깎지 않는다 -
  * 그런 쿠폰은 애초에 후보에 넣지 않는다. 넣으면 0원어치로 태운다.
  */
 export function pickBestCoupon(coupons: Coupon[], price: number, now = Date.now()): Coupon | null {
@@ -110,7 +110,7 @@ export function pickBestCoupon(coupons: Coupon[], price: number, now = Date.now(
   return usable[0] ?? null;
 }
 
-/** 쿠폰함에 크게 적히는 값. 정액가는 "4,900원", 할인은 "5,000원". */
+/** 쿠폰함에 크게 적히는 값. 정액가는 "1,900원", 할인은 "5,000원". */
 export function couponHeadline(coupon: CouponValue): string {
   return `${(coupon.fixedPrice ?? coupon.discount ?? 0).toLocaleString()}원`;
 }

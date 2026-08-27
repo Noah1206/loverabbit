@@ -18,7 +18,7 @@ export const AD_OFFERS = {
   compatibility_990: {
     id: "compatibility_990",
     category: "sokgunghap",
-    price: 4900,
+    price: 1900,
     landingType: "compatibility",
     route: "/saju/compatibility",
     badge: "궁합 사주",
@@ -30,7 +30,7 @@ export const AD_OFFERS = {
   intimate_compatibility_990: {
     id: "intimate_compatibility_990",
     category: "sokgunghap",
-    price: 4900,
+    price: 1900,
     landingType: "intimate_compatibility",
     route: "/saju/intimate-compatibility",
     badge: "속궁합 사주",
@@ -42,7 +42,7 @@ export const AD_OFFERS = {
   mature_compatibility_990: {
     id: "mature_compatibility_990",
     category: "sokgunghap",
-    price: 4900,
+    price: 1900,
     landingType: "mature_compatibility",
     route: "/saju/mature-compatibility",
     badge: "19금 · 속궁합 사주",
@@ -59,7 +59,7 @@ export const AD_OFFERS = {
   romance_timing_990: {
     id: "romance_timing_990",
     category: "yeonae",
-    price: 4900,
+    price: 1900,
     landingType: "romance_timing",
     route: "/saju/romance-timing",
     badge: "인연 타이밍",
@@ -71,7 +71,7 @@ export const AD_OFFERS = {
   yeonae_990: {
     id: "yeonae_990",
     category: "yeonae",
-    price: 4900,
+    price: 1900,
     landingType: "romance_timing",
     route: "/product/yeonae",
     badge: "올해의 연애운",
@@ -85,7 +85,7 @@ export const AD_OFFERS = {
   jaehoe_990: {
     id: "jaehoe_990",
     category: "jaehoe",
-    price: 4900,
+    price: 1900,
     landingType: "jaehoe",
     route: "/product/jaehoe",
     badge: "재회신점",
@@ -97,7 +97,7 @@ export const AD_OFFERS = {
   breakup_decision_990: {
     id: "breakup_decision_990",
     category: "ibyeol",
-    price: 4900,
+    price: 1900,
     landingType: "breakup_decision",
     route: "/saju/breakup-decision",
     badge: "이별 부검 리포트",
@@ -109,7 +109,7 @@ export const AD_OFFERS = {
   inner_mind_990: {
     id: "inner_mind_990",
     category: "sseom",
-    price: 4900,
+    price: 1900,
     landingType: "inner_mind",
     // 이 랜딩만 화면을 따로 쓴다(InnerMindLandingClient). ProductSalesPage 를 안 거친다.
     route: "/saju/inner-mind",
@@ -122,7 +122,7 @@ export const AD_OFFERS = {
   dohwasal_990: {
     id: "dohwasal_990",
     category: "dohwasal",
-    price: 4900,
+    price: 1900,
     landingType: "dohwasal",
     route: "/saju/dohwasal",
     badge: "도화살 진단",
@@ -134,7 +134,7 @@ export const AD_OFFERS = {
   baramgi_990: {
     id: "baramgi_990",
     category: "baramgi",
-    price: 4900,
+    price: 1900,
     landingType: "baramgi",
     route: "/saju/baramgi",
     badge: "바람기 레이더",

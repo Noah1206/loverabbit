@@ -32,7 +32,7 @@ function ReadingPreview() {
     광고에서 들어온 상태를 흉내 낸다.
 
     이 화면은 만들어 둔 리딩을 **해금 상태로** 심는다 — 완성본을 보려고 만든 길이라
-    그게 맞다. 그런데 그러면 결제 전 화면(맛보기 두 덩어리 + 흐림 + 4,900원)을 볼 수가
+    그게 맞다. 그런데 그러면 결제 전 화면(맛보기 두 덩어리 + 흐림 + 1,900원)을 볼 수가
     없다. 실제로 확인하려면 매번 광고 랜딩에서 로그인하고 생성까지 해야 한다.
 
       ?locked=1   해금을 풀고 offerId 를 붙인다 = 광고에서 막 들어온 사람의 화면
@@ -62,7 +62,7 @@ function ReadingPreview() {
               full: "",
               // 광고 오퍼가 붙어야 표지에서 끊는 흐름이 켜진다.
               offerId: raw.offerId ?? "preview-locked",
-              price: 4900,
+              price: 1900,
               pendingOrderId: undefined,
             }
           : raw;

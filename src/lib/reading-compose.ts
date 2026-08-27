@@ -109,7 +109,7 @@ export function continuityFromReport(report: StructuredReport): ReadingContinuit
 
 /**
  * 한 번의 요청이 맡는 묶음. 장 경계를 따르되, 항목이 한둘뿐인 장은 옆 장과 합친다.
- * 4,900원 입문 리포트는 목차 5개가 각각 한 장이라, 그대로 두면 요청이 6개가 된다.
+ * 1,900원 입문 리포트는 목차 5개가 각각 한 장이라, 그대로 두면 요청이 6개가 된다.
  * 요청 하나가 왕복 대기를 통째로 물기 때문에 잘게 쪼갤수록 오히려 느려진다.
  */
 interface Batch {
