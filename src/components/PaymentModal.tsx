@@ -13,7 +13,8 @@ import {
   type Coupon,
 } from "@/lib/coupons";
 import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
-import TransferAccounts, { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
+import { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
+import TransferSteps from "@/components/TransferSteps";
 import "@/app/coupons.css";
 
 import type { TossPaymentsWidgets } from "@tosspayments/tosspayments-sdk";
@@ -46,7 +47,7 @@ export default function PaymentModal({
   depositorCode?: string;
   paying?: boolean;
   /** 계좌이체 확인 요청. 고른 쿠폰이 있으면 같이 넘긴다 - 서버가 금액을 다시 정한다. */
-  onTransferSubmitted?: (couponId?: string) => void;
+  onTransferSubmitted?: (couponId: string | undefined, receipt: File) => void;
   onClose: () => void;
 }) {
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
@@ -54,7 +55,6 @@ export default function PaymentModal({
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   // 계좌번호 복사 버튼의 짧은 피드백 - 아이콘만 있는 버튼이라 눌렸는지 보여야 한다
-  const [transferConfirming, setTransferConfirming] = useState(false);
   const transferConfigured = Boolean(TRANSFER_ACCOUNTS.length > 0 && depositorCode && onTransferSubmitted);
 
   /*
@@ -257,43 +257,11 @@ export default function PaymentModal({
           />
         ) : method === "manual" ? (
           <div className="transfer-payment-fallback">
-            <TransferAccounts amount={payAmount} />
-            {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
-                그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
-                기다린다. 한 번 더 묻는 값이 그 기다림보다 싸다. */}
-            {transferConfirming ? (
-              <div className="transfer-pay-check" role="alert">
-                <p>
-                  <strong>정말 이체를 완료하셨나요?</strong>
-                  <br />
-                  아직 보내지 않았다면 먼저 보내주세요. 입금이 확인되지 않은 요청은 열리지 않아요.
-                </p>
-                <div className="transfer-pay-check-actions">
-                  <button type="button" className="transfer-pay-check-no" onClick={() => setTransferConfirming(false)}>
-                    아직이에요
-                  </button>
-                  <button
-                    type="button"
-                    className="transfer-pay-confirm"
-                    onClick={() => onTransferSubmitted?.(coupon?.id)}
-                    disabled={transferSubmitting}
-                  >
-                    {transferSubmitting ? "확인 요청 보내는 중…" : "네, 보냈어요"}
-                    <span aria-hidden>→</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="transfer-pay-confirm"
-                onClick={() => setTransferConfirming(true)}
-                disabled={transferSubmitting}
-              >
-                입금을 마쳤어요
-                <span aria-hidden>→</span>
-              </button>
-            )}
+            <TransferSteps
+              amount={payAmount}
+              submitting={transferSubmitting}
+              onSubmit={(receipt) => onTransferSubmitted?.(coupon?.id, receipt)}
+            />
           </div>
         ) : method === "toss" ? (
           <>

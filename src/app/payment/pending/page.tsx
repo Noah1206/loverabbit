@@ -27,7 +27,12 @@ export default function PaymentPendingPage() {
   const [checking, setChecking] = useState(true);
   const [retryNonce, setRetryNonce] = useState(0);
   // 이체 화면 캡처. 올리면 운영자가 텔레그램에서 사진을 보고 바로 승인한다.
-  const [receipt, setReceipt] = useState<"idle" | "sending" | "sent">("idle");
+  // 결제 화면에서 사진을 올리고 왔으면(?receipt=sent) 처음부터 "받았어요" 로 시작한다.
+  const [receipt, setReceipt] = useState<"idle" | "sending" | "sent">(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("receipt") === "sent"
+      ? "sent"
+      : "idle"
+  );
   const [receiptError, setReceiptError] = useState("");
 
   const uploadReceipt = async (file: File | undefined) => {

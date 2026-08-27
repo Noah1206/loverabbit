@@ -18,6 +18,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import PaymentModal from "@/components/PaymentModal";
+import { uploadReceipt } from "@/lib/receipt-upload";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { readAttribution } from "@/lib/attribution";
 import { hasMarketingConsent } from "@/lib/consent";
@@ -59,7 +60,7 @@ export default function ReadingCheckoutPage() {
   const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";
 
   const confirmTransfer = useCallback(
-    async (couponId?: string) => {
+    async (couponId: string | undefined, receipt: File) => {
       if (!entry) return;
       setPaying(true);
       setError("");
@@ -87,7 +88,11 @@ export default function ReadingCheckoutPage() {
           throw new Error("승인 대기 주문 번호를 받지 못했어요.");
         }
         updateArchive(entry.readingId, { pendingOrderId: Number(data.orderId) });
-        router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
+        // 사진은 주문 뒤에 붙는다. 실패해도 주문은 살아 있다 — 대기 화면이 다시 받는다.
+        const sent = await uploadReceipt(Number(data.orderId), user?.token, receipt);
+        router.push(
+          `/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}${sent ? "&receipt=sent" : ""}`
+        );
       } catch (reason) {
         setError(reason instanceof Error ? reason.message : "결제 처리 중 오류가 발생했습니다.");
       } finally {

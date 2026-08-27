@@ -7,7 +7,9 @@ import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
 import { chatDepositorCode, type ChatProduct } from "@/lib/chat-products";
-import TransferAccounts, { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
+import { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
+import TransferSteps from "@/components/TransferSteps";
+import { uploadReceipt } from "@/lib/receipt-upload";
 import { METHOD_LABEL, PAYMENT_METHOD_OPEN, type PayMethod } from "@/lib/pay-method";
 
 const TOSS_CLIENT_KEY = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY?.trim() ?? "";
@@ -42,7 +44,6 @@ export default function ChatPaymentModal({
   const [submittedOrderId, setSubmittedOrderId] = useState<number | null>(null);
   const [error, setError] = useState("");
   // 계좌번호 복사 피드백 - PaymentModal 과 같은 이유, 같은 모양
-  const [transferConfirming, setTransferConfirming] = useState(false);
   const depositorCode = chatDepositorCode(userToken);
   const transferConfigured = TRANSFER_ACCOUNTS.length > 0;
 
@@ -121,7 +122,7 @@ export default function ChatPaymentModal({
     }
   };
 
-  const submitTransfer = async () => {
+  const submitTransfer = async (receipt: File) => {
     setPaying(true);
     setError("");
     try {
@@ -142,6 +143,8 @@ export default function ChatPaymentModal({
         throw new Error(data.error ?? "입금 확인 요청을 저장하지 못했어요.");
       }
       const orderId = Number(data.orderId);
+      // 사진은 주문 뒤에 붙는다. 실패해도 주문은 살아 있다 — 운영자가 통장으로 확인한다.
+      await uploadReceipt(orderId, userToken, receipt);
       setSubmittedOrderId(orderId);
       onTransferSubmitted(orderId);
     } catch (reason) {
@@ -179,7 +182,7 @@ export default function ChatPaymentModal({
 
         {submittedOrderId ? (
           <div className="transfer-payment-fallback">
-            <p className="toss-payment-config-error">입금 확인 요청이 접수됐어요. 관리자가 실제 입금을 확인하면 대화권이 지급됩니다.</p>
+            <p className="toss-payment-config-error">이체 화면을 받았어요. 사진을 보고 바로 승인해드릴게요 — 승인되면 대화권이 지급됩니다.</p>
             <p className="payment-order-reference">주문번호 #{submittedOrderId}</p>
           </div>
         ) : method === "portone" ? (
@@ -195,43 +198,7 @@ export default function ChatPaymentModal({
           <div className="transfer-payment-fallback">
             {/* 리딩 결제 모달(PaymentModal)과 같은 구성. 두 화면이 다르게 생기면
                 두 번째 결제에서 처음 보는 화면을 또 배워야 한다. */}
-            <TransferAccounts amount={product.price} />
-            {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
-                그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
-                기다린다. 한 번 더 묻는 값이 그 기다림보다 싸다. */}
-            {transferConfirming ? (
-              <div className="transfer-pay-check" role="alert">
-                <p>
-                  <strong>정말 이체를 완료하셨나요?</strong>
-                  <br />
-                  아직 보내지 않았다면 먼저 보내주세요. 입금이 확인되지 않은 요청은 열리지 않아요.
-                </p>
-                <div className="transfer-pay-check-actions">
-                  <button type="button" className="transfer-pay-check-no" onClick={() => setTransferConfirming(false)}>
-                    아직이에요
-                  </button>
-                  <button
-                    type="button"
-                    className="transfer-pay-confirm"
-                    onClick={() => void submitTransfer()}
-                    disabled={paying}
-                  >
-                    {paying ? "확인 요청 보내는 중…" : "네, 보냈어요"}
-                    <span aria-hidden>→</span>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="transfer-pay-confirm"
-                onClick={() => setTransferConfirming(true)}
-                disabled={paying}
-              >
-                입금을 마쳤어요
-                <span aria-hidden>→</span>
-              </button>
-            )}
+            <TransferSteps amount={product.price} submitting={paying} onSubmit={(receipt) => void submitTransfer(receipt)} />
           </div>
         ) : method === "toss" ? (
           <>

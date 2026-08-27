@@ -7701,6 +7701,25 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 12px;
 }
 
+.transfer-pay-hint {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+
+/* 파일 고르기 label 을 버튼처럼. input 은 숨긴다. */
+label.transfer-pay-confirm {
+  cursor: pointer;
+}
+label.transfer-pay-confirm input {
+  display: none;
+}
+label.transfer-pay-confirm.busy {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .transfer-pay-check-no {
   margin-top: 12px;
   padding: 14px 12px;

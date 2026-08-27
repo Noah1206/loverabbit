@@ -43,7 +43,7 @@ function tossSendLink(item: BankAccount, amount: number) {
   return `supertoss://send?bank=${encodeURIComponent(item.bank)}&accountNo=${item.account.replace(/-/g, "")}&amount=${amount}&origin=linkgen`;
 }
 
-function CopyChip({ item }: { item: BankAccount }) {
+function CopyChip({ item, onCopy }: { item: BankAccount; onCopy?: () => void }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -52,6 +52,7 @@ function CopyChip({ item }: { item: BankAccount }) {
       aria-label={`${item.bank} 계좌번호 복사`}
       onClick={() => {
         void navigator.clipboard.writeText(item.account).catch(() => {});
+        onCopy?.();
         setCopied(true);
         setTimeout(() => setCopied(false), 1600);
       }}
@@ -66,19 +67,26 @@ function CopyChip({ item }: { item: BankAccount }) {
  * 은행 한 줄: 왼쪽은 앱을 여는 버튼(로고·이름·예금주), 오른쪽은 계좌번호 복사 칩.
  * 칩은 앱 없이 직접 옮겨 적는 사람의 길이다.
  */
-export default function TransferAccounts({ amount }: { amount: number }) {
+export default function TransferAccounts({
+  amount,
+  onStarted,
+}: {
+  amount: number;
+  /** 토스 버튼이나 복사를 눌렀다 — 이체를 시작했다는 신호. 다음 버튼이 이걸 기다린다. */
+  onStarted?: () => void;
+}) {
   const item = TOSS_ACCOUNT;
   return (
     <div className="transfer-pay-apps">
       <div className="transfer-pay-bank toss">
-        <a className="transfer-pay-app" href={tossSendLink(item, amount)}>
+        <a className="transfer-pay-app" href={tossSendLink(item, amount)} onClick={onStarted}>
           <img src="/pay/toss.png" alt="toss" className="transfer-pay-logo" draggable={false} />
           <span className="transfer-pay-label">
             원클릭 토스뱅크 이체
             {item.holder && <small>예금주 {item.holder}</small>}
           </span>
         </a>
-        <CopyChip item={item} />
+        <CopyChip item={item} onCopy={onStarted} />
       </div>
     </div>
   );
