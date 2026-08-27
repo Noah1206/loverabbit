@@ -1,7 +1,6 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
-import HomeReviews from "@/components/HomeReviews";
 import type { AdOffer } from "@/lib/ad-offers";
 import type { Product } from "@/lib/products";
 
@@ -195,11 +194,6 @@ export default function ProductSalesPage({
             ))}
           </div>
         </section>
-
-        {/* ── 이 사주를 본 사람들의 후기 (2026-08-25) ──
-            홈의 전체 후기를 상품별로 가른 것. /api/reviews?product= 가 걸러 준다.
-            후기가 없으면 컴포넌트가 스스로 빠진다. */}
-        <HomeReviews productId={product.id} heading={`💬 ${product.title} 먼저 본 사람들`} />
 
         {/* ── 광고 특별가 — 오퍼가 살아 있을 때만 ── */}
         {activeOffer ? (

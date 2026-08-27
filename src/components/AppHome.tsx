@@ -15,7 +15,6 @@ import { useTheme } from "@/components/ThemeProvider";
 import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { PRODUCTS, type Product } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
-import HomeReviews from "@/components/HomeReviews";
 
 
 const SHOW_SHRINE_ON_HOME = false;
@@ -229,9 +228,6 @@ export default function AppHome() {
             })}
           </div>
         </section>
-
-        {/* ── 후기 ── 사주 카드를 전부 지나온 뒤에 온다 ── */}
-        <HomeReviews />
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
