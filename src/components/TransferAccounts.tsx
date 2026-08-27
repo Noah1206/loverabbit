@@ -40,7 +40,7 @@ export const SECOND_ACCOUNT =
     process.env.NEXT_PUBLIC_BANK2_NAME,
     process.env.NEXT_PUBLIC_BANK2_ACCOUNT,
     process.env.NEXT_PUBLIC_BANK2_HOLDER
-  ) ?? { bank: "토스뱅크", account: "1002-1047-8563", holder: PRIMARY_ACCOUNT?.holder ?? "" };
+  ) ?? { bank: "토스뱅크", account: "1002-1047-8563", holder: "조현웅" };
 
 export const TRANSFER_ACCOUNTS: BankAccount[] = [PRIMARY_ACCOUNT, SECOND_ACCOUNT].filter(
   (item): item is BankAccount => Boolean(item)

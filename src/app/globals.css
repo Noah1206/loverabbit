@@ -3901,6 +3901,43 @@ label {
   color: var(--accent) !important;
 }
 
+/* 이체 캡처 올리기. 승인 대기 화면의 한 칸 — 강요가 아니라 지름길이므로
+   본문보다 조금 도드라지되 버튼 하나로 끝난다. */
+.payment-receipt {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+  text-align: left;
+}
+
+.payment-receipt.sent {
+  border-style: dashed;
+}
+
+.payment-receipt p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.payment-receipt-btn {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.payment-receipt-btn.busy {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.payment-receipt-btn input {
+  display: none;
+}
+
 .payment-pending-actions {
   display: grid;
   gap: 10px;

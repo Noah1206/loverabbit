@@ -106,6 +106,40 @@ export async function editAdminMessage(chatId: string | number, messageId: numbe
   });
 }
 
+/**
+ * 사진 한 장을 설명과 버튼과 함께 보낸다. 이체 화면 캡처가 여기로 간다.
+ * notifyAdmin 과 같은 원칙 — 던지지 않고, 상한을 두고, 실패는 로그로.
+ */
+export async function notifyAdminPhoto(
+  photo: { bytes: Uint8Array; filename: string; contentType: string },
+  caption: string,
+  buttons?: InlineButton[][]
+): Promise<boolean> {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = adminChatId();
+  if (!token || !chatId) return false;
+  try {
+    const form = new FormData();
+    form.set("chat_id", chatId);
+    form.set("caption", caption.slice(0, 1024));
+    if (buttons) form.set("reply_markup", JSON.stringify({ inline_keyboard: buttons }));
+    form.set("photo", new Blob([photo.bytes as BlobPart], { type: photo.contentType }), photo.filename);
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: "POST",
+      body: form,
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok) {
+      console.error("텔레그램 사진 전송 실패:", res.status, await res.text().catch(() => ""));
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("텔레그램 사진 전송 실패:", error);
+    return false;
+  }
+}
+
 export async function notifyAdmin(text: string, buttons?: InlineButton[][]): Promise<void> {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = adminChatId();

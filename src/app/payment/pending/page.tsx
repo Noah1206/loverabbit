@@ -26,6 +26,33 @@ export default function PaymentPendingPage() {
   const [error, setError] = useState("");
   const [checking, setChecking] = useState(true);
   const [retryNonce, setRetryNonce] = useState(0);
+  // 이체 화면 캡처. 올리면 운영자가 텔레그램에서 사진을 보고 바로 승인한다.
+  const [receipt, setReceipt] = useState<"idle" | "sending" | "sent">("idle");
+  const [receiptError, setReceiptError] = useState("");
+
+  const uploadReceipt = async (file: File | undefined) => {
+    if (!file || !order) return;
+    const user = getUser();
+    if (!user?.token) {
+      setReceiptError("로그인이 풀렸어요. 다시 로그인해주세요.");
+      return;
+    }
+    setReceipt("sending");
+    setReceiptError("");
+    try {
+      const form = new FormData();
+      form.set("orderId", String(order.orderId));
+      form.set("userToken", user.token);
+      form.set("file", file);
+      const res = await fetch("/api/payment/receipt", { method: "POST", body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "사진을 보내지 못했어요.");
+      setReceipt("sent");
+    } catch (reason) {
+      setReceipt("idle");
+      setReceiptError(reason instanceof Error ? reason.message : "사진을 보내지 못했어요.");
+    }
+  };
 
   useEffect(() => {
     let stopped = false;
@@ -154,6 +181,38 @@ export default function PaymentPendingPage() {
         )}
 
         {error && <p className="payment-error">{error}</p>}
+
+        {/* 캡처 한 장이 통장 대조보다 빠르다. 운영자는 사진을 보고 승인하고,
+            통장은 나중에 맞춘다. 사진 없이도 승인은 되므로 강요하지 않는다. */}
+        {!rejected && order?.status === "pending" && (
+          <div className={`payment-receipt${receipt === "sent" ? " sent" : ""}`}>
+            {receipt === "sent" ? (
+              <p>
+                <strong>이체 화면을 받았어요.</strong> 관리자가 사진을 보고 바로 승인해드릴게요.
+              </p>
+            ) : (
+              <>
+                <p>
+                  <strong>더 빨리 열고 싶다면</strong> 이체 완료 화면을 캡처해서 올려주세요.
+                  통장을 뒤지지 않고 사진만 보고 바로 승인해드려요.
+                </p>
+                <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
+                  {receipt === "sending" ? "보내는 중…" : "이체 완료 화면 올리기"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={receipt === "sending"}
+                    onChange={(event) => {
+                      void uploadReceipt(event.target.files?.[0]);
+                      event.target.value = "";
+                    }}
+                  />
+                </label>
+              </>
+            )}
+            {receiptError && <p className="payment-error">{receiptError}</p>}
+          </div>
+        )}
 
         <div className="payment-pending-actions">
           {rejected && order?.readingId ? (
