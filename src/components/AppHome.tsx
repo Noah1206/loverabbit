@@ -177,8 +177,8 @@ export default function AppHome() {
         )}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
-        <section style={{ padding: "40px 20px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <section style={{ padding: "40px 8px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px" }}>
             {([["all", "전체"], ["popular", "인기"], ["new", "신규"]] as const).map(([k, label]) => (
               <button key={k} className={`chip${filter === k ? " on" : ""}`} onClick={() => setFilter(k)}>{label}</button>
             ))}
