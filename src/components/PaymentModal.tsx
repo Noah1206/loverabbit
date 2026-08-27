@@ -58,6 +58,7 @@ export default function PaymentModal({
   const [error, setError] = useState("");
   // 계좌번호 복사 버튼의 짧은 피드백 - 아이콘만 있는 버튼이라 눌렸는지 보여야 한다
   const [copied, setCopied] = useState(false);
+  const [transferConfirming, setTransferConfirming] = useState(false);
   const transferConfigured = Boolean(BANK_NAME && BANK_ACCOUNT && depositorCode && onTransferSubmitted);
 
   /*
@@ -306,14 +307,42 @@ export default function PaymentModal({
                 )}
               </button>
             </div>
-            <button
-              className="transfer-pay-confirm"
-              onClick={() => onTransferSubmitted?.(coupon?.id)}
-              disabled={transferSubmitting}
-            >
-              {transferSubmitting ? "확인 요청 보내는 중…" : "입금을 마쳤어요"}
-              <span aria-hidden>→</span>
-            </button>
+            {/* 두 번 묻는다. 버튼만 누르고 실제 이체는 안 한 요청이 너무 많았다 —
+                그 요청은 텔레그램에 뜨고, 통장엔 아무것도 없고, 손님은 왜 안 열리냐고
+                기다린다. 한 번 더 묻는 값이 그 기다림보다 싸다. */}
+            {transferConfirming ? (
+              <div className="transfer-pay-check" role="alert">
+                <p>
+                  <strong>정말 이체를 완료하셨나요?</strong>
+                  <br />
+                  아직 보내지 않았다면 먼저 보내주세요. 입금이 확인되지 않은 요청은 열리지 않아요.
+                </p>
+                <div className="transfer-pay-check-actions">
+                  <button type="button" className="transfer-pay-check-no" onClick={() => setTransferConfirming(false)}>
+                    아직이에요
+                  </button>
+                  <button
+                    type="button"
+                    className="transfer-pay-confirm"
+                    onClick={() => onTransferSubmitted?.(coupon?.id)}
+                    disabled={transferSubmitting}
+                  >
+                    {transferSubmitting ? "확인 요청 보내는 중…" : "네, 보냈어요"}
+                    <span aria-hidden>→</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="transfer-pay-confirm"
+                onClick={() => setTransferConfirming(true)}
+                disabled={transferSubmitting}
+              >
+                입금을 마쳤어요
+                <span aria-hidden>→</span>
+              </button>
+            )}
           </div>
         ) : method === "toss" ? (
           <>

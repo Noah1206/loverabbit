@@ -7556,6 +7556,50 @@ body:has(.product-page[data-landing]) .consent-banner {
   color: var(--gold);
 }
 
+/* 이체 요청 전 한 번 더 묻는 자리. 버튼만 누른 요청을 줄이려는 것이므로
+   눈에 띄되 다시 돌아갈 길("아직이에요")을 같이 둔다. */
+.transfer-pay-check {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--gold) 6%, transparent);
+}
+
+.transfer-pay-check > p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.transfer-pay-check > p strong {
+  font-weight: 800;
+}
+
+.transfer-pay-check-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 8px;
+}
+
+.transfer-pay-check-actions .transfer-pay-confirm {
+  margin-top: 12px;
+}
+
+.transfer-pay-check-no {
+  margin-top: 12px;
+  padding: 14px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--text);
+  opacity: 0.75;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 /* 표지 일러스트 — 사전 제작 에셋이라 즉시 뜬다. 아래쪽을 배경으로 녹여
    글 위에 자연스럽게 얹는다 (본문 삽화 .rv-art img 와 같은 수법). */
 .rv-cover-art {
