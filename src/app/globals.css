@@ -9486,21 +9486,17 @@ body:has(.admin-shell) .tabbar-dock {
 .fortune-grid-set {
   grid-column: 1 / -1;
   aspect-ratio: auto;
-  min-height: 210px;
-  background: linear-gradient(135deg, #2a0a3a, #4a0f3f 55%, #6b1a2e);
+  min-height: 230px;
 }
 .fortune-grid-set-art {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 4px;
-  padding: 14px 16px;
-  font-size: 40px;
-  opacity: 0.9;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
 }
+.fortune-grid-set-art > div { height: 100%; }
+.fortune-grid-set-art img { object-position: center 22% !important; }
 .fortune-grid-set .fortune-grid-copy p { max-width: 70%; }
 
 .set-page { padding-bottom: 120px; }

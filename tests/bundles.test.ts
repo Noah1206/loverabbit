@@ -8,7 +8,7 @@ import { PRODUCTS, PRODUCT_MAP } from "../src/lib/products";
 
 test("세트 값은 어느 단품 정가·광고 오퍼와도 겹치지 않는다 — category+price 가 세트 표시라서", () => {
   const productPrices = new Set(PRODUCTS.map((p) => p.price));
-  const offerPrices = new Set(Object.values(AD_OFFERS).map((o) => o.price));
+  const offerPrices = new Set<number>(Object.values(AD_OFFERS).map((o) => o.price));
   for (const bundle of BUNDLES) {
     assert.ok(!productPrices.has(bundle.price), `${bundle.id} 값 ${bundle.price} 이 단품 정가와 겹친다`);
     assert.ok(!offerPrices.has(bundle.price), `${bundle.id} 값 ${bundle.price} 이 광고 오퍼와 겹친다`);

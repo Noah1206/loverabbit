@@ -192,11 +192,11 @@ export default function AppHome() {
             {filter === "all" &&
               BUNDLES.map((b) => (
                 <Link key={b.id} href={`/set/${b.id}`} className="card fortune-grid-card fortune-grid-set" data-product={b.first}>
+                  {/* 세 상품 그림을 나란히 — 단품 카드와 같은 그림이라 "저 셋이 묶였다"가 한눈에 읽힌다 */}
                   <div className="fortune-grid-set-art" aria-hidden>
-                    {b.items.map((id) => (
-                      <span key={id}>{PRODUCT_MAP[id]?.emoji}</span>
-                    ))}
+                    {b.items.map((id) => PRODUCT_MAP[id] && <CardArt key={id} p={PRODUCT_MAP[id]} />)}
                   </div>
+                  <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,6,16,0.05) 30%, rgba(10,6,16,0.7) 62%, rgba(10,6,16,0.97) 90%)" }} />
                   <span className="fortune-grid-badge fortune-grid-badge-sale">
                     {Math.round((1 - b.price / bundleListPrice(b)) * 100)}% 할인
                   </span>
