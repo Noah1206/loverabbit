@@ -37,11 +37,15 @@ function label(value: unknown): string | null {
   return clean || null;
 }
 
-function count(value: unknown): number {
+function count(value: unknown, cap = 100_000): number {
   const n = Number(value);
   if (!Number.isFinite(n) || n < 0) return 0;
-  return Math.min(Math.round(n), 100_000);
+  return Math.min(Math.round(n), cap);
 }
+
+// 체류 시간은 10분까지 남긴다. 100초에서 자르니 결제한 사람 29명 중 20명이
+// 전부 "100초"로 찍혀 끝까지 읽었는지 알 수 없었다 (2026-08-28).
+const DWELL_CAP_MS = 10 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
   const ok = new NextResponse(null, { status: 204 });
@@ -93,7 +97,7 @@ export async function POST(request: NextRequest) {
         path: normalizePath(event.path),
         product: label(event.product),
         landing: label(event.landing),
-        dwell_ms: event.dwellMs === undefined ? null : count(event.dwellMs),
+        dwell_ms: event.dwellMs === undefined ? null : count(event.dwellMs, DWELL_CAP_MS),
         seq: count(event.seq),
         attribution,
       }));
