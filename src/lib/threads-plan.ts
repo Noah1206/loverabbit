@@ -72,7 +72,7 @@ export function buildPlan(start = DEFAULT_START): PlanSlot[] {
         patternId: "SS-P05-WARNING-WITH-RELIEF",
         date: day(i + 2),
         targetCount: 4,
-        cta: { type: "comment", text: "오늘 어느 쪽이었는지 댓글로 알려줘." },
+        cta: { type: "comment", text: "내 일간 모르면 생년월일 댓글에 남겨. 전체는 loverebbit.xyz 에서 봐." },
       }),
     });
   }
@@ -109,7 +109,7 @@ export function buildPlan(start = DEFAULT_START): PlanSlot[] {
         patternId: "SS-P03-SECRET-INSIDE-OUTSIDE",
         date: day(i),
         tenGod,
-        cta: { type: "comment", text: "비슷한 적 있으면 댓글로 알려줘요." },
+        cta: { type: "comment", text: "내 십성 모르면 생년월일 댓글에 남겨요. 전체는 loverebbit.xyz 에서 봐요." },
       }),
     });
   });
