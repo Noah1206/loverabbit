@@ -3,7 +3,7 @@ import "server-only";
 import { databaseError, getSupabaseAdmin, isDatabaseConfigured } from "@/lib/supabase-admin";
 import { PRODUCT_MAP } from "@/lib/products";
 import { maskName, type ReviewSource, type ReviewStatus } from "@/lib/reviews";
-import { isCouponUsable, type Coupon } from "@/lib/coupons";
+import { isCouponUsable, toCouponKind, type Coupon } from "@/lib/coupons";
 
 export interface DatabaseUser {
   id: number;
@@ -1429,7 +1429,7 @@ function mapCoupon(row: Record<string, unknown>): Coupon {
   // 없는 쪽을 0 으로 접으면 "0원 할인"과 구분이 사라지므로 null 로 남긴다.
   return {
     id: String(row.id),
-    kind: row.kind === "referral" ? "referral" : "welcome",
+    kind: toCouponKind(row.kind),
     discount: row.discount == null ? null : Number(row.discount),
     fixedPrice: row.fixed_price == null ? null : Number(row.fixed_price),
     expiresAt: String(row.expires_at),
@@ -1477,6 +1477,36 @@ export async function reserveCoupon(couponId: string, userId: number, orderId: n
  * 주문의 결말을 쿠폰에 옮긴다. 결제됐으면 소진, 취소됐으면 놓아 준다.
  * 주문 번호로 찾으므로 metadata 를 읽을 필요가 없다 - 승인·웹훅·토스 어느 길이든 같다.
  */
+/** 주문이 세트 주문이면 { userId, bundleId }. metadata.bundle 에 적혀 있다. */
+export async function readOrderBundle(orderId: number): Promise<{ userId: number; bundleId: string } | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db.from("lr_orders").select("user_id,metadata").eq("id", orderId).maybeSingle();
+  if (error) throw databaseError("세트 주문 확인", error);
+  const bundleId = (data?.metadata as Record<string, unknown> | null)?.bundle;
+  if (!data || typeof bundleId !== "string") return null;
+  return { userId: Number(data.user_id), bundleId };
+}
+
+/**
+ * 세트의 나머지 리딩을 여는 0원 쿠폰. 세트 승인 한 번에 한 번 부른다 —
+ * 승인 RPC 가 pending 만 바꾸므로 같은 주문으로 두 번 오지 않는다.
+ */
+export async function issueBundleCoupons(userId: number, count: number): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db || count <= 0) return;
+  const expiresAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
+  const rows = Array.from({ length: count }, () => ({
+    user_id: userId,
+    kind: "bundle",
+    discount: null,
+    fixed_price: 0,
+    expires_at: expiresAt,
+  }));
+  const { error } = await db.from("lr_coupons").insert(rows);
+  if (error) throw databaseError("세트 쿠폰 발급", error);
+}
+
 export async function settleCouponsForOrder(orderId: number, outcome: "paid" | "released"): Promise<void> {
   const db = getSupabaseAdmin();
   if (!db) return;

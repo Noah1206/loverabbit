@@ -3,7 +3,8 @@ import "server-only";
 import { waitUntil } from "@vercel/functions";
 
 import { notifyCustomerReviewed } from "@/lib/customer-notify";
-import { reviewTransferOrder, settleCouponsForOrder } from "@/lib/database";
+import { issueBundleCoupons, readOrderBundle, reviewTransferOrder, settleCouponsForOrder } from "@/lib/database";
+import { BUNDLE_MAP, bundleRest } from "@/lib/bundles";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 import { finishReading } from "@/lib/reading-finish";
 import { getReading } from "@/lib/store";
@@ -42,6 +43,18 @@ export async function reviewOrderAndFollowUp(
     await settleCouponsForOrder(orderId, reviewed.status === "paid" ? "paid" : "released");
   } catch (error) {
     console.error("쿠폰 마감 실패:", error);
+  }
+
+  // 세트 주문이면 나머지 리딩을 여는 0원 쿠폰이 여기서 나간다. 승인 한 번에
+  // 한 번 — 승인 RPC 가 pending 만 바꾸므로 두 번 오지 않는다.
+  if (reviewed.status === "paid") {
+    try {
+      const set = await readOrderBundle(orderId);
+      const bundle = set ? BUNDLE_MAP[set.bundleId] : null;
+      if (set && bundle) await issueBundleCoupons(set.userId, bundleRest(bundle).length);
+    } catch (error) {
+      console.error("세트 쿠폰 발급 실패:", error);
+    }
   }
 
   // 손님에게 알린다. 승인은 요청보다 몇 시간 뒤라 그때 손님은 화면 앞에 없다 —

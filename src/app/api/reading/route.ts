@@ -11,6 +11,7 @@ import { planImagesFor } from "@/lib/reading-asset-plan";
 import { saveImageState } from "@/lib/reading-image-store";
 import { pickIllustrated } from "@/lib/reading-images";
 import { saveReading, priceFor } from "@/lib/store";
+import { resolveBundle } from "@/lib/bundles";
 import { seal } from "@/lib/crypto";
 import { chatComplete, effectiveProvider, isAiConfigured } from "@/lib/ai";
 import { demoReport, hasDemoReport } from "@/lib/reading-demo";
@@ -53,6 +54,7 @@ interface PersonBody {
 interface Body {
   category: string; // 상품 카탈로그(products.ts)의 id
   offerId?: string; // 광고 전용 공개 오퍼. 서버에서 카테고리와 함께 검증한다.
+  bundleId?: string; // 세트(bundles.ts). 카테고리가 세트의 first 일 때만 받는다.
   me: PersonBody;
   partner?: PersonBody | null;
   question?: string;
@@ -257,7 +259,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let offer = body.offerId ? resolveAdOffer(body.category, body.offerId) : null;
+  const bundle = body.bundleId ? resolveBundle(body.category, body.bundleId) : null;
+  if (body.bundleId && !bundle) {
+    return NextResponse.json({ error: "유효하지 않은 세트예요." }, { status: 400 });
+  }
+  // 세트와 광고 오퍼는 같이 못 쓴다. 세트가 이긴다 — 세트 값이 더 크다.
+  let offer = body.offerId && !bundle ? resolveAdOffer(body.category, body.offerId) : null;
   if (body.offerId && !offer) {
     return NextResponse.json({ error: "유효하지 않은 광고 오퍼입니다." }, { status: 400 });
   }
@@ -301,7 +308,7 @@ export async function POST(req: NextRequest) {
   const myChart = computeSaju(body.me);
   const partnerChart = body.partner ? computeSaju(body.partner) : null;
   const label = PRODUCT_MAP[body.category]?.promptLabel ?? "연애운";
-  const price = priceFor(body.category ?? "", offer?.id);
+  const price = bundle ? bundle.price : priceFor(body.category ?? "", offer?.id);
   const product = PRODUCT_MAP[body.category];
   const now = new Date();
 

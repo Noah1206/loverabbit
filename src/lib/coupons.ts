@@ -3,7 +3,22 @@
 // 금액과 만료는 DB 트리거(supabase/migrations/…_coupons.sql)가 정한다.
 // 여기서는 행을 받아 "지금 쓸 수 있는가"와 "얼마가 되는가"만 답한다.
 
-export type CouponKind = "welcome" | "referral";
+/**
+ * welcome   가입하면 한 장 — 첫 리딩 1,900원
+ * referral  친구가 가입하면 — 할인
+ * second    첫 리딩이 승인되면 한 장 — 두 번째 리딩 4,900원 (DB 트리거)
+ * bundle    3종 세트를 사면 두 장 — 나머지 두 리딩 0원 (order-review.ts)
+ */
+export type CouponKind = "welcome" | "referral" | "second" | "bundle";
+
+export const COUPON_KINDS: readonly CouponKind[] = ["welcome", "referral", "second", "bundle"];
+
+export function toCouponKind(value: unknown): CouponKind {
+  return COUPON_KINDS.includes(value as CouponKind) ? (value as CouponKind) : "welcome";
+}
+
+/** 두 번째 리딩 값. second 쿠폰의 정액가와 같다 (migration …_second_and_bundle_coupons). */
+export const SECOND_READING_PRICE = 4900;
 
 export interface Coupon {
   id: string;
@@ -24,6 +39,8 @@ export type CouponState = "available" | "reserved" | "used" | "expired";
 export const COUPON_LABEL: Record<CouponKind, string> = {
   welcome: "가입 환영 쿠폰",
   referral: "친구 초대 쿠폰",
+  second: "두 번째 리딩 쿠폰",
+  bundle: "3종 세트 쿠폰",
 };
 
 /** 결제창을 열어 두고 안 낸 PG 주문이 쿠폰을 붙들고 있는 시간 */
@@ -117,6 +134,7 @@ export function couponHeadline(coupon: CouponValue): string {
 
 /** 그 숫자가 무슨 뜻인지. 금액만으로는 정액가인지 할인인지 구분되지 않는다. */
 export function couponMeaning(coupon: CouponValue): string {
+  if (coupon.fixedPrice === 0) return "리딩 한 장을 무료로";
   return coupon.fixedPrice != null ? "어떤 사주든 한 장을 이 값에" : "전문 리딩 결제에서 할인";
 }
 
@@ -139,7 +157,7 @@ export function readOrderCoupon(metadata: Record<string, unknown> | null | undef
   if (typeof note.id !== "string" || typeof note.discount !== "number") return null;
   return {
     id: note.id,
-    kind: note.kind === "referral" ? "referral" : "welcome",
+    kind: toCouponKind(note.kind),
     discount: note.discount,
     fixedPrice: typeof note.fixedPrice === "number" ? note.fixedPrice : null,
     listPrice: typeof note.listPrice === "number" ? note.listPrice : 0,

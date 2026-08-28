@@ -51,6 +51,7 @@ export default function ReadingGeneratingPage() {
           body: JSON.stringify({
             category: job.category,
             offerId: job.offerId,
+            bundleId: job.bundleId,
             me: parsePerson(job.me),
             partner: job.withPartner && job.partner.year ? parsePerson(job.partner) : null,
             question: job.question ?? "",

@@ -37,6 +37,7 @@ export default function PaymentModal({
   customerEmail,
   depositorCode,
   paying: transferSubmitting = false,
+  couponsAllowed = true,
   onTransferSubmitted,
   onClose,
 }: {
@@ -46,6 +47,8 @@ export default function PaymentModal({
   customerEmail: string;
   depositorCode?: string;
   paying?: boolean;
+  /** 세트 리딩은 쿠폰을 안 받는다 — 세트가 이미 할인이다. */
+  couponsAllowed?: boolean;
   /** 계좌이체 확인 요청. 고른 쿠폰이 있으면 같이 넘긴다 - 서버가 금액을 다시 정한다. */
   onTransferSubmitted?: (couponId?: string) => void;
   onClose: () => void;
@@ -82,6 +85,7 @@ export default function PaymentModal({
   const [couponId, setCouponId] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
+    if (!couponsAllowed) return;
     fetch("/api/coupons", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -102,7 +106,7 @@ export default function PaymentModal({
     return () => {
       active = false;
     };
-  }, [userToken, price]);
+  }, [userToken, price, couponsAllowed]);
   const coupon = coupons.find((item) => item.id === couponId) ?? null;
   const payAmount = coupon ? couponPrice(price, coupon) : price;
 
@@ -245,7 +249,18 @@ export default function PaymentModal({
           </div>
         )}
 
-        {method === "portone" ? (
+        {payAmount === 0 && coupon ? (
+          /* 세트 쿠폰 — 낼 돈이 없으니 이체 화면도 없다. 누르면 그 자리에서 열린다. */
+          <button
+            type="button"
+            className="btn transfer-pay-confirm"
+            onClick={() => onTransferSubmitted?.(coupon.id)}
+            disabled={transferSubmitting}
+          >
+            {transferSubmitting ? "여는 중…" : "쿠폰으로 지금 열기"}
+            <span aria-hidden>→</span>
+          </button>
+        ) : method === "portone" ? (
           <PortOneTransferForm
             key={payAmount}
             amount={payAmount}

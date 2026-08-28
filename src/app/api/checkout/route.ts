@@ -9,6 +9,7 @@ import { resolveUserToken } from "@/lib/tokens";
 import { normalizeAttribution } from "@/lib/attribution";
 import { claimReadingForPayment } from "@/lib/reading-claim";
 import { snapshotMetaMatch } from "@/lib/meta-capi";
+import { bundleOfReading } from "@/lib/bundles";
 
 interface Body {
   readingId?: string;
@@ -81,7 +82,10 @@ export async function POST(request: NextRequest) {
   //
   // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다. 광고로 이미 1,900원에 들어온 사람의
   // 1,900원 환영 쿠폰이 여기 붙으면, 아무것도 못 깎은 채 소진된다.
-  const picked = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+  // 세트 리딩에는 쿠폰이 안 붙는다 (api/unlock 과 같은 이유).
+  const bundle = bundleOfReading(reading.category, reading.price);
+  const picked =
+    body.couponId && !bundle ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
   const coupon = picked && couponSaving(reading.price, picked) > 0 ? picked : null;
   const amount = coupon ? couponPrice(reading.price, coupon) : reading.price;
 
@@ -98,6 +102,7 @@ export async function POST(request: NextRequest) {
       providerOrderId: orderId,
       metadata: {
         checkout_created_at: new Date().toISOString(),
+        ...(bundle ? { bundle: bundle.id } : {}),
         ...(coupon
           ? {
               coupon: {

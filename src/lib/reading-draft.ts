@@ -20,6 +20,8 @@ export interface PersonForm {
 export interface ReadingDraft {
   category: string;
   offerId?: string;
+  /** 세트로 시작한 리딩 (bundles.ts). 값이 세트 값으로 잡힌다. */
+  bundleId?: string;
   me: PersonForm;
   partner: PersonForm;
   withPartner: boolean;

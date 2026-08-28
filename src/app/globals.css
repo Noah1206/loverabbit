@@ -9481,3 +9481,81 @@ body:has(.admin-shell) .tabbar-dock {
   font-size: 0.82rem;
   text-align: center;
 }
+
+/* ── 세트 (2026-08-28) ─────────────────────────────────────── */
+.fortune-grid-set {
+  grid-column: 1 / -1;
+  aspect-ratio: auto;
+  min-height: 210px;
+  background: linear-gradient(135deg, #2a0a3a, #4a0f3f 55%, #6b1a2e);
+}
+.fortune-grid-set-art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 14px 16px;
+  font-size: 40px;
+  opacity: 0.9;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.35));
+}
+.fortune-grid-set .fortune-grid-copy p { max-width: 70%; }
+
+.set-page { padding-bottom: 120px; }
+.set-hero {
+  text-align: center;
+  padding: 28px 8px 8px;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+.set-hero-emoji { font-size: 56px; line-height: 1; }
+.set-hero h1 { font-size: 26px; margin: 4px 0 0; }
+.set-hero p { color: var(--text-muted, #bdb3c9); max-width: 34ch; margin: 0; }
+.set-price { display: flex; gap: 10px; align-items: baseline; }
+.set-price s { opacity: 0.55; }
+.set-price b { font-size: 28px; color: #ff6b9d; }
+
+.set-items { display: grid; gap: 10px; padding: 14px 0; }
+.set-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-left: 3px solid var(--product-c1, #ff6b9d);
+}
+.set-item-index {
+  width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+}
+.set-item-emoji { font-size: 26px; }
+.set-item-copy { display: grid; gap: 2px; }
+.set-item-copy small { color: var(--text-muted, #bdb3c9); }
+.set-item-copy em { font-style: normal; font-size: 12px; opacity: 0.7; }
+
+.set-how { padding: 18px; display: grid; gap: 10px; }
+.set-how h2 { font-size: 17px; margin: 0; }
+.set-how ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.55; }
+.set-how small { opacity: 0.7; }
+
+/* 승인 직후 접힌 목차 */
+.rv-outline-toggle {
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* 다음 질문 */
+.report-crosssell-note { margin: 0 0 12px; font-size: 14px; color: var(--text-muted, #bdb3c9); line-height: 1.5; }
+.report-crosssell-note b { color: #ff6b9d; }
+.report-crosssell-price s { opacity: 0.55; margin-right: 4px; font-weight: 400; }

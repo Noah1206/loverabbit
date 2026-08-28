@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
+import { BUNDLE_MAP, bundleListPrice, resolveBundle } from "@/lib/bundles";
 import { useRouter } from "next/navigation";
 import {
   emptyPerson,
@@ -355,6 +356,8 @@ export default function ReadingPage() {
   const router = useRouter();
   const [category, setCategory] = useState("sokgunghap");
   const [offerId, setOfferId] = useState<string | undefined>();
+  // 세트로 시작했는가 (?bundle=love3). 값이 세트 값으로 잡히고 확인 화면에 그 값이 선다.
+  const [bundleId, setBundleId] = useState<string | undefined>();
   const [categorySelectionMode, setCategorySelectionMode] = useState<CategorySelectionMode>("loading");
   const [step, setStep] = useState<ReadingStep>("category");
   // 화면이 어느 쪽에서 들어올지. 다음으로 가면 오른쪽에서, 뒤로 가면 왼쪽에서.
@@ -445,6 +448,8 @@ export default function ReadingPage() {
       setWithPartner(found.needsPartner);
     }
     setOfferId(offer?.id);
+    const bundle = found ? resolveBundle(found.id, params.get("bundle")) : null;
+    setBundleId(bundle?.id);
     // 광고·홈 카드로 들어와 상품이 정해져 있으면(found) 선택·mode 단계를 아예
     // 건너뛴다 — fixed 흐름. 아니면 picker 흐름으로 맨 뒤에서 고른다.
     setCategorySelectionMode(found ? "fixed" : "picker");
@@ -454,11 +459,37 @@ export default function ReadingPage() {
 
     const stored = getUser();
     setUser(stored);
+
+    /*
+      두 번째 리딩은 한 칸이다 (2026-08-28).
+
+      리딩 끝의 "다음 질문"에서 온 사람(?from=reading)은 내 생년월일을 이미
+      한 번 쳤다. 저장된 것을 불러와 채우고, 상대가 필요한 리딩이면 상대
+      생년월일 칸으로, 아니면 고민 칸으로 바로 세운다. 불러오지 못하면
+      평소대로 처음부터 — 조용히 물러난다.
+    */
+    if (found && stored?.token && params.get("from") === "reading" && !peekReadingDraft()) {
+      fetch("/api/reading/prefill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: stored.token }),
+      })
+        .then((res) => (res.ok ? res.json() : { me: null }))
+        .then((data: { me?: PersonForm | null }) => {
+          if (!data.me?.year || !data.me.gender) return;
+          setMe({ ...emptyPerson, ...data.me });
+          setWithPartner(found.needsPartner);
+          setPartnerChosen(true);
+          setStep(found.needsPartner ? "partnerBirth" : "concern");
+        })
+        .catch(() => {});
+    }
     // 초안은 대기 화면이 소비한다. 여기서는 값만 복원하고 그대로 넘긴다.
     const draft = peekReadingDraft();
     if (draft) {
       setCategory(draft.category);
       setOfferId(draft.offerId);
+      setBundleId(draft.bundleId);
       setMe(draft.me);
       setPartner(draft.partner);
       setWithPartner(draft.withPartner);
@@ -505,6 +536,7 @@ export default function ReadingPage() {
     const draft: ReadingDraft = {
       category,
       offerId,
+      bundleId,
       me,
       partner,
       withPartner,
@@ -983,6 +1015,15 @@ export default function ReadingPage() {
                     <dt>리딩</dt>
                     <dd>{selectedCategory.label}</dd>
                   </div>
+                  {bundleId && BUNDLE_MAP[bundleId] && (
+                    <div>
+                      <dt>세트</dt>
+                      <dd>
+                        {BUNDLE_MAP[bundleId].title} · <s>{bundleListPrice(BUNDLE_MAP[bundleId]).toLocaleString("ko-KR")}원</s>{" "}
+                        <b>{BUNDLE_MAP[bundleId].price.toLocaleString("ko-KR")}원</b>
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt>내 정보</dt>
                     <dd>{personSummary(me)}</dd>

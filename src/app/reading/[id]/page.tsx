@@ -8,6 +8,8 @@ import { useParams, useRouter } from "next/navigation";
 import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
+import { bundleOfReading } from "@/lib/bundles";
+import { SECOND_READING_PRICE } from "@/lib/coupons";
 import ContinueSheet from "@/components/ContinueSheet";
 import {
   landingTypeForProduct,
@@ -83,6 +85,8 @@ export default function ReadingReportPage() {
   const [shareNotice, setShareNotice] = useState("");
   const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
   const [page, setPage] = useState(0);
+  // 1쪽 위의 펼친 목차. 승인 직후에는 접어 두고 본문부터 보인다.
+  const [outlineOpen, setOutlineOpen] = useState(true);
 
   useEffect(() => {
     const stored = getUser();
@@ -97,6 +101,9 @@ export default function ReadingReportPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "approved") {
       setNotice("결제가 승인됐어요. 첫 장부터 끝 장까지 전부 열렸어요.");
+      // 승인 직후 첫 화면은 목차가 아니라 본문이다. 결제한 29명 중 8명이 20초
+      // 안에 닫았는데(2026-08-28), 그들이 본 첫 화면이 목차였다.
+      setOutlineOpen(false);
     }
     // 주소에 쪽 번호가 있으면 그 장부터 — 공유한 링크가 같은 자리를 연다
     const wanted = Number(params.get("p"));
@@ -409,12 +416,14 @@ export default function ReadingReportPage() {
       p.tags.includes("popular") ? 0 : 1,
       p.price,
     ];
-    return PRODUCTS.filter((p) => p.id !== product.id && p.price > product.price)
+    // 값이 더 비싼 것만 고르던 조건을 뺀다 — 두 번째는 어차피 4,900원이고,
+    // 12,000원짜리를 본 사람에게 "더 비싼 것"은 없다.
+    return PRODUCTS.filter((p) => p.id !== product.id)
       .sort((a, b) => {
         const [ra, rb] = [rank(a), rank(b)];
         return ra[0] - rb[0] || ra[1] - rb[1] || ra[2] - rb[2];
       })
-      .slice(0, 3);
+      .slice(0, 2);
   }, [product]);
 
   const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";
@@ -806,7 +815,13 @@ export default function ReadingReportPage() {
             {/* 읽기 시작하는 자리에만 목차를 펼친다. 다른 장에서는 상단 바의 ≡ 가 같은 일을 한다. */}
             {page === 1 && (
               <>
-                <ChapterOutline title={entry.label} items={indexItems} current={page} onJump={goto} />
+                {outlineOpen ? (
+                  <ChapterOutline title={entry.label} items={indexItems} current={page} onJump={goto} />
+                ) : (
+                  <button type="button" className="rv-outline-toggle" onClick={() => setOutlineOpen(true)}>
+                    목차 {total}개 장 펼치기
+                  </button>
+                )}
                 {/* 색이 무슨 뜻인지 — 본문을 읽기 전에 한 번만 */}
                 <MarkLegend />
               </>
@@ -830,19 +845,33 @@ export default function ReadingReportPage() {
                   productLabel={entry.label}
                 />
 
+                {/* 다음 질문 — 같은 명식에서 갈라지는 두 가지. 폼을 처음부터가
+                    아니라 상대 생년월일 한 칸(?from=reading)만 남긴 채로 간다.
+                    두 번째 리딩은 4,900원 쿠폰이 결제창에서 자동으로 붙는다. */}
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">
-                    <span className="badge">이 리딩 다음에</span>
-                    <h2>여기까지 봤다면, 다음은 이거예요</h2>
+                    <span className="badge">다음 질문</span>
+                    <h2>이 명식으로, 다음은 이게 궁금할 거예요</h2>
+                    <p className="report-crosssell-note">
+                      내 생년월일은 저장돼 있어요. {nextReadings.some((p) => p.needsPartner) ? "상대 생년월일만 넣으면 바로 나와요. " : ""}
+                      두 번째 리딩은 <b>{SECOND_READING_PRICE.toLocaleString()}원</b>.
+                    </p>
                     <div className="report-crosssell-list">
                       {nextReadings.map((p) => (
-                        <Link key={p.id} href={`/product/${p.id}`} className="report-crosssell-item" data-tone={p.tone}>
+                        <Link
+                          key={p.id}
+                          href={`/reading?c=${p.id}&from=reading`}
+                          className="report-crosssell-item"
+                          data-tone={p.tone}
+                        >
                           <span className="report-crosssell-emoji" aria-hidden>{p.emoji}</span>
                           <span className="report-crosssell-copy">
-                            <strong>{p.title}</strong>
-                            <small>{p.ctaHook}</small>
+                            <strong>{p.headline}</strong>
+                            <small>{p.title} · {p.needsPartner ? "상대 생년월일 한 칸" : "바로 생성"}</small>
                           </span>
-                          <span className="report-crosssell-price">{p.price.toLocaleString()}원</span>
+                          <span className="report-crosssell-price">
+                            <s>{p.price.toLocaleString()}원</s> {SECOND_READING_PRICE.toLocaleString()}원
+                          </span>
                         </Link>
                       ))}
                     </div>
@@ -937,6 +966,7 @@ export default function ReadingReportPage() {
           customerEmail={user.email}
           depositorCode={depositorCode}
           paying={paying}
+          couponsAllowed={!bundleOfReading(entry.category, entry.price)}
           onTransferSubmitted={confirmTransfer}
           onClose={() => setShowPay(false)}
         />

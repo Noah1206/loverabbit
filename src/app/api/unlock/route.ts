@@ -20,6 +20,8 @@ import { snapshotMetaMatch } from "@/lib/meta-capi";
 import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { claimReadingForPayment } from "@/lib/reading-claim";
+import { bundleOfReading } from "@/lib/bundles";
+import { reviewOrderAndFollowUp } from "@/lib/order-review";
 import { PortOnePaymentError } from "@/lib/portone-validation";
 
 // 유료 본문을 여기서 만든다. 이 경로가 이 서비스에서 가장 오래 도는 자리다.
@@ -298,7 +300,11 @@ export async function POST(req: NextRequest) {
     }
     // 쿠폰은 여기서 금액을 깎고 주문에 붙는다. 승인이 나면 소진, 거절되면 풀린다.
     // 한 푼도 안 깎이는 쿠폰은 붙이지 않는다 (api/checkout 과 같은 이유).
-    const picked = body.couponId ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
+    // 세트 리딩에는 쿠폰이 안 붙는다 — 1,900원 환영 쿠폰이 19,900원 세트를
+    // 1,900원으로 만들면 안 된다. 세트는 그 자체가 할인이다.
+    const bundle = bundleOfReading(stored?.category ?? "", price);
+    const picked =
+      body.couponId && !bundle ? await getUsableCoupon(body.couponId, user.userId).catch(() => null) : null;
     const coupon = picked && couponSaving(price, picked) > 0 ? picked : null;
     const amount = coupon ? couponPrice(price, coupon) : price;
     try {
@@ -310,6 +316,7 @@ export async function POST(req: NextRequest) {
             depositorCode: body.depositorCode,
             metadata: {
               ...(attribution ? { attribution } : {}),
+              ...(bundle ? { bundle: bundle.id } : {}),
               meta: metaSnapshot,
               ...(coupon
                 ? {
@@ -328,6 +335,17 @@ export async function POST(req: NextRequest) {
       if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
       // 이미 대기 중이던 주문이 돌아왔으면 그 금액이 정본이다 - 쿠폰을 새로 붙이지 않는다.
       if (coupon && order.amount === amount) await reserveCoupon(coupon.id, user.userId, order.id);
+
+      // 0원 — 세트 쿠폰. 낼 돈이 없으니 사람이 확인할 입금도 없다. 그 자리에서
+      // 승인 길을 그대로 태운다 (쿠폰 소진·생성 시작·알림까지 같은 함수).
+      if (order.amount === 0 && order.status === "pending") {
+        const outcome = await reviewOrderAndFollowUp(order.id, "paid", "세트 쿠폰으로 열림");
+        if (!outcome.ok && outcome.reason !== "already_reviewed") {
+          throw new Error("세트 쿠폰 승인에 실패했어요.");
+        }
+        await notifyAdmin(`[세트 쿠폰] 주문 #${order.id} · ${stored?.category ?? "리딩"} 0원으로 열림 (userId=${user.userId})`);
+        return NextResponse.json({ orderId: order.id, readingId: order.readingId, status: "paid", method: "transfer" });
+      }
       console.log(
         `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${order.amount}`
       );

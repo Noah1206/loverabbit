@@ -13,7 +13,8 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { FIRST_READING_PRICE } from "@/lib/coupons";
-import { PRODUCTS, type Product } from "@/lib/products";
+import { BUNDLES, bundleListPrice } from "@/lib/bundles";
+import { PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
 
@@ -186,6 +187,36 @@ export default function AppHome() {
           </div>
 
           <div className="fortune-grid">
+            {/* 세트 카드 — 전체 보기에서만, 맨 앞에. 세 번 사게 하는 것보다
+                한 번에 셋을 파는 쪽이 이 규모에선 현실적이다 (2026-08-28). */}
+            {filter === "all" &&
+              BUNDLES.map((b) => (
+                <Link key={b.id} href={`/set/${b.id}`} className="card fortune-grid-card fortune-grid-set" data-product={b.first}>
+                  <div className="fortune-grid-set-art" aria-hidden>
+                    {b.items.map((id) => (
+                      <span key={id}>{PRODUCT_MAP[id]?.emoji}</span>
+                    ))}
+                  </div>
+                  <span className="fortune-grid-badge fortune-grid-badge-sale">
+                    {Math.round((1 - b.price / bundleListPrice(b)) * 100)}% 할인
+                  </span>
+                  <div className="fortune-grid-copy">
+                    <span className="fortune-grid-kicker">{b.emoji} 세트</span>
+                    <strong>{b.title}</strong>
+                    <p>{b.items.map((id) => PRODUCT_MAP[id]?.title).join(" + ")}</p>
+                    <span className="fortune-grid-price">
+                      <s>{bundleListPrice(b).toLocaleString("ko-KR")}원</s>
+                      <b>{b.price.toLocaleString("ko-KR")}원</b>
+                      <small>세 장</small>
+                    </span>
+                    <span className="fortune-grid-cta">
+                      <span aria-hidden>{b.emoji}</span>
+                      <span className="fortune-grid-cta-label">세 장 한 번에 열기</span>
+                      <b aria-hidden>→</b>
+                    </span>
+                  </div>
+                </Link>
+              ))}
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
               return (
