@@ -48,7 +48,7 @@ export interface ReferralStatus {
   readingUnlocked: boolean;
 }
 
-export type OrderKind = "reading" | "membership";
+export type OrderKind = "reading" | "membership" | "chat_credits";
 export type OrderMethod = "transfer" | "toss-pg" | "portone-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
@@ -493,10 +493,10 @@ export async function getOrderByProviderOrderId(
   };
 }
 
-const TRANSFER_ORDER_COLUMNS =
+export const TRANSFER_ORDER_COLUMNS =
   "id,user_id,reading_id,kind,status,amount,depositor_code,metadata,created_at,paid_at";
 
-function mapTransferOrder(
+export function mapTransferOrder(
   row: Record<string, unknown>,
   email: string | null = null,
   category: string | null = null
@@ -506,7 +506,7 @@ function mapTransferOrder(
     id: Number(row.id),
     userId: Number(row.user_id),
     readingId: typeof row.reading_id === "string" ? row.reading_id : null,
-    kind: row.kind === "membership" ? row.kind : "reading",
+    kind: row.kind === "membership" || row.kind === "chat_credits" ? row.kind : "reading",
     email,
     category,
     status:

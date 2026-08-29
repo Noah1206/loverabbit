@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import SignupModal from "@/components/SignupModal";
 import { useTheme, type Theme } from "@/components/ThemeProvider";
 import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
@@ -171,10 +172,23 @@ export default function ProfilePage() {
       </section>
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
-          <span className="badge">친구 초대 보상</span>
-          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>친구 1명 가입 = 5,000원 쿠폰</h2>
+          <span className="badge">질문 크레딧</span>
+          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>오늘의 질문</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
-            친구가 가입을 마치면 30일 안에 쓸 수 있는 쿠폰이 바로 들어와요.
+            저장된 내 사주와 받은 리딩을 바탕으로 한 가지를 물어요. 한 번에 5크레딧.
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link className="btn" href="/ask" style={{ flex: 1, textAlign: "center" }}>질문하기</Link>
+            <Link className="btn btn-ghost" href="/credits" style={{ flex: 1, textAlign: "center" }}>크레딧함</Link>
+          </div>
+        </div>
+      )}
+      {user && (
+        <div className="card" style={{ padding: 24, marginTop: 14 }}>
+          <span className="badge">친구 초대 보상</span>
+          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>링크 클릭 = 5크레딧 · 가입 = 5,000원 쿠폰</h2>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
+            친구가 링크를 열면 질문 1회분, 가입까지 마치면 30일 안에 쓸 수 있는 쿠폰이 들어와요.
           </p>
           <button className="btn" style={{ width: "100%" }} onClick={shareForCredits} disabled={!user.referralCode}>
             친구에게 초대 링크 보내기

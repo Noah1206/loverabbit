@@ -13,6 +13,7 @@ import {
   PortOnePaymentError,
   validatePortOneTransferPayment,
 } from "@/lib/portone-validation";
+import { completeCreditOrder, getCreditBalance } from "@/lib/credits-db";
 import { markUnlocked } from "@/lib/store";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 
@@ -41,16 +42,18 @@ export function hasAnyPortOneServerSetting(): boolean {
 
 interface FinalizeExpectation {
   userId?: number;
-  kind?: Extract<OrderKind, "reading">;
+  kind?: Extract<OrderKind, "reading" | "chat_credits">;
   readingId?: string;
 }
 
 export interface FinalizedPortOneOrder {
   paymentId: string;
   userId: number;
-  kind: Extract<OrderKind, "reading">;
+  kind: Extract<OrderKind, "reading" | "chat_credits">;
   readingId: string | null;
   amount: number;
+  /** 크레딧 주문일 때만. 지급 뒤의 잔액. */
+  creditsRemaining?: number;
   alreadyPaid: boolean;
 }
 
@@ -58,7 +61,7 @@ function assertExpectedOrder(order: DatabaseOrder, expected: FinalizeExpectation
   if (order.method !== "portone-pg") {
     throw new PortOnePaymentError("포트원 결제 주문이 아니에요.", 400, "ORDER_METHOD_MISMATCH");
   }
-  if (order.kind !== "reading") {
+  if (order.kind !== "reading" && order.kind !== "chat_credits") {
     throw new PortOnePaymentError("지원하지 않는 결제 상품이에요.", 400, "ORDER_KIND_MISMATCH");
   }
   if (expected.userId !== undefined && order.userId !== expected.userId) {
@@ -182,5 +185,22 @@ export async function finalizePortOnePayment(
     };
   }
 
-  throw new PortOnePaymentError("지원하지 않는 결제 상품이에요.", 400, "ORDER_KIND_MISMATCH");
+  // ── 질문 크레딧 팩 ──
+  // 지급은 DB RPC 가 pending → paid 전이 한 번에만 한다. 웹훅과 완료 화면이
+  // 겹치면 진 쪽은 "이미 완료" 를 보고 잔액만 읽는다.
+  const base = { paymentId, userId: order.userId, kind: "chat_credits" as const, readingId: null, amount: order.amount };
+  if (alreadyPaid) {
+    return { ...base, creditsRemaining: await getCreditBalance(order.userId), alreadyPaid: true };
+  }
+  try {
+    const completed = await completeCreditOrder(paymentId, order.userId);
+    if (!completed) throw new Error("완료할 크레딧 주문이 없습니다.");
+    return { ...base, creditsRemaining: completed.creditsRemaining, alreadyPaid: false };
+  } catch (error) {
+    const latest = await getOrderByProviderOrderId(paymentId);
+    if (latest?.status === "paid") {
+      return { ...base, creditsRemaining: await getCreditBalance(order.userId), alreadyPaid: true };
+    }
+    throw error;
+  }
 }

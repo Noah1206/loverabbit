@@ -38,21 +38,26 @@ export async function notifyCustomerReviewed(orderId: number, decision: "paid" |
     if (!order) return;
 
     const isReading = order.kind === "reading" && order.readingId;
+    const isCredits = order.kind === "chat_credits";
     const url = isReading
       ? `${SITE_URL}/reading/${encodeURIComponent(order.readingId!)}`
-      : `${SITE_URL}/my`;
+      : isCredits
+        ? `${SITE_URL}/ask`
+        : `${SITE_URL}/my`;
 
     const text =
       decision === "paid"
         ? isReading
           ? "러브레빗 입금이 확인됐어요. 리딩이 준비됐으니 지금 열어보세요."
-          : "러브레빗 입금이 확인됐어요. 보관함에서 확인해주세요."
+          : isCredits
+            ? "러브레빗 입금이 확인됐어요. 질문 크레딧이 들어왔어요."
+            : "러브레빗 입금이 확인됐어요. 보관함에서 확인해주세요."
         : "러브레빗 계좌에서 입금을 찾지 못했어요. 이체가 실제로 빠져나갔는지 확인한 뒤 다시 요청해주세요. 이미 보냈다면 입금자명과 금액을 문의로 알려주세요.";
 
     const sent = await sendKakaoMemo(order.userId, {
       text,
       url,
-      buttonTitle: decision === "paid" ? (isReading ? "리딩 열기" : "보관함 열기") : "다시 요청하기",
+      buttonTitle: decision === "paid" ? (isReading ? "리딩 열기" : isCredits ? "질문하기" : "보관함 열기") : "다시 요청하기",
     });
     if (!sent) console.log(`[손님알림] 주문 #${orderId} ${decision} — 닿는 길 없음 (카카오 토큰 없음/비카카오 로그인)`);
   } catch (error) {

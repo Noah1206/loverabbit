@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 // 추가 상담 — 해금된 리딩 아래에서 명리 분석가와 후속 질문 1회를 제공한다.
 // 리딩 페이지와 내 상담 보관함(/my)이 공용으로 사용.
 export default function ChatSection({
   readingId,
   blob,
+  userToken,
 }: {
   readingId: string;
   blob: string;
+  /** 무료 1회는 계정 기준으로 서버가 센다 */
+  userToken?: string | null;
 }) {
   const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [input, setInput] = useState("");
@@ -29,7 +33,7 @@ export default function ChatSection({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readingId, blob, question: q, history: msgs }),
+        body: JSON.stringify({ readingId, blob, question: q, history: msgs, userToken }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -78,7 +82,9 @@ export default function ChatSection({
       {locked ? (
         <div style={{ textAlign: "center", padding: "8px 0" }}>
           <p style={{ fontSize: "0.88rem", color: "var(--text-dim)" }}>
-            이번 리딩의 무료 추가 상담을 사용했어요. 다른 질문은 새 리딩에서 이어가 주세요.
+            이번 리딩의 무료 추가 상담을 사용했어요. 더 묻고 싶으면{" "}
+            <Link href="/ask" style={{ color: "var(--accent)", fontWeight: 700 }}>오늘의 질문</Link>
+            에서 크레딧으로 이어가 주세요.
           </p>
         </div>
       ) : (

@@ -11,7 +11,8 @@ type PaymentStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
 type StatusResponse = {
   orderId: number;
-  readingId: string;
+  /** 크레딧 팩 주문은 리딩이 없다 */
+  readingId: string | null;
   status: PaymentStatus;
   amount: number;
   depositorCode: string | null;
@@ -82,6 +83,11 @@ export default function PaymentPendingPage() {
       if (finishingRef.current || stopped) return;
       finishingRef.current = true;
       setChecking(true);
+      // 크레딧 팩은 승인 RPC 가 지급까지 끝냈다. 열 리딩이 없으니 크레딧함으로.
+      if (!status.readingId) {
+        router.replace("/credits?payment=approved");
+        return;
+      }
       const archive = listArchive().find((entry) => entry.readingId === status.readingId);
       const response = await fetch("/api/unlock", {
         method: "POST",
@@ -130,7 +136,7 @@ export default function PaymentPendingPage() {
           return;
         }
         if (next.status === "cancelled" || next.status === "failed" || next.status === "refunded") {
-          updateArchive(next.readingId, { pendingOrderId: undefined });
+          if (next.readingId) updateArchive(next.readingId, { pendingOrderId: undefined });
           setChecking(false);
           return;
         }

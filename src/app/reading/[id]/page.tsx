@@ -875,7 +875,7 @@ export default function ReadingReportPage() {
                     </div>
                   </section>
                 )}
-                <ChatSection readingId={entry.readingId} blob={entry.blob} />
+                <ChatSection readingId={entry.readingId} blob={entry.blob} userToken={user?.token ?? null} />
               </>
             )}
           </>
