@@ -15,13 +15,13 @@ import WelcomePopup from "@/components/WelcomePopup";
 const themeInitScript = `
   (function () {
     try {
-      // 테마 선택은 뺐다 (2026-08-27). 예전에 라이트를 저장한 기기도 블랙으로.
-      var theme = "dark";
+      // 테마는 아이보리 하나다 (2026-08-30). 예전에 다크를 저장한 기기도 라이트로.
+      var theme = "light";
       document.documentElement.dataset.theme = theme;
       document.documentElement.style.colorScheme = theme;
     } catch (error) {
-      document.documentElement.dataset.theme = "dark";
-      document.documentElement.style.colorScheme = "dark";
+      document.documentElement.dataset.theme = "light";
+      document.documentElement.style.colorScheme = "light";
     }
   })();
 `;
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" data-theme="dark" suppressHydrationWarning>
+    <html lang="ko" data-theme="light" suppressHydrationWarning>
       <head>
         {/*
           Pretendard. globals.css 의 font-family 첫 자리에 오래 적혀 있었지만

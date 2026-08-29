@@ -28,15 +28,15 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [showMatureLabels, setShowMatureLabelsState] = useState(false);
   // 기본은 꺼짐. 첫 화면이 성인 연출로 시작하는 일은 없어야 한다.
   const [adultMode, setAdultModeState] = useState(false);
 
   useEffect(() => {
     let active = true;
-    // 테마는 블랙 하나다 (2026-08-27). 저장된 값·서버 값이 라이트여도 따르지 않는다.
-    const initialTheme: Theme = "dark";
+    // 테마는 아이보리 하나다 (2026-08-30). 저장된 값·서버 값이 다크여도 따르지 않는다.
+    const initialTheme: Theme = "light";
     setThemeState(initialTheme);
     applyTheme(initialTheme);
     setShowMatureLabelsState(window.localStorage.getItem(MATURE_LABEL_STORAGE_KEY) === "show");
@@ -52,7 +52,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         .then((response) => (response.ok ? response.json() : null))
         .then((profile: { theme?: Theme; showMatureLabels?: boolean } | null) => {
           if (!active || !profile) return;
-          if (profile.theme === "dark") {
+          if (profile.theme === "light") {
             setThemeState(profile.theme);
             applyTheme(profile.theme);
             window.localStorage.setItem(THEME_STORAGE_KEY, profile.theme);
@@ -70,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const syncPreferences = (event: StorageEvent) => {
       if (event.key === THEME_STORAGE_KEY) {
-        const nextTheme: Theme = "dark";
+        const nextTheme: Theme = "light";
         setThemeState(nextTheme);
         applyTheme(nextTheme);
       }

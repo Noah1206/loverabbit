@@ -1,8 +1,67 @@
-/* 기본 테마: DARK. 사용자가 선택한 LIGHT는 html[data-theme="light"]로 전역 적용 */
+/* 기본 테마: LIGHT — 아이보리 바탕에 플럼 포인트 하나 (2026-08-30).
+   다크는 걷어내지 않고 [data-theme="dark"] 로 남겨 둔다. */
 :root,
+[data-theme="light"],
+.theme-light {
+  --app-max-width: 480px;
+
+  /* 바탕은 종이다. 아이보리 한 장 위에 흰 카드가 얹히고 그 사이를 옅은 선이
+     가른다. 깊이는 그림자가 아니라 이 세 단계로 만든다 — 그림자를 세게 쓰면
+     화면이 무거워지고, 공유했을 때 제일 먼저 촌스러워지는 것이 그쪽이다. */
+  --bg: #faf7f4;
+  --bg-card: #ffffff;
+  --bg-card2: #f4efe9;
+  --line: #ece5e0;
+  --text: #241d26;
+  --text-dim: #6b6270;
+
+  /* 포인트는 하나뿐이다 — 로고 배경에서 가져온 플럼. 가격·버튼·배지에만 쓴다.
+     한 화면에 세 번 넘게 나오면 그건 포인트가 아니라 배경이다. */
+  --accent: #6b3f7a;
+  --accent-soft: #9a7aa6;
+  --accent-ink: #ffffff;
+  --gold: #a9761f;
+  --violet: #8f7c96;
+
+  /* 기본 버튼. 밝은 바탕에서는 흰 버튼이 사라지므로 플럼이 채운다. */
+  --btn-bg: linear-gradient(135deg, #7a4a8a, #5d3569);
+  --btn-ink: #ffffff;
+  --btn-shadow: 0 8px 22px rgba(58, 32, 68, 0.24);
+  --btn-shadow-hover: 0 12px 30px rgba(58, 32, 68, 0.3);
+
+  /* 면을 한 단 띄우는 색. 밝은 바탕에서는 먹을 옅게 깔고, 어두운 바탕에서는
+     흰빛을 옅게 깐다 — 같은 자리에 서로 반대의 것이 들어간다. 이 토큰을 쓰면
+     테마를 뒤집을 때 규칙을 다시 찾아다니지 않아도 된다. */
+  --tint-1: rgba(36, 29, 38, 0.04);
+  --tint-2: rgba(36, 29, 38, 0.07);
+  --tint-line: rgba(36, 29, 38, 0.1);
+  --tint-ring: rgba(107, 63, 122, 0.2);
+
+  /* 화면에 떠 있는 고정 크롬 - 상단바, 탭바, 리딩 하단바. 셋이 같은 재질이어야
+     한 앱으로 읽힌다. 밝은 테마에서는 흰 카드, 어두운 테마에서는 검은 알약. */
+  --chrome-bg: #ffffff;
+  --chrome-line: #ece5e0;
+  --chrome-shadow: 0 6px 22px rgba(36, 29, 38, 0.09);
+  --chrome-ink: #6b6270;
+  --chrome-ink-on: #6b3f7a;
+  --chrome-slot: rgba(107, 63, 122, 0.1);
+
+  /* 아직 못 누르는 버튼. 흐리게만 두면 "고장난 것" 으로 읽혀서, 눌리는 버튼과
+     다른 재질로 만든다 - 색을 빼고 한 단 가라앉힌 면. */
+  --btn-off-bg: #f0eae4;
+  --btn-off-line: #e4dcd4;
+  --btn-off-ink: #a89dab;
+
+  /* 원화 채도. 아이보리 위에서는 원본 채도가 그대로면 그림만 튀어서, 화면이
+     정돈돼 보이지 않고 캡처해서 공유하기도 부담스럽다. 한 단만 내린다 -
+     더 내리면 그림이 죽고, 안 내리면 바탕이 진다. */
+  --art-saturate: 0.9;
+
+  color-scheme: light;
+}
+
 [data-theme="dark"],
 .theme-dark {
-  --app-max-width: 480px;
   /* 배경은 색을 갖지 않는다. 깊이는 색조가 아니라 명도 단계로만 만든다. */
   --bg: #0a0a0c;
   --bg-card: #121215;
@@ -13,24 +72,36 @@
   /* 포인트는 색이 아니라 명도로 준다. 검은 배경에서 가장 깨끗하게 떨어진다. */
   --accent: #f2f2f4;
   --accent-soft: #b9b8bf;
+  --accent-ink: #0a0a0c;
   --gold: #e8b84b;
   /* 이름은 violet이지만 이제 색을 갖지 않는다 — 진행바·뱃지의 두 번째 톤 */
   --violet: #6e6e79;
-}
 
-[data-theme="light"],
-.theme-light {
-  --bg: #fff6f8;
-  --bg-card: #ffffff;
-  --bg-card2: #ffedf2;
-  --line: #ffd7e2;
-  --text: #452b38;
-  --text-dim: #a17f90;
-  /* 밝은 배경에서는 같은 논리를 뒤집어 어두운 무채색으로 */
-  --accent: #2f2f35;
-  --accent-soft: #6d6d77;
-  --gold: #c98f2d;
-  --violet: #9c9ca6;
+  --btn-bg: linear-gradient(135deg, #ffffff, #e9e9ec);
+  --btn-ink: #0a0a0c;
+  --btn-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --btn-shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  --tint-1: rgba(255, 255, 255, 0.05);
+  --tint-2: rgba(255, 255, 255, 0.1);
+  --tint-line: rgba(255, 255, 255, 0.14);
+  --tint-ring: rgba(255, 255, 255, 0.16);
+
+  --chrome-bg: #08080b;
+  --chrome-line: #202027;
+  --chrome-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  --chrome-ink: rgba(255, 255, 255, 0.54);
+  --chrome-ink-on: #ffffff;
+  --chrome-slot: #28282e;
+
+  --btn-off-bg: #121016;
+  --btn-off-line: #201c26;
+  --btn-off-ink: #655e6d;
+
+  /* 검은 바탕에서는 그림이 이미 가라앉아 보인다. 손대지 않는다. */
+  --art-saturate: 1;
+
+  color-scheme: dark;
 }
 
 .theme-dark,
@@ -62,16 +133,18 @@ body {
 
 body {
   min-height: 100dvh;
+  /* 앱 프레임(480px) 바깥의 바닥. --bg 보다 한 단 낮은 아이보리라, 데스크톱에서
+     앱이 종이 한 장처럼 떠 보인다. 위쪽 빛은 플럼을 아주 옅게만 섞는다. */
+  background:
+    radial-gradient(circle at 50% -12%, rgba(107, 63, 122, 0.05), transparent 34rem),
+    #f2ebe4;
+}
+
+[data-theme="dark"] body {
   /* 위쪽 은은한 빛은 남기되 색을 빼서, 평평한 검정이 아니면서 색조도 없게 한다. */
   background:
     radial-gradient(circle at 50% -12%, rgba(255, 255, 255, 0.05), transparent 34rem),
     #050506;
-}
-
-[data-theme="light"] body {
-  background:
-    radial-gradient(circle at 50% -12%, rgba(0, 0, 0, 0.06), transparent 34rem),
-    #eee6ea;
 }
 
 /* 모바일에서는 전체 폭, 태블릿·PC에서는 중앙 480px 앱 화면으로 제한 */
@@ -103,8 +176,8 @@ body {
   width: min(100vw, var(--app-max-width));
   pointer-events: none;
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.12), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(10, 10, 12, 0.08) 54%, transparent);
+    radial-gradient(circle at 50% 12%, var(--tint-1), transparent 42%),
+    linear-gradient(180deg, var(--tint-1), transparent 54%);
   transform: translateX(-50%);
   animation: route-veil-release 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -139,7 +212,7 @@ body {
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
-  background: rgba(8, 8, 10, 0.92);
+  background: rgba(36, 29, 38, 0.55);
 }
 
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
@@ -418,19 +491,18 @@ a {
   font-weight: 700;
   padding: 16px 32px;
   border-radius: 999px;
-  background: linear-gradient(135deg, #ffffff, #e9e9ec);
+  background: var(--btn-bg);
   border: 1px solid transparent;
-  color: #0a0a0c;
+  color: var(--btn-ink);
   transition: transform 0.15s, box-shadow 0.15s;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--btn-shadow);
 }
 
 .btn:hover {
   transform: translateY(-2px);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    inset 0 -10px 18px rgba(255, 255, 255, 0.14),
-    0 12px 32px rgba(0, 0, 0, 0.5);
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    var(--btn-shadow-hover);
 }
 
 .btn:disabled {
@@ -440,22 +512,24 @@ a {
 }
 
 .btn-ghost {
-  background: rgba(255, 255, 255, 0.45);
+  background: var(--bg-card);
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75), 0 2px 10px rgba(69, 43, 56, 0.08);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(36, 29, 38, 0.04);
   color: var(--text-dim);
 }
 
+/* 카드는 종이 한 장이다. 그림자를 세게 주지 않는다 - 아이보리 위에서는 옅은
+   선 하나가 그림자보다 정돈돼 보인다. */
 .card {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
   border-radius: 22px;
   padding: 24px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 4px 18px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 2px rgba(36, 29, 38, 0.04), 0 10px 26px rgba(36, 29, 38, 0.05);
 }
 
 .badge {
@@ -464,9 +538,9 @@ a {
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  color: #e04a80;
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: var(--tint-1);
+  color: var(--accent);
+  border: 1px solid var(--tint-line);
 }
 
 /* 다크 변형 — 유리 톤을 어둡게 */
@@ -512,20 +586,20 @@ select {
   width: 100%;
   padding: 14px 16px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--line);
+  background: var(--bg-card);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   color: var(--text);
   font-size: 1rem;
 }
 
 input:focus,
 select:focus {
-  outline: 2px solid var(--violet);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
   border-color: transparent;
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--bg-card);
 }
 
 /* 브라우저 자동완성 하이라이트.
@@ -623,6 +697,17 @@ label {
 [data-product="insun"] { --product-c1: #2f8fad; --product-c2: #6967d8; --product-glow: rgba(47, 143, 173, 0.4); --product-line: rgba(85, 159, 196, 0.5); }
 [data-product="yeonae"] { --product-c1: #735eea; --product-c2: #d14ed4; --product-glow: rgba(115, 94, 234, 0.42); --product-line: rgba(143, 112, 244, 0.52); }
 
+/* 원화는 한 군데서만 채도를 정한다 - 화면마다 따로 주면 같은 그림이 자리마다
+   다른 채도로 나온다. */
+.fortune-grid-art img,
+.fortune-grid-art .card-motion,
+.product-hero-photo img,
+.rv-art img,
+.rv-cover-art .card-motion,
+.set-card-art img {
+  filter: saturate(var(--art-saturate));
+}
+
 .fortune-grid-art {
   position: absolute !important;
   inset: 0;
@@ -672,7 +757,7 @@ label {
   left: auto;
   right: 10px;
   padding: 4px 9px;
-  background: #ff3b5c;
+  background: #6b3f7a;
   color: #fff;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
@@ -1249,12 +1334,12 @@ label {
   position: relative;
   padding: clamp(24px, 7vw, 34px) clamp(20px, 6vw, 30px);
   overflow: hidden;
-  border-color: var(--product-line, var(--line));
+  border-color: var(--line);
   border-radius: 26px;
   background:
-    radial-gradient(circle at 88% 26%, color-mix(in srgb, var(--product-c2, #f54c8b) 16%, transparent), transparent 23%),
-    linear-gradient(145deg, #1a122b 0%, #100c1c 100%);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    radial-gradient(circle at 88% 26%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 23%),
+    var(--bg-card);
+  box-shadow: 0 1px 2px rgba(36, 29, 38, 0.04), 0 14px 34px rgba(36, 29, 38, 0.07);
   text-align: left;
 }
 
@@ -1264,14 +1349,14 @@ label {
   height: 120px;
   right: -44px;
   bottom: -54px;
-  border: 1px solid var(--product-line, rgba(255, 255, 255, 0.14));
+  border: 1px solid var(--line);
   border-radius: 50%;
   content: "";
   opacity: 0.35;
 }
 
 .product-score-question {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text);
   font-size: clamp(1.05rem, 4.6vw, 1.34rem);
   letter-spacing: -0.03em;
 }
@@ -1294,9 +1379,8 @@ label {
 
 .product-score-result p span {
   display: inline-block;
-  color: var(--product-c2, #f54c8b);
+  color: var(--accent);
   filter: blur(4px);
-  text-shadow: 0 0 18px var(--product-glow, rgba(207, 60, 255, 0.45));
   user-select: none;
 }
 
@@ -1306,18 +1390,18 @@ label {
   width: 70px;
   height: 70px;
   flex: 0 0 70px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 50%;
   background:
     radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.9) 0 3%, transparent 4%),
-    radial-gradient(circle at 36% 30%, color-mix(in srgb, var(--product-c2, #f54c8b) 92%, #fff), var(--product-c1, #cf3cff) 50%, #291435 72%);
-  box-shadow: 0 0 26px var(--product-glow, rgba(207, 60, 255, 0.44)), inset -10px -12px 18px rgba(0, 0, 0, 0.28);
+    radial-gradient(circle at 36% 30%, var(--accent-soft), var(--accent) 50%, #3b2145 72%);
+  box-shadow: 0 8px 22px rgba(107, 63, 122, 0.3), inset -10px -12px 18px rgba(0, 0, 0, 0.22);
   font-size: 1.65rem;
 }
 
 .product-score-caption {
   max-width: 38ch;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-dim);
   font-size: 0.88rem;
   line-height: 1.65;
 }
@@ -1327,7 +1411,7 @@ label {
   margin-top: 24px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--tint-2);
 }
 
 .product-score-meter span {
@@ -1337,8 +1421,8 @@ label {
   height: 100%;
   overflow: hidden;
   border-radius: inherit;
-  background: linear-gradient(90deg, #65bf65 0%, #e2df55 39%, var(--product-c2, #f54c8b) 74%, var(--product-c1, #cf3cff) 100%);
-  box-shadow: 0 0 15px var(--product-glow, rgba(207, 60, 255, 0.44));
+  background: linear-gradient(90deg, #65bf65 0%, #e2df55 39%, var(--accent-soft) 74%, var(--accent) 100%);
+  box-shadow: 0 0 12px rgba(107, 63, 122, 0.3);
   transform-origin: 0 50%;
 }
 
@@ -1376,8 +1460,8 @@ label {
 }
 
 @keyframes product-score-meter-breathe {
-  0%, 100% { box-shadow: 0 0 12px var(--product-glow, rgba(207, 60, 255, 0.44)); }
-  50% { box-shadow: 0 0 24px var(--product-glow, rgba(207, 60, 255, 0.44)); }
+  0%, 100% { box-shadow: 0 0 10px rgba(107, 63, 122, 0.25); }
+  50% { box-shadow: 0 0 20px rgba(107, 63, 122, 0.4); }
 }
 
 @keyframes product-score-meter-sheen {
@@ -1403,7 +1487,7 @@ label {
 
 .product-score-labels span,
 .product-score-labels strong {
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--text-dim);
   font-size: clamp(0.5rem, 2vw, 0.62rem);
   font-weight: 650;
   line-height: 1.35;
@@ -1411,14 +1495,13 @@ label {
 }
 
 .product-score-labels strong {
-  color: var(--product-c2, #f54c8b);
+  color: var(--accent);
   font-size: 0.9rem;
-  text-shadow: 0 0 12px var(--product-glow, rgba(207, 60, 255, 0.44));
 }
 
 .product-page .product-story-card {
-  border-color: color-mix(in srgb, var(--product-c2, #f54c8b) 42%, var(--line));
-  background: linear-gradient(150deg, color-mix(in srgb, var(--product-c1, #cf3cff) 8%, var(--bg-card)), var(--bg-card));
+  border-color: var(--line);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 6%, var(--bg-card)), var(--bg-card));
 }
 
 .product-sticky-shell {
@@ -1443,9 +1526,9 @@ label {
   right: 9px;
   bottom: 0;
   left: 9px;
-  border-top: 1px solid color-mix(in srgb, var(--product-c1, #cf3cff) 34%, transparent);
+  border-top: 1px solid var(--chrome-line);
   border-radius: 18px;
-  background: rgba(12, 12, 14, 0.96);
+  background: color-mix(in srgb, var(--chrome-bg) 94%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -1460,8 +1543,8 @@ label {
   padding: 11px 16px;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 20px;
-  background: linear-gradient(112deg, var(--product-c1, #cf3cff), var(--product-c2, #f54c8b));
-  box-shadow: 0 12px 34px var(--product-glow, rgba(207, 60, 255, 0.42)), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: var(--btn-bg);
+  box-shadow: var(--btn-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   color: #fff;
   transition: transform 180ms ease, filter 180ms ease;
 }
@@ -1634,11 +1717,11 @@ label {
   gap: 6px;
   min-height: 36px;
   padding: 5px 15px 5px 11px;
-  border: 1px solid rgba(226, 157, 76, 0.65);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(25, 15, 20, 0.94);
-  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: rgba(255, 248, 237, 0.96);
+  background: var(--bg-card);
+  box-shadow: var(--chrome-shadow);
+  color: var(--accent);
   font-size: 0.82rem;
   font-weight: 800;
   line-height: 1;
@@ -1658,11 +1741,11 @@ label {
   gap: 6px;
   min-height: 34px;
   padding: 5px 14px 5px 10px;
-  border: 1px solid rgba(226, 157, 76, 0.65);
+  border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(25, 15, 20, 0.94);
-  box-shadow: 0 7px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: rgba(255, 248, 237, 0.96);
+  background: var(--bg-card);
+  box-shadow: var(--chrome-shadow);
+  color: var(--accent);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
@@ -1706,7 +1789,7 @@ label {
    장밋빛, 인연은 청록, 이별은 갈색 옆면이 나온다 - 버튼 색과 따로 놀지 않는다. */
 .ad-saju-sticky-shell .product-sticky-cta {
   --cta-lift: 8px;
-  --cta-side: color-mix(in srgb, var(--product-c1, #cf3cff) 42%, #0b0611);
+  --cta-side: color-mix(in srgb, var(--accent) 72%, #1a0a20);
   position: relative;
   justify-content: center;
   min-height: 76px;
@@ -1718,8 +1801,8 @@ label {
     inset 0 1px 0 rgba(255, 255, 255, 0.44),
     inset 0 -15px 22px -14px rgba(10, 4, 14, 0.62),
     0 var(--cta-lift) 0 -3px var(--cta-side),
-    0 calc(var(--cta-lift) + 10px) 28px -10px var(--product-glow, rgba(207, 60, 255, 0.5)),
-    0 calc(var(--cta-lift) + 18px) 34px -18px rgba(6, 3, 10, 0.85);
+    0 calc(var(--cta-lift) + 10px) 28px -10px rgba(107, 63, 122, 0.4),
+    0 calc(var(--cta-lift) + 18px) 34px -18px rgba(36, 29, 38, 0.35);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -1769,7 +1852,7 @@ label {
     inset 0 3px 11px rgba(10, 4, 14, 0.5),
     inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     0 var(--cta-lift) 0 -1px var(--cta-side),
-    0 calc(var(--cta-lift) + 5px) 14px -9px var(--product-glow, rgba(207, 60, 255, 0.5)),
+    0 calc(var(--cta-lift) + 5px) 14px -9px rgba(107, 63, 122, 0.4),
     0 calc(var(--cta-lift) + 9px) 18px -14px rgba(6, 3, 10, 0.85);
   transition-duration: 80ms;
 }
@@ -1883,25 +1966,6 @@ label {
   }
 }
 
-.product-page[data-product="baramgi"] .product-sticky-cta {
-  border-radius: 14px;
-  background: linear-gradient(112deg, #d81332, #ff762e 58%, #ffb13b);
-}
-
-.product-page[data-product="gyeolhon"] .product-sticky-cta {
-  border-color: rgba(255, 229, 158, 0.62);
-  background: linear-gradient(112deg, #9f6917, #dba53d 56%, #f0c86a);
-}
-
-.product-page[data-product="ibyeol"] .product-sticky-cta {
-  border-color: rgba(225, 167, 98, 0.5);
-  background: linear-gradient(112deg, #38241e, #8e5233 54%, #c9884d);
-}
-
-.product-page[data-product="insun"] .product-sticky-cta {
-  background: linear-gradient(112deg, #176f8d, #4168bd 55%, #7658d6);
-}
-
 @media (max-width: 390px) {
   .product-sticky-shell {
     --product-sticky-cta-start: 42px;
@@ -1958,11 +2022,10 @@ label {
 .chip {
   padding: 9px 18px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--line);
+  background: var(--bg-card);
   backdrop-filter: blur(12px) saturate(150%);
   -webkit-backdrop-filter: blur(12px) saturate(150%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
   color: var(--text-dim);
   font-size: 0.9rem;
   font-weight: 700;
@@ -1970,11 +2033,10 @@ label {
 }
 
 .chip.on {
-  background: linear-gradient(135deg, #ffffff, #e9e9ec);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.6);
-  color: #0a0a0c;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  border-color: transparent;
+  box-shadow: var(--btn-shadow);
 }
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
@@ -1998,10 +2060,10 @@ label {
   gap: 10px;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid #202027;
+  border: 1px solid var(--chrome-line);
   border-radius: 21px;
-  background: #08080b;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  background: var(--chrome-bg);
+  box-shadow: var(--chrome-shadow);
   transform: translateX(-50%);
 }
 
@@ -2041,10 +2103,10 @@ label {
 .app-header-action {
   height: 30px;
   padding: 0 10px;
-  border: 1px solid #2c2c33;
+  border: 1px solid var(--tint-line);
   border-radius: 15px;
-  background: #17171c;
-  color: rgba(255, 255, 255, 0.82);
+  background: var(--tint-1);
+  color: var(--text-dim);
   font: inherit;
   font-size: 0.7rem;
   font-weight: 800;
@@ -2067,19 +2129,6 @@ label {
   max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-[data-theme="dark"] .app-header {
-  border-color: #202027;
-  background: #08080b;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
-}
-
-[data-theme="dark"] .app-header-action {
-  border-color: #2c2c33;
-  background: #17171c;
-  color: rgba(255, 255, 255, 0.82);
-  box-shadow: none;
 }
 
 @media (max-width: 360px) {
@@ -2366,7 +2415,7 @@ label {
 .reading-category-option:focus-visible {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: var(--tint-1);
   background-color: color-mix(in srgb, var(--accent) 14%, transparent);
   outline: none;
 }
@@ -2374,15 +2423,15 @@ label {
 .reading-category-option:active {
   transform: translateY(0) scale(0.98);
   border-color: var(--accent);
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: var(--tint-2);
   background-color: color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
 .reading-category-option.is-selected {
   border-color: var(--accent);
-  background-color: rgba(255, 255, 255, 0.18);
+  background-color: var(--tint-2);
   background-color: color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 2px var(--tint-ring);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
@@ -2420,15 +2469,15 @@ label {
 }
 
 .reading-birth-control:has(input:not(:placeholder-shown)) {
-  background-color: rgba(255, 255, 255, 0.09);
+  background-color: var(--tint-1);
   background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
 }
 
 .reading-birth-control:focus-within {
   border-color: var(--accent);
-  background-color: rgba(255, 255, 255, 0.09);
+  background-color: var(--tint-1);
   background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 3px var(--tint-ring);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   transform: translateY(-1px);
 }
@@ -2490,9 +2539,9 @@ label {
 .reading-details-grid select:focus {
   border-color: var(--accent);
   outline: none;
-  background-color: rgba(255, 255, 255, 0.18);
+  background-color: var(--tint-2);
   background-color: color-mix(in srgb, var(--accent) 20%, var(--bg-card2));
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 3px var(--tint-ring);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   transform: translateY(-1px);
 }
@@ -2515,10 +2564,10 @@ label {
   width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
   height: 66px;
   padding: 5px;
-  border: 1px solid #202027;
+  border: 1px solid var(--chrome-line);
   border-radius: 24px;
-  background: #08080b;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  background: var(--chrome-bg);
+  box-shadow: var(--chrome-shadow);
   transform: translate3d(-50%, 0, 0);
   animation: reading-action-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -2529,12 +2578,11 @@ label {
   width: 100%;
   height: 100%;
   border-radius: 19px;
-  background-color: #ffffff;
-  background-image: none;
+  background: var(--btn-bg);
   border-color: transparent;
-  color: #0a0a0c;
+  color: var(--btn-ink);
   font-size: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--btn-shadow);
   transition:
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 440ms ease,
@@ -2565,11 +2613,10 @@ label {
 
 .reading-fixed-action .btn:disabled {
   opacity: 1;
-  border-color: #201c26;
-  background-color: #121016;
-  background-image: none;
+  border-color: var(--btn-off-line);
+  background: var(--btn-off-bg);
   box-shadow: none;
-  color: #655e6d;
+  color: var(--btn-off-ink);
   cursor: not-allowed;
   filter: none;
   transform: none;
@@ -3383,7 +3430,7 @@ label {
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--accent);
-  color: #0a0a0c;
+  color: var(--accent-ink);
   font-size: 0.68rem;
   font-style: normal;
   font-weight: 800;
@@ -3529,9 +3576,9 @@ label {
   border-radius: 24px;
   overflow: hidden;
   isolation: isolate;
-  background: #08080b;
-  border: 1px solid #202027;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34);
+  background: var(--chrome-bg);
+  border: 1px solid var(--chrome-line);
+  box-shadow: var(--chrome-shadow);
 }
 
 .tabbar::after {
@@ -3556,7 +3603,7 @@ label {
   width: calc(100% - 4px);
   height: 58px;
   border-radius: 20px;
-  background: #28282e;
+  background: var(--chrome-slot);
   border: 0;
   box-shadow: none;
 }
@@ -3571,7 +3618,7 @@ label {
   align-items: center;
   justify-content: center;
   gap: 1px;
-  color: rgba(255, 255, 255, 0.56);
+  color: var(--chrome-ink);
   -webkit-tap-highlight-color: transparent;
   transition: color 220ms ease, transform 220ms ease;
 }
@@ -3612,23 +3659,7 @@ label {
 }
 
 .tabbar .on {
-  color: #fff;
-}
-
-[data-theme="dark"] .tabbar {
-  background: #08080b;
-}
-
-[data-theme="dark"] .tabbar a {
-  color: rgba(255, 255, 255, 0.54);
-}
-
-[data-theme="dark"] .tabbar .on {
-  color: #fff;
-}
-
-[data-theme="dark"] .tabbar-indicator {
-  background: #28282e;
+  color: var(--chrome-ink-on);
 }
 
 @media (max-width: 479px) {
@@ -3639,7 +3670,7 @@ label {
 
 @media (min-width: 480px) {
   .app-viewport {
-    border-inline: 1px solid rgba(255, 255, 255, 0.06);
+    border-inline: 1px solid var(--tint-line);
   }
 
   [data-theme="light"] .app-viewport {
@@ -3681,12 +3712,12 @@ label {
   color: #fff;
   font-size: 1.75rem;
   font-weight: 900;
-  box-shadow: 0 0 34px rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 34px var(--tint-ring);
 }
 
 .payment-status-orb.rejected {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: #25212b;
+  border-color: var(--tint-line);
+  background: var(--btn-off-bg);
   color: var(--text-dim);
   box-shadow: none;
 }
@@ -4136,7 +4167,7 @@ label {
   width: 100%;
   aspect-ratio: 2 / 1;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--tint-line);
 }
 
 .theme-preview-dark {
@@ -4204,7 +4235,7 @@ label {
 .social-login-x {
   color: #fff;
   background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 1px solid var(--tint-line);
 }
 
 /* 공급사 브랜드 마크 — 각 SVG는 원본 비율 그대로 20px 정사각 안에 들어간다 */
@@ -4249,7 +4280,7 @@ label {
   place-items: center;
   padding: 24px 20px 108px;
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.14), transparent 36%),
+    radial-gradient(circle at 50% 12%, var(--tint-2), transparent 36%),
     var(--bg);
 }
 
@@ -4305,7 +4336,7 @@ label {
   place-items: center;
   padding: 24px 20px;
   background:
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.14), transparent 36%),
+    radial-gradient(circle at 50% 12%, var(--tint-2), transparent 36%),
     var(--bg);
 }
 
@@ -4485,7 +4516,7 @@ label {
   font-size: 0.86rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--chrome-shadow);
   transition: transform 160ms ease;
 }
 
@@ -4880,7 +4911,7 @@ label {
   border-radius: 18px;
   border: 1px solid var(--line);
   background: var(--bg-card);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  box-shadow: var(--chrome-shadow);
 }
 
 /* 광고 랜딩에서는 무료 CTA를 가리지 않고 버튼 바로 위에 놓는다 */
@@ -5246,7 +5277,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-start,
 .rv-paywall .btn {
   background: var(--accent);
-  color: #101014;
+  color: var(--btn-ink);
   box-shadow: none;
 }
 
@@ -5435,7 +5466,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-gate-cta .btn {
   width: 100%;
   background: var(--accent);
-  color: #101014;
+  color: var(--btn-ink);
   box-shadow: none;
 }
 
@@ -5546,7 +5577,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   border: 0;
   border-radius: 14px;
   background: var(--accent);
-  color: #101014;
+  color: var(--btn-ink);
   font-size: 0.85rem;
   font-weight: 800;
   cursor: pointer;
@@ -6188,7 +6219,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-talisman-open {
   width: 100%;
   background: var(--accent);
-  color: #101014;
+  color: var(--btn-ink);
 }
 
 .rv-talisman-hint {
@@ -6760,7 +6791,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   padding: 6px 7px;
   border: 1px dashed rgba(0, 0, 0, 0.25);
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.35);
+  background: var(--tint-1);
   color: inherit;
   font-size: 0.72rem;
   font-weight: 800;
@@ -7158,7 +7189,7 @@ label.transfer-pay-confirm.busy {
 .continue-sheet-cta {
   width: 100%;
   background: var(--accent);
-  color: #101014;
+  color: var(--btn-ink);
   box-shadow: none;
 }
 
@@ -7183,15 +7214,15 @@ label.transfer-pay-confirm.busy {
   margin-top: 12px;
   padding: 7px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: var(--tint-1);
+  border: 1px solid var(--tint-line);
   backdrop-filter: blur(6px);
-  color: #fff;
+  color: var(--text);
   font-size: 0.82rem;
   line-height: 1.3;
 }
 .product-hero-offer s {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-dim);
   font-size: 0.78rem;
 }
 .product-hero-offer strong {
@@ -7200,7 +7231,7 @@ label.transfer-pay-confirm.busy {
   color: var(--accent);
 }
 .product-hero-offer span {
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-dim);
   font-size: 0.74rem;
 }
 
@@ -7240,7 +7271,7 @@ label.transfer-pay-confirm.busy {
 
 .product-hero-question {
   margin: 0 0 8px;
-  color: #b9a6ff;
+  color: var(--text-dim);
   font-size: 1.02rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -7249,7 +7280,7 @@ label.transfer-pay-confirm.busy {
 
 .product-hero-title {
   margin: 0 0 12px;
-  color: #ff7ac8;
+  color: var(--accent);
   font-size: 2rem;
   font-weight: 900;
   line-height: 1.2;
@@ -7259,7 +7290,7 @@ label.transfer-pay-confirm.busy {
 .product-hero-sub {
   margin: 0;
   max-width: 34ch;
-  color: rgba(255, 255, 255, 0.86);
+  color: var(--text);
   font-size: 1rem;
   line-height: 1.6;
   word-break: keep-all;
@@ -7267,7 +7298,7 @@ label.transfer-pay-confirm.busy {
 
 .product-hero-adult {
   margin: 8px 0 0;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-dim);
   font-size: 0.74rem;
 }
 
@@ -7312,7 +7343,7 @@ label.transfer-pay-confirm.busy {
   width: 100%;
   height: auto;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--tint-line);
 }
 .product-lore-seal {
   position: absolute;
@@ -7349,8 +7380,8 @@ label.transfer-pay-confirm.busy {
   position: relative;
   padding: 12px 14px 12px 34px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--tint-1);
+  border: 1px solid var(--tint-line);
   font-size: 0.88rem;
   line-height: 1.5;
 }
@@ -7366,8 +7397,8 @@ label.transfer-pay-confirm.busy {
   margin-top: 14px;
   padding: 14px 16px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--tint-1);
+  border: 1px solid var(--tint-line);
   font-size: 0.9rem;
   font-weight: 800;
   line-height: 1.55;
@@ -7400,13 +7431,13 @@ label.transfer-pay-confirm.busy {
   align-items: start;
   padding: 12px 14px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--tint-1);
+  border: 1px solid var(--tint-line);
 }
 .product-report-rows dt {
   font-size: 0.84rem;
   font-weight: 900;
-  color: var(--product-c2, #f54c8b);
+  color: var(--accent);
 }
 .product-report-rows dd {
   margin: 0;
@@ -8373,7 +8404,7 @@ body:has(.admin-shell) .tabbar-dock {
 .set-hero p { color: var(--text-muted, #bdb3c9); max-width: 34ch; margin: 0; }
 .set-price { display: flex; gap: 10px; align-items: baseline; }
 .set-price s { opacity: 0.55; }
-.set-price b { font-size: 28px; color: #ff6b9d; }
+.set-price b { font-size: 28px; color: var(--accent); }
 
 .set-items { display: grid; gap: 10px; padding: 14px 0; }
 .set-item {
@@ -8381,17 +8412,17 @@ body:has(.admin-shell) .tabbar-dock {
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-left: 3px solid var(--product-c1, #ff6b9d);
+  border-left: 3px solid var(--accent);
 }
 .set-item-index {
   width: 24px; height: 24px; border-radius: 50%;
   display: grid; place-items: center;
   font-size: 12px; font-weight: 700;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--tint-2);
 }
 .set-item-emoji { font-size: 26px; }
 .set-item-copy { display: grid; gap: 2px; }
-.set-item-copy small { color: var(--text-muted, #bdb3c9); }
+.set-item-copy small { color: var(--text-dim); }
 .set-item-copy em { font-style: normal; font-size: 12px; opacity: 0.7; }
 
 .set-how { padding: 18px; display: grid; gap: 10px; }
@@ -8405,7 +8436,7 @@ body:has(.admin-shell) .tabbar-dock {
   margin: 0 0 14px;
   padding: 10px 14px;
   border-radius: 12px;
-  border: 1px dashed rgba(255, 255, 255, 0.22);
+  border: 1px dashed var(--tint-line);
   background: transparent;
   color: inherit;
   font-size: 13px;
