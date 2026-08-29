@@ -71,7 +71,7 @@ export default function BottomNav() {
 
   // 생성 대기 화면과 장별 리딩 뷰어는 몰입을 유지하도록 하단 네비게이션을 숨긴다.
   // (뷰어는 자체 장 넘김 바를 그 자리에 둔다)
-  if (path === "/reading" || path.startsWith("/reading/") || path.startsWith("/product/") || path.startsWith("/shrine/") || path.startsWith("/saju/")) return null;
+  if (path === "/reading" || path.startsWith("/reading/") || path.startsWith("/product/") || path.startsWith("/saju/")) return null;
 
   return (
     <>

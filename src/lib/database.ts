@@ -11,7 +11,6 @@ export interface DatabaseUser {
   birthdate: string | null;
   marketingConsent: boolean;
   referralCode: string;
-  chatCredits: number;
 }
 
 export interface DatabaseSignupResult extends DatabaseUser {
@@ -34,15 +33,22 @@ export interface DatabaseUserProfile {
   showMatureLabels: boolean;
 }
 
-export type ReferralRewardType = "reading_unlock" | "chat_credits";
+/**
+ * 쿠폰 보상의 DB 값. 캐릭터챗 시절 이름이 그대로 남았다 — lr_referrals 의
+ * reward_type 체크 제약과, 그 행이 생길 때 5,000원 쿠폰을 발행하는 트리거
+ * (lr_issue_referral_coupon)가 이 문자열에 걸려 있다. 이름을 바꾸려면
+ * 마이그레이션이 먼저다. 실제 보상은 쿠폰이다.
+ */
+export const REFERRAL_COUPON_REWARD = "chat_credits";
+
+export type ReferralRewardType = "reading_unlock" | typeof REFERRAL_COUPON_REWARD;
 
 export interface ReferralStatus {
   referralCode: string;
-  chatCredits: number;
   readingUnlocked: boolean;
 }
 
-export type OrderKind = "reading" | "membership" | "chat_credits";
+export type OrderKind = "reading" | "membership";
 export type OrderMethod = "transfer" | "toss-pg" | "portone-pg" | "mock";
 export type OrderStatus = "pending" | "paid" | "failed" | "cancelled" | "refunded";
 
@@ -75,7 +81,7 @@ export interface TransferOrderRecord {
 }
 
 const SOCIAL_USER_COLUMNS =
-  "id,email,birthdate,marketing_consent,referral_code,chat_credits,auth_user_id,auth_provider";
+  "id,email,birthdate,marketing_consent,referral_code,auth_user_id,auth_provider";
 
 function mapSocialUser(data: Record<string, unknown>): DatabaseSocialUser {
   const provider = data.auth_provider;
@@ -85,7 +91,6 @@ function mapSocialUser(data: Record<string, unknown>): DatabaseSocialUser {
     birthdate: typeof data.birthdate === "string" ? data.birthdate : null,
     marketingConsent: Boolean(data.marketing_consent),
     referralCode: String(data.referral_code),
-    chatCredits: Number(data.chat_credits ?? 0),
     authUserId: typeof data.auth_user_id === "string" ? data.auth_user_id : null,
     authProvider:
       provider === "google" || provider === "kakao" || provider === "x" ? provider : null,
@@ -216,7 +221,7 @@ export async function upsertDatabaseUser(input: {
   const { data, error } = await db
     .from("lr_users")
     .upsert(values, { onConflict: "email", defaultToNull: false })
-    .select("id,email,birthdate,marketing_consent,referral_code,chat_credits")
+    .select("id,email,birthdate,marketing_consent,referral_code")
     .single();
 
   if (error) throw databaseError("사용자 저장", error);
@@ -226,7 +231,6 @@ export async function upsertDatabaseUser(input: {
     birthdate: data.birthdate,
     marketingConsent: data.marketing_consent,
     referralCode: data.referral_code,
-    chatCredits: Number(data.chat_credits ?? 0),
   };
 }
 
@@ -261,7 +265,6 @@ export async function signupDatabaseUser(input: {
     birthdate: typeof result.birthdate === "string" ? result.birthdate : null,
     marketingConsent: Boolean(result.marketingConsent),
     referralCode: String(result.referralCode),
-    chatCredits: Number(result.chatCredits ?? 0),
     isNew: Boolean(result.isNew),
     referralClaimed: Boolean(result.referralClaimed),
   };
@@ -299,8 +302,7 @@ export interface SajuProfile {
 /**
  * 저장해 둔 사주 기본 정보를 읽는다.
  *
- * 지금까지 이 값은 쓰기만 하고 읽는 곳이 없었다. 그래서 신당의 도령은 "정확한
- * 건 네 사주를 봐야 안다" 고 말하면서도 정작 볼 방법이 없었다. 여기가 그 눈이다.
+ * 한번 받아 둔 생년월일을 다음 리딩에서 다시 묻지 않기 위한 눈이다.
  */
 export async function getUserSajuProfile(userId: number): Promise<SajuProfile | null> {
   const db = getSupabaseAdmin();
@@ -331,7 +333,7 @@ export async function getReferralStatus(
 
   const userQuery = db
     .from("lr_users")
-    .select("referral_code,chat_credits")
+    .select("referral_code")
     .eq("id", userId)
     .maybeSingle();
   const readingQuery = readingId
@@ -350,196 +352,10 @@ export async function getReferralStatus(
   if (!user) return null;
   return {
     referralCode: user.referral_code,
-    chatCredits: Number(user.chat_credits ?? 0),
     readingUnlocked: Boolean(reading?.unlocked),
   };
 }
 
-async function changeChatCredits(
-  userId: number,
-  delta: number
-): Promise<number | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-
-  // Compare-and-swap keeps simultaneous reward/usage requests from overwriting each other.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const { data: user, error: readError } = await db
-      .from("lr_users")
-      .select("chat_credits")
-      .eq("id", userId)
-      .maybeSingle();
-    if (readError) throw databaseError("질문권 조회", readError);
-    if (!user) return null;
-
-    const current = Number(user.chat_credits ?? 0);
-    const next = current + delta;
-    if (next < 0) return null;
-    const { data: updated, error: updateError } = await db
-      .from("lr_users")
-      .update({ chat_credits: next, updated_at: new Date().toISOString() })
-      .eq("id", userId)
-      .eq("chat_credits", current)
-      .select("chat_credits")
-      .maybeSingle();
-    if (updateError) throw databaseError("질문권 변경", updateError);
-    if (updated) return Number(updated.chat_credits);
-  }
-  throw new Error("질문권 변경이 겹쳤어요. 잠시 후 다시 시도해주세요.");
-}
-
-// chat_free_turns_used 마이그레이션이 아직 적용되지 않은 DB를 만났을 때의 신호.
-// 대화를 막아버리는 대신 무료로 통과시키고 서버 로그에 경고를 남긴다.
-export const FREE_TURNS_UNTRACKED = -1;
-
-function isMissingColumn(error: { code?: string; message?: string } | null): boolean {
-  if (!error) return false;
-  return (
-    error.code === "42703" ||
-    error.code === "PGRST204" ||
-    (error.message ?? "").includes("chat_free_turns_used")
-  );
-}
-
-// 무료 대화 소진량은 서버가 센다. 성공하면 남은 무료 횟수, 이미 다 썼으면 null.
-export async function useFreeChatTurn(
-  userId: number,
-  freeTurns: number
-): Promise<number | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const { data: user, error: readError } = await db
-      .from("lr_users")
-      .select("chat_free_turns_used")
-      .eq("id", userId)
-      .maybeSingle();
-    if (isMissingColumn(readError)) {
-      console.warn("[shrine-chat] chat_free_turns_used 컬럼이 없어 무료 대화를 세지 못했습니다. 마이그레이션을 적용하세요.");
-      return FREE_TURNS_UNTRACKED;
-    }
-    if (readError) throw databaseError("무료 대화 조회", readError);
-    if (!user) return null;
-
-    const used = Number(user.chat_free_turns_used ?? 0);
-    if (used >= freeTurns) return null;
-
-    const { data: updated, error: updateError } = await db
-      .from("lr_users")
-      .update({ chat_free_turns_used: used + 1, updated_at: new Date().toISOString() })
-      .eq("id", userId)
-      .eq("chat_free_turns_used", used)
-      .select("chat_free_turns_used")
-      .maybeSingle();
-    if (isMissingColumn(updateError)) {
-      console.warn("[shrine-chat] chat_free_turns_used 컬럼이 없어 무료 대화를 세지 못했습니다. 마이그레이션을 적용하세요.");
-      return FREE_TURNS_UNTRACKED;
-    }
-    if (updateError) throw databaseError("무료 대화 차감", updateError);
-    if (updated) return Math.max(0, freeTurns - Number(updated.chat_free_turns_used));
-  }
-  throw new Error("대화 요청이 겹쳤어요. 잠시 후 다시 시도해주세요.");
-}
-
-// AI 호출이 실패했을 때 방금 깎은 무료 턴을 되돌린다.
-export async function restoreFreeChatTurn(userId: number): Promise<void> {
-  const db = getSupabaseAdmin();
-  if (!db) return;
-  const { data, error } = await db
-    .from("lr_users")
-    .select("chat_free_turns_used")
-    .eq("id", userId)
-    .maybeSingle();
-  if (isMissingColumn(error)) return;
-  if (error) throw databaseError("무료 대화 복구 조회", error);
-  const used = Number(data?.chat_free_turns_used ?? 0);
-  if (used <= 0) return;
-  const { error: updateError } = await db
-    .from("lr_users")
-    .update({ chat_free_turns_used: used - 1, updated_at: new Date().toISOString() })
-    .eq("id", userId)
-    .eq("chat_free_turns_used", used);
-  if (updateError) throw databaseError("무료 대화 복구", updateError);
-}
-
-export async function getChatUsage(
-  userId: number
-): Promise<{ freeTurnsUsed: number; chatCredits: number } | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-  const { data, error } = await db
-    .from("lr_users")
-    .select("chat_free_turns_used, chat_credits")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw databaseError("대화 사용량 조회", error);
-  if (!data) return null;
-  return {
-    freeTurnsUsed: Number(data.chat_free_turns_used ?? 0),
-    chatCredits: Number(data.chat_credits ?? 0),
-  };
-}
-
-export async function useChatCredit(userId: number): Promise<number | null> {
-  return changeChatCredits(userId, -1);
-}
-
-export async function restoreChatCredit(userId: number): Promise<number | null> {
-  return changeChatCredits(userId, 1);
-}
-
-// ── 신당 대화 이력 ─────────────────────────────────────────────
-// 서버가 정본이다. 답이 만들어지는 순간 문답을 남겨서, 클라이언트가 답을 못
-// 받아도(응답 중 새로고침·이탈) 질문권 쓴 대화가 사라지지 않게 한다.
-
-export interface ShrineHistoryMessage {
-  role: "user" | "assistant";
-  content: string;
-}
-
-export async function appendShrineMessages(
-  userId: number,
-  characterId: string,
-  messages: ShrineHistoryMessage[]
-): Promise<void> {
-  const db = getSupabaseAdmin();
-  if (!db || messages.length === 0) return;
-  const { error } = await db.from("lr_shrine_messages").insert(
-    messages.map((message) => ({
-      user_id: userId,
-      character_id: characterId,
-      role: message.role,
-      content: message.content,
-    }))
-  );
-  if (error) throw databaseError("신당 대화 저장", error);
-}
-
-export async function listShrineMessages(
-  userId: number,
-  characterId: string,
-  limit = 200
-): Promise<ShrineHistoryMessage[]> {
-  const db = getSupabaseAdmin();
-  if (!db) return [];
-  // 최신 limit 개를 뽑아 시간순으로 돌려준다. 오름차순으로 자르면 대화가
-  // 길어졌을 때 잘려 나가는 쪽이 최근 대화가 된다.
-  const { data, error } = await db
-    .from("lr_shrine_messages")
-    .select("role,content,created_at,id")
-    .eq("user_id", userId)
-    .eq("character_id", characterId)
-    .order("id", { ascending: false })
-    .limit(limit);
-  if (error) throw databaseError("신당 대화 조회", error);
-  return ((data ?? []) as { role: string; content: string }[])
-    .reverse()
-    .map((row) => ({
-      role: row.role === "assistant" ? ("assistant" as const) : ("user" as const),
-      content: String(row.content),
-    }));
-}
 export async function claimReferralReward(input: {
   referredUserId: number;
   referralCode?: string;
@@ -580,7 +396,7 @@ export async function claimReferralReward(input: {
       referred_user_id: input.referredUserId,
       reward_type: input.rewardType,
       reward_reading_id: readingId,
-      reward_amount: input.rewardType === "chat_credits" ? 10 : 0,
+      reward_amount: 0,
     })
     .select("id")
     .maybeSingle();
@@ -603,9 +419,9 @@ export async function claimReferralReward(input: {
       .eq("id", readingId)
       .eq("user_id", referrerId);
     if (unlockError) throw databaseError("추천 리딩 해금", unlockError);
-  } else {
-    await changeChatCredits(referrerId, 10);
   }
+  // 쿠폰 보상은 여기서 주지 않는다 — lr_referrals 행이 생기면 DB 트리거가
+  // 5,000원 쿠폰을 발행한다.
 
   return { granted: true, rewardType: input.rewardType };
 }
@@ -690,10 +506,7 @@ function mapTransferOrder(
     id: Number(row.id),
     userId: Number(row.user_id),
     readingId: typeof row.reading_id === "string" ? row.reading_id : null,
-    kind:
-      row.kind === "chat_credits" || row.kind === "membership"
-        ? row.kind
-        : "reading",
+    kind: row.kind === "membership" ? row.kind : "reading",
     email,
     category,
     status:
@@ -768,84 +581,6 @@ export async function createPendingTransferOrder(input: {
   return data ? { ...mapTransferOrder(data as Record<string, unknown>), created: true } : null;
 }
 
-async function findPendingChatTransferOrder(userId: number) {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-  const { data, error } = await db
-    .from("lr_orders")
-    .select(TRANSFER_ORDER_COLUMNS)
-    .eq("user_id", userId)
-    .eq("kind", "chat_credits")
-    .eq("method", "transfer")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw databaseError("대기 중인 캐릭터챗 계좌이체 주문 조회", error);
-  return data ? mapTransferOrder(data as Record<string, unknown>) : null;
-}
-
-export async function createPendingChatTransferOrder(input: {
-  userId: number;
-  productId: string;
-  credits: number;
-  amount: number;
-  depositorCode: string;
-}): Promise<TransferOrderRecord | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-
-  const existing = await findPendingChatTransferOrder(input.userId);
-  if (existing) return { ...existing, created: false };
-
-  const now = new Date().toISOString();
-  const { data, error } = await db
-    .from("lr_orders")
-    .insert({
-      user_id: input.userId,
-      reading_id: null,
-      kind: "chat_credits",
-      method: "transfer",
-      status: "pending",
-      amount: input.amount,
-      depositor_code: input.depositorCode,
-      metadata: {
-        productId: input.productId,
-        credits: input.credits,
-        requested_at: now,
-      },
-      updated_at: now,
-    })
-    .select(TRANSFER_ORDER_COLUMNS)
-    .maybeSingle();
-
-  if (error?.code === "23505") {
-    const raced = await findPendingChatTransferOrder(input.userId);
-    return raced ? { ...raced, created: false } : null;
-  }
-  if (error) throw databaseError("캐릭터챗 계좌이체 승인 요청 저장", error);
-  return data ? { ...mapTransferOrder(data as Record<string, unknown>), created: true } : null;
-}
-
-export async function completeChatCreditOrder(
-  providerOrderId: string,
-  userId: number
-): Promise<{ orderId: number; creditsRemaining: number } | null> {
-  const db = getSupabaseAdmin();
-  if (!db) return null;
-  const { data, error } = await db.rpc("lr_complete_chat_credit_order", {
-    p_provider_order_id: providerOrderId,
-    p_user_id: userId,
-  });
-  if (error) throw databaseError("캐릭터챗 결제 완료", error);
-  const row = Array.isArray(data) ? data[0] : null;
-  if (!row) return null;
-  return {
-    orderId: Number(row.order_id),
-    creditsRemaining: Number(row.credits_remaining),
-  };
-}
-
 export async function getTransferOrderForUser(
   orderId: number,
   userId: number
@@ -912,9 +647,7 @@ export async function listPendingTransferOrders(): Promise<TransferOrderRecord[]
     mapTransferOrder(
       row,
       usersById.get(Number(row.user_id)) ?? null,
-      row.kind === "chat_credits"
-        ? `캐릭터챗 대화권 ${Number((row.metadata as Record<string, unknown> | null)?.credits ?? 0)}회`
-        : categoriesById.get(String(row.reading_id)) ?? null
+      categoriesById.get(String(row.reading_id)) ?? null
     )
   );
 }
@@ -1012,6 +745,7 @@ export async function getOrderConversion(ref: number | string): Promise<OrderCon
 
 // ── 문의함 ───────────────────────────────────────────────────────────────────
 
+// "chat" 은 캐릭터챗 시절에 접수된 옛 문의에만 남아 있다. 새 문의는 고를 수 없다.
 export type InquiryCategory = "payment" | "reading" | "chat" | "account" | "bug" | "etc";
 export type InquiryStatus = "open" | "done";
 

@@ -113,9 +113,6 @@ function scannableText(report: StructuredReport): { where: string; text: string 
   report.actionQuestions.forEach((item, index) => {
     out.push({ where: `action_questions[${index}]`, text: `${item.question} ${item.whyItMatters}` });
   });
-  if (report.characterNote) {
-    out.push({ where: "character_note.message", text: report.characterNote.message });
-  }
   return out.filter((item) => item.text);
 }
 

@@ -163,8 +163,6 @@ async function generate(caseId: string, axis: boolean): Promise<Variant> {
         focus: partner ? "relationship" : "self",
         currentScene: QUESTION_BY_PRODUCT[PRODUCT_ID] ?? c.question,
         occupation: c.occupation,
-        characterId: null,
-        characterName: null,
         now: NOW,
       },
       (system, user, budget, callOptions) =>

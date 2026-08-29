@@ -57,8 +57,6 @@ for (const id of CATEGORIES) {
     focus: other ? "relationship" : "self",
     currentScene: "",
     occupation: undefined,
-    characterId: null,
-    characterName: null,
     now: new Date(2026, 7, 22),
   } as Parameters<typeof buildReadingInput>[0]);
 

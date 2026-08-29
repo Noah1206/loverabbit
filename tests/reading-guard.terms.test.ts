@@ -30,7 +30,6 @@ function report(text: string, title = "1장 01. 검사", extra: string[] = []): 
     summaryCards: [],
     sections: [text, ...extra].map(section),
     actionQuestions: [],
-    characterNote: null,
   } as unknown as StructuredReport;
 }
 

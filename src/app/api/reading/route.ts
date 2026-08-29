@@ -388,8 +388,6 @@ export async function POST(req: NextRequest) {
     focus: partnerFacts ? "relationship" : "self",
     currentScene: body.question ?? "",
     occupation: occupation || undefined,
-    characterId: null,
-    characterName: null,
     now,
   };
 

@@ -7,6 +7,7 @@ import { listArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive
 import BrandMark from "@/components/BrandMark";
 import SignupModal from "@/components/SignupModal";
 import { getUser, saveUser, type User } from "@/lib/user";
+import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import {
   COUPON_LABEL,
   couponHeadline,
@@ -75,9 +76,9 @@ export default function MyPage() {
       // 초대 링크에 쓸 추천 코드. 로그인 직후에는 아직 기기에 없을 수 있다.
       post("/api/referral/status")
         .then((res) => (res.ok ? res.json() : null))
-        .then((status: { referralCode?: string; chatCredits?: number } | null) => {
+        .then((status: { referralCode?: string } | null) => {
           if (!status) return;
-          const next = { ...account, referralCode: status.referralCode, chatCredits: status.chatCredits };
+          const next = { ...account, referralCode: status.referralCode };
           setUser(next);
           saveUser(next);
         })
@@ -111,12 +112,12 @@ export default function MyPage() {
 
   const share = async () => {
     if (!user?.referralCode) return;
-    const url = `${window.location.origin}/reading?ref=${encodeURIComponent(user.referralCode)}&reward=chat_credits`;
+    const url = `${window.location.origin}/reading?ref=${encodeURIComponent(user.referralCode)}&reward=${REFERRAL_REWARD_PARAM}`;
     const text = "러브레빗에서 내 연애 사주 무료로 미리 봤어. 너도 해봐 🐰";
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setShareNotice("공유했어요. 친구가 가입하면 5,000원 쿠폰과 질문권 10장이 들어와요.");
+        setShareNotice("공유했어요. 친구가 가입하면 5,000원 쿠폰이 들어와요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareNotice("초대 링크를 복사했어요.");

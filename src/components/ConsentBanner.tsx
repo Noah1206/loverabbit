@@ -43,7 +43,7 @@ export default function ConsentBanner() {
       aria-label="쿠키 사용 동의"
     >
       <p className="consent-banner-text">
-        광고 성과 측정을 위해 마케팅 쿠키를 사용해도 될까요? 거부해도 리딩과 신당 대화는 그대로 이용할 수 있어요.{" "}
+        광고 성과 측정을 위해 마케팅 쿠키를 사용해도 될까요? 거부해도 리딩은 그대로 이용할 수 있어요.{" "}
         <Link href="/privacy">개인정보처리방침</Link>
       </p>
       <div className="consent-banner-actions">

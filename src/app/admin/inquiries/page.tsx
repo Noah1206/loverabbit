@@ -22,7 +22,7 @@ const STORAGE_KEY = "loverabbit_admin_approval_key";
 const CATEGORY_LABEL: Record<Inquiry["category"], string> = {
   payment: "결제·입금",
   reading: "사주 리딩",
-  chat: "캐릭터 대화",
+  chat: "캐릭터 대화 (종료된 상품)",
   account: "계정·로그인",
   bug: "오류 신고",
   etc: "그 외",

@@ -34,7 +34,6 @@ function reportWith(summary: string): StructuredReport {
       } as StructuredReport["sections"][number],
     ],
     actionQuestions: [],
-    characterNote: null,
     nextStep: null,
   };
 }

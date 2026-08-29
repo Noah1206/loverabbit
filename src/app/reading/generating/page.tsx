@@ -74,7 +74,6 @@ export default function ReadingGeneratingPage() {
           category: job.category,
           offerId: data.offerId ?? job.offerId,
           label: PRODUCT_MAP[job.category]?.shortLabel ?? job.category,
-          characterId: "",
           teaser: data.teaser,
           full: null,
           chart: data.chart,

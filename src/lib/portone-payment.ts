@@ -3,11 +3,9 @@ import "server-only";
 import { PaymentClient } from "@portone/server-sdk";
 
 import {
-  completeChatCreditOrder,
   createOrder,
   getOrderByProviderOrderId,
   settleCouponsForOrder,
-  getReferralStatus,
   type DatabaseOrder,
   type OrderKind,
 } from "@/lib/database";
@@ -43,17 +41,16 @@ export function hasAnyPortOneServerSetting(): boolean {
 
 interface FinalizeExpectation {
   userId?: number;
-  kind?: Extract<OrderKind, "reading" | "chat_credits">;
+  kind?: Extract<OrderKind, "reading">;
   readingId?: string;
 }
 
 export interface FinalizedPortOneOrder {
   paymentId: string;
   userId: number;
-  kind: Extract<OrderKind, "reading" | "chat_credits">;
+  kind: Extract<OrderKind, "reading">;
   readingId: string | null;
   amount: number;
-  creditsRemaining?: number;
   alreadyPaid: boolean;
 }
 
@@ -61,7 +58,7 @@ function assertExpectedOrder(order: DatabaseOrder, expected: FinalizeExpectation
   if (order.method !== "portone-pg") {
     throw new PortOnePaymentError("포트원 결제 주문이 아니에요.", 400, "ORDER_METHOD_MISMATCH");
   }
-  if (order.kind !== "reading" && order.kind !== "chat_credits") {
+  if (order.kind !== "reading") {
     throw new PortOnePaymentError("지원하지 않는 결제 상품이에요.", 400, "ORDER_KIND_MISMATCH");
   }
   if (expected.userId !== undefined && order.userId !== expected.userId) {
@@ -185,46 +182,5 @@ export async function finalizePortOnePayment(
     };
   }
 
-  if (alreadyPaid) {
-    const status = await getReferralStatus(order.userId);
-    return {
-      paymentId,
-      userId: order.userId,
-      kind: "chat_credits",
-      readingId: null,
-      amount: order.amount,
-      creditsRemaining: status?.chatCredits ?? 0,
-      alreadyPaid: true,
-    };
-  }
-
-  try {
-    const completed = await completeChatCreditOrder(paymentId, order.userId);
-    if (!completed) throw new Error("완료할 대화권 주문이 없습니다.");
-    return {
-      paymentId,
-      userId: order.userId,
-      kind: "chat_credits",
-      readingId: null,
-      amount: order.amount,
-      creditsRemaining: completed.creditsRemaining,
-      alreadyPaid: false,
-    };
-  } catch (error) {
-    // 웹훅과 완료 화면이 동시에 처리하면 한쪽 RPC는 이미 완료된 주문을 보게 된다.
-    const latest = await getOrderByProviderOrderId(paymentId);
-    if (latest?.status === "paid") {
-      const status = await getReferralStatus(order.userId);
-      return {
-        paymentId,
-        userId: order.userId,
-        kind: "chat_credits",
-        readingId: null,
-        amount: order.amount,
-        creditsRemaining: status?.chatCredits ?? 0,
-        alreadyPaid: true,
-      };
-    }
-    throw error;
-  }
+  throw new PortOnePaymentError("지원하지 않는 결제 상품이에요.", 400, "ORDER_KIND_MISMATCH");
 }

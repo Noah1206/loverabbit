@@ -70,12 +70,11 @@ export interface StructuredReport {
   summaryCards: SummaryCardOut[];
   sections: ReportSectionOut[];
   actionQuestions: ActionQuestionOut[];
-  characterNote: { characterId: string; name: string; message: string } | null;
   nextStep: { label: string; description: string; recommendedFocus: string } | null;
 }
 
 /** 무료 초안과 결제 후 이어쓰기가 같은 생성 계약을 썼는지 확인하는 버전. */
-export const READING_PROMPT_VERSION = "reading-v5-preview-loop";
+export const READING_PROMPT_VERSION = "reading-v6-no-character-note";
 
 export const READING_SYSTEM_PROMPT = `# ROLE
 너는 러브레빗의 '사주 리포트 에디터'다.
@@ -85,7 +84,6 @@ export const READING_SYSTEM_PROMPT = `# ROLE
 # BRAND VOICE
 - 정갈하고, 은밀하고, 다정하다. **반말로 쓴다** — 오래 알고 지낸 친한 친구에게
   털어놓듯이. 낮잡는 반말이 아니라, 예의를 차릴 사이가 아니라서 쓰는 반말이다.
-  (신당 캐릭터 채팅은 여기 해당하지 않는다. 리딩 본문만이다.)
 - 명리를 읽어주는 사람의 확신을 갖고 쓴다. 애매한 유보로 도망치지 않는다.
   판단은 분명하게 내리고, 그 판단이 명식의 어디에서 나왔는지 함께 말한다.
 - **구조 용어는 본문에 쓰지 않는다.** 아래 것들은 독자가 알 필요가 없고, 전부 쉬운 말이 있다.
@@ -328,14 +326,13 @@ delivery.preview 가 오면 머리(headline·summary_cards·open_loop)와 free_i
 ## 지시가 "머리"일 때
 {"report_meta":{"headline":"string","confidence_note":"string","open_loop":"string"},
 "summary_cards":[{"label":"나의 중심","value":"string","detail":"string","facts_used":["string"]},{"label":"관계의 결","value":"string","detail":"string","facts_used":["string"]},{"label":"지금의 흐름","value":"string","detail":"string","facts_used":["string"]}],
-"action_questions":[{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"}],
-"character_note":{"character_id":"string","name":"string","message":"string"}}
+"action_questions":[{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"},{"question":"string","why_it_matters":"string"}]}
 
 - summary_cards는 정확히 3개, label은 위의 것을 그대로 쓴다.
 - action_questions는 정확히 3개. 리포트를 다 읽은 사람이 오늘 해볼 수 있는 것으로 쓴다.
 - headline 42~65자. 계산값에 근거한 판단을 담는다. delivery.preview 가 오면 PREVIEW CONTRACT 의 후킹이다.
 - open_loop 는 delivery.preview 가 올 때만 60~120자로 쓴다. 안 오면 빈 문자열.
-- character_note.message는 2문장 이하. sections는 만들지 않는다.
+- sections는 만들지 않는다.
 
 ## 지시가 "본문"일 때
 {"sections":[{"n":1,"verdict":"string","summary":"string","paragraphs":["string","string","string"],"facts_used":["string"],"rule_ids":["string"],"watch_out":"string","emotion_tags":["설렘"],"extra":{...}}]}
@@ -494,8 +491,6 @@ export interface ReadingInput {
    * 실제로 일어나는 장면을 쓸 수 있다.
    */
   occupation?: string;
-  characterId: string | null;
-  characterName: string | null;
   now: Date;
 }
 
@@ -662,7 +657,6 @@ export function buildReadingInput(input: ReadingInput): string {
     },
     delivery: {
       report_type: input.productLabel,
-      character_name: input.characterName,
       // 축이 없는 상품은 이 칸 자체가 안 나간다. 빈 칸을 보내면 모델이 그 빈 칸에
       // 맞춰 무언가를 지어낸다 — 없는 것은 보여 주지 않는 편이 낫다.
       ...(axis ? { product_axis: axis } : {}),
@@ -732,7 +726,6 @@ export function parseStructuredReport(text: string): StructuredReport | null {
     const sections = Array.isArray(raw.sections) ? (raw.sections as RawSection[]) : [];
     if (sections.length === 0) continue;
 
-    const character = raw.character_note as Record<string, unknown> | undefined;
     const next = raw.next_step as Record<string, unknown> | undefined;
 
     return {
@@ -785,14 +778,6 @@ export function parseStructuredReport(text: string): StructuredReport | null {
           whyItMatters: typeof item.why_it_matters === "string" ? item.why_it_matters : "",
         }))
         .slice(0, 3),
-      characterNote:
-        character && typeof character.message === "string"
-          ? {
-              characterId: typeof character.character_id === "string" ? character.character_id : "",
-              name: typeof character.name === "string" ? character.name : "",
-              message: character.message,
-            }
-          : null,
       nextStep:
         next && typeof next.label === "string"
           ? {
@@ -850,9 +835,6 @@ export function reportToText(report: StructuredReport): { teaser: string; full: 
         .map((q, i) => `${i + 1}. ${plain(q.question)} — ${plain(q.whyItMatters)}`)
         .join("\n")}`
     : "";
-  const note = report.characterNote
-    ? `\n\n■ ${report.characterNote.name}의 한마디\n${plain(report.characterNote.message)}`
-    : "";
 
-  return { teaser, full: `${body}${questions}${note}`.trim() };
+  return { teaser, full: `${body}${questions}`.trim() };
 }

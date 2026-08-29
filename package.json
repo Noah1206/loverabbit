@@ -32,8 +32,7 @@
     "reviews:import": "tsx --env-file=.env.local --env-file=.env scripts/import-beta-reviews.mts",
     "telegram:test": "tsx --env-file=.env.local --env-file=.env scripts/telegram-test.mts",
     "telegram:webhook": "tsx --env-file=.env.local --env-file=.env scripts/telegram-webhook.mts",
-    "prebuild": "node marketing/video/build-character-motion.mjs",
-    "motion:build": "node marketing/video/build-character-motion.mjs",
+    "motion:build": "node scripts/build-card-motion.mjs",
     "free-preview:once": "tsx --env-file=.env.local --env-file=.env scripts/free-preview-once.mts",
     "model:routing": "tsx --env-file=.env.local --env-file=.env scripts/model-routing.mts"
   },

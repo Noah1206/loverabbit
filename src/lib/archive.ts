@@ -12,7 +12,6 @@ export interface ArchiveEntry {
   category: string;
   offerId?: string;
   label: string; // 상품명 (저장 시점의 표기)
-  characterId: string;
   teaser: string;
   full: string | null; // 해금 후 채워짐
   pendingOrderId?: number; // 계좌이체 승인 대기 중인 주문

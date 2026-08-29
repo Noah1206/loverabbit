@@ -13,7 +13,9 @@ import { resolveUserToken } from "@/lib/tokens";
 // 앱 하단 원버튼에서 들어오는 문의 접수.
 // 로그인 없이도 보낼 수 있게 하되, 답장할 곳이 있어야 하므로 이메일은 받는다.
 
-const CATEGORIES: InquiryCategory[] = ["payment", "reading", "chat", "account", "bug", "etc"];
+// "chat" 은 받지 않는다 - 캐릭터 대화 상품이 없어졌다. 옛 문의 행에만 남아 있는 값이라
+// 라벨(CATEGORY_LABEL)에는 그대로 두고, 새 접수만 막는다.
+const CATEGORIES: InquiryCategory[] = ["payment", "reading", "account", "bug", "etc"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const MIN_LEN = 5;
 const MAX_LEN = 2000;
@@ -23,7 +25,7 @@ const MAX_PER_WINDOW = 3;
 const CATEGORY_LABEL: Record<InquiryCategory, string> = {
   payment: "결제",
   reading: "리딩",
-  chat: "신당 대화",
+  chat: "캐릭터 대화 (종료된 상품)",
   account: "계정",
   bug: "오류",
   etc: "기타",

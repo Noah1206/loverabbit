@@ -1,6 +1,15 @@
 "use client";
 
-export type ReferralRewardChoice = "chat_credits";
+/**
+ * 초대 링크의 보상 값.
+ *
+ * 캐릭터챗 시절 이름이 그대로 남았다 — lr_referrals.reward_type 체크 제약과,
+ * 그 행이 생길 때 5,000원 쿠폰을 발행하는 트리거가 이 문자열에 걸려 있다.
+ * 이름을 바꾸려면 마이그레이션이 먼저다. 사용자가 받는 것은 쿠폰이다.
+ */
+export const REFERRAL_REWARD_PARAM = "chat_credits";
+
+export type ReferralRewardChoice = typeof REFERRAL_REWARD_PARAM;
 
 export interface PendingReferral {
   referralCode: string;
@@ -18,7 +27,7 @@ export function captureReferralFromLocation(): PendingReferral | null {
     const referralCode = params.get("ref")?.trim().toUpperCase() ?? "";
     const referralReward = params.get("reward") as ReferralRewardChoice | null;
     if (!/^[A-Z0-9]{6,16}$/.test(referralCode)) return getPendingReferral();
-    if (referralReward !== "chat_credits") {
+    if (referralReward !== REFERRAL_REWARD_PARAM) {
       return getPendingReferral();
     }
     const pending: PendingReferral = {
@@ -39,7 +48,7 @@ export function getPendingReferral(): PendingReferral | null {
     const pending = JSON.parse(localStorage.getItem(KEY) ?? "null") as PendingReferral | null;
     if (
       !pending?.referralCode ||
-      pending.referralReward !== "chat_credits" ||
+      pending.referralReward !== REFERRAL_REWARD_PARAM ||
       Date.now() - pending.capturedAt > MAX_AGE
     ) {
       localStorage.removeItem(KEY);

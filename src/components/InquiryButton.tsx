@@ -13,7 +13,6 @@ import { getUser, type User } from "@/lib/user";
 const CATEGORIES = [
   { id: "payment", label: "결제·입금" },
   { id: "reading", label: "사주 리딩" },
-  { id: "chat", label: "캐릭터 대화" },
   { id: "account", label: "계정·로그인" },
   { id: "bug", label: "오류 신고" },
   { id: "etc", label: "그 외" },

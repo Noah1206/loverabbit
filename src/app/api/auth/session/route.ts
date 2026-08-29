@@ -6,6 +6,7 @@ import {
   getDatabaseUserByEmail,
   isDatabaseConfigured,
   linkDatabaseUserAuth,
+  REFERRAL_COUPON_REWARD,
   signupDatabaseUser,
   type DatabaseAuthProvider,
   type DatabaseSocialUser,
@@ -21,7 +22,7 @@ function normalizeProvider(value: unknown): DatabaseAuthProvider | null {
 }
 
 function normalizeReward(value: unknown): ReferralRewardType | undefined {
-  return value === "chat_credits" ? value : undefined;
+  return value === REFERRAL_COUPON_REWARD ? value : undefined;
 }
 
 function sessionResponse(
@@ -40,7 +41,6 @@ function sessionResponse(
     token,
     email: user.email,
     referralCode: user.referralCode,
-    chatCredits: user.chatCredits,
     referralClaimed,
     authProvider: provider,
   });

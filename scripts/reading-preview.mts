@@ -37,8 +37,19 @@ const argOf = (name: string) => {
 const has = (name: string) => args.includes(`--${name}`);
 
 const PRODUCT_ID = argOf("product") ?? "jaehoe";
-const SUBJECT = { year: 1993, month: 1, day: 24, hour: 14, gender: "F" as const };
-const PARTNER = { year: 1991, month: 7, day: 8, hour: 20, gender: "M" as const };
+// --me 1999-01-03:11:F  --partner 1996-08-12:?:M  (시간은 0~23, 모르면 ?)
+function parsePerson(raw: string | null, fallback: { year: number; month: number; day: number; hour: number | null; gender: "F" | "M" }) {
+  if (!raw) return fallback;
+  const [date, hour, gender] = raw.split(":");
+  const [y, m, d] = date.split("-").map(Number);
+  if (!y || !m || !d || (gender !== "F" && gender !== "M")) {
+    console.error(`사람 형식이 틀렸어요: ${raw} — 예: 1999-01-03:11:F (시간 모르면 ?)`);
+    process.exit(1);
+  }
+  return { year: y, month: m, day: d, hour: hour === "?" || hour === undefined ? null : Number(hour), gender };
+}
+const SUBJECT = parsePerson(argOf("me"), { year: 1993, month: 1, day: 24, hour: 14, gender: "F" });
+const PARTNER = parsePerson(argOf("partner"), { year: 1991, month: 7, day: 8, hour: 20, gender: "M" });
 // 기본 고민은 재회 쪽 문장이다. 속궁합·결혼처럼 물음이 다른 상품을 볼 때는
 // --question 으로 갈아 끼운다 — 안 그러면 상품의 축이 아니라 고민의 축으로 읽힌다.
 const QUESTION =
@@ -48,7 +59,7 @@ const OCCUPATION = argOf("job") ?? "3교대 간호사";
 
 // 상품마다 따로 남긴다. 하나로 두면 속궁합을 뽑는 순간 재회가 사라져서
 // 두 상품을 나란히 볼 수 없다.
-const OUT = `.reading-preview.${PRODUCT_ID}.json`;
+const OUT = `.reading-preview.${PRODUCT_ID}${argOf("tag") ? `.${argOf("tag")}` : ""}.json`;
 
 const product = PRODUCTS.find((p) => p.id === PRODUCT_ID);
 if (!product) {
@@ -125,8 +136,6 @@ if (reuseText) {
       focus: "relationship",
       currentScene: QUESTION,
       occupation: OCCUPATION,
-      characterId: null,
-      characterName: null,
       now: new Date(),
     },
     (system, user, budget, callOptions) =>
@@ -194,7 +203,6 @@ const entry = {
   blob: "",
   category: PRODUCT_ID,
   label: product.title,
-  characterId: report.characterNote?.characterId ?? "",
   teaser,
   full,
   // 구조화 리포트도 함께 심는다. 이게 없으면 뷰어가 텍스트만 파싱해서

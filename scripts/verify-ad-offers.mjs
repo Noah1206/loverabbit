@@ -14,8 +14,7 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 const UTM = "utm_source=meta&utm_medium=paid&utm_campaign=TEST_CAMPAIGN&utm_content=TEST_AD";
 
 const LINKS = [
-  // 켜는 광고 넷 - marketing/ads/collect-meta-upload.mjs 의 배열과 같다
-  // (연애운은 새 주소와 예전 랜딩 둘 다 보므로 줄이 다섯이다).
+  // 켜는 광고 넷 (연애운은 새 주소와 예전 랜딩 둘 다 보므로 줄이 다섯이다).
   // 안 켜는 오퍼(궁합·19금·속마음·도화·바람기)도 코드에는 살아 있고,
   // 맨 주소로 값이 새는지는 아래 BARE 가 전부 훑는다.
   { name: "속궁합", path: "/saju/intimate-compatibility", offer: "intimate_compatibility_990", category: "sokgunghap" },

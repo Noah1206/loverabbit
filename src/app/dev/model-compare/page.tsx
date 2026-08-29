@@ -121,7 +121,6 @@ export default function ModelComparePage() {
       blob: "",
       category: data?.product.id ?? "jjak",
       label: `[비교] ${run.id}`,
-      characterId: "",
       teaser: run.teaser,
       full: run.full,
       chart: { me: data?.subject ?? "", partner: data?.partner ?? "" },

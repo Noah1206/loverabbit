@@ -127,7 +127,6 @@ function fakeComplete(seed: number) {
           report_meta: { headline: `가짜 헤드라인 ${seed} — ${"머".repeat(30)}`, confidence_note: "시각까지 확인했어요." },
           summary_cards: [1, 2, 3].map((i) => ({ label: `카드${i}`, value: "값", detail: "디".repeat(60), facts_used: ["strength.label=신약"] })),
           action_questions: [1, 2, 3].map((i) => ({ question: `질문 ${i}`, why_it_matters: "왜".repeat(20) })),
-          character_note: { character_id: "a", name: "화린도령", message: "한마디예요." },
           next_step: { label: "다음", description: "설명이에요.", recommended_focus: "relationship" },
         }),
         provider: "fake",
@@ -200,8 +199,6 @@ async function runOne(c: Candidate, seed: number, dry: boolean): Promise<ModelRu
         outline: product.toc,
         focus: "relationship",
         currentScene: QUESTION,
-        characterId: null,
-        characterName: null,
         now: new Date(),
       },
       complete

@@ -99,11 +99,10 @@ export async function POST(request: NextRequest) {
     .update({ metadata: { ...metadata, receipts: [...receipts, { key, at }] }, updated_at: at })
     .eq("id", orderId);
 
-  const product = order.kind === "chat_credits" ? "대화권" : "리딩";
   const sent = await notifyAdminPhoto(
     { bytes, filename: `receipt-${orderId}.${ext}`, contentType: file.type },
     [
-      `[이체 캡처] ${product} 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
+      `[이체 캡처] 리딩 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
       `입금코드 ${order.depositor_code ?? "-"} · 사진 ${receipts.length + 1}/${MAX_PER_ORDER}`,
       "사진의 금액·받는 계좌를 확인하고 승인하세요.",
     ].join("\n"),

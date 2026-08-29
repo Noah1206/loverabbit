@@ -200,7 +200,6 @@ export function reportPieces(report: {
     extra?: SectionExtra;
   }[];
   actionQuestions: { question: string; whyItMatters: string }[];
-  characterNote: { name: string; message: string } | null;
 }): ChapterPiece[] {
   const pieces: ChapterPiece[] = report.sections.map((section) => ({
     title: section.title,
@@ -217,12 +216,6 @@ export function reportPieces(report: {
       paragraphs: report.actionQuestions.map(
         (item, index) => `${index + 1}. ${item.question} — ${item.whyItMatters}`
       ),
-    });
-  }
-  if (report.characterNote) {
-    pieces.push({
-      title: `${report.characterNote.name}의 한마디`,
-      paragraphs: [report.characterNote.message],
     });
   }
   return pieces;

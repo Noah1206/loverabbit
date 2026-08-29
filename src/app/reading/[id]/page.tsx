@@ -42,13 +42,13 @@ import {
   Marked,
 } from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
+import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
 import Talisman from "@/components/Talisman";
 import ReviewPrompt from "@/components/ReviewPrompt";
 
 interface ReferralStatus {
   referralCode: string;
-  chatCredits: number;
   readingUnlocked: boolean;
 }
 
@@ -129,7 +129,6 @@ export default function ReadingReportPage() {
           blob: "",
           category: detail.category,
           label: detail.label,
-          characterId: "",
           teaser: detail.teaser,
           full: null,
           chart: detail.chart,
@@ -250,7 +249,6 @@ export default function ReadingReportPage() {
     if (stored?.referralCode) {
       setReferralStatus({
         referralCode: stored.referralCode,
-        chatCredits: stored.chatCredits ?? 0,
         readingUnlocked: false,
       });
     }
@@ -525,7 +523,7 @@ export default function ReadingReportPage() {
     if (!res.ok) throw new Error(data.error ?? "보상 정보를 확인하지 못했어요.");
     const next = data as ReferralStatus;
     setReferralStatus(next);
-    const nextUser = { ...user, referralCode: next.referralCode, chatCredits: next.chatCredits };
+    const nextUser = { ...user, referralCode: next.referralCode };
     setUser(nextUser);
     saveUser(nextUser);
     return next;
@@ -537,9 +535,9 @@ export default function ReadingReportPage() {
     try {
       const state = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
       if (!state?.referralCode) throw new Error("초대 코드를 만들지 못했어요.");
-      const params = new URLSearchParams({ ref: state.referralCode, reward: "chat_credits" });
+      const params = new URLSearchParams({ ref: state.referralCode, reward: REFERRAL_REWARD_PARAM });
       const url = `${window.location.origin}/reading?${params.toString()}`;
-      const text = "러브레빗 캐릭터챗 같이 해보자. 가입하면 첫 사주 1,900원이야 🐰";
+      const text = "러브레빗에서 연애 사주 봤어. 가입하면 첫 사주 1,900원이야 🐰";
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 사주", text, url });
         setShareNotice("공유했어요. 친구가 가입하면 보상이 자동 지급돼요.");
@@ -889,12 +887,12 @@ export default function ReadingReportPage() {
         {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
-            <h2>친구가 가입하면 추가 상담권을 드려요</h2>
-            <p>전문 리딩은 결제 후 열리고, 친구 초대 보상은 추가 질문에 사용할 수 있어요.</p>
+            <h2>친구가 가입하면 5,000원 쿠폰을 드려요</h2>
+            <p>전문 리딩은 결제 후 열리고, 초대 쿠폰은 다음 결제에 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
-                <strong>캐릭터챗 질문권 10장</strong>
-                <span>친구 1명 가입 시 바로 적립</span>
+                <strong>5,000원 할인 쿠폰</strong>
+                <span>친구 1명 가입 시 바로 지급 · 30일 유효</span>
               </button>
             </div>
             <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>

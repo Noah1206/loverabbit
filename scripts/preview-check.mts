@@ -93,8 +93,6 @@ for (const productId of ids) {
       focus: partner ? "relationship" : "self",
       currentScene: QUESTION[productId] ?? "",
       occupation: "",
-      characterId: null,
-      characterName: null,
       now: NOW,
     },
     (system, user, budget, callOptions) =>

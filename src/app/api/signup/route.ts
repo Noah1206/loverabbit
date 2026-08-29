@@ -3,6 +3,7 @@ import { seal } from "@/lib/crypto";
 import {
   isDatabaseConfigured,
   signupDatabaseUser,
+  REFERRAL_COUPON_REWARD,
   type ReferralRewardType,
 } from "@/lib/database";
 import type { UserToken } from "@/lib/tokens";
@@ -57,7 +58,6 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   let userId: number | undefined;
   let referralCode: string | undefined;
-  let chatCredits = 0;
   let referralClaimed = false;
   try {
     const user = await signupDatabaseUser({
@@ -67,11 +67,11 @@ export async function POST(req: NextRequest) {
       adultVerifiedAt: now,
       referralCode: body.referralCode,
       referralReadingId: undefined,
-      referralReward: body.referralReward === "chat_credits" ? "chat_credits" : undefined,
+      referralReward:
+        body.referralReward === REFERRAL_COUPON_REWARD ? REFERRAL_COUPON_REWARD : undefined,
     });
     userId = user?.id;
     referralCode = user?.referralCode;
-    chatCredits = user?.chatCredits ?? 0;
     referralClaimed = user?.referralClaimed ?? false;
   } catch (error) {
     console.error("가입 정보 저장 실패:", error);
@@ -88,7 +88,6 @@ export async function POST(req: NextRequest) {
     token,
     email,
     referralCode,
-    chatCredits,
     referralClaimed,
   });
 }

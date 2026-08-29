@@ -12,7 +12,7 @@ type PendingOrder = {
   id: number;
   userId: number;
   readingId: string | null;
-  kind: "reading" | "membership" | "chat_credits";
+  kind: "reading" | "membership";
   email: string | null;
   category: string | null;
   status: "pending";
@@ -155,11 +155,7 @@ export default function AdminPaymentsPage() {
   };
 
   const review = async (order: PendingOrder, decision: "paid" | "cancelled") => {
-    const action = decision === "paid"
-      ? order.kind === "chat_credits"
-        ? "입금을 승인하고 대화권을 지급"
-        : "입금을 승인하고 풀 리딩을 열기"
-      : "이 요청을 거절";
+    const action = decision === "paid" ? "입금을 승인하고 풀 리딩을 열기" : "이 요청을 거절";
     if (!window.confirm(`#${order.id} 주문의 ${action}할까요?`)) return;
     setProcessingId(order.id);
     setError("");
@@ -279,7 +275,7 @@ export default function AdminPaymentsPage() {
                   <small>주문 #{order.id}</small>
                   <h2>{order.amount.toLocaleString()}원</h2>
                 </div>
-                <span className="badge">{order.kind === "chat_credits" ? "대화권" : "리딩"} · 승인 대기</span>
+                <span className="badge">리딩 · 승인 대기</span>
               </div>
               <dl>
                 <div><dt>주문코드</dt><dd>{order.depositorCode ?? "없음"}</dd></div>
@@ -307,11 +303,7 @@ export default function AdminPaymentsPage() {
                   onClick={() => void review(order, "paid")}
                   disabled={processingId === order.id}
                 >
-                  {processingId === order.id
-                    ? "처리 중…"
-                    : order.kind === "chat_credits"
-                      ? "입금 승인 · 대화권 지급"
-                      : "입금 승인 · 리딩 열기"}
+                  {processingId === order.id ? "처리 중…" : "입금 승인 · 리딩 열기"}
                 </button>
                 <button
                   className="btn btn-ghost"

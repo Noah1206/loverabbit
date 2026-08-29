@@ -53,8 +53,8 @@ const rows = [
     from: provider === "openai" ? "OPENAI_MODEL" : "제공사 기본",
   },
   {
-    path: "신당 채팅",
-    when: "/api/shrine-chat",
+    path: "리딩 후속 질문",
+    when: "/api/chat",
     model: paidModel,
     from: "제공사 기본",
   },

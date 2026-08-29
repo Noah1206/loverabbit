@@ -48,7 +48,6 @@ function reportWith(section: Partial<StructuredReport["sections"][number]>): Str
       { question: "질문2", whyItMatters: "이유2" },
       { question: "질문3", whyItMatters: "이유3" },
     ],
-    characterNote: null,
     nextStep: null,
   };
 }

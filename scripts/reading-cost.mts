@@ -83,8 +83,6 @@ for (const product of PRODUCTS) {
     focus: "relationship",
     currentScene: "",
     occupation: undefined,
-    characterId: null,
-    characterName: null,
     now: new Date(),
   });
 

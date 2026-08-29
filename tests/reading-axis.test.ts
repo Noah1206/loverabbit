@@ -14,8 +14,6 @@ const base: ReadingInput = {
   outline: ["1장 01. 첫 절"],
   focus: "relationship",
   currentScene: "",
-  characterId: null,
-  characterName: null,
   now: new Date(2026, 7, 24),
 };
 

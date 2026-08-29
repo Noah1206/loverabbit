@@ -39,7 +39,6 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       email: data.email,
       authProvider: data.authProvider,
       referralCode: data.referralCode,
-      chatCredits: data.chatCredits,
       referralClaimed: data.referralClaimed === true,
     };
     saveUser(user);

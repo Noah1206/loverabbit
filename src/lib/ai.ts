@@ -160,7 +160,7 @@ async function callGemini(
         })),
         generationConfig: {
           maxOutputTokens: maxTokens,
-          // Gemini 2.5는 '생각' 토큰도 maxOutputTokens에서 쓴다. 캐릭터 대화처럼
+          // Gemini 2.5는 '생각' 토큰도 maxOutputTokens에서 쓴다. 후속 질문 답변처럼
           // 추론이 필요 없는 호출에서 이걸 켜두면 답이 문장 중간에 잘린다.
           ...(thinking ? {} : { thinkingConfig: { thinkingBudget: 0 } }),
           // JSON을 받기로 한 호출은 형식을 모델 쪽에서 강제한다. 앞뒤에 설명이나

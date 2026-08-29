@@ -61,8 +61,6 @@ const composed = await composeReport(
     focus: "relationship",
     currentScene: "",
     occupation: undefined,
-    characterId: null,
-    characterName: null,
     now: new Date(),
   },
   (system, user, budget, callOptions) =>

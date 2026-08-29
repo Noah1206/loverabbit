@@ -9,7 +9,6 @@ export interface User {
   email: string;
   authProvider?: "google" | "kakao" | "x";
   referralCode?: string;
-  chatCredits?: number;
   referralClaimed?: boolean;
 }
 

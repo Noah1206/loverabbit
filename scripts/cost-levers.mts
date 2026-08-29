@@ -28,7 +28,7 @@ const inputJson = buildReadingInput({
   facts: me, partnerFacts: partner, matchedRules: rules, productLabel: product.promptLabel,
   productId: product.id,
   outline, focus: "relationship", currentScene: "", occupation: undefined,
-  characterId: null, characterName: null, now: new Date(2026, 7, 22),
+  now: new Date(2026, 7, 22),
 } as Parameters<typeof buildReadingInput>[0]);
 
 const SYS = estimateTokens(READING_SYSTEM_PROMPT.length);

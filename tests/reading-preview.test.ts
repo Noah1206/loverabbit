@@ -27,8 +27,6 @@ const base: ReadingInput = {
   outline: ["1장 01. 처음부터 끌릴 수밖에 없었던 이유", "1장 02. 사주가 말해주는 이별의 진짜 원인"],
   focus: "relationship",
   currentScene: "",
-  characterId: null,
-  characterName: null,
   now: new Date(2026, 7, 25),
 };
 

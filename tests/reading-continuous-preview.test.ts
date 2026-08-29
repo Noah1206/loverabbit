@@ -26,8 +26,6 @@ const input: ReadingInput = {
   outline,
   focus: "self",
   currentScene: "",
-  characterId: null,
-  characterName: null,
   now: new Date(2026, 7, 23),
 };
 
@@ -39,7 +37,6 @@ const headJson = JSON.stringify({
   },
   summary_cards: [{ label: "중심", value: "같은 결론", detail: "", facts_used: [] }],
   action_questions: [],
-  character_note: null,
   next_step: null,
 });
 

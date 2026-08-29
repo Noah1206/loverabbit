@@ -58,7 +58,6 @@ const partialReport: StructuredReport = {
     },
   ],
   actionQuestions: [],
-  characterNote: null,
   nextStep: null,
 };
 

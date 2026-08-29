@@ -442,7 +442,6 @@ function reportSaying(text: string): StructuredReport {
       { question: "q2", whyItMatters: "w2" },
       { question: "q3", whyItMatters: "w3" },
     ],
-    characterNote: null,
     nextStep: null,
   };
 }

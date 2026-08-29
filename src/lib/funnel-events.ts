@@ -102,7 +102,6 @@ export function normalizePath(raw: unknown): string | null {
   // 보고 나간 사람이 "리딩 열람"으로 세어져 열람 단계가 부풀었다.
   const folded = path
     .replace(/\/reading\/(?!generating(?:\/|$))[^/]+/, "/reading/[id]")
-    .replace(/\/shrine\/[^/]+/, "/shrine/[id]")
     .replace(/\/product\/[^/]+/, "/product/[id]")
     .replace(/\/dark\/[^/]+/, "/dark/[id]");
   return folded.slice(0, 120);

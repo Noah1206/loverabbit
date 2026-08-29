@@ -154,8 +154,6 @@ export async function finishReading(params: {
       currentScene: resume.currentScene,
       // 발급 때와 같은 무대에서 이어 쓴다. 앞 절과 뒤 절의 장면이 달라지면 안 된다.
       occupation: resume.occupation,
-      characterId: null,
-      characterName: null,
       // 대운·세운은 발급 시점 기준이어야 앞 절과 뒷 절이 같은 해를 말한다
       now: new Date(resume.issuedAt),
   };
