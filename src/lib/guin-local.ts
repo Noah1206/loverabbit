@@ -88,3 +88,52 @@ export function joinIdempotencyKey(token: string): string {
   write(key, fresh);
   return fresh;
 }
+
+// ── 참여자 → 자기 지도 프리필 ─────────────────────────────
+// 참여 폼에 넣은 자기 값을 자기 지도 만들기에 재사용한다 (지시문 5항).
+// sessionStorage 라 탭을 닫으면 사라진다. 동의는 저장하지 않는다 — 새 지도는
+// 새로 동의해야 한다.
+
+export interface GuinPrefill {
+  nickname: string;
+  birth: { year: number; month: number; day: number; hour: number | null };
+}
+
+const PREFILL_KEY = "lr_guin_prefill";
+
+export function rememberGuinPrefill(value: GuinPrefill): void {
+  try {
+    sessionStorage.setItem(PREFILL_KEY, JSON.stringify(value));
+  } catch {
+    /* 저장 실패면 그냥 다시 입력한다 */
+  }
+}
+
+export function takeGuinPrefill(): GuinPrefill | null {
+  try {
+    const raw = sessionStorage.getItem(PREFILL_KEY);
+    sessionStorage.removeItem(PREFILL_KEY);
+    const parsed = raw ? (JSON.parse(raw) as GuinPrefill) : null;
+    return parsed?.nickname && parsed?.birth ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+// ── 공유 카피 배정 ────────────────────────────────────────
+// 한 번 배정되면 그 브라우저에서는 같은 안을 계속 쓴다 — 같은 사람이 보낼
+// 때마다 다른 카피가 나가면 실험이 오염된다.
+
+const VARIANT_KEY = "lr_guin_copy_variant";
+
+export function storedCopyVariant(assign: () => string): string {
+  try {
+    const existing = localStorage.getItem(VARIANT_KEY);
+    if (existing === "A" || existing === "B" || existing === "C") return existing;
+    const fresh = assign();
+    localStorage.setItem(VARIANT_KEY, fresh);
+    return fresh;
+  } catch {
+    return "A";
+  }
+}

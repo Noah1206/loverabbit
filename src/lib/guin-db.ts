@@ -9,7 +9,7 @@ import "server-only";
 import { open, seal } from "@/lib/crypto";
 import { personaOf, relate } from "@/lib/guin-calc";
 import type { GuinBirthInput, GuinNodeView, GuinRelationshipResult } from "@/lib/guin-map";
-import { hashKey, keyMatches, newSecretKey, newShareToken } from "@/lib/guin-token";
+import { hashKey, keyMatches, newSecretKey, newShareToken, participantFingerprint } from "@/lib/guin-token";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 
 /** 한 지도에 앉을 수 있는 최대 인원 — 폭주·스팸 상한 */
@@ -129,8 +129,11 @@ export async function listGuinNodes(mapId: string): Promise<GuinNodeView[]> {
       role: result.role,
       roleLabel: result.roleLabel,
       roleTagline: result.roleTagline,
+      secondaryRoleLabel: result.secondaryRoleLabel ?? null,
       elementLabel: result.elementLabel,
       score: Number(row.score),
+      scoreBand: result.scoreBand,
+      axes: result.axes ?? null,
       strengths: result.strengths,
       cautions: result.cautions,
       conversationPrompt: result.conversationPrompt,
@@ -172,6 +175,8 @@ export async function joinGuinMap(params: {
   if ((count ?? 0) >= MAX_PARTICIPANTS) return { ok: false, reason: "full" };
 
   const participantKey = newSecretKey();
+  const birthdate = `${params.birth.year}-${params.birth.month}-${params.birth.day}`;
+  const fingerprint = participantFingerprint(map.id, birthdate, params.nickname);
   const { data: inserted, error } = await db
     .from("lr_guin_participants")
     .insert({
@@ -181,19 +186,26 @@ export async function joinGuinMap(params: {
       nickname: params.nickname,
       birth_sealed: sealBirth(params.birth),
       idempotency_key: params.idempotencyKey,
+      participant_fingerprint: fingerprint,
       consented_at: new Date().toISOString(),
     })
     .select("id")
     .maybeSingle();
 
   if (error) {
-    // 같은 브라우저의 재제출. 새 행 대신 있던 행의 키를 갈아 끼운다.
+    /*
+      두 그물 중 하나에 걸렸다 — 같은 브라우저의 재제출(멱등 키)이거나,
+      같은 사람이 다른 기기·탭에서 다시 넣은 것(지문). 어느 쪽이든 새 행을
+      만들지 않고 있던 행의 키를 갈아 끼워 돌려준다: 지금 요청한 기기가
+      관리 권한(자기 기록 삭제)을 갖는 게 맞다.
+    */
     if (error.code === "23505") {
       const { data: existing, error: findError } = await db
         .from("lr_guin_participants")
         .select("id")
         .eq("map_id", map.id)
-        .eq("idempotency_key", params.idempotencyKey)
+        .or(`idempotency_key.eq.${params.idempotencyKey},participant_fingerprint.eq.${fingerprint}`)
+        .limit(1)
         .maybeSingle();
       if (findError || !existing) throw databaseError("참여 재확인", findError ?? error);
       const { error: rekeyError } = await db
@@ -217,6 +229,8 @@ export async function joinGuinMap(params: {
     participant_id: inserted.id,
     score: result.score,
     role: result.role,
+    secondary_role: result.secondaryRole ?? null,
+    axes_json: result.axes ?? null,
     result_json: result,
     calculation_version: result.calculationVersion,
   });
@@ -232,8 +246,11 @@ export async function joinGuinMap(params: {
     role: result.role,
     roleLabel: result.roleLabel,
     roleTagline: result.roleTagline,
+    secondaryRoleLabel: result.secondaryRoleLabel ?? null,
     elementLabel: result.elementLabel,
     score: result.score,
+    scoreBand: result.scoreBand,
+    axes: result.axes ?? null,
     strengths: result.strengths,
     cautions: result.cautions,
     conversationPrompt: result.conversationPrompt,

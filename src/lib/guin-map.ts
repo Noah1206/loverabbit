@@ -8,12 +8,15 @@
 // 고지(GUIN_DISCLAIMER)가 그 성격을 밝힌다.
 
 export type GuinRole =
-  | "benefactor"
+  // guin-v2 — 관계 축 4개에서 나오는 네 역할
+  | "comforter"
   | "right_hand"
+  | "communicator"
   | "growth_teacher"
+  // guin-1 — 소급 변경하지 않는 옛 역할 (저장된 지도를 그대로 그리기 위해 남긴다)
+  | "benefactor"
   | "mirror"
   | "stimulator"
-  | "comforter"
   | "neutral";
 
 export interface GuinRoleInfo {
@@ -42,24 +45,18 @@ export const GUIN_ROLES: Record<GuinRole, GuinRoleInfo> = {
     conversationPrompt: "요즘 나한테 제일 힘이 됐던 순간이 언제였는지 서로 말해볼까?",
   },
   right_hand: {
-    label: "오른팔",
-    tagline: "현실적으로 내 편이 되는 사람",
-    strengths: [
-      "계획을 실제로 굴러가게 만드는 실행력이 잘 붙어요",
-      "현실 감각을 서로 보태 주는 조합이에요",
-    ],
-    cautions: ["한쪽이 혼자 결정하려 하면 거리감이 생기기 쉬워요"],
-    conversationPrompt: "우리가 서로에게 가장 도움이 됐던 순간은 언제였을까?",
+    label: "오른팔형",
+    tagline: "현실적으로 내 편이 되어주는 사람",
+    strengths: ["생각을 실제 행동으로 옮길 때 서로에게 현실적인 힘이 되어주는 관계예요"],
+    cautions: ["도움을 주고받는 방식을 구체적으로 말하면 더 편해져요"],
+    conversationPrompt: "내가 요즘 가장 현실적으로 도움받고 싶은 것은 무엇일까?",
   },
   growth_teacher: {
-    label: "성장형 선생",
-    tagline: "나를 키우는 자극을 주는 사람",
-    strengths: [
-      "느슨해질 때 기준을 다시 세워 주는 관계예요",
-      "같이 있으면 목표가 또렷해지는 쪽이에요",
-    ],
-    cautions: ["조언이 잦아지면 잔소리로 들리는 날이 있어요 — 타이밍이 반이에요"],
-    conversationPrompt: "서로에게 배운 것 중 제일 오래 남은 게 뭔지 물어볼까?",
+    label: "성장형",
+    tagline: "새로운 방향과 자극을 주는 사람",
+    strengths: ["익숙한 방식에서 벗어나 새로운 시각을 열어주는 관계예요"],
+    cautions: ["다름을 곧바로 충돌로 해석하지 말고 배울 점을 찾아보세요"],
+    conversationPrompt: "이 관계가 나에게 새롭게 보여준 것은 무엇일까?",
   },
   mirror: {
     label: "거울형",
@@ -82,14 +79,18 @@ export const GUIN_ROLES: Record<GuinRole, GuinRoleInfo> = {
     conversationPrompt: "서로 덕분에 처음 해 본 게 뭐가 있는지 세어 볼까?",
   },
   comforter: {
-    label: "안식처",
-    tagline: "긴장을 풀고 쉬게 하는 사람",
-    strengths: [
-      "같이 있으면 애쓰지 않아도 되는 편안함이 있어요",
-      "기분이 가라앉은 날 제일 먼저 생각나는 쪽이에요",
-    ],
-    cautions: ["편한 게 당연해지면 고마운 마음을 표현할 틈이 줄어요"],
-    conversationPrompt: "서로한테 제일 편해지는 순간이 언제인지 이야기해 볼까?",
+    label: "안식처형",
+    tagline: "마음을 편하게 해주는 사람",
+    strengths: ["함께 있을 때 긴장이 풀리고 서로의 속도를 이해하기 쉬운 관계예요"],
+    cautions: ["문제를 바로 해결하려 하기보다 먼저 서로의 이야기를 들어주세요"],
+    conversationPrompt: "요즘 서로에게 가장 편안했던 순간은 언제였을까?",
+  },
+  communicator: {
+    label: "대화형",
+    tagline: "서로의 생각을 풀어내기 쉬운 사람",
+    strengths: ["말을 주고받으며 서로의 생각을 정리하기 쉬운 관계예요"],
+    cautions: ["정답을 정하기보다 각자의 해석을 먼저 말해보세요"],
+    conversationPrompt: "우리가 서로를 가장 잘 이해했던 대화는 무엇이었을까?",
   },
   neutral: {
     label: "동행",
@@ -114,15 +115,22 @@ export interface GuinBirthInput {
 
 export interface GuinRelationshipResult {
   score: number;
+  /** 점수 구간 표현 (scoreBandOf). 옛(guin-1) 결과에는 없다. */
+  scoreBand?: string;
   role: GuinRole;
   roleLabel: string;
   roleTagline: string;
+  /** 1위 축과 5점 미만 차이인 보조 역할 — 억지로 하나만 고르지 않는다 */
+  secondaryRole?: GuinRole | null;
+  secondaryRoleLabel?: string | null;
+  /** 네 관계 축 점수 (guin-v2). 옛 결과에는 없다. */
+  axes?: GuinAxes | null;
   /** 상대 일간의 오행 캐릭터 — "번지는 불" 등 */
   elementLabel: string;
   strengths: string[];
   cautions: string[];
   conversationPrompt: string;
-  /** 점수의 근거가 된 관계 사실 라벨 (합·충 등) */
+  /** 점수의 근거 라벨 (guin-1 의 합·충 등. v2 는 비어 있다) */
   facts: string[];
   calculationVersion: string;
 }
@@ -173,9 +181,13 @@ export interface GuinNodeView {
   role: GuinRole;
   roleLabel: string;
   roleTagline: string;
+  secondaryRoleLabel?: string | null;
   elementLabel: string;
   /** show_scores 가 꺼져 있으면 주인이 아닌 화면에는 null 로 나간다 */
   score: number | null;
+  scoreBand?: string;
+  /** 네 관계 축 — guin-1 노드에는 없다. 비교·패턴 화면은 있는 노드만 쓴다. */
+  axes?: GuinAxes | null;
   strengths: string[];
   cautions: string[];
   conversationPrompt: string;
@@ -218,4 +230,98 @@ export function shapeMapView(params: {
         ? nodes
         : nodes.map((node) => ({ ...node, score: null }));
   return { token, ownerNickname, showScores, count: nodes.length, roleCounts, nodes: visible, viewer };
+}
+
+// ── 관계 축 (guin-v2) ─────────────────────────────────────
+
+/** 네 축의 순서가 곧 동점일 때의 우선순위다 — 바꾸면 역할 선택이 흔들린다. */
+export const GUIN_AXES = ["comfort", "practicalHelp", "communication", "stimulation"] as const;
+export type GuinAxisKey = (typeof GUIN_AXES)[number];
+export type GuinAxes = Record<GuinAxisKey, number>;
+
+export const AXIS_LABEL: Record<GuinAxisKey, string> = {
+  comfort: "편안함",
+  practicalHelp: "현실적 도움",
+  communication: "대화",
+  stimulation: "새로운 자극",
+};
+
+/**
+ * 점수 구간 표현 (지시문 8.6). "나쁜 궁합"·"운명" 같은 표현은 만들지 않는다 —
+ * 낮은 구간도 관계의 성격이지 판정이 아니다.
+ */
+export function scoreBandOf(score: number): string {
+  if (score >= 90) return "여러 관계 축에서 강하게 연결되는 관계";
+  if (score >= 75) return "서로의 강점이 잘 이어지는 관계";
+  if (score >= 60) return "맞춰가면 좋은 균형형 관계";
+  return "서로 다른 방식으로 이해해야 하는 관계";
+}
+
+// ── 지도 단계 (지시문 11) ─────────────────────────────────
+
+export type GuinStage = "empty" | "one" | "two" | "three_plus";
+
+export function getMapStage(participantCount: number): GuinStage {
+  if (participantCount === 0) return "empty";
+  if (participantCount === 1) return "one";
+  if (participantCount === 2) return "two";
+  return "three_plus";
+}
+
+// ── 공유 카피 A/B/C (지시문 12) ───────────────────────────
+//
+// 세 안은 다른 심리 후크다: A 호기심, B 빈칸 완성, C 감정·대화.
+// 배정은 브라우저에 남고, 공유 URL 에 ?v= 로 실려 초대 랜딩이 같은 안을
+// 보여준다 — 어느 카피가 데려왔는지가 이벤트(product 칸)로 남는다.
+
+export type GuinCopyVariant = "A" | "B" | "C";
+
+export interface GuinCopy {
+  /** 카카오·Web Share 에 실리는 메시지 */
+  shareText: string;
+  /** 초대 랜딩의 머리 문구. {owner} 가 주인 별명으로 바뀐다. */
+  inviteTitle: string;
+  inviteBody: string;
+  inviteCta: string;
+}
+
+export const GUIN_COPY: Record<GuinCopyVariant, GuinCopy> = {
+  A: {
+    shareText:
+      "내 귀인 지도에 너를 초대했어.\n생일만 입력하면 우리가 어떤 인연인지 나온대.\n너는 나에게 어떤 역할일까?",
+    inviteTitle: "{owner}님이 당신을 귀인 지도에 초대했어요",
+    inviteBody:
+      "생일을 입력하면 두 사람이 어떤 인연인지 케미와 관계 유형으로 확인할 수 있어요. 생년월일과 출생시간은 지도에 공개되지 않아요.",
+    inviteCta: "내 관계 확인하기",
+  },
+  B: {
+    shareText:
+      "내 관계 지도를 만드는 중인데 아직 한 자리가 비어 있어.\n네 생일을 넣으면 우리가 어떤 인연인지 바로 나온대.\n같이 확인해볼래?",
+    inviteTitle: "{owner}님의 관계 지도에 당신의 자리가 아직 비어 있어요",
+    inviteBody: "생일을 입력하면 지도에 새로운 인연이 추가되고, 두 사람의 관계 카드가 열립니다.",
+    inviteCta: "빈자리 채우기",
+  },
+  C: {
+    shareText:
+      "나는 너를 어떤 인연으로 보고 있을까 궁금해서\n러브레빗 관계 지도를 만들어봤어.\n네 생일을 넣으면 우리 관계를 같이 확인할 수 있대.",
+    inviteTitle: "우리는 서로에게 어떤 사람일까요?",
+    inviteBody:
+      "생일을 입력하면 두 사람의 관계 흐름과 서로에게 주는 영향을 확인할 수 있어요. 결과는 재미와 대화를 위한 관계 리딩이며, 생년월일과 출생시간은 공개되지 않아요.",
+    inviteCta: "우리 관계 확인하기",
+  },
+};
+
+export function normalizeCopyVariant(value: unknown): GuinCopyVariant {
+  return value === "B" || value === "C" ? value : "A";
+}
+
+/**
+ * 카피 배정 — A 50% / B 25% / C 25% (지시문 12 실험 설계).
+ * random 을 주입받는 건 테스트 때문이다. 기본은 Math.random.
+ */
+export function assignCopyVariant(random: () => number = Math.random): GuinCopyVariant {
+  const roll = random();
+  if (roll < 0.5) return "A";
+  if (roll < 0.75) return "B";
+  return "C";
 }

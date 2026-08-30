@@ -88,6 +88,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       participantId: joined.node.id,
       node: map.showScores ? joined.node : { ...joined.node, score: null },
       map: view,
+      // 이미 참여한 기록이 있어 기존 결과를 돌려준 경우 — 화면이 안내한다.
+      replayed: joined.replayed,
     });
   } catch (error) {
     console.error("귀인 지도 참여 실패:", error);

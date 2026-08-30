@@ -55,3 +55,61 @@
 4. 창 A 새로고침: 참여자 노드 추가 확인, 설정에서 점수 표시 끄기 → B 화면에서 점수 사라짐
 5. B 에서 내 기록 삭제 → A 지도에서 노드 사라짐
 6. Supabase `lr_funnel_events` 에서 `name like 'guin_%'` 확인
+
+---
+
+# v2 — 관계 축 알고리즘과 단계별 화면 (2026-08-31)
+
+## 계산 모델 교체: guin-1 → guin-v2
+
+- **역할이 십성이 아니라 관계 축에서 나온다.** 일간 오행의 생극 관계에서 feature 5개
+  (sameElement·supportToOwner·practicalComplement·tension·polarityHarmony)를 뽑고,
+  네 축(편안함·현실적 도움·대화·새로운 자극)을 지시문 8.4 수식 그대로 채점한다.
+  역할 = 1위 축 (안식처형·오른팔형·대화형·성장형). 1·2위 차이가 5점 미만이면 보조 역할.
+  케미 = 네 축 가중 평균(0.30/0.25/0.25/0.20).
+- **guin-1 결과는 소급하지 않는다.** role check 에 옛 역할을 남기고, axes 없는 노드는
+  비교·패턴 화면에서 제외된다. calculation_version 이 두 세대를 가른다.
+- seasonalHarmony 는 아직 중립 0.60 고정 — 기존 엔진의 계절 강도(johu)를 잇는 건 P1.
+- 시간 미상 무감점: 일간 오행·음양은 날짜만으로 확정되므로 축 계산에 시간이 아예 없다.
+
+## 단계별 화면 (0/1/2/3+)
+
+한 페이지(`/guin/[token]`) 안에서 단계로 자란다 — 라우트를 늘리지 않았다
+(지시문 3항 "현재 라우팅 규칙이 있으면 그 규칙을 따른다").
+
+- 0명: empty state + "첫 번째 인연까지 1명 남았어요"
+- 1명: 관계 카드 (역할·케미·가장 강한 축·구간 표현·힌트·대화 질문)
+- 2명: 축별 비교 탭 4개, 최고만 굵게 + 상대 점수 병기, guin_axis_comparison_viewed
+- 3명+: 역할 분포 가로 막대(색+라벨 병기), 집단 해석, 축별 대표(동점=공동 1위),
+  guin_pattern_report_viewed
+- "가장 닮은 관계" 칩은 **"대화가 가장 강한 관계"로 대체** — 축이 4개로 고정돼
+  닮음을 따로 계산하지 않는다. 데이터에 없는 라벨을 붙이지 않는 쪽을 골랐다.
+
+## 공유 카피 A/B/C
+
+- 배정: A 50% / B 25% / C 25%, localStorage 에 고정 (한 사람이 항상 같은 안).
+- 공유 URL 에 `?v=A` 로 실려, 초대 랜딩이 같은 안의 카피를 보여준다.
+- 계측: 관련 이벤트의 `product` 칸에 `copy-A` 형태로 남는다 → 카피별 퍼널 비교 가능.
+
+## 중복 참여 (지시문 9·10항)
+
+- 그물 둘: idempotency_key(같은 브라우저 재제출) + participant_fingerprint
+  (HMAC(지도id:생년월일:별명), 다른 기기에서 같은 사람).
+- **지문에 별명을 넣은 이유**: 생일만으로 접으면 생일이 같은 두 친구(쌍둥이)를 한
+  사람으로 오인해 두 번째 참여를 막는다. 명세의 fingerprint 정의에서 의도적으로 벗어난 지점.
+- 걸리면 새 행 없이 기존 관계를 돌려주고 참여 키를 갈아 끼운다 + "이미 참여한 기록이
+  있어요" 안내.
+
+## 참여자 → 자기 지도 전환
+
+- 결과 카드의 "내 귀인 지도도 만들어보기" → 방금 입력값을 sessionStorage 에 담아
+  `/guin?from=invite` 로 — 폼이 채워진 채 열리고 **동의는 새로 받는다**.
+- 계측: guin_second_map_cta_clicked(클릭) → guin_second_map_created(완료).
+
+## 이벤트 이름 매핑 (명세 14항 → 실제)
+
+명세 이름과 다른 것만: owner_form_* → guin_form_*, invite_link_copied →
+guin_share_link_copied, share_card_saved → guin_share_image_downloaded,
+participant_form_submitted → guin_participant_submitted,
+relationship_calculation_started 는 계산이 제출과 한 요청이라 따로 없음,
+kakao_share_clicked 는 Web Share 로 합쳐짐(SDK 미연동).

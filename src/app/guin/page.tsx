@@ -11,7 +11,7 @@ import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import { trackFunnel } from "@/lib/funnel";
-import { rememberMyGuinMap } from "@/lib/guin-local";
+import { rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { getUser } from "@/lib/user";
 
 const CREATE_CONSENT =
@@ -30,13 +30,23 @@ function GuinLanding() {
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // 참여 화면에서 넘어온 사람의 방금 입력값. 동의는 새로 받는다.
+  const [prefill, setPrefill] = useState<GuinPrefill | null>(null);
   const viewed = useRef(false);
 
   useEffect(() => {
     if (viewed.current) return;
     viewed.current = true;
     trackFunnel("guin_landing_view", { path: "/guin" });
-  }, []);
+    // 초대에서 "나도 만들기"로 온 사람은 이미 결심했다 — 소개 화면을 다시
+    // 보여주면 한 번 더 결심하게 만드는 셈이다. 값 채운 폼으로 바로 연다.
+    if (fromInvite) {
+      const kept = takeGuinPrefill();
+      if (kept) setPrefill(kept);
+      trackFunnel("guin_form_started");
+      setMode("form");
+    }
+  }, [fromInvite]);
 
   const create = async (value: GuinFormValue) => {
     if (busy) return;
@@ -156,6 +166,7 @@ function GuinLanding() {
             consentNote={CREATE_CONSENT}
             busy={busy}
             onSubmit={create}
+            initial={prefill}
           />
           {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginTop: 10 }}>{error}</p>}
           {error && (

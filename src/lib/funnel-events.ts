@@ -79,6 +79,12 @@ export const FUNNEL_EVENTS = [
   "guin_second_map_created",
   /** 관계 결과 카드를 공유했다 */
   "guin_result_card_shared",
+  /** 2명 축별 비교를 봤다 */
+  "guin_axis_comparison_viewed",
+  /** 3명+ 패턴 리포트를 봤다 */
+  "guin_pattern_report_viewed",
+  /** 참여자가 "나도 만들기"를 눌렀다 (만들기 완료는 guin_second_map_created) */
+  "guin_second_map_cta_clicked",
   /** 공개 범위 설정을 열었다 */
   "guin_privacy_settings_opened",
   /** 참여자(또는 내 기록)를 지웠다 */

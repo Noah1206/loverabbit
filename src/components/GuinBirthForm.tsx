@@ -22,6 +22,7 @@ export default function GuinBirthForm({
   busy,
   onSubmit,
   onFirstTouch,
+  initial,
 }: {
   submitLabel: string;
   /** 동의문 — 만들기와 참여가 문구가 다르다 */
@@ -30,12 +31,23 @@ export default function GuinBirthForm({
   onSubmit: (value: GuinFormValue) => void;
   /** 폼에 처음 손을 댄 순간 (분석용) */
   onFirstTouch?: () => void;
+  /**
+   * 참여자가 자기 지도를 만들 때 방금 넣은 값을 재사용한다 (지시문 5항).
+   * 값만 미리 채운다 — 동의는 절대 미리 채우지 않는다.
+   */
+  initial?: GuinFormValue | null;
 }) {
-  const [nickname, setNickname] = useState("");
-  const [dateText, setDateText] = useState("");
+  const [nickname, setNickname] = useState(initial?.nickname ?? "");
+  const [dateText, setDateText] = useState(
+    initial
+      ? `${initial.birth.year}${String(initial.birth.month).padStart(2, "0")}${String(initial.birth.day).padStart(2, "0")}`
+      : ""
+  );
   const [calendar, setCalendar] = useState<"solar" | "lunar">("solar");
   const [leapMonth, setLeapMonth] = useState(false);
-  const [hourText, setHourText] = useState("unknown");
+  const [hourText, setHourText] = useState(
+    initial ? (initial.birth.hour === null ? "unknown" : String(initial.birth.hour)) : "unknown"
+  );
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState(false);

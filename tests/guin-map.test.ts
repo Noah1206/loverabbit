@@ -73,3 +73,27 @@ describe("지도 화면용 정리", () => {
     assert.ok(owner.nodes.every((item) => item.score !== null));
   });
 });
+
+describe("공유 카피 배정 (지시문 12)", () => {
+  it("A 50% / B 25% / C 25% 로 갈린다", async () => {
+    const { assignCopyVariant, normalizeCopyVariant } = await import("../src/lib/guin-map");
+    assert.equal(assignCopyVariant(() => 0.0), "A");
+    assert.equal(assignCopyVariant(() => 0.49), "A");
+    assert.equal(assignCopyVariant(() => 0.5), "B");
+    assert.equal(assignCopyVariant(() => 0.74), "B");
+    assert.equal(assignCopyVariant(() => 0.75), "C");
+    assert.equal(assignCopyVariant(() => 0.99), "C");
+    // URL 에서 온 값 — 이상한 건 전부 A 로 접는다
+    assert.equal(normalizeCopyVariant("B"), "B");
+    assert.equal(normalizeCopyVariant("x"), "A");
+    assert.equal(normalizeCopyVariant(null), "A");
+  });
+
+  it("세 안의 공유 문구에 생년월일 자리 자체가 없다", async () => {
+    const { GUIN_COPY } = await import("../src/lib/guin-map");
+    for (const copy of Object.values(GUIN_COPY)) {
+      const all = `${copy.shareText}${copy.inviteTitle}${copy.inviteBody}${copy.inviteCta}`;
+      assert.ok(!/\d{6,8}/.test(all), "카피에 날짜 형태 숫자가 있다");
+    }
+  });
+});

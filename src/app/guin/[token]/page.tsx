@@ -1,12 +1,12 @@
 "use client";
 
-// 귀인 지도 한 장 — 보는 사람에 따라 세 화면이 된다.
+// 귀인 지도 한 장 — 보는 사람과 인원에 따라 화면이 자란다.
 //
-//   주인      지도 전체 + 공유 + 설정
-//   참여자    내 관계 카드 + 지도 + 내 기록 지우기 + "나도 만들기"
-//   방문자    참여 화면만. 지도는 참여해야 보인다 (서버가 노드를 안 준다)
+//   보는 사람:  주인(전체+공유+설정) / 참여자(내 카드+지도) / 방문자(참여 화면만)
+//   인원 단계:  0명 empty → 1명 관계 카드 → 2명 축별 비교 → 3명+ 분포·패턴
 //
-// 방문자 → 참여자 전환이 2차 바이럴의 심장이다 (지시문 3.5).
+// 방문자 → 참여자 전환이 2차 바이럴의 심장이다 (지시문 5항). 참여를 마친
+// 사람에게는 방금 넣은 값으로 자기 지도를 바로 만들 길을 연다.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -20,9 +20,24 @@ import {
   joinIdempotencyKey,
   joinedGuinMap,
   ownerKeyOf,
+  rememberGuinPrefill,
   rememberJoinedGuinMap,
+  storedCopyVariant,
 } from "@/lib/guin-local";
-import { GUIN_DISCLAIMER, type GuinMapView, type GuinNodeView, type GuinRole } from "@/lib/guin-map";
+import {
+  AXIS_LABEL,
+  GUIN_AXES,
+  GUIN_COPY,
+  GUIN_DISCLAIMER,
+  assignCopyVariant,
+  getMapStage,
+  normalizeCopyVariant,
+  type GuinAxisKey,
+  type GuinCopyVariant,
+  type GuinMapView,
+  type GuinNodeView,
+  type GuinRole,
+} from "@/lib/guin-map";
 import { downloadGuinShareImage } from "@/lib/share-image";
 import { getUser } from "@/lib/user";
 
@@ -30,12 +45,14 @@ const BUSY_MESSAGE = "지금 귀인지도에 사람이 많이 몰리고 있어�
 
 /** 역할 구분 점 색. 색만으로 가르지 않는다 — 라벨이 항상 같이 붙는다. */
 const ROLE_DOT: Record<GuinRole, string> = {
-  benefactor: "#e8b84b",
-  right_hand: "#7dc4a5",
-  growth_teacher: "#c78d5a",
-  mirror: "#9aa7d8",
-  stimulator: "#d88da0",
   comforter: "#8fbfd8",
+  right_hand: "#7dc4a5",
+  communicator: "#9aa7d8",
+  growth_teacher: "#c78d5a",
+  // guin-1 시절 역할 — 저장된 지도를 그대로 그리기 위해 남긴다
+  benefactor: "#e8b84b",
+  mirror: "#b8a7d8",
+  stimulator: "#d88da0",
   neutral: "#a5a3ac",
 };
 
@@ -48,7 +65,7 @@ interface MapResponse extends GuinMapView {
 }
 
 function sizeBucket(n: number): string {
-  return n === 0 ? "0" : n === 1 ? "1" : n <= 3 ? "2-3" : n <= 9 ? "4-9" : "10plus";
+  return n === 0 ? "0" : n === 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : "5plus";
 }
 
 export default function GuinMapPage() {
@@ -63,14 +80,22 @@ export default function GuinMapPage() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [justJoined, setJustJoined] = useState<GuinNodeView | null>(null);
+  const [myJoinValue, setMyJoinValue] = useState<GuinFormValue | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [notice, setNotice] = useState("");
   const inviteTracked = useRef(false);
+  const stageTracked = useRef<string | null>(null);
   const claimTried = useRef(false);
 
   const ownerKey = useMemo(() => ownerKeyOf(token), [token]);
   const joined = useMemo(() => joinedGuinMap(token), [token]);
+
+  // 초대 링크에 실려 온 카피 안 (?v=A|B|C). 없으면 A.
+  const inviteVariant: GuinCopyVariant = useMemo(() => {
+    if (typeof window === "undefined") return "A";
+    return normalizeCopyVariant(new URLSearchParams(window.location.search).get("v"));
+  }, []);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -107,12 +132,25 @@ export default function GuinMapPage() {
     void load();
   }, [load]);
 
-  // 방문자 계측 — 초대 링크로 들어온 사람
+  // 방문자 계측 — 어느 카피가 데려왔는지가 product 로 남는다.
   useEffect(() => {
     if (view?.viewer === "stranger" && !inviteTracked.current) {
       inviteTracked.current = true;
-      trackFunnel("guin_invite_landing_view", { landing: sizeBucket(view.count) });
+      trackFunnel("guin_invite_landing_view", {
+        product: `copy-${inviteVariant}`,
+        landing: sizeBucket(view.count),
+      });
     }
+  }, [view, inviteVariant]);
+
+  // 단계 화면 계측 — 같은 단계는 한 번만.
+  useEffect(() => {
+    if (!view || view.viewer === "stranger") return;
+    const stage = getMapStage(view.count);
+    if (stageTracked.current === stage) return;
+    stageTracked.current = stage;
+    if (stage === "two") trackFunnel("guin_axis_comparison_viewed", { landing: sizeBucket(view.count) });
+    if (stage === "three_plus") trackFunnel("guin_pattern_report_viewed", { landing: sizeBucket(view.count) });
   }, [view]);
 
   // 게스트로 만든 지도를 로그인한 계정에 잇는다 — 한 번만, 조용히.
@@ -132,7 +170,7 @@ export default function GuinMapPage() {
     if (joining) return;
     setJoining(true);
     setJoinError("");
-    trackFunnel("guin_participant_submitted");
+    trackFunnel("guin_participant_submitted", { product: `copy-${inviteVariant}` });
     try {
       const res = await fetch(`/api/guin/${encodeURIComponent(token)}/join`, {
         method: "POST",
@@ -150,6 +188,7 @@ export default function GuinMapPage() {
         participantId?: string;
         node?: GuinNodeView;
         map?: GuinMapView;
+        replayed?: boolean;
         error?: string;
       };
       if (!res.ok || !data.participantKey || !data.participantId || !data.node || !data.map) {
@@ -162,6 +201,8 @@ export default function GuinMapPage() {
         nickname: value.nickname,
       });
       setJustJoined(data.node);
+      setMyJoinValue(value);
+      if (data.replayed) setNotice("이미 이 지도에 참여한 기록이 있어요. 기존 관계 결과를 보여드릴게요.");
       setView((prev) =>
         prev
           ? { ...prev, ...data.map!, viewer: "participant", myParticipantId: data.participantId! }
@@ -178,18 +219,24 @@ export default function GuinMapPage() {
     }
   };
 
-  const shareUrl = typeof window === "undefined" ? "" : `${window.location.origin}/guin/${token}`;
-  const shareText = "내 귀인 지도에 너를 추가해봤어.\n생일만 입력하면 우리가 어떤 인연인지 나온대.";
+  // 주인이 보낼 카피 — 한 번 배정되면 이 브라우저에서는 같은 안을 쓴다.
+  const myVariant: GuinCopyVariant = useMemo(
+    () => normalizeCopyVariant(storedCopyVariant(assignCopyVariant)),
+    []
+  );
+  const shareUrl =
+    typeof window === "undefined" ? "" : `${window.location.origin}/guin/${token}?v=${myVariant}`;
 
   const shareLink = async (event: "guin_share_link_copied" | "guin_result_card_shared") => {
+    const text = GUIN_COPY[myVariant].shareText;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "귀인 지도", text: shareText, url: shareUrl });
+        await navigator.share({ title: "귀인 지도", text, url: shareUrl });
       } else {
-        await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-        setNotice("초대 링크를 복사했어요.");
+        await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
+        setNotice("링크를 복사했어요. 친구에게 보내보세요.");
       }
-      trackFunnel(event, { landing: sizeBucket(view?.count ?? 0) });
+      trackFunnel(event, { product: `copy-${myVariant}`, landing: sizeBucket(view?.count ?? 0) });
     } catch {
       // 공유 창을 닫은 것 — 아무 일도 아니다.
     }
@@ -242,6 +289,13 @@ export default function GuinMapPage() {
     } else setNotice(BUSY_MESSAGE);
   };
 
+  const goMakeMyMap = () => {
+    trackFunnel("guin_second_map_cta_clicked");
+    // 방금 넣은 값을 자기 지도 폼에 미리 채운다. 동의는 새로 받는다 (지시문 5항).
+    if (myJoinValue) rememberGuinPrefill(myJoinValue);
+    router.push("/guin?from=invite");
+  };
+
   // ── 로딩 / 오류 ──
   if (status === "loading") {
     return (
@@ -255,40 +309,43 @@ export default function GuinMapPage() {
   if (status === "error" || !view) {
     return (
       <main className="container" style={{ paddingTop: 48, textAlign: "center" }}>
-        <h1 style={{ marginBottom: 8 }}>지도를 열지 못했어요</h1>
+        <h1 style={{ marginBottom: 8 }}>이 지도는 지금 열 수 없어요</h1>
         <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>{errorText}</p>
         <button className="btn" onClick={() => void load()}>다시 시도하기</button>
         <p style={{ marginTop: 14 }}>
-          <Link href="/guin" style={{ color: "var(--accent)" }}>내 지도 만들러 가기 →</Link>
+          <Link href="/guin" style={{ color: "var(--accent)" }}>새로운 귀인 지도 만들어보기 →</Link>
         </p>
       </main>
     );
   }
 
-  // ── 방문자: 참여 화면 ──
+  // ── 방문자: 참여 화면 (카피는 링크에 실려 온 안을 따른다) ──
   if (view.viewer === "stranger" && !justJoined) {
+    const copy = GUIN_COPY[inviteVariant];
     return (
       <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
         <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
-        <h1 style={{ marginBottom: 8 }}>{view.ownerNickname}님의 귀인 지도에 참여하기</h1>
-        <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>
-          현재 {view.count}명 참여 중이에요. 생일만 입력하면 {view.ownerNickname}님과 내가 어떤
-          인연인지 나와요.
-        </p>
+        <h1 style={{ marginBottom: 8 }}>{copy.inviteTitle.replace("{owner}", view.ownerNickname)}</h1>
+        <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>{copy.inviteBody}</p>
         <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginBottom: 20 }}>
           입력 후 {view.ownerNickname}님의 지도에 내 별명이 표시됩니다. 생년월일과 출생시간은
           공개되지 않습니다.
         </p>
         <div className="card" style={{ padding: 20 }}>
           <GuinBirthForm
-            submitLabel="내 관계 확인하기"
-            consentNote={`입력한 정보는 관계 계산에만 사용됩니다. ${view.ownerNickname}님의 지도에는 별명만 표시돼요. 만 14세 이상만 이용할 수 있어요.`}
+            submitLabel={copy.inviteCta}
+            consentNote={`입력한 정보는 관계 계산과 지도 관리에 사용됩니다. 지도에는 별명만 표시되며, 생년월일과 출생시간은 공개되지 않습니다. 결과는 재미와 자기성찰을 위한 콘텐츠이며 실제 인간관계 판단을 대신하지 않습니다. 만 14세 이상만 이용할 수 있어요.`}
             busy={joining}
             onSubmit={join}
-            onFirstTouch={() => trackFunnel("guin_participant_form_started")}
+            onFirstTouch={() => trackFunnel("guin_participant_form_started", { product: `copy-${inviteVariant}` })}
           />
           {joinError && (
             <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginTop: 10 }}>{joinError}</p>
+          )}
+          {joining && (
+            <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginTop: 10 }}>
+              두 사람의 관계를 살펴보고 있어요. 잠시만 기다려주세요.
+            </p>
           )}
         </div>
         <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 16 }}>{GUIN_DISCLAIMER}</p>
@@ -296,50 +353,65 @@ export default function GuinMapPage() {
     );
   }
 
-  // ── 지도 화면 (주인·참여자·방금 참여한 사람) ──
+  // ── 지도 화면 ──
   const isOwner = view.viewer === "owner";
-  const myNode =
-    justJoined ?? view.nodes.find((node) => node.id === view.myParticipantId) ?? null;
+  const stage = getMapStage(view.count);
+  const myNode = justJoined ?? view.nodes.find((node) => node.id === view.myParticipantId) ?? null;
   const filtered = filter.trim()
     ? view.nodes.filter((node) => node.nickname.includes(filter.trim()))
     : view.nodes;
   const selectedNode = view.nodes.find((node) => node.id === selected) ?? null;
-  const roleSummary = Object.entries(view.roleCounts)
-    .map(([role, count]) => {
-      const sample = view.nodes.find((node) => node.role === role);
-      return `${sample?.roleLabel ?? role} ${count}명`;
-    })
-    .join(" · ");
+  const roleSummary = summarizeRoles(view.nodes, view.roleCounts);
+
+  const stageHeadline =
+    stage === "empty"
+      ? "아직 참여한 사람이 없어요"
+      : stage === "one"
+        ? "첫 번째 인연이 지도에 들어왔어요"
+        : stage === "two"
+          ? "2명의 인연이 모였어요"
+          : `${view.count}명의 인연이 모였어요`;
 
   return (
     <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
       <h1 style={{ marginBottom: 4 }}>{view.ownerNickname}님의 귀인 지도</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 6 }}>
-        현재 {view.count}명 참여
+        {stageHeadline}
         {view.ownerPersona ? ` · ${view.ownerPersona.elementLabel} 기운의 ${view.ownerPersona.animal}띠` : ""}
       </p>
+      {stage === "two" && (
+        <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 8 }}>
+          두 사람은 서로 다른 방식으로 당신에게 영향을 줘요.
+        </p>
+      )}
+      {stage === "three_plus" && (
+        <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 8 }}>
+          이제 당신 주변의 관계 패턴이 보여요.
+        </p>
+      )}
       {notice && <p className="badge" style={{ marginBottom: 10 }}>{notice}</p>}
 
-      {/* 방금 참여한 사람의 결과 카드 — 이 화면이 다음 지도를 만든다 */}
+      {/* 방금 참여한 사람(또는 돌아온 참여자)의 결과 카드 */}
       {myNode && !isOwner && (
         <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: ROLE_DOT[myNode.role] }}>
           <span className="badge">{view.ownerNickname}님에게 나는</span>
           <h2 style={{ fontSize: "1.3rem", margin: "10px 0 2px" }}>
-            {myNode.roleLabel} · {myNode.roleTagline}
+            {myNode.roleLabel} 인연
+            {myNode.secondaryRoleLabel ? ` · ${myNode.secondaryRoleLabel}` : ""}
           </h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 10 }}>
-            {myNode.elementLabel} 기운
+            {myNode.roleTagline}
             {myNode.score !== null ? ` · 케미 ${myNode.score}점` : ""}
           </p>
           <NodeDetail node={myNode} />
           <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
-            <button className="btn" onClick={() => void shareLink("guin_result_card_shared")}>
-              이 결과 공유하기
+            <button className="btn" onClick={() => void goMakeMyMap()}>
+              내 귀인 지도도 만들어보기
             </button>
-            <Link className="btn btn-ghost" href="/guin?from=invite" style={{ textAlign: "center" }}>
-              나도 내 주변 인연 지도 만들기
-            </Link>
+            <button className="btn btn-ghost" onClick={() => void shareLink("guin_result_card_shared")}>
+              내 결과 카드 공유하기
+            </button>
             <button
               className="btn btn-ghost"
               onClick={() => joined && void deleteParticipant(joined.participantId)}
@@ -361,7 +433,7 @@ export default function GuinMapPage() {
               setShowShare((v) => !v);
             }}
           >
-            친구 초대하기
+            {stage === "empty" ? "친구 초대해서 첫 관계 열기" : "친구 한 명 더 초대하기"}
           </button>
           {showShare && (
             <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
@@ -393,15 +465,30 @@ export default function GuinMapPage() {
         </section>
       )}
 
-      {/* 지도 본체 */}
-      {view.count === 0 ? (
+      {/* 0명 — empty state */}
+      {stage === "empty" && (
         <section className="card" style={{ padding: 24, textAlign: "center", marginBottom: 14 }}>
+          <p aria-hidden style={{ fontSize: "2rem", marginBottom: 6 }}>○</p>
           <p style={{ fontWeight: 700, marginBottom: 6 }}>아직 지도에 등록된 사람이 없어요</p>
           <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
-            친구 한 명을 초대하면 첫 번째 관계가 나타납니다.
+            친구 한 명이 들어오면 첫 번째 관계 카드가 열려요.
+            <br />첫 번째 인연까지 1명 남았어요.
           </p>
         </section>
-      ) : (
+      )}
+
+      {/* 2명 — 축별 비교 */}
+      {stage === "two" && view.nodes.every((node) => node.axes) && (
+        <AxisComparison nodes={view.nodes} showScores={isOwner || view.showScores} />
+      )}
+
+      {/* 3명+ — 분포와 패턴 리포트 */}
+      {stage === "three_plus" && (
+        <PatternReport nodes={view.nodes} roleSummary={roleSummary} />
+      )}
+
+      {/* 관계 카드 목록 */}
+      {view.count > 0 && (
         <section className="card" style={{ padding: 20, marginBottom: 14 }}>
           {view.count > 20 && (
             <input
@@ -411,44 +498,36 @@ export default function GuinMapPage() {
               style={{ width: "100%", marginBottom: 12 }}
             />
           )}
-          {view.count >= 4 ? (
-            <CircleMap
-              ownerNickname={view.ownerNickname}
-              nodes={filtered}
-              selected={selected}
-              onSelect={setSelected}
-            />
-          ) : (
-            <div style={{ display: "grid", gap: 10 }}>
-              {filtered.map((node) => (
-                <button
-                  key={node.id}
-                  type="button"
-                  className="card"
-                  style={{ padding: 14, textAlign: "left", cursor: "pointer", borderColor: selected === node.id ? ROLE_DOT[node.role] : undefined }}
-                  onClick={() => setSelected(selected === node.id ? null : node.id)}
-                >
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                    <span aria-hidden style={{ width: 10, height: 10, borderRadius: "50%", background: ROLE_DOT[node.role] }} />
-                    <strong>{node.nickname}</strong>
-                    <span style={{ color: "var(--text-dim)", fontSize: "0.82rem" }}>
-                      {node.roleLabel}
-                      {node.score !== null ? ` · ${node.score}점` : ""}
-                    </span>
+          <div style={{ display: "grid", gap: 10 }}>
+            {filtered.map((node) => (
+              <button
+                key={node.id}
+                type="button"
+                className="card"
+                style={{ padding: 14, textAlign: "left", cursor: "pointer", borderColor: selected === node.id ? ROLE_DOT[node.role] : undefined }}
+                onClick={() => setSelected(selected === node.id ? null : node.id)}
+              >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <span aria-hidden style={{ width: 10, height: 10, borderRadius: "50%", background: ROLE_DOT[node.role] }} />
+                  <strong>{node.nickname}</strong>
+                  <span style={{ color: "var(--text-dim)", fontSize: "0.82rem" }}>
+                    {node.roleLabel}
+                    {node.score !== null ? ` · 케미 ${node.score}` : ""}
                   </span>
-                  <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: 4 }}>{node.roleTagline}</p>
-                </button>
-              ))}
-            </div>
-          )}
+                </span>
+                <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: 4 }}>{node.roleTagline}</p>
+              </button>
+            ))}
+          </div>
           {selectedNode && (
             <div className="card" style={{ padding: 16, marginTop: 12, borderColor: ROLE_DOT[selectedNode.role] }}>
               <strong>
-                {selectedNode.nickname} · {selectedNode.roleLabel}
+                {selectedNode.nickname}님은 당신에게 {selectedNode.roleLabel} 인연이에요
               </strong>
               <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", margin: "2px 0 8px" }}>
-                {selectedNode.roleTagline} · {selectedNode.elementLabel} 기운
+                {selectedNode.roleTagline}
                 {selectedNode.score !== null ? ` · 케미 ${selectedNode.score}점` : ""}
+                {selectedNode.secondaryRoleLabel ? ` · 보조: ${selectedNode.secondaryRoleLabel}` : ""}
               </p>
               <NodeDetail node={selectedNode} />
               {(isOwner || joined?.participantId === selectedNode.id) && (
@@ -513,9 +592,31 @@ export default function GuinMapPage() {
   );
 }
 
+/** 역할 분포 요약 한 줄 — "안식처형 1명 · 오른팔형 2명" */
+function summarizeRoles(
+  nodes: GuinNodeView[],
+  roleCounts: Partial<Record<GuinRole, number>>
+): string {
+  return Object.entries(roleCounts)
+    .map(([role, count]) => {
+      const sample = nodes.find((node) => node.role === role);
+      return `${sample?.roleLabel ?? role} ${count}명`;
+    })
+    .join(" · ");
+}
+
 function NodeDetail({ node }: { node: GuinNodeView }) {
+  const top = node.axes
+    ? GUIN_AXES.reduce((best, key) => (node.axes![key] > node.axes![best] ? key : best), GUIN_AXES[0])
+    : null;
   return (
     <div style={{ display: "grid", gap: 8, fontSize: "0.88rem" }}>
+      {top && (
+        <p style={{ color: "var(--text-dim)" }}>
+          가장 강한 관계 축: <strong style={{ color: "var(--text)" }}>{AXIS_LABEL[top]}</strong>
+        </p>
+      )}
+      {node.scoreBand && <p style={{ color: "var(--text-dim)" }}>{node.scoreBand}</p>}
       <div>
         <span style={{ fontWeight: 700 }}>잘 맞는 부분</span>
         {node.strengths.map((line) => (
@@ -524,7 +625,7 @@ function NodeDetail({ node }: { node: GuinNodeView }) {
       </div>
       {node.cautions.length > 0 && (
         <div>
-          <span style={{ fontWeight: 700 }}>주의할 부분</span>
+          <span style={{ fontWeight: 700 }}>관계의 힌트</span>
           {node.cautions.map((line) => (
             <p key={line} style={{ color: "var(--text-dim)", marginTop: 2 }}>· {line}</p>
           ))}
@@ -533,71 +634,126 @@ function NodeDetail({ node }: { node: GuinNodeView }) {
       <p style={{ color: "var(--text-dim)" }}>
         <span style={{ fontWeight: 700, color: "var(--text)" }}>대화 질문</span> · “{node.conversationPrompt}”
       </p>
-      {node.facts.length > 0 && (
-        <p style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>근거: {node.facts.join(", ")}</p>
-      )}
     </div>
   );
 }
 
-/** 4명부터는 원형 배치 — 가운데가 지도 주인이다. 노드를 누르면 상세가 열린다. */
-function CircleMap({
-  ownerNickname,
-  nodes,
-  selected,
-  onSelect,
-}: {
-  ownerNickname: string;
-  nodes: GuinNodeView[];
-  selected: string | null;
-  onSelect: (id: string | null) => void;
-}) {
-  const size = 340;
-  const center = size / 2;
-  const radius = 118;
+/** 축 점수 가로 막대 — 값이 숨겨진 지도에서는 부르지 않는다. */
+function AxisBar({ nickname, value, color, best }: { nickname: string; value: number; color: string; best: boolean }) {
   return (
-    <svg
-      viewBox={`0 0 ${size} ${size}`}
-      style={{ width: "100%", height: "auto", display: "block" }}
-      role="group"
-      aria-label={`${ownerNickname}님의 관계 지도`}
-    >
-      {nodes.map((node, index) => {
-        const angle = (index / nodes.length) * Math.PI * 2 - Math.PI / 2;
-        const x = center + Math.cos(angle) * radius;
-        const y = center + Math.sin(angle) * radius;
-        const active = selected === node.id;
-        return (
-          <g
-            key={node.id}
-            onClick={() => onSelect(active ? null : node.id)}
-            style={{ cursor: "pointer" }}
-            role="button"
-            aria-label={`${node.nickname} · ${node.roleLabel}`}
+    <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 34px", gap: 8, alignItems: "center" }}>
+      <span style={{ fontSize: "0.84rem", fontWeight: best ? 800 : 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {nickname}
+      </span>
+      <span aria-hidden style={{ height: 10, borderRadius: 5, background: "var(--line)", overflow: "hidden", display: "block" }}>
+        <span style={{ display: "block", width: `${value}%`, height: "100%", background: color, opacity: best ? 1 : 0.55 }} />
+      </span>
+      <b style={{ fontSize: "0.82rem", textAlign: "right" }}>{value}</b>
+    </div>
+  );
+}
+
+/** 2명 — 관계 축별 비교. 누가 더 좋은가가 아니라 어떤 축에서 누가 강한가. */
+function AxisComparison({ nodes, showScores }: { nodes: GuinNodeView[]; showScores: boolean }) {
+  const [axis, setAxis] = useState<GuinAxisKey>("comfort");
+  const withAxes = nodes.filter((node) => node.axes);
+  if (withAxes.length < 2) return null;
+  const bestValue = Math.max(...withAxes.map((node) => node.axes![axis]));
+  return (
+    <section className="card" style={{ padding: 20, marginBottom: 14 }}>
+      <span className="badge">관계 축 비교</span>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "12px 0" }}>
+        {GUIN_AXES.map((key) => (
+          <button
+            key={key}
+            type="button"
+            className={`chip${axis === key ? " on" : ""}`}
+            onClick={() => setAxis(key)}
           >
-            <line x1={center} y1={center} x2={x} y2={y} stroke="var(--line)" strokeWidth={1} />
-            <circle
-              cx={x}
-              cy={y}
-              r={22}
-              fill={ROLE_DOT[node.role]}
-              fillOpacity={active ? 0.55 : 0.28}
-              stroke={ROLE_DOT[node.role]}
-              strokeWidth={active ? 2.5 : 1.5}
+            {AXIS_LABEL[key]}
+          </button>
+        ))}
+      </div>
+      {showScores ? (
+        <div style={{ display: "grid", gap: 8 }}>
+          {withAxes.map((node) => (
+            <AxisBar
+              key={node.id}
+              nickname={node.nickname}
+              value={node.axes![axis]}
+              color={ROLE_DOT[node.role]}
+              best={node.axes![axis] === bestValue}
             />
-            <text x={x} y={y + 4} textAnchor="middle" fontSize={11} fill="var(--text)">
-              {node.nickname.slice(0, 4)}
-            </text>
-            <text x={x} y={y + 38} textAnchor="middle" fontSize={10} fill="var(--text-dim)">
-              {node.roleLabel}
-            </text>
-          </g>
-        );
-      })}
-      <circle cx={center} cy={center} r={30} fill="var(--bg-card)" stroke="var(--accent)" strokeWidth={2} />
-      <text x={center} y={center + 4} textAnchor="middle" fontSize={12} fontWeight={700} fill="var(--text)">
-        {ownerNickname.slice(0, 4)}
-      </text>
-    </svg>
+          ))}
+        </div>
+      ) : (
+        <p style={{ color: "var(--text-dim)", fontSize: "0.84rem" }}>
+          지도 주인이 점수 표시를 꺼 두었어요. 역할로만 보여드려요.
+        </p>
+      )}
+      <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginTop: 12 }}>
+        {withAxes.map((node) => `${node.nickname}님은 ${node.roleTagline.replace(/사람$/, "관계")}`).join(", ")}예요.
+      </p>
+    </section>
+  );
+}
+
+/** 3명+ — 분포 막대와 집단 해석, 축별 대표. 순위를 억지로 만들지 않는다. */
+function PatternReport({ nodes, roleSummary }: { nodes: GuinNodeView[]; roleSummary: string }) {
+  const total = nodes.length;
+  const byRole = new Map<string, { label: string; role: GuinRole; count: number }>();
+  for (const node of nodes) {
+    const entry = byRole.get(node.role) ?? { label: node.roleLabel, role: node.role, count: 0 };
+    entry.count += 1;
+    byRole.set(node.role, entry);
+  }
+  const distribution = [...byRole.values()].sort((a, b) => b.count - a.count);
+  const withAxes = nodes.filter((node) => node.axes);
+
+  // 축별 대표 — 동점이면 공동 1위로 다 적는다.
+  const topByAxis = GUIN_AXES.map((key) => {
+    if (withAxes.length === 0) return null;
+    const best = Math.max(...withAxes.map((node) => node.axes![key]));
+    const winners = withAxes.filter((node) => node.axes![key] === best).map((node) => node.nickname);
+    return { key, winners };
+  }).filter((item) => item !== null);
+
+  const diverse = distribution.length >= 3;
+  return (
+    <section className="card" style={{ padding: 20, marginBottom: 14 }}>
+      <span className="badge">내 주변 인연 분포</span>
+      <div style={{ display: "grid", gap: 8, margin: "12px 0" }}>
+        {distribution.map((entry) => (
+          <div key={entry.role} style={{ display: "grid", gridTemplateColumns: "84px 1fr 56px", gap: 8, alignItems: "center" }}>
+            <span style={{ fontSize: "0.84rem", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span aria-hidden style={{ width: 8, height: 8, borderRadius: "50%", background: ROLE_DOT[entry.role] }} />
+              {entry.label}
+            </span>
+            <span aria-hidden style={{ height: 10, borderRadius: 5, background: "var(--line)", overflow: "hidden", display: "block" }}>
+              <span style={{ display: "block", width: `${(entry.count / total) * 100}%`, height: "100%", background: ROLE_DOT[entry.role] }} />
+            </span>
+            <b style={{ fontSize: "0.82rem", textAlign: "right" }}>
+              {entry.count}명 {Math.round((entry.count / total) * 100)}%
+            </b>
+          </div>
+        ))}
+      </div>
+      <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 10 }}>
+        {diverse
+          ? "당신 주변에는 서로 다른 역할의 인연이 고르게 모여 있어요. 마음을 편하게 하는 사람, 현실적으로 움직이게 하는 사람, 새로운 방향을 여는 사람이 각자의 자리에 있어요."
+          : `지금은 ${distribution[0]?.label ?? ""} 인연이 모여 있어요. 다음 초대가 지도의 폭을 넓혀 줄 거예요.`}
+      </p>
+      {topByAxis.length > 0 && (
+        <div style={{ display: "grid", gap: 6, fontSize: "0.84rem" }}>
+          {topByAxis.map((item) => (
+            <p key={item!.key} style={{ color: "var(--text-dim)" }}>
+              {AXIS_LABEL[item!.key]}이 가장 강한 관계:{" "}
+              <strong style={{ color: "var(--text)" }}>{item!.winners.join(" · ")}</strong>
+            </p>
+          ))}
+        </div>
+      )}
+      <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 10 }}>{roleSummary}</p>
+    </section>
   );
 }
