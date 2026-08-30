@@ -45,6 +45,48 @@ export const FUNNEL_EVENTS = [
   "checkout_submitted",
   /** 결제가 끝났다 */
   "purchase_done",
+
+  // ── 귀인 지도 (2026-08-31) ─────────────────────────────
+  // 같은 파이프라인(lr_funnel_events)을 쓴다. 역할은 product 칸에,
+  // 지도 크기 버킷은 landing 칸에 싣는다 — 새 칸을 만들지 않는다.
+  /** 귀인 지도 첫 화면을 열었다 */
+  "guin_landing_view",
+  /** "내 지도 만들기"를 눌렀다 */
+  "guin_start_clicked",
+  /** 로그인 없이 시작했다 */
+  "guin_guest_mode_started",
+  /** 생성 폼에 손을 댔다 */
+  "guin_form_started",
+  /** 생성 폼을 보냈다 */
+  "guin_form_submitted",
+  /** 지도가 만들어졌다 */
+  "guin_map_created",
+  /** 공유 미리보기를 열었다 */
+  "guin_share_preview_opened",
+  /** 초대 링크를 복사·공유했다 */
+  "guin_share_link_copied",
+  /** 스토리용 카드 이미지를 저장했다 */
+  "guin_share_image_downloaded",
+  /** 초대 링크로 들어왔다 */
+  "guin_invite_landing_view",
+  /** 참여 폼에 손을 댔다 */
+  "guin_participant_form_started",
+  /** 참여 폼을 보냈다 (성공 = 지도에 노드가 하나 늘었다) */
+  "guin_participant_submitted",
+  /** 관계 결과 카드가 보였다 */
+  "guin_relationship_revealed",
+  /** 초대받은 사람이 자기 지도를 만들었다 — 2차 바이럴 */
+  "guin_second_map_created",
+  /** 관계 결과 카드를 공유했다 */
+  "guin_result_card_shared",
+  /** 공개 범위 설정을 열었다 */
+  "guin_privacy_settings_opened",
+  /** 참여자(또는 내 기록)를 지웠다 */
+  "guin_participant_deleted",
+  /** 지도를 지웠다 */
+  "guin_map_deleted",
+  /** 서버 오류 화면을 봤다 */
+  "guin_server_error",
 ] as const;
 
 export type FunnelEventName = (typeof FUNNEL_EVENTS)[number];
