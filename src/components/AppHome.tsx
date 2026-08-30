@@ -248,40 +248,6 @@ export default function AppHome() {
                   </div>
                 </Link>
               ))}
-            {/* 귀인 지도 — 유일한 무료 카드. 파는 물건이 아니라 데려오는 물건이다:
-                친구가 참여해야 완성되는 지도라, 이 카드의 일은 결제가 아니라 공유다. */}
-            {filter === "all" && (
-              <Link href="/guin" className="card fortune-grid-card" data-product="guin-map">
-                <div
-                  aria-hidden
-                  className="fortune-grid-art"
-                  style={{
-                    display: "grid",
-                    placeItems: "center",
-                    background: "linear-gradient(160deg, #efe5d6, #d8c2a8)",
-                    fontSize: "4.6rem",
-                    letterSpacing: "-0.5rem",
-                  }}
-                >
-                  🗺️🐰
-                </div>
-                <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
-                <div className="fortune-grid-copy">
-                  <span className="fortune-grid-kicker">🧭 무료 · 친구랑</span>
-                  <strong>귀인 지도</strong>
-                  <p>내 주변에 어떤 인연이 있을까? 친구가 생일만 넣으면 지도에 나타나요</p>
-                  <span className="fortune-grid-price">
-                    <b>무료</b>
-                    <small>참여할수록 커져요</small>
-                  </span>
-                  <span className="fortune-grid-cta">
-                    <span aria-hidden>🧭</span>
-                    <span className="fortune-grid-cta-label">내 지도 만들기</span>
-                    <b aria-hidden>→</b>
-                  </span>
-                </div>
-              </Link>
-            )}
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
               return (
