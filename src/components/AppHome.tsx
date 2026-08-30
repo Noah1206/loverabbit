@@ -13,7 +13,17 @@ import { useTheme } from "@/components/ThemeProvider";
 import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { BUNDLES, bundleListPrice } from "@/lib/bundles";
 import { PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
+import { questionsLeft } from "@/lib/credits";
 import InquiryButton from "@/components/InquiryButton";
+
+interface RecentReading {
+  readingId: string;
+  category: string;
+  label: string;
+  teaser: string;
+  unlocked: boolean;
+  createdAt: string;
+}
 
 const NOTICES = [
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
@@ -50,12 +60,39 @@ export default function AppHome() {
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
+  // 로그인한 사람에게만 보이는 자리. 크레딧과 최근 리딩은 서버가 답한다.
+  const [balance, setBalance] = useState<number | null>(null);
+  const [recent, setRecent] = useState<RecentReading[]>([]);
 
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
     return () => clearInterval(t);
   }, []);
+
+  // 못 가져와도 그냥 지나간다 — 이 줄은 덤이고, 없다고 홈이 막히면 안 된다.
+  useEffect(() => {
+    if (!user) {
+      setBalance(null);
+      setRecent([]);
+      return;
+    }
+    let alive = true;
+    const post = (path: string) =>
+      fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: user.token }),
+      }).then((res) => (res.ok ? res.json() : null));
+
+    post("/api/credits")
+      .then((d: { balance?: number } | null) => { if (alive && typeof d?.balance === "number") setBalance(d.balance); })
+      .catch(() => {});
+    post("/api/my-readings")
+      .then((d: { readings?: RecentReading[] } | null) => { if (alive) setRecent(d?.readings ?? []); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [user]);
 
   const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
   const list = PRODUCTS.filter((p) => filter === "all" || p.tags.includes(filter));
@@ -95,6 +132,59 @@ export default function AppHome() {
             </button>
           </div>
         </header>
+
+        {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
+             먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
+        {user && (balance !== null || recent.length > 0) && (
+          <div className="home-status">
+            {balance !== null && (
+              <Link href="/ask" className="home-status-ticket">
+                <span className="home-status-ticket-copy">
+                  <strong>
+                    {questionsLeft(balance) > 0 ? "질문권이 있어요" : "질문권을 다 썼어요"}
+                  </strong>
+                  <span>
+                    {questionsLeft(balance) > 0
+                      ? "레빗 언니한테 지금 물어볼 수 있어요"
+                      : "충전하면 이어서 물어볼 수 있어요"}
+                  </span>
+                </span>
+                <span className="home-status-count">
+                  <b>{questionsLeft(balance)}</b>
+                  <small>번 남음</small>
+                </span>
+              </Link>
+            )}
+
+            {recent[0] && (
+              <Link href={`/reading/${recent[0].readingId}`} className="home-status-card">
+                <span className="home-status-avatar" aria-hidden>
+                  {PRODUCT_MAP[recent[0].category]?.emoji ?? "\uD83D\uDC30"}
+                </span>
+                <span className="home-status-body">
+                  <strong>
+                    {recent[0].unlocked
+                      ? `${recent[0].label} 리딩을 다시 볼 수 있어요`
+                      : `${recent[0].label} 리딩이 기다리고 있어요`}
+                    {!recent[0].unlocked && <i className="home-status-dot" aria-hidden />}
+                  </strong>
+                  <span>{recent[0].teaser}</span>
+                </span>
+                <span className="home-status-go" aria-hidden>›</span>
+              </Link>
+            )}
+
+            {recent[1] && (
+              <Link href={`/reading/${recent[1].readingId}`} className="home-status-slim">
+                <span className="home-status-avatar home-status-avatar--sm" aria-hidden>
+                  {PRODUCT_MAP[recent[1].category]?.emoji ?? "\uD83D\uDC30"}
+                </span>
+                <strong>{recent[1].label}</strong>
+                <span>· {recent[1].teaser}</span>
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* ── 공지 배너 캐러셀 ── */}
         <div style={{ padding: "0 20px 10px" }}>
