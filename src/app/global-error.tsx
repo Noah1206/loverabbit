@@ -27,10 +27,10 @@ export default function GlobalError({
       <head>
         {/* BackOnError 가 .btn 을 입는다. 스타일시트가 없어도 같은 버튼으로 보이게 한다. */}
         <style>{`
-          .btn { display: inline-block; padding: 14px 28px; border: 0; border-radius: 999px;
-                 background: linear-gradient(135deg, #7a4a8a, #5d3569); color: #fff;
+          .btn { display: inline-block; padding: 14px 28px; border: 0; border-radius: 0;
+                 background: #4a154b; color: #fff;
                  font: inherit; font-weight: 700; cursor: pointer;
-                 box-shadow: 0 8px 22px rgba(58, 32, 68, 0.24); }
+                 box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); }
         `}</style>
       </head>
       <body
@@ -41,8 +41,8 @@ export default function GlobalError({
           placeItems: "center",
           padding: "24px",
           // globals.css 가 없는 상태라 테마 토큰을 못 쓴다. 같은 값을 손으로 적는다.
-          background: "#faf7f4",
-          color: "#241d26",
+          background: "#ffffff",
+          color: "#1d1d1d",
           fontFamily:
             "system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif",
           textAlign: "center",
