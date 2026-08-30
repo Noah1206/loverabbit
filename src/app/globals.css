@@ -742,11 +742,15 @@ label {
 
 /* 한 장씩 세로로 쌓이면 상품이 몇 개인지 스크롤해야 알 수 있다.
    2열 타일로 좁혀 한 화면에 네 장이 들어오게 한다. */
+/* 카드가 서로, 그리고 화면 양끝에 맞닿는다. 틈도 여백도 두지 않는다 —
+   그리드 자체가 한 장의 판이 된다. 섹션이 갖고 있는 좌우 8px 는 음수
+   마진으로 되돌린다. */
 .fortune-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0;
   margin-top: 16px;
+  margin-inline: -8px;
 }
 
 /* ── 홈 상단 내 상태 줄 ─────────────────────────────────────────────
@@ -921,7 +925,9 @@ label {
   position: relative;
   display: block;
   border-radius: var(--r-xl);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  /* 맞닿은 판에서는 그림자와 테두리가 카드 사이에 선을 만든다. 둘 다 뺀다. */
+  border: 0;
+  box-shadow: none;
 }
 
 [data-product="sokgunghap"] { --product-c1: #ff347f; --product-c2: #ff7a3d; --product-glow: rgba(255, 52, 127, 0.42); --product-line: rgba(255, 116, 141, 0.56); }
