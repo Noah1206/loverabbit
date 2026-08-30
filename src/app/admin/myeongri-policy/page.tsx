@@ -267,7 +267,7 @@ const S: Record<string, React.CSSProperties> = {
   lede: { fontSize: 14, opacity: 0.85, marginBottom: 24 },
   card: {
     border: "1px solid rgba(128,128,128,0.28)",
-    borderRadius: 10,
+    borderRadius: 0,
     padding: "18px 18px 20px",
     marginBottom: 18,
   },

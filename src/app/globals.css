@@ -55,14 +55,16 @@
   --semantic-error: #cc4117;
   --semantic-success: #007a5a;
 
-  /* 반경 — DESIGN-slack.md rounded 스케일 그대로. */
-  --r-xs: 2px;
-  --r-sm: 4px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-xxl: 48px;
-  --r-pill: 90px;
+  /* 반경을 0으로 접는다 (2026-08-30). 화면을 폰 폭에 꽉 채우는 각진 UI 로 간다 —
+     카드도 버튼도 굴리지 않는다. 스케일 이름은 그대로 두어, 되살릴 때 여기 값만
+     되돌리면 되게 한다. 원형 아바타(50%)는 이 토큰을 쓰지 않으므로 남는다. */
+  --r-xs: 0;
+  --r-sm: 0;
+  --r-md: 0;
+  --r-lg: 0;
+  --r-xl: 0;
+  --r-xxl: 0;
+  --r-pill: 0;
 
   --art-saturate: 0.9;
 
@@ -123,13 +125,13 @@
   --semantic-error: #ff7a5f;
   --semantic-success: #4fd1a5;
 
-  --r-xs: 2px;
-  --r-sm: 4px;
-  --r-md: 8px;
-  --r-lg: 12px;
-  --r-xl: 16px;
-  --r-xxl: 48px;
-  --r-pill: 90px;
+  --r-xs: 0;
+  --r-sm: 0;
+  --r-md: 0;
+  --r-lg: 0;
+  --r-xl: 0;
+  --r-xxl: 0;
+  --r-pill: 0;
 
   color-scheme: dark;
 }

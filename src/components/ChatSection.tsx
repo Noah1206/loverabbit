@@ -58,22 +58,22 @@ export default function ChatSection({
       </div>
 
       <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
-        <div style={{ justifySelf: "start", maxWidth: "85%", background: "var(--bg-card2)", borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.92rem" }}>
+        <div style={{ justifySelf: "start", maxWidth: "85%", background: "var(--bg-card2)", borderRadius: "0", padding: "10px 14px", fontSize: "0.92rem" }}>
           리딩에서 궁금한 점이 있으면 물어보세요. 명식 기준으로 답해드릴게요.
         </div>
         {msgs.map((m, i) =>
           m.role === "user" ? (
-            <div key={i} style={{ justifySelf: "end", maxWidth: "85%", background: "linear-gradient(135deg, var(--accent), var(--violet))", color: "#fff", borderRadius: "16px 4px 16px 16px", padding: "10px 14px", fontSize: "0.92rem" }}>
+            <div key={i} style={{ justifySelf: "end", maxWidth: "85%", background: "linear-gradient(135deg, var(--accent), var(--violet))", color: "#fff", borderRadius: "0", padding: "10px 14px", fontSize: "0.92rem" }}>
               {m.content}
             </div>
           ) : (
-            <div key={i} style={{ justifySelf: "start", maxWidth: "85%", background: "var(--bg-card2)", borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.92rem", whiteSpace: "pre-wrap" }}>
+            <div key={i} style={{ justifySelf: "start", maxWidth: "85%", background: "var(--bg-card2)", borderRadius: "0", padding: "10px 14px", fontSize: "0.92rem", whiteSpace: "pre-wrap" }}>
               {m.content}
             </div>
           )
         )}
         {sending && (
-          <div className="pulse" style={{ justifySelf: "start", background: "var(--bg-card2)", borderRadius: "4px 16px 16px 16px", padding: "10px 14px", fontSize: "0.92rem", color: "var(--text-dim)" }}>
+          <div className="pulse" style={{ justifySelf: "start", background: "var(--bg-card2)", borderRadius: "0", padding: "10px 14px", fontSize: "0.92rem", color: "var(--text-dim)" }}>
             명식을 다시 확인하는 중…
           </div>
         )}

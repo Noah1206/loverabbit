@@ -100,7 +100,7 @@ export default function AppHome() {
         <div style={{ padding: "0 20px 10px" }}>
           <div
             style={{
-              borderRadius: 14, padding: "11px 16px", textAlign: "center", cursor: "default",
+              borderRadius: 0, padding: "11px 16px", textAlign: "center", cursor: "default",
               // 색으로 눈길을 끌던 자리다. 흰 카드 + 얇은 선으로 구분만 짓는다.
               background: "var(--bg-card)",
               border: "1px solid var(--line)",
@@ -116,7 +116,7 @@ export default function AppHome() {
                   onClick={() => setNotice(i)}
                   aria-label={`공지 ${i + 1}`}
                   style={{
-                    width: i === notice ? 16 : 6, height: 6, borderRadius: 999, border: "none", cursor: "pointer",
+                    width: i === notice ? 16 : 6, height: 6, borderRadius: 0, border: "none", cursor: "pointer",
                     background: i === notice ? "var(--accent)" : "var(--tint-line)", transition: "width 0.25s",
                   }}
                 />
