@@ -49,8 +49,14 @@ export async function POST(req: NextRequest) {
   const userId = user.userId;
 
   if (body.list) {
-    const [balance, questions] = await Promise.all([getCreditBalance(userId), listQuestions(userId)]);
-    return NextResponse.json({ balance, questions, cost: QUESTION_COST });
+    const [balance, questions, profile] = await Promise.all([
+      getCreditBalance(userId),
+      listQuestions(userId),
+      getUserSajuProfile(userId).catch(() => null),
+    ]);
+    // 명식이 없으면 화면이 먼저 알아야 한다. 모른 채 물으면 크레딧만 나가고
+    // 일반론이 돌아온다 — 그건 이 서비스가 팔기로 한 물건이 아니다.
+    return NextResponse.json({ balance, questions, cost: QUESTION_COST, hasProfile: Boolean(profile) });
   }
 
   const question = (body.question ?? "").trim();
@@ -63,6 +69,26 @@ export async function POST(req: NextRequest) {
     getUserSajuProfile(userId).catch(() => null),
     listUnlockedReadingsForContext(userId).catch(() => []),
   ]);
+
+  /*
+    명식이 없으면 팔지 않는다.
+
+    화면은 "내 사주와 이미 받은 리딩을 바탕으로" 라고 약속한다. 프로필이 비면
+    그 약속을 못 지키면서 크레딧만 가져가게 된다 — 무료 크레딧을 없앤 뒤로는
+    그 5장이 손님이 돈 주고 산 것이라 더 그렇다.
+
+    리딩을 한 번이라도 산 사람은 그때 저장됐다(reading/route.ts). 안 산 사람은
+    저장될 자리가 없었으므로 여기서 돌려보낸다.
+  */
+  if (!profile) {
+    return NextResponse.json(
+      {
+        error: "내 사주가 아직 없어요. 사주를 한 번 보고 나면 그 명식으로 답해 드려요.",
+        needProfile: true,
+      },
+      { status: 409 }
+    );
+  }
 
   const record = await createQuestion({ userId, question, readingIds: readings.map((r) => r.id) });
   if (!record) return NextResponse.json({ error: "질문을 저장하지 못했어요." }, { status: 503 });

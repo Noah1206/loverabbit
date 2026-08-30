@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import SignupModal from "@/components/SignupModal";
 import { QUESTION_COST, questionsLeft } from "@/lib/credits";
+import { askBlock } from "@/lib/question-gate";
 import { getUser, type User } from "@/lib/user";
 
 /*
@@ -37,6 +38,8 @@ export default function AskPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  // 내 사주가 저장돼 있는가. 없으면 물어도 명식 없이 답하게 되므로 서버가 막는다.
+  const [hasProfile, setHasProfile] = useState(true);
 
   const load = useCallback(async (account: User) => {
     const res = await fetch("/api/question", {
@@ -45,9 +48,14 @@ export default function AskPage() {
       body: JSON.stringify({ userToken: account.token, list: true }),
     });
     if (!res.ok) return;
-    const data = (await res.json()) as { balance: number; questions: QuestionRow[] };
+    const data = (await res.json()) as {
+      balance: number;
+      questions: QuestionRow[];
+      hasProfile?: boolean;
+    };
     setBalance(data.balance);
     setRows(data.questions);
+    setHasProfile(data.hasProfile !== false);
   }, []);
 
   useEffect(() => {
@@ -69,12 +77,17 @@ export default function AskPage() {
         body: JSON.stringify({ userToken: user.token, question: q }),
       });
       const data = (await res.json().catch(() => ({}))) as {
-        id?: string; answer?: string; balance?: number; error?: string; insufficient?: boolean; demo?: boolean;
+        id?: string; answer?: string; balance?: number; error?: string;
+        insufficient?: boolean; demo?: boolean; needProfile?: boolean;
       };
       if (typeof data.balance === "number") setBalance(data.balance);
       if (!res.ok) {
         if (data.insufficient) {
-          setError("크레딧이 부족해요. 친구에게 초대 링크를 보내거나 크레딧을 충전해 주세요.");
+          setError("크레딧이 부족해요. 충전하고 다시 물어봐 주세요.");
+          return;
+        }
+        if (data.needProfile) {
+          setHasProfile(false);
           return;
         }
         throw new Error(data.error ?? "답을 만들지 못했어요.");
@@ -98,7 +111,10 @@ export default function AskPage() {
   if (!checked) return <main className="container" style={{ paddingTop: 48 }} />;
 
   const left = balance === null ? null : questionsLeft(balance);
-  const canAsk = Boolean(user) && (balance ?? 0) >= QUESTION_COST;
+  // 판단은 question-gate.ts 에 있다 — 서버(/api/question)와 같은 규칙이라
+  // 한쪽만 고치지 않도록 한 곳에 뒀다.
+  const block = askBlock({ signedIn: Boolean(user), hasProfile, balance: balance ?? 0 });
+  const canAsk = block === null;
 
   return (
     <main className="container" style={{ paddingTop: 48 }}>
@@ -123,6 +139,22 @@ export default function AskPage() {
           <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>로그인하면 첫 구매 할인가를 볼 수 있어요.</p>
           <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>로그인 · 가입하기</button>
         </div>
+      ) : !hasProfile ? (
+        /*
+          명식이 없으면 물을 수 없다. 화면이 "내 사주를 바탕으로" 라고 약속하는데
+          그 사주가 없으면 크레딧만 나가고 일반론이 돌아온다.
+
+          사주는 리딩을 만들 때 저장된다. 그래서 여기서 입력받지 않고 리딩으로
+          보낸다 — 입력칸을 하나 더 두면 같은 값을 두 곳에서 받게 되고, 그 둘이
+          어긋나는 날이 온다.
+        */
+        <div className="card" style={{ padding: 24, textAlign: "center" }}>
+          <p style={{ fontWeight: 700, marginBottom: 6 }}>내 사주가 아직 없어요</p>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
+            사주를 한 번 보고 나면 그 명식으로 답해 드려요. 크레딧은 쓰지 않았어요.
+          </p>
+          <Link className="btn" href="/reading" style={{ width: "100%" }}>내 사주 보러 가기</Link>
+        </div>
       ) : (
         <div className="card" style={{ padding: 20 }}>
           <textarea
@@ -139,8 +171,7 @@ export default function AskPage() {
           </button>
           {!canAsk && balance !== null && (
             <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: 10 }}>
-              크레딧이 모자라요. <Link href="/credits" style={{ color: "var(--accent)" }}>충전하기</Link> 또는{" "}
-              <Link href="/profile" style={{ color: "var(--accent)" }}>친구 초대</Link>로 채울 수 있어요.
+              크레딧이 모자라요. <Link href="/credits" style={{ color: "var(--accent)" }}>충전하기</Link>
             </p>
           )}
           {error && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 10 }} role="alert">{error}</p>}
