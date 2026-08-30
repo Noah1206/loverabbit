@@ -3548,18 +3548,6 @@ label {
   text-align: center;
 }
 
-.tabbar-dock {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  z-index: 59;
-  width: min(100%, var(--app-max-width));
-  height: calc(88px + env(safe-area-inset-bottom));
-  pointer-events: none;
-  background: var(--bg);
-  transform: translateX(-50%);
-}
-
 .tabbar {
   --active-index: 0;
   --nav-count: 4;
@@ -8044,8 +8032,7 @@ body:has(.admin-shell) .app-viewport {
 }
 
 /* 홈·내 상담·마이는 손님의 길이다. 승인 화면 위에 떠서 표 아랫줄을 가린다. */
-body:has(.admin-shell) .tabbar,
-body:has(.admin-shell) .tabbar-dock {
+body:has(.admin-shell) .tabbar {
   display: none;
 }
 

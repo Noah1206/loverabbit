@@ -74,37 +74,34 @@ export default function BottomNav() {
   if (path === "/reading" || path.startsWith("/reading/") || path.startsWith("/product/") || path.startsWith("/set/") || path.startsWith("/saju/")) return null;
 
   return (
-    <>
-      <div className="tabbar-dock" aria-hidden />
-      <nav
-        className="tabbar"
-        aria-label="주요 메뉴"
-        style={{ "--active-index": visualIndex, "--nav-count": NAV_ITEMS.length } as CSSProperties}
-      >
-        <span className="tabbar-indicator-slot" aria-hidden>
-          <span className="tabbar-indicator" />
-        </span>
-        {NAV_ITEMS.map((item, index) => {
-          const active = routeIndex === index;
-          const visuallyActive = visualIndex === index;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={visuallyActive ? "on" : ""}
-              aria-current={active ? "page" : undefined}
-              onClick={() => setVisualIndex(index)}
-            >
-              <span className="tabbar-icon" aria-hidden>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  {item.icon}
-                </svg>
-              </span>
-              <span className="tabbar-label">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </>
+    <nav
+      className="tabbar"
+      aria-label="주요 메뉴"
+      style={{ "--active-index": visualIndex, "--nav-count": NAV_ITEMS.length } as CSSProperties}
+    >
+      <span className="tabbar-indicator-slot" aria-hidden>
+        <span className="tabbar-indicator" />
+      </span>
+      {NAV_ITEMS.map((item, index) => {
+        const active = routeIndex === index;
+        const visuallyActive = visualIndex === index;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={visuallyActive ? "on" : ""}
+            aria-current={active ? "page" : undefined}
+            onClick={() => setVisualIndex(index)}
+          >
+            <span className="tabbar-icon" aria-hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {item.icon}
+              </svg>
+            </span>
+            <span className="tabbar-label">{item.label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
