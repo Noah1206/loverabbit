@@ -5,7 +5,6 @@ import {
   isAdminApprovalConfigured,
   verifyAdminApprovalKey,
 } from "@/lib/admin-auth";
-import { effectiveProvider, isAiConfigured, serverlessHost } from "@/lib/ai";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 /*
@@ -33,19 +32,6 @@ export async function GET(request: NextRequest) {
   const db = getSupabaseAdmin();
   if (!db) return NextResponse.json({ error: "DB 연결이 없어요." }, { status: 503 });
 
-  // 1. 이 서버가 글을 만들 수 있는 상태인가. 여기가 false 면 나머지는 볼 것도 없다.
-  const ai = {
-    configured: isAiConfigured(),
-    provider: effectiveProvider(),
-    host: serverlessHost(),
-    pinned: process.env.AI_PROVIDER ?? null,
-    keys: {
-      openai: Boolean(process.env.OPENAI_API_KEY),
-      anthropic: Boolean(process.env.ANTHROPIC_API_KEY),
-      gemini: Boolean(process.env.GEMINI_API_KEY),
-    },
-  };
-
   // 2. 돈은 냈는데(unlocked) 글이 비었거나 데모인 리딩.
   const { data: readings, error } = await db
     .from("lr_readings")
@@ -54,7 +40,7 @@ export async function GET(request: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(100);
   if (error) {
-    return NextResponse.json({ ai, error: `리딩 조회 실패: ${error.message}` }, { status: 503 });
+    return NextResponse.json({ error: `리딩 조회 실패: ${error.message}` }, { status: 503 });
   }
 
   const broken = (readings ?? [])
@@ -74,7 +60,8 @@ export async function GET(request: NextRequest) {
     .limit(100);
 
   return NextResponse.json({
-    ai,
+    // 제공사·키 상태는 /api/admin/model-routing 이 이미 답한다. 여기서 또 세면
+    // 두 곳의 답이 갈리는 날이 온다.
     checkedUnlocked: readings?.length ?? 0,
     brokenCount: broken.length,
     broken,
