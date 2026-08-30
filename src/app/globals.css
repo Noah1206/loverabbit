@@ -184,8 +184,8 @@ body {
   width: min(100%, var(--app-max-width));
   min-height: 100dvh;
   margin-inline: auto;
-  /* 탭바(66px)와 그 아래 여백(22px)을 비우고 20px 더 — 마지막 요소가 가리지 않게 */
-  padding-bottom: calc(108px + env(safe-area-inset-bottom));
+  /* 탭바(62px, 바닥에 붙음)를 비우고 20px 더 — 마지막 요소가 가리지 않게 */
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -3938,25 +3938,29 @@ label {
   text-align: center;
 }
 
+/* 상단바와 같은 재질이어야 한 앱으로 읽힌다. 떠 있는 알약이 아니라
+   바닥에 붙은 면이다 — 굴림도 그림자도 없다. 위쪽 실선 하나로만 본문과
+   가른다. --nav-count 는 컴포넌트가 실제 탭 수로 덮어쓴다. */
 .tabbar {
   --active-index: 0;
-  --nav-count: 4;
+  --nav-count: 3;
   position: fixed;
-  /* 페이지 CTA 바(.reading-fixed-action, .product-sticky-shell)와 같은 기준 */
-  bottom: calc(22px + env(safe-area-inset-bottom));
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
-  height: 66px;
+  width: min(100vw, var(--app-max-width));
+  height: calc(62px + env(safe-area-inset-bottom));
+  padding: 0 0 env(safe-area-inset-bottom);
   z-index: 60;
   display: flex;
-  padding: 4px;
-  border-radius: var(--r-xl);
+  border-radius: 0;
   overflow: hidden;
   isolation: isolate;
   background: var(--chrome-bg);
-  border: 1px solid var(--chrome-line);
-  box-shadow: var(--chrome-shadow);
+  border: 0;
+  /* 선 대신 그림자로 가른다. 위로만 퍼지게 해서 바가 본문 위에 떠 보인다 —
+     선은 자르고 그림자는 얹는다. */
+  box-shadow: 0 -6px 18px rgba(29, 29, 29, 0.09);
 }
 
 .tabbar::after {
@@ -3965,25 +3969,41 @@ label {
 
 .tabbar-indicator-slot {
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: calc((100% - 8px) / var(--nav-count));
-  height: 58px;
+  top: 0;
+  left: 0;
+  width: calc(100% / var(--nav-count));
+  height: 100%;
   display: grid;
-  place-items: center;
+  place-items: start center;
   pointer-events: none;
   transform: translateX(calc(100% * var(--active-index)));
-  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
 }
 
+/* 판을 깔지 않는다. 고른 탭 위에 오베르진 막대가 얹히고, 그 아래로
+   아주 옅은 라벤더가 깔려 어디에 서 있는지만 짚는다. */
 .tabbar-indicator {
-  width: calc(100% - 4px);
-  height: 58px;
-  border-radius: var(--r-xl);
-  background: var(--chrome-slot);
+  width: 34px;
+  height: 3px;
+  border-radius: 0;
+  background: var(--accent);
   border: 0;
   box-shadow: none;
+}
+
+/* 라벤더는 아주 옅게만. 판으로 읽히면 각진 네모가 하나 더 생긴다 —
+   막대 밑에 빛이 번지는 정도면 충분하다. */
+.tabbar-indicator-slot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 9%, transparent),
+    transparent 58%
+  );
+  z-index: -1;
 }
 
 .tabbar a {
