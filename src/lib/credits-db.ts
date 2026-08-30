@@ -47,6 +47,30 @@ export async function applyCredit(
   return Number(data ?? 0);
 }
 
+/**
+ * 이 회원이 크레딧을 산 적이 있는가.
+ *
+ * 첫 구매 할인 팩의 자격을 여기서 가른다. 화면 문구로만 막으면 팩 id 를 아는
+ * 사람은 계속 산다 — 결제를 시작하는 두 라우트(포트원·계좌이체)가 모두 이걸
+ * 본다.
+ *
+ * 원장의 purchase 기록으로 센다. 잔액이 아니라 기록이다 — 사서 다 쓴 사람도
+ * 첫 구매자가 아니다.
+ */
+export async function hasPurchasedCredits(userId: number): Promise<boolean> {
+  const db = getSupabaseAdmin();
+  // DB 가 없으면 확인할 방법이 없다. 막는 쪽으로 기운다 — 로컬에서 할인 팩이
+  // 안 보이는 것보다 운영에서 무한히 팔리는 쪽이 나쁘다.
+  if (!db) return true;
+  const { count, error } = await db
+    .from("lr_credit_ledger")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("reason", "purchase");
+  if (error) throw databaseError("첫 구매 여부 조회", error);
+  return (count ?? 0) > 0;
+}
+
 export async function listCreditLedger(userId: number, limit = 30): Promise<CreditLedgerEntry[]> {
   const db = getSupabaseAdmin();
   if (!db) return [];

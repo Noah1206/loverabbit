@@ -37,7 +37,7 @@ export function captureReferralFromLocation(): PendingReferral | null {
       capturedAt: Date.now(),
     };
     localStorage.setItem(KEY, JSON.stringify(pending));
-    // 클릭 보상 — 초대인에게 5크레딧. 서버가 기기 쿠키로 한 번만 준다.
+    // 클릭 기록. 크레딧 보상은 없다 (2026-08-30) — 누가 눌렀는지만 남긴다.
     // 실패해도 링크는 그대로 산다; 보상은 덤이지 관문이 아니다.
     fetch("/api/referral/click", {
       method: "POST",

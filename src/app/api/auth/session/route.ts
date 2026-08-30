@@ -28,7 +28,10 @@ function normalizeReward(value: unknown): ReferralRewardType | undefined {
 function sessionResponse(
   user: DatabaseSocialUser,
   provider: DatabaseAuthProvider,
-  referralClaimed = false
+  referralClaimed = false,
+  // 이번 요청에서 회원 행이 새로 생겼는가. 가입 완료 화면이 이걸 보고 처음 온
+  // 사람을 충전함으로 보낸다 (무료 크레딧이 없어서 그냥 두면 아무것도 못 한다).
+  isNewUser = false
 ) {
   const token = seal({
     type: "user",
@@ -43,6 +46,7 @@ function sessionResponse(
     referralCode: user.referralCode,
     referralClaimed,
     authProvider: provider,
+    isNewUser,
   });
 }
 
@@ -122,7 +126,7 @@ export async function POST(request: NextRequest) {
     if (!connected) {
       return NextResponse.json({ error: "계정을 안전하게 연결하지 못했어요." }, { status: 409 });
     }
-    return sessionResponse(connected, provider, signup.referralClaimed);
+    return sessionResponse(connected, provider, signup.referralClaimed, signup.isNew);
   } catch (error) {
     console.error("소셜 로그인 회원 연결 실패:", error);
     return NextResponse.json(

@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { open } from "@/lib/crypto";
 import { chatComplete, type ChatMsg } from "@/lib/ai";
 import { ABSOLUTE_PATTERNS, OUT_OF_SCOPE } from "@/lib/reading-guard";
-import { countQuestionsForReading, createQuestion, settleQuestion } from "@/lib/credits-db";
+import {
+  InsufficientCreditsError,
+  applyCredit,
+  createQuestion,
+  getCreditBalance,
+  settleQuestion,
+} from "@/lib/credits-db";
+import { QUESTION_COST } from "@/lib/credits";
 import { isDatabaseConfigured } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 
@@ -87,22 +94,69 @@ export async function POST(req: NextRequest) {
   if (isDatabaseConfigured() && !userId) {
     return NextResponse.json({ error: "추가 상담은 로그인 후 이용할 수 있어요.", needSignup: true }, { status: 401 });
   }
-  if (userId && (await countQuestionsForReading(userId, body.readingId)) >= 1) {
-    return NextResponse.json(
-      { error: "이번 리딩의 무료 추가 상담 1회를 이미 사용했어요. 더 물으려면 오늘의 질문(크레딧)을 써 주세요.", limitReached: true },
-      { status: 402 }
-    );
+  /*
+    무료 1회는 없앴다 (2026-08-30). 리딩에 딸린 상담도 크레딧을 쓴다.
+
+    잔액 확인만 여기서 하고, 실제 차감은 답을 만들기 직전에 한다 — 먼저 깎으면
+    모델 호출이 실패했을 때 되돌릴 자리가 늘어난다.
+  */
+  if (userId) {
+    let balance;
+    try {
+      balance = await getCreditBalance(userId);
+    } catch (error) {
+      console.error("크레딧 잔액 조회 실패:", error);
+      return NextResponse.json({ error: "크레딧을 확인하지 못했어요." }, { status: 503 });
+    }
+    if (balance < QUESTION_COST) {
+      return NextResponse.json(
+        {
+          error: `크레딧이 모자라요. 질문 한 번에 ${QUESTION_COST}크레딧이 들어요.`,
+          needCredits: true,
+          balance,
+        },
+        { status: 402 }
+      );
+    }
   }
 
   const history = (body.history ?? []).slice(-MAX_HISTORY);
   const question = body.question.trim();
   const record = userId ? await createQuestion({ userId, question, readingIds: [body.readingId] }).catch(() => null) : null;
 
+  /** 답을 못 준 경우 되돌린다. 원장에 refund 로 남는다. */
+  const refund = async () => {
+    if (!userId) return;
+    try {
+      await applyCredit(userId, QUESTION_COST, "refund", record ? String(record.id) : undefined);
+    } catch (error) {
+      console.error("크레딧 환불 실패:", error);
+    }
+  };
+
+  // 여기서 깎는다. 잔액이 그 사이에 비었으면(다른 탭에서 썼다면) RPC 가 막는다.
+  if (userId) {
+    try {
+      await applyCredit(userId, -QUESTION_COST, "question", record ? String(record.id) : undefined);
+    } catch (error) {
+      if (record) await settleQuestion(record.id, { failed: true }).catch(() => {});
+      if (error instanceof InsufficientCreditsError) {
+        return NextResponse.json(
+          { error: `크레딧이 모자라요. 질문 한 번에 ${QUESTION_COST}크레딧이 들어요.`, needCredits: true },
+          { status: 402 }
+        );
+      }
+      console.error("크레딧 차감 실패:", error);
+      return NextResponse.json({ error: "크레딧을 쓰지 못했어요." }, { status: 503 });
+    }
+  }
+
   try {
     const system = chatSystemPrompt(sealed);
     let result = await chatComplete(system, [...history, { role: "user", content: question }], 800);
     if (!result) {
       if (record) await settleQuestion(record.id, { failed: true }).catch(() => {});
+      await refund();
       return NextResponse.json({
         answer:
           "[데모 모드] 좋은 질문이야. 근데 지금은 데모라서 진짜 답은 못 해줘 — .env에 API 키를 넣으면 레빗 언니가 제대로 대답해줄게.",
@@ -130,6 +184,9 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     console.error("추가 상담 AI 호출 실패:", e);
     if (record) await settleQuestion(record.id, { failed: true }).catch(() => {});
+    // 답을 못 줬으면 크레딧도 돌려준다. 못 돌려줘도 응답은 내보낸다 —
+    // 원장에 refund 가 없으면 운영자가 손으로 채울 수 있다.
+    await refund();
     return NextResponse.json({ error: "잠깐 딴생각했어. 다시 물어봐줄래?" }, { status: 502 });
   }
 }

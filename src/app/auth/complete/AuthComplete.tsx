@@ -11,6 +11,8 @@ import BackOnError from "@/components/BackOnError";
 interface SessionResult extends Partial<User> {
   needsProfile?: boolean;
   error?: string;
+  /** 이번에 회원 행이 새로 생겼는가 (첫 구매 안내를 띄울지 판단) */
+  isNewUser?: boolean;
 }
 
 export default function AuthComplete({ nextPath }: { nextPath: string }) {
@@ -45,8 +47,20 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
     // 가입/로그인 완료 — 로그인 수단 이름만 보낸다. 이메일 원문은 전송하지 않는다.
     trackCompleteRegistration(data.authProvider ?? "unknown");
     if (getPendingReferral()) clearPendingReferral();
-    // 팝업을 열었던 화면(쿼리 포함)이 있으면 그리로, 없으면 next 쿼리로 돌아간다.
-    const destination = peekAuthReturn() ?? nextPath;
+    /*
+      가입만 하면 아무것도 못 한다 (2026-08-30 무료 크레딧 폐지).
+
+      질문에는 크레딧이 들고, 크레딧은 사야만 생긴다. 그 사실을 "질문하려다
+      막히는 자리" 에서 알게 하면 그 사람은 그냥 나간다. 그래서 처음 온 사람은
+      돌아갈 화면 대신 충전함으로 보내 첫 구매 할인을 먼저 보게 한다.
+
+      한 번이라도 산 사람은 해당 없다 — /credits 가 서버에 물어 정가를 보여준다.
+      원래 가려던 화면은 쿼리로 넘겨, 충전함에서 이어 갈 수 있게 둔다.
+    */
+    const back = peekAuthReturn() ?? nextPath;
+    const destination = data.isNewUser
+      ? `/credits?welcome=1&next=${encodeURIComponent(back)}`
+      : back;
     setNeedsProfile(false);
     setCompleted(true);
     redirectTimer.current = window.setTimeout(() => {

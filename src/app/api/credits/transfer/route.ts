@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { creditDepositorCode, getCreditPack } from "@/lib/credits";
-import { createPendingCreditTransferOrder } from "@/lib/credits-db";
+import { creditDepositorCode, getCreditPack, isFirstBuyPack } from "@/lib/credits";
+import { createPendingCreditTransferOrder, hasPurchasedCredits } from "@/lib/credits-db";
 import { isDatabaseConfigured } from "@/lib/database";
 import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 import { resolveUserToken } from "@/lib/tokens";
@@ -39,6 +39,24 @@ export async function POST(request: NextRequest) {
   const expectedCode = creditDepositorCode(body.userToken);
   if (body.depositorCode !== expectedCode) {
     return NextResponse.json({ error: "입금코드가 올바르지 않아요." }, { status: 400 });
+  }
+
+  // 첫 구매 팩은 한 번만. 포트원 쪽과 같은 규칙이다 — 결제로 가는 길이 둘인데
+  // 한쪽에만 걸면 그쪽으로 계속 산다.
+  if (isFirstBuyPack(pack.id)) {
+    let bought;
+    try {
+      bought = await hasPurchasedCredits(user.userId);
+    } catch (error) {
+      console.error("첫 구매 여부 확인 실패:", error);
+      return NextResponse.json({ error: "구매 자격을 확인하지 못했어요." }, { status: 503 });
+    }
+    if (bought) {
+      return NextResponse.json(
+        { error: "첫 구매 할인은 한 번만 쓸 수 있어요.", firstBuyUsed: true },
+        { status: 409 }
+      );
+    }
   }
 
   try {

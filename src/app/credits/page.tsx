@@ -11,6 +11,7 @@ import { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
 import {
   CREDIT_PACKS,
   CREDIT_REASON_LABEL,
+  listPriceOf,
   QUESTION_COST,
   creditDepositorCode,
   questionsLeft,
@@ -40,6 +41,12 @@ export default function CreditsPage() {
   const [error, setError] = useState("");
   const [approved, setApproved] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
+  // 서버가 정한다. 한 번이라도 산 사람에게는 정가 팩이 온다.
+  const [packs, setPacks] = useState<CreditPack[]>(CREDIT_PACKS);
+  const [firstBuy, setFirstBuy] = useState(false);
+  // 가입 직후 여기로 넘어왔는가. 그러면 원래 가려던 화면으로 이어 갈 자리를 준다.
+  const [welcome, setWelcome] = useState(false);
+  const [nextPath, setNextPath] = useState<string | null>(null);
 
   const load = useCallback(async (account: User) => {
     const res = await fetch("/api/credits", {
@@ -48,16 +55,28 @@ export default function CreditsPage() {
       body: JSON.stringify({ userToken: account.token }),
     });
     if (!res.ok) return;
-    const data = (await res.json()) as { balance: number; ledger: CreditLedgerEntry[] };
+    const data = (await res.json()) as {
+      balance: number;
+      ledger: CreditLedgerEntry[];
+      packs?: CreditPack[];
+      firstBuy?: boolean;
+    };
     setBalance(data.balance);
     setLedger(data.ledger);
+    if (data.packs?.length) setPacks(data.packs);
+    setFirstBuy(data.firstBuy === true);
   }, []);
 
   useEffect(() => {
     const stored = getUser();
     setUser(stored);
     setChecked(true);
-    setApproved(new URLSearchParams(window.location.search).get("payment") === "approved");
+    const params = new URLSearchParams(window.location.search);
+    setApproved(params.get("payment") === "approved");
+    setWelcome(params.get("welcome") === "1");
+    // 바깥 주소로 튀지 않게 우리 경로만 받는다.
+    const next = params.get("next");
+    setNextPath(next && next.startsWith("/") && !next.startsWith("//") ? next : null);
     if (stored) void load(stored);
   }, [load]);
 
@@ -87,7 +106,7 @@ export default function CreditsPage() {
     try {
       if (navigator.share) await navigator.share({ title: "러브레빗 무료 사주", text, url });
       else await navigator.clipboard.writeText(`${text}\n${url}`);
-      setShareNotice("초대 링크를 보냈어요. 친구가 열면 5크레딧, 가입하면 5,000원 쿠폰이 들어와요.");
+      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 5,000원 쿠폰이 들어와요.");
     } catch {
       setShareNotice("");
     }
@@ -110,6 +129,25 @@ export default function CreditsPage() {
         <p className="badge" style={{ marginBottom: 14 }}>입금이 확인됐어요. 크레딧이 들어왔어요.</p>
       )}
 
+      {welcome && firstBuy && (
+        <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: "var(--gold)" }}>
+          <span className="badge">처음 오셨네요</span>
+          <h2 style={{ fontSize: "1.15rem", margin: "10px 0 6px" }}>첫 충전만 이 값이에요</h2>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
+            질문 한 번에 {QUESTION_COST}크레딧이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
+          </p>
+          {nextPath && (
+            <Link
+              className="btn btn-ghost"
+              href={nextPath}
+              style={{ width: "100%", marginTop: 12 }}
+            >
+              나중에 하고 보던 화면으로
+            </Link>
+          )}
+        </section>
+      )}
+
       <div className="card" style={{ padding: 20, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div>
           <strong style={{ fontSize: "1.3rem" }}>{balance === null ? "—" : `${balance}크레딧`}</strong>
@@ -122,16 +160,16 @@ export default function CreditsPage() {
 
       {!user ? (
         <div className="card" style={{ padding: 24, textAlign: "center" }}>
-          <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>가입하면 15크레딧을 드려요.</p>
+          <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>로그인하면 첫 구매 할인가를 볼 수 있어요.</p>
           <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>로그인 · 가입하기</button>
         </div>
       ) : (
         <>
           <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge">무료로 채우기</span>
-            <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 초대 링크를 열면 5크레딧</h2>
+            <span className="badge">친구 초대</span>
+            <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 가입하면 5,000원 쿠폰</h2>
             <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 12 }}>
-              기기 하나에 한 번, 하루 다섯 번까지. 친구가 가입까지 하면 5,000원 쿠폰이 따로 들어와요.
+              쿠폰은 리딩 결제에 쓸 수 있어요.
             </p>
             <button className="btn btn-ghost" style={{ width: "100%" }} onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기
@@ -140,20 +178,34 @@ export default function CreditsPage() {
           </section>
 
           <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge">충전</span>
+            <span className="badge">{firstBuy ? "첫 구매 할인" : "충전"}</span>
+            {firstBuy && (
+              <p style={{ color: "var(--gold)", fontSize: "0.86rem", margin: "10px 0 0" }}>
+                처음 오셨네요. 첫 충전은 한 번만 이 값으로 드려요.
+              </p>
+            )}
             <div style={{ display: "grid", gap: 10, margin: "12px 0" }}>
-              {CREDIT_PACKS.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`btn ${pack?.id === p.id ? "" : "btn-ghost"}`}
-                  style={{ display: "flex", justifyContent: "space-between", width: "100%" }}
-                  onClick={() => setPack(p)}
-                >
-                  <span>{p.credits}크레딧 · {p.note}</span>
-                  <strong>{p.price.toLocaleString()}원</strong>
-                </button>
-              ))}
+              {packs.map((p) => {
+                const list = listPriceOf(p);
+                const off = list > p.price ? Math.round((1 - p.price / list) * 100) : 0;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={`btn ${pack?.id === p.id ? "" : "btn-ghost"}`}
+                    style={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 10 }}
+                    onClick={() => setPack(p)}
+                  >
+                    <span>
+                      {p.credits}크레딧 · {p.note}
+                      {firstBuy && off > 0 && (
+                        <strong style={{ color: "var(--gold)", marginLeft: 6 }}>{off}% 할인</strong>
+                      )}
+                    </span>
+                    <strong>{p.price.toLocaleString()}원</strong>
+                  </button>
+                );
+              })}
             </div>
             {pack && (
               portone ? (
@@ -202,7 +254,7 @@ export default function CreditsPage() {
 
       {showSignup && (
         <SignupModal
-          reason="크레딧은 계정에 묶여 있어요. 가입하면 15크레딧을 드려요."
+          reason="크레딧은 계정에 묶여 있어요. 로그인하고 충전해 주세요."
           onDone={(next) => {
             setUser(next);
             setShowSignup(false);

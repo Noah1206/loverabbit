@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-import { getCreditPack } from "@/lib/credits";
+import { getCreditPack, isFirstBuyPack } from "@/lib/credits";
+import { hasPurchasedCredits } from "@/lib/credits-db";
 import { createOrder, isDatabaseConfigured } from "@/lib/database";
 import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
 import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
@@ -39,6 +40,25 @@ export async function POST(request: NextRequest) {
   }
   if (!user?.userId) {
     return NextResponse.json({ error: "크레딧을 사려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
+  }
+
+
+  // 첫 구매 팩은 한 번만. 화면이 안 보여줘도 팩 id 만 알면 부를 수 있는 자리라
+  // 서버가 막는다.
+  if (isFirstBuyPack(pack.id)) {
+    let bought;
+    try {
+      bought = await hasPurchasedCredits(user.userId);
+    } catch (error) {
+      console.error("첫 구매 여부 확인 실패:", error);
+      return NextResponse.json({ error: "구매 자격을 확인하지 못했어요." }, { status: 503 });
+    }
+    if (bought) {
+      return NextResponse.json(
+        { error: "첫 구매 할인은 한 번만 쓸 수 있어요.", firstBuyUsed: true },
+        { status: 409 }
+      );
+    }
   }
 
   const paymentId = `LRCP_${randomUUID().replace(/-/g, "")}`;

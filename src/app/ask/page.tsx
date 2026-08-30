@@ -120,7 +120,7 @@ export default function AskPage() {
 
       {!user ? (
         <div className="card" style={{ padding: 24, textAlign: "center" }}>
-          <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>가입하면 질문 3회분(15크레딧)을 드려요.</p>
+          <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>로그인하면 첫 구매 할인가를 볼 수 있어요.</p>
           <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>로그인 · 가입하기</button>
         </div>
       ) : (
