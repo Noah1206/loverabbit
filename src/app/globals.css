@@ -2425,29 +2425,32 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
-  /* 고정 상단바는 6px에서 시작해 54px에서 끝난다. 그 아래로 숨 쉴 자리를 둔다. */
-  padding-top: calc(74px + env(safe-area-inset-top));
+  /* 상단바가 화면 맨 위(0)에 붙어 48px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
+  padding-top: calc(64px + env(safe-area-inset-top));
 }
 
+/* 떠 있는 카드가 아니라 화면 맨 위에 붙은 면이다. 테두리도 그림자도 두지
+   않는다 — 그리드가 끝까지 가는 화면에서 상단바만 안쪽에 떠 있으면
+   둘이 다른 화면처럼 읽힌다. */
 .app-header {
   position: fixed;
-  top: calc(6px + env(safe-area-inset-top));
+  top: 0;
   left: 50%;
   z-index: 40;
-  width: min(calc(100vw - 40px), calc(var(--app-max-width) - 40px));
+  width: min(100vw, var(--app-max-width));
   min-height: 48px;
   margin: 0;
-  padding: 5px 7px 5px 11px;
+  padding: calc(5px + env(safe-area-inset-top)) 14px 5px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   overflow: hidden;
   isolation: isolate;
-  border: 1px solid var(--chrome-line);
-  border-radius: var(--r-xl);
+  border: 0;
+  border-radius: 0;
   background: var(--chrome-bg);
-  box-shadow: var(--chrome-shadow);
+  box-shadow: none;
   transform: translateX(-50%);
 }
 
