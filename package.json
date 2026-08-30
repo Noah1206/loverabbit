@@ -35,7 +35,7 @@
     "motion:build": "node scripts/build-card-motion.mjs",
     "free-preview:once": "tsx --env-file=.env.local --env-file=.env scripts/free-preview-once.mts",
     "model:routing": "tsx --env-file=.env.local --env-file=.env scripts/model-routing.mts",
-    "reading:rescue": "tsx --env-file-if-exists=.env.local scripts/reading-rescue.mts"
+    "reading:rescue": "node --conditions=react-server --import tsx --env-file-if-exists=.env.local scripts/reading-rescue.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.57.0",

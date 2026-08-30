@@ -33,17 +33,50 @@ async function main() {
     .select("reading_id,generating_at");
   if (error) throw error;
 
-  const rows: { id: string; generatingAt: string | null; unlocked: boolean; category: string }[] = [];
+  const rows: {
+    id: string;
+    generatingAt: string | null;
+    category: string;
+    email: string | null;
+    orderId: number | null;
+  }[] = [];
   for (const row of pending ?? []) {
     const id = String(row.reading_id);
     if (ONLY && id !== ONLY) continue;
     const reading = await getReading(id);
     if (!reading?.unlocked) continue; // 결제까지 안 간 리딩은 원래 이 상태가 정상이다
+
+    // 누구의 리딩인지 같이 보여준다 — 문의한 손님을 골라내려면 이게 있어야 한다.
+    let email: string | null = null;
+    let orderId: number | null = null;
+    try {
+      const { data: order } = await db
+        .from("lr_orders")
+        .select("id,user_id")
+        .eq("reading_id", id)
+        .eq("status", "paid")
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      orderId = order?.id ? Number(order.id) : null;
+      if (order?.user_id) {
+        const { data: user } = await db
+          .from("lr_users")
+          .select("email")
+          .eq("id", order.user_id)
+          .maybeSingle();
+        email = (user?.email as string | undefined) ?? null;
+      }
+    } catch {
+      // 누구인지 못 찾아도 되살리는 데는 지장이 없다.
+    }
+
     rows.push({
       id,
       generatingAt: row.generating_at ?? null,
-      unlocked: true,
       category: reading.category ?? "",
+      email,
+      orderId,
     });
   }
 
@@ -54,7 +87,9 @@ async function main() {
 
   console.log(`돈은 냈는데 본문이 안 끝난 리딩 ${rows.length}건:`);
   for (const row of rows) {
-    console.log(`  ${row.id}  ${row.category}  표식=${row.generatingAt ?? "없음"}`);
+    console.log(
+      `  ${row.id}  ${row.category}  주문=${row.orderId ?? "?"}  ${row.email ?? "?"}  표식=${row.generatingAt ?? "없음"}`
+    );
   }
   if (!FIX) {
     console.log("\n--fix 를 붙이면 이어서 만듭니다.");
