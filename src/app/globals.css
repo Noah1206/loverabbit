@@ -834,8 +834,8 @@ label {
   left: auto;
   right: 10px;
   padding: 4px 9px;
-  background: #6b3f7a;
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
@@ -2153,7 +2153,9 @@ label {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #fff;
+  /* 흰 글자가 박혀 있었다. 헤더가 진한 보라였을 때의 값이라, 헤더가 흰
+     카드가 된 뒤로는 "LOVE" 가 바탕에 묻혀 안 보였다. */
+  color: var(--text);
   font-size: 0.92rem;
   line-height: 1;
   letter-spacing: 0.035em;
