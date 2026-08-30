@@ -957,11 +957,6 @@ export default function ReadingReportPage() {
 
       {showSignup && (
         <SignupModal
-          onDone={(nextUser) => {
-            setUser(nextUser);
-            setShowSignup(false);
-            setShowPay(true);
-          }}
           onClose={() => setShowSignup(false)}
           reason="전문 리딩을 열려면 로그인이 필요해요"
         />

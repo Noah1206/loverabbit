@@ -198,11 +198,6 @@ export default function ProfilePage() {
       )}
       {showSignup && (
         <SignupModal
-          onDone={(nextUser) => {
-            setUser(nextUser);
-            void loadSavedProfile(nextUser);
-            setShowSignup(false);
-          }}
           onClose={() => setShowSignup(false)}
         />
       )}

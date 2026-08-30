@@ -1078,12 +1078,6 @@ export default function ReadingPage() {
           다시 보게 되고, 그 화면에서 사람이 나간다. */}
       {pendingDraft && (
         <SignupModal
-          onDone={(nextUser) => {
-            setUser(nextUser);
-            const draft = pendingDraft;
-            setPendingDraft(null);
-            if (draft) startGeneration(draft);
-          }}
           onClose={() => setPendingDraft(null)}
           reason="내 사주를 세우려면 로그인이 필요해요"
         />

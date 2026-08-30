@@ -201,11 +201,6 @@ export default function AskPage() {
       {showSignup && (
         <SignupModal
           reason="질문하려면 로그인이 필요해요. 가입하면 3회분을 드려요."
-          onDone={(next) => {
-            setUser(next);
-            setShowSignup(false);
-            void load(next);
-          }}
           onClose={() => setShowSignup(false)}
         />
       )}

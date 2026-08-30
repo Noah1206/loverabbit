@@ -145,9 +145,6 @@ export default function AppHome() {
                     {b.items.map((id) => PRODUCT_MAP[id] && <CardArt key={id} p={PRODUCT_MAP[id]} />)}
                   </div>
                   <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,6,16,0.05) 30%, rgba(10,6,16,0.7) 62%, rgba(10,6,16,0.97) 90%)" }} />
-                  <span className="fortune-grid-badge fortune-grid-badge-sale">
-                    {Math.round((1 - b.price / bundleListPrice(b)) * 100)}% 할인
-                  </span>
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{b.emoji} 세트</span>
                     <strong>{b.title}</strong>
@@ -177,16 +174,6 @@ export default function AppHome() {
                 >
                   <CardArt p={p} className="fortune-grid-art" />
                   <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
-                  {p.tags.includes("popular") && (
-                    <span className="fortune-grid-badge fortune-grid-badge-popular">
-                      <span aria-hidden>🔥</span>인기
-                    </span>
-                  )}
-                  {/* 첫 리딩 값 — 어떤 카드든 가입 쿠폰으로 이 값에 산다. 할인율은
-                      정가에서 계산하므로 값이 바뀌면 여기도 따라온다. */}
-                  <span className="fortune-grid-badge fortune-grid-badge-sale">
-                    {Math.round((1 - FIRST_READING_PRICE / p.price) * 100)}% 할인
-                  </span>
                   <div className="fortune-grid-copy">
                     <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
                     <strong>{p.title}</strong>
@@ -238,10 +225,6 @@ export default function AppHome() {
       {showSignup && (
         <SignupModal
           reason="가입하면 리딩 보관·결제가 이 계정에 연결돼요"
-          onDone={(u) => {
-            setUser(u);
-            setShowSignup(false);
-          }}
           onClose={() => setShowSignup(false)}
         />
       )}

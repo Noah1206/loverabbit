@@ -255,11 +255,6 @@ export default function CreditsPage() {
       {showSignup && (
         <SignupModal
           reason="크레딧은 계정에 묶여 있어요. 로그인하고 충전해 주세요."
-          onDone={(next) => {
-            setUser(next);
-            setShowSignup(false);
-            void load(next);
-          }}
           onClose={() => setShowSignup(false)}
         />
       )}

@@ -150,11 +150,6 @@ export default function MyPage() {
         {showSignup && (
           <SignupModal
             reason="내 상담과 쿠폰함을 보려면 로그인이 필요해요"
-            onDone={(next) => {
-              setUser(next);
-              setShowSignup(false);
-              load(next);
-            }}
             onClose={() => setShowSignup(false)}
           />
         )}

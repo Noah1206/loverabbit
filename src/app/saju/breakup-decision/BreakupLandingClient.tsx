@@ -49,10 +49,6 @@ function CtaButton({ className, children }: { className: string; children: React
           title={OFFER.loginTitle}
           nextPath={FORM_PATH}
           reason={OFFER.loginReason}
-          onDone={() => {
-            setShowSignup(false);
-            setShowReady(true);
-          }}
           onClose={() => setShowSignup(false)}
         />
       ) : null}

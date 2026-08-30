@@ -127,10 +127,6 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           title="로그인하고 시작하기"
           nextPath={formPath}
           reason="로그인 후 썸 해부 사주 입력 화면으로 바로 이어져요."
-          onDone={() => {
-            setShowSignup(false);
-            setShowReady(true);
-          }}
           onClose={() => setShowSignup(false)}
         />
       ) : null}

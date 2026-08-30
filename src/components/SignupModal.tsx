@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import { rememberAuthReturn } from "@/lib/auth-return";
-import type { User } from "@/lib/user";
 import BrandMark from "@/components/BrandMark";
 
 type SocialLoginProvider = "google" | "kakao" | "x";
@@ -23,7 +22,6 @@ export default function SignupModal({
   reason = "풀 리딩을 열려면 3초 가입이 필요해요",
   nextPath,
 }: {
-  onDone: (u: User) => void;
   onClose: () => void;
   title?: string;
   reason?: string;

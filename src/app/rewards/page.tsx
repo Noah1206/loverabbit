@@ -87,11 +87,6 @@ export default function RewardsPage() {
       {showSignup && (
         <SignupModal
           reason="친구 초대 보상을 받으려면 가입이 필요해요"
-          onDone={(next) => {
-            setUser(next);
-            setShowSignup(false);
-            void refresh(next);
-          }}
           onClose={() => setShowSignup(false)}
         />
       )}
