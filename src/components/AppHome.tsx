@@ -115,6 +115,16 @@ export default function AppHome() {
             LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
           </strong>
           <div className="app-header-actions">
+            {/* 질문권 — 참고 화면의 카운터 자리. 값이 바뀌면 숫자가 한 번 튄다. */}
+            {balance !== null && (
+              <Link href="/credits" className="app-header-count" aria-label={`질문권 ${questionsLeft(balance)}번 남음`}>
+                <span aria-hidden>🎫</span>
+                <b key={questionsLeft(balance)}>{questionsLeft(balance)}</b>
+              </Link>
+            )}
+            <Link href="/rewards" className="app-header-icon" aria-label="선물함">
+              <span aria-hidden>🎁</span>
+            </Link>
             <button
               onClick={async () => {
                 if (user) {
@@ -135,27 +145,8 @@ export default function AppHome() {
 
         {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
              먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
-        {user && (balance !== null || recent.length > 0) && (
+        {user && recent.length > 0 && (
           <div className="home-status">
-            {balance !== null && (
-              <Link href="/ask" className="home-status-ticket">
-                <span className="home-status-ticket-copy">
-                  <strong>
-                    {questionsLeft(balance) > 0 ? "질문권이 있어요" : "질문권을 다 썼어요"}
-                  </strong>
-                  <span>
-                    {questionsLeft(balance) > 0
-                      ? "레빗 언니한테 지금 물어볼 수 있어요"
-                      : "충전하면 이어서 물어볼 수 있어요"}
-                  </span>
-                </span>
-                <span className="home-status-count">
-                  <b>{questionsLeft(balance)}</b>
-                  <small>번 남음</small>
-                </span>
-              </Link>
-            )}
-
             {recent[0] && (
               <Link href={`/reading/${recent[0].readingId}`} className="home-status-card">
                 <span className="home-status-avatar" aria-hidden>
@@ -186,31 +177,36 @@ export default function AppHome() {
           </div>
         )}
 
-        {/* ── 공지 배너 캐러셀 ── */}
-        <div style={{ padding: "0 20px 10px" }}>
-          <div
-            style={{
-              borderRadius: 0, padding: "11px 16px", textAlign: "center", cursor: "default",
-              // 색으로 눈길을 끌던 자리다. 흰 카드 + 얇은 선으로 구분만 짓는다.
-              background: "var(--bg-card)",
-              border: "1px solid var(--line)",
-              boxShadow: "0 1px 2px rgba(36, 29, 38, 0.04), 0 10px 26px rgba(36, 29, 38, 0.05)",
-            }}
-          >
-            <p style={{ fontWeight: 800, fontSize: "0.92rem", lineHeight: 1.35, color: "var(--text)" }}>{NOTICES[notice].text}</p>
-            <p style={{ fontSize: "0.75rem", lineHeight: 1.35, color: "var(--text-dim)" }}>{NOTICES[notice].sub}</p>
-            <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 6 }}>
-              {NOTICES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setNotice(i)}
-                  aria-label={`공지 ${i + 1}`}
-                  style={{
-                    width: i === notice ? 16 : 6, height: 6, borderRadius: 0, border: "none", cursor: "pointer",
-                    background: i === notice ? "var(--accent)" : "var(--tint-line)", transition: "width 0.25s",
-                  }}
-                />
-              ))}
+        {/* ── 공지 배너 ── 참고 화면의 제목줄 달린 창 모양. 제목줄이 무엇에
+             대한 알림인지 먼저 말하고, 본문이 바뀔 때 아래에서 올라온다. */}
+        <div className="home-notice-wrap">
+          <div className="home-notice">
+            <div className="home-notice-bar">
+              <span className="home-notice-bar-title">
+                <span aria-hidden>🐰</span> 러브레빗 소식
+              </span>
+              <span className="home-notice-bar-dots" aria-hidden>
+                <i /><i /><i />
+              </span>
+            </div>
+            <div className="home-notice-body">
+              {/* key 가 바뀌면 새로 그려지면서 올라오는 동작이 다시 돈다 */}
+              <div key={notice} className="home-notice-copy">
+                <p className="home-notice-title">{NOTICES[notice].text}</p>
+                <p className="home-notice-sub">{NOTICES[notice].sub}</p>
+              </div>
+              <div className="home-notice-tabs" role="tablist" aria-label="공지">
+                {NOTICES.map((_, i) => (
+                  <button
+                    key={i}
+                    role="tab"
+                    aria-selected={i === notice}
+                    aria-label={`공지 ${i + 1}`}
+                    className={"home-notice-tab" + (i === notice ? " on" : "")}
+                    onClick={() => setNotice(i)}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
