@@ -48,6 +48,17 @@ export function myChartSummary(profile: SajuProfile | null): string | null {
   );
 }
 
+/*
+  명식이 없는 경우의 문구는 이제 거의 쓰이지 않는다.
+
+  /api/question 이 프로필 없는 질문을 차감 전에 막기 때문이다(2026-08-30).
+  그래도 자리는 남긴다 — 프로필을 못 읽는 장애 때 여기까지 올 수 있고,
+  그때 빈 문자열을 넣으면 모델이 명식을 지어낸다.
+
+  전에는 "사주를 입력하면 더 정확히 볼 수 있다고 안내하세요" 였다. 그런데
+  사주만 따로 입력하는 화면이 이 서비스에 없다 — 리딩 폼이 유일한 입구다.
+  따라갈 곳 없는 안내를 시키는 문장이라 걷었다.
+*/
 export function questionSystemPrompt(ctx: QuestionContext): string {
   const me = myChartSummary(ctx.profile);
   const readings = ctx.readings
@@ -61,7 +72,7 @@ export function questionSystemPrompt(ctx: QuestionContext): string {
   return `당신은 러브레빗의 수석 명리 분석가입니다. 회원이 크레딧을 내고 오늘의 질문 하나를 합니다.
 
 [회원 명식]
-${me ?? "저장된 사주 정보가 없습니다. 명식 없이 일반적인 흐름만 말하고, 사주를 입력하면 더 정확히 볼 수 있다고 한 문장 안내하세요."}
+${me ?? "저장된 사주 정보가 없습니다. 명식 없이 일반적인 흐름만 말하세요."}
 
 [회원이 이미 받은 리딩]
 ${readings || "아직 받은 리딩이 없습니다."}
