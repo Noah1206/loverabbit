@@ -5,56 +5,65 @@
 .theme-light {
   --app-max-width: 480px;
 
-  /* 바탕은 종이다. 아이보리 한 장 위에 흰 카드가 얹히고 그 사이를 옅은 선이
-     가른다. 깊이는 그림자가 아니라 이 세 단계로 만든다 — 그림자를 세게 쓰면
-     화면이 무거워지고, 공유했을 때 제일 먼저 촌스러워지는 것이 그쪽이다. */
-  --bg: #faf7f4;
+  /* DESIGN-slack.md 토큰 이식 (2026-08-30).
+     바탕은 흰 캔버스와 크림 두 장. 오베르진(#4a154b) 하나만 포인트로 쓰고,
+     인라인 링크만 블루로 빠진다 — 그 둘이 이 시스템의 색 전부다. */
+  --bg: #ffffff;
   --bg-card: #ffffff;
-  --bg-card2: #f4efe9;
-  --line: #ece5e0;
-  --text: #241d26;
-  --text-dim: #6b6270;
+  --bg-card2: #f4ede4;
+  --line: #e6e6e6;
+  --text: #1d1d1d;
+  --text-dim: #696969;
 
-  /* 포인트는 하나뿐이다 — 로고 배경에서 가져온 플럼. 가격·버튼·배지에만 쓴다.
-     한 화면에 세 번 넘게 나오면 그건 포인트가 아니라 배경이다. */
-  --accent: #6b3f7a;
-  --accent-soft: #9a7aa6;
+  /* 오베르진. 채운 CTA·강조 티어·닫는 밴드에만. 한 화면에 채운 오베르진은 하나. */
+  --accent: #4a154b;
+  --accent-soft: #d9bdde;
   --accent-ink: #ffffff;
+  --accent-press: #611f69;
+  --accent-tint: #592466;
+  --canvas-cream: #f4ede4;
+  --canvas-lavender: #f9f0ff;
+  --link: #1264a3;
+  --link-hover: #3860be;
   --gold: #a9761f;
-  --violet: #8f7c96;
+  --violet: #592466;
 
-  /* 기본 버튼. 밝은 바탕에서는 흰 버튼이 사라지므로 플럼이 채운다. */
-  --btn-bg: linear-gradient(135deg, #7a4a8a, #5d3569);
+  /* 기본 버튼 — 평평한 오베르진. 그라데이션 없음. */
+  --btn-bg: #4a154b;
   --btn-ink: #ffffff;
-  --btn-shadow: 0 8px 22px rgba(58, 32, 68, 0.24);
-  --btn-shadow-hover: 0 12px 30px rgba(58, 32, 68, 0.3);
+  --btn-press: #611f69;
+  --btn-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  --btn-shadow-hover: 0 5px 20px rgba(0, 0, 0, 0.16);
 
-  /* 면을 한 단 띄우는 색. 밝은 바탕에서는 먹을 옅게 깔고, 어두운 바탕에서는
-     흰빛을 옅게 깐다 — 같은 자리에 서로 반대의 것이 들어간다. 이 토큰을 쓰면
-     테마를 뒤집을 때 규칙을 다시 찾아다니지 않아도 된다. */
-  --tint-1: rgba(36, 29, 38, 0.04);
-  --tint-2: rgba(36, 29, 38, 0.07);
-  --tint-line: rgba(36, 29, 38, 0.1);
-  --tint-ring: rgba(107, 63, 122, 0.2);
+  --tint-1: rgba(29, 29, 29, 0.04);
+  --tint-2: rgba(74, 21, 75, 0.07);
+  --tint-line: #e6e6e6;
+  --tint-ring: rgba(74, 21, 75, 0.2);
 
-  /* 화면에 떠 있는 고정 크롬 - 상단바, 탭바, 리딩 하단바. 셋이 같은 재질이어야
-     한 앱으로 읽힌다. 밝은 테마에서는 흰 카드, 어두운 테마에서는 검은 알약. */
   --chrome-bg: #ffffff;
-  --chrome-line: #ece5e0;
-  --chrome-shadow: 0 6px 22px rgba(36, 29, 38, 0.09);
-  --chrome-ink: #6b6270;
-  --chrome-ink-on: #6b3f7a;
-  --chrome-slot: rgba(107, 63, 122, 0.1);
+  --chrome-line: #e6e6e6;
+  --chrome-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  --chrome-ink: #696969;
+  --chrome-ink-on: #4a154b;
+  --chrome-slot: #f9f0ff;
 
-  /* 아직 못 누르는 버튼. 흐리게만 두면 "고장난 것" 으로 읽혀서, 눌리는 버튼과
-     다른 재질로 만든다 - 색을 빼고 한 단 가라앉힌 면. */
-  --btn-off-bg: #f0eae4;
-  --btn-off-line: #e4dcd4;
-  --btn-off-ink: #a89dab;
+  /* 못 누르는 버튼 — 색을 빼고 한 단 가라앉힌 면. */
+  --btn-off-bg: #f4ede4;
+  --btn-off-line: #e6e6e6;
+  --btn-off-ink: #a99f97;
 
-  /* 원화 채도. 아이보리 위에서는 원본 채도가 그대로면 그림만 튀어서, 화면이
-     정돈돼 보이지 않고 캡처해서 공유하기도 부담스럽다. 한 단만 내린다 -
-     더 내리면 그림이 죽고, 안 내리면 바탕이 진다. */
+  --semantic-error: #cc4117;
+  --semantic-success: #007a5a;
+
+  /* 반경 — DESIGN-slack.md rounded 스케일 그대로. */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-xxl: 48px;
+  --r-pill: 90px;
+
   --art-saturate: 0.9;
 
   color-scheme: light;
@@ -101,6 +110,27 @@
   /* 검은 바탕에서는 그림이 이미 가라앉아 보인다. 손대지 않는다. */
   --art-saturate: 1;
 
+  /* 라이트와 같은 이름을 갖춰 둔다 — 한쪽에만 있으면 그 토큰을 쓴 자리가
+     테마를 뒤집을 때 빈다. 검은 바탕에서는 오베르진이 가라앉아 보이지 않으므로
+     포인트는 위에서 정한 대로 명도로 주고, 링크만 밝은 파랑으로 든다. */
+  --accent-press: #e9e9ec;
+  --accent-tint: #3a3a42;
+  --canvas-cream: #18181c;
+  --canvas-lavender: #1c1a20;
+  --link: #7cc2ff;
+  --link-hover: #a8d7ff;
+  --btn-press: #d5d5da;
+  --semantic-error: #ff7a5f;
+  --semantic-success: #4fd1a5;
+
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-xxl: 48px;
+  --r-pill: 90px;
+
   color-scheme: dark;
 }
 
@@ -136,8 +166,8 @@ body {
   /* 앱 프레임(480px) 바깥의 바닥. --bg 보다 한 단 낮은 아이보리라, 데스크톱에서
      앱이 종이 한 장처럼 떠 보인다. 위쪽 빛은 플럼을 아주 옅게만 섞는다. */
   background:
-    radial-gradient(circle at 50% -12%, rgba(107, 63, 122, 0.05), transparent 34rem),
-    #f2ebe4;
+    radial-gradient(circle at 50% -12%, rgba(74, 21, 75, 0.05), transparent 34rem),
+    var(--canvas-cream);
 }
 
 [data-theme="dark"] body {
@@ -212,7 +242,7 @@ body {
   justify-content: center;
   padding: 20px;
   overflow-y: auto;
-  background: rgba(36, 29, 38, 0.55);
+  background: rgba(29, 29, 29, 0.55);
 }
 
 /* fixed UI도 데스크톱 전체가 아니라 앱 프레임 안에서만 표시 */
@@ -331,7 +361,7 @@ body {
   gap: 3px;
   padding: 11px 10px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--text);
   text-align: center;
@@ -362,7 +392,7 @@ body {
 
 .toss-payment-widget {
   overflow: hidden;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: #fff;
 }
 
@@ -376,7 +406,7 @@ body {
 .toss-payment-error {
   margin-top: 14px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
   color: var(--accent);
   font-size: 0.82rem;
@@ -476,6 +506,33 @@ a {
   text-decoration: none;
 }
 
+/* 본문 안의 링크만 블루로 뺀다. DESIGN-slack.md 에서 오베르진 말고 색을 갖는
+   것은 이것 하나뿐이다. 카드·타일·버튼을 통째로 감싼 a 까지 파래지면 안 되므로
+   글 안에 있는 링크로만 범위를 좁힌다. */
+p > a:not([class]),
+li > a:not([class]),
+dd > a:not([class]),
+.prose a:not([class]) {
+  color: var(--link);
+}
+
+p > a:not([class]):hover,
+li > a:not([class]):hover,
+dd > a:not([class]):hover,
+.prose a:not([class]):hover {
+  color: var(--link-hover);
+  text-decoration: underline;
+}
+
+/* 큰 글씨는 자간을 당긴다. 이 시스템의 디스플레이는 기본 자간에서 풀려 보인다. */
+h1, h2 {
+  letter-spacing: -0.02em;
+}
+
+h3, h4 {
+  letter-spacing: -0.01em;
+}
+
 .container {
   width: 100%;
   max-width: none;
@@ -484,40 +541,58 @@ a {
 }
 
 /* ── 리퀴드 글래스 버튼 — 반투명 유리 + 블러 + 상단 스펙큘러 하이라이트 ── */
+/* 알약. DESIGN-slack.md 는 이 시스템의 모든 버튼을 90px 반경으로 못 박는다 —
+   사각 버튼은 어디에도 없다. 가로 패딩 28px 은 넉넉한 쪽이 브랜드 느낌이라
+   14px 28px 아래로 줄이지 않는다. */
 .btn {
   display: inline-block;
   cursor: pointer;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
-  padding: 16px 32px;
-  border-radius: 999px;
+  letter-spacing: 0.2px;
+  line-height: 1.38;
+  padding: 14px 28px;
+  border-radius: var(--r-pill);
   background: var(--btn-bg);
   border: 1px solid transparent;
   color: var(--btn-ink);
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   box-shadow: var(--btn-shadow);
 }
 
 .btn:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    var(--btn-shadow-hover);
+  background-color: var(--btn-press);
+  box-shadow: var(--btn-shadow-hover);
+}
+
+.btn:active {
+  background-color: var(--btn-press);
+  transform: scale(0.985);
 }
 
 .btn:disabled {
-  opacity: 0.5;
+  background: var(--btn-off-bg);
+  border-color: var(--btn-off-line);
+  color: var(--btn-off-ink);
+  box-shadow: none;
   cursor: not-allowed;
   transform: none;
 }
 
+/* 라벤더 알약 — 오베르진 옆에 서는 두 번째 동작. */
 .btn-ghost {
-  background: var(--bg-card);
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 2px rgba(36, 29, 38, 0.04);
-  color: var(--text-dim);
+  background: var(--canvas-lavender);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  box-shadow: none;
+  color: var(--text);
+}
+
+.btn-ghost:hover {
+  background: color-mix(in srgb, var(--accent) 10%, var(--canvas-lavender));
+  box-shadow: none;
 }
 
 /* 카드는 종이 한 장이다. 그림자를 세게 주지 않는다 - 아이보리 위에서는 옅은
@@ -527,7 +602,7 @@ a {
   backdrop-filter: blur(16px) saturate(160%);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: var(--r-xl);
   padding: 24px;
   box-shadow: 0 1px 2px rgba(36, 29, 38, 0.04), 0 10px 26px rgba(36, 29, 38, 0.05);
 }
@@ -537,7 +612,7 @@ a {
   font-size: 0.78rem;
   font-weight: 700;
   padding: 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--tint-1);
   color: var(--accent);
   border: 1px solid var(--tint-line);
@@ -585,7 +660,7 @@ input,
 select {
   width: 100%;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   border: 1px solid var(--line);
   background: var(--bg-card);
   backdrop-filter: blur(12px) saturate(150%);
@@ -678,7 +753,7 @@ label {
   overflow: hidden;
   position: relative;
   display: block;
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
 }
 
@@ -724,7 +799,7 @@ label {
   align-items: center;
   gap: 3px;
   padding: 4px 10px 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.03em;
@@ -942,7 +1017,7 @@ label {
 .review-card {
   padding: 14px 15px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -1005,7 +1080,7 @@ label {
   margin-top: 12px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: none;
   color: var(--text);
   font-size: 0.82rem;
@@ -1039,7 +1114,7 @@ label {
   margin-top: 16px;
   padding: 18px 18px 16px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -1093,7 +1168,7 @@ label {
   width: 100%;
   padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg);
   color: var(--text);
   font: inherit;
@@ -1119,7 +1194,7 @@ label {
   margin-top: 8px;
   padding: 13px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--accent);
   color: var(--accent-ink, #111);
   font-size: 0.92rem;
@@ -1162,7 +1237,7 @@ label {
   margin-bottom: 14px;
   padding: 11px 14px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   color: var(--text-dim);
   font-size: 0.82rem;
   line-height: 1.6;
@@ -1335,7 +1410,7 @@ label {
   padding: clamp(24px, 7vw, 34px) clamp(20px, 6vw, 30px);
   overflow: hidden;
   border-color: var(--line);
-  border-radius: 26px;
+  border-radius: var(--r-xl);
   background:
     radial-gradient(circle at 88% 26%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 23%),
     var(--bg-card);
@@ -1395,7 +1470,7 @@ label {
   background:
     radial-gradient(circle at 35% 28%, rgba(255, 255, 255, 0.9) 0 3%, transparent 4%),
     radial-gradient(circle at 36% 30%, var(--accent-soft), var(--accent) 50%, #3b2145 72%);
-  box-shadow: 0 8px 22px rgba(107, 63, 122, 0.3), inset -10px -12px 18px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 22px rgba(74, 21, 75, 0.3), inset -10px -12px 18px rgba(0, 0, 0, 0.22);
   font-size: 1.65rem;
 }
 
@@ -1410,7 +1485,7 @@ label {
   height: 9px;
   margin-top: 24px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--tint-2);
 }
 
@@ -1422,7 +1497,7 @@ label {
   overflow: hidden;
   border-radius: inherit;
   background: linear-gradient(90deg, #65bf65 0%, #e2df55 39%, var(--accent-soft) 74%, var(--accent) 100%);
-  box-shadow: 0 0 12px rgba(107, 63, 122, 0.3);
+  box-shadow: 0 0 12px rgba(74, 21, 75, 0.3);
   transform-origin: 0 50%;
 }
 
@@ -1460,8 +1535,8 @@ label {
 }
 
 @keyframes product-score-meter-breathe {
-  0%, 100% { box-shadow: 0 0 10px rgba(107, 63, 122, 0.25); }
-  50% { box-shadow: 0 0 20px rgba(107, 63, 122, 0.4); }
+  0%, 100% { box-shadow: 0 0 10px rgba(74, 21, 75, 0.25); }
+  50% { box-shadow: 0 0 20px rgba(74, 21, 75, 0.4); }
 }
 
 @keyframes product-score-meter-sheen {
@@ -1527,7 +1602,7 @@ label {
   bottom: 0;
   left: 9px;
   border-top: 1px solid var(--chrome-line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: color-mix(in srgb, var(--chrome-bg) 94%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
@@ -1542,7 +1617,7 @@ label {
   min-height: 72px;
   padding: 11px 16px;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: var(--btn-bg);
   box-shadow: var(--btn-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
   color: #fff;
@@ -1718,7 +1793,7 @@ label {
   min-height: 36px;
   padding: 5px 15px 5px 11px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--bg-card);
   box-shadow: var(--chrome-shadow);
   color: var(--accent);
@@ -1742,7 +1817,7 @@ label {
   min-height: 34px;
   padding: 5px 14px 5px 10px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--bg-card);
   box-shadow: var(--chrome-shadow);
   color: var(--accent);
@@ -1795,13 +1870,13 @@ label {
   min-height: 76px;
   overflow: hidden;
   border-color: rgba(255, 255, 255, 0.32);
-  border-radius: 22px;
+  border-radius: var(--r-xl);
   text-align: center;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.44),
     inset 0 -15px 22px -14px rgba(10, 4, 14, 0.62),
     0 var(--cta-lift) 0 -3px var(--cta-side),
-    0 calc(var(--cta-lift) + 10px) 28px -10px rgba(107, 63, 122, 0.4),
+    0 calc(var(--cta-lift) + 10px) 28px -10px rgba(74, 21, 75, 0.4),
     0 calc(var(--cta-lift) + 18px) 34px -18px rgba(36, 29, 38, 0.35);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -1852,7 +1927,7 @@ label {
     inset 0 3px 11px rgba(10, 4, 14, 0.5),
     inset 0 -1px 0 rgba(255, 255, 255, 0.1),
     0 var(--cta-lift) 0 -1px var(--cta-side),
-    0 calc(var(--cta-lift) + 5px) 14px -9px rgba(107, 63, 122, 0.4),
+    0 calc(var(--cta-lift) + 5px) 14px -9px rgba(74, 21, 75, 0.4),
     0 calc(var(--cta-lift) + 9px) 18px -14px rgba(6, 3, 10, 0.85);
   transition-duration: 80ms;
 }
@@ -1987,7 +2062,7 @@ label {
 
   .ad-saju-sticky-shell .product-sticky-cta {
     min-height: 72px;
-    border-radius: 20px;
+    border-radius: var(--r-xl);
   }
 
   .ad-saju-cta-flames {
@@ -2021,7 +2096,7 @@ label {
 
 .chip {
   padding: 9px 18px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   border: 1px solid var(--line);
   background: var(--bg-card);
   backdrop-filter: blur(12px) saturate(150%);
@@ -2061,7 +2136,7 @@ label {
   overflow: hidden;
   isolation: isolate;
   border: 1px solid var(--chrome-line);
-  border-radius: 21px;
+  border-radius: var(--r-xl);
   background: var(--chrome-bg);
   box-shadow: var(--chrome-shadow);
   transform: translateX(-50%);
@@ -2104,7 +2179,7 @@ label {
   height: 30px;
   padding: 0 10px;
   border: 1px solid var(--tint-line);
-  border-radius: 15px;
+  border-radius: var(--r-xl);
   background: var(--tint-1);
   color: var(--text-dim);
   font: inherit;
@@ -2159,7 +2234,7 @@ label {
   margin: 0 0 24px;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -2259,7 +2334,7 @@ label {
   min-height: 40px;
   padding: 0 12px 0 6px;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--text);
   font: inherit;
@@ -2324,7 +2399,7 @@ label {
 
 .sj-col-head {
   padding: 6px 0;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: var(--bg-card);
   color: var(--text-dim);
   font-size: 0.72rem;
@@ -2337,7 +2412,7 @@ label {
   gap: 2px;
   padding: 12px 4px 9px;
   border: 1px solid color-mix(in srgb, var(--sj-c, var(--line)) 34%, transparent);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--sj-c, var(--line)) 13%, transparent);
 }
 
@@ -2398,7 +2473,7 @@ label {
   min-width: 0;
   padding: 15px 12px;
   border: 1px solid var(--line);
-  border-radius: 15px;
+  border-radius: var(--r-lg);
   /* 판을 깔지 않는다. 테두리만으로 누를 수 있는 자리를 표시한다. */
   background-color: transparent;
   color: var(--text);
@@ -2414,25 +2489,25 @@ label {
 .reading-category-option:hover,
 .reading-category-option:focus-visible {
   transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
-  background-color: var(--tint-1);
-  background-color: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  background-color: var(--canvas-lavender);
   outline: none;
 }
 
 .reading-category-option:active {
   transform: translateY(0) scale(0.98);
   border-color: var(--accent);
-  background-color: var(--tint-2);
-  background-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  background-color: var(--canvas-lavender);
 }
 
+/* 고른 것은 라벤더 면 + 오베르진 테두리로 표시한다. 예전에는 오베르진을 22%
+   섞은 판을 깔아서, 채운 CTA 도 아닌 자리가 화면에서 제일 진한 보라가 됐다 —
+   DESIGN-slack.md 가 오베르진을 아껴 쓰라고 한 것이 이 경우다. */
 .reading-category-option.is-selected {
   border-color: var(--accent);
-  background-color: var(--tint-2);
-  background-color: color-mix(in srgb, var(--accent) 22%, transparent);
-  box-shadow: 0 0 0 2px var(--tint-ring);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+  background-color: var(--canvas-lavender);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  font-weight: 700;
 }
 
 .reading-category-option strong {
@@ -2459,7 +2534,7 @@ label {
   gap: 4px;
   padding: 0 11px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background-color: var(--bg-card2);
   transition:
     border-color 440ms ease,
@@ -2565,7 +2640,7 @@ label {
   height: 66px;
   padding: 5px;
   border: 1px solid var(--chrome-line);
-  border-radius: 24px;
+  border-radius: var(--r-pill);
   background: var(--chrome-bg);
   box-shadow: var(--chrome-shadow);
   transform: translate3d(-50%, 0, 0);
@@ -2577,7 +2652,7 @@ label {
   -webkit-appearance: none;
   width: 100%;
   height: 100%;
-  border-radius: 19px;
+  border-radius: var(--r-pill);
   background: var(--btn-bg);
   border-color: transparent;
   color: var(--btn-ink);
@@ -2585,29 +2660,30 @@ label {
   box-shadow: var(--btn-shadow);
   transition:
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
-    filter 440ms ease,
     background-color 440ms ease,
     box-shadow 440ms ease;
 }
 
+/* 이 자리는 예전에 #f1f1f3 / #dededf 를 박아 뒀었다. 어두운 테마 기준으로 고른
+   값이라, 밝은 바탕에서는 오베르진 버튼이 hover 에 회색으로 바래 버린다.
+   토큰으로 되돌린다 — 두 테마가 같은 규칙을 쓴다. */
 .reading-fixed-action .btn:hover,
 .reading-fixed-action .btn:focus-visible {
-  background-color: #f1f1f3;
+  background-color: var(--btn-press);
   background-image: none;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--btn-shadow-hover);
 }
 
 .reading-fixed-action .btn:focus-visible {
-  /* 버튼이 흰색이 됐으므로 흰 테두리는 보이지 않는다 */
   outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
 .reading-fixed-action .btn:active {
   transform: scale(0.975);
-  background-color: #dededf;
+  background-color: var(--btn-press);
   background-image: none;
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--btn-shadow);
   filter: none;
 }
 
@@ -2668,7 +2744,7 @@ label {
   margin: 0;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
 }
 
@@ -2758,7 +2834,7 @@ label {
   margin: -10px 0 24px;
   padding: 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 62%, var(--line));
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background:
     radial-gradient(circle at 8% 12%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 42%),
     var(--bg-card);
@@ -2771,7 +2847,7 @@ label {
   height: 42px;
   display: grid;
   place-items: center;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 16%, var(--bg-card2));
   font-size: 1.3rem;
 }
@@ -2835,7 +2911,7 @@ label {
   min-width: 0;
   padding: 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
 }
 
@@ -2871,7 +2947,7 @@ label {
   display: block;
   width: 100%;
   height: 7px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--text-dim);
 }
 
@@ -2883,7 +2959,7 @@ label {
   gap: 7px;
   margin: 0 14px;
   padding: 16px;
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
   color: var(--text-dim);
   font-size: 0.78rem;
@@ -2960,7 +3036,7 @@ label {
   display: inline-block;
   margin-bottom: 12px;
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent-soft);
   font-size: 0.74rem;
@@ -2995,7 +3071,7 @@ label {
 
 .report-state {
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--bg-card2);
   font-weight: 800;
 }
@@ -3011,7 +3087,7 @@ label {
   margin-top: 20px;
   padding: 16px 18px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
   font-size: 0.85rem;
 }
@@ -3034,7 +3110,7 @@ label {
 .report-notice {
   margin-top: 18px;
   padding: 12px 16px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--violet) 16%, var(--bg-card));
   color: var(--text);
   font-size: 0.85rem;
@@ -3044,7 +3120,7 @@ label {
   margin-top: 30px;
   padding: 22px 22px 20px;
   border: 1px solid color-mix(in srgb, var(--violet) 42%, var(--line));
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background:
     radial-gradient(circle at 92% 6%, color-mix(in srgb, var(--violet) 16%, transparent), transparent 42%),
     var(--bg-card);
@@ -3108,7 +3184,7 @@ label {
   margin-top: 26px;
   padding: 18px 20px;
   border-left: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  border-radius: 0 14px 14px 0;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
   background: var(--bg-card2);
 }
 
@@ -3223,7 +3299,7 @@ label {
   margin-top: 30px;
   padding: 28px 20px 24px;
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line));
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   text-align: center;
   background: linear-gradient(180deg, var(--bg-card), color-mix(in srgb, var(--accent) 11%, var(--bg-card)));
 }
@@ -3248,7 +3324,7 @@ label {
   margin-top: 34px;
   padding: 22px 20px 20px;
   border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
 }
 
@@ -3270,7 +3346,7 @@ label {
   gap: 12px;
   padding: 13px 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card);
   color: inherit;
   text-decoration: none;
@@ -3331,7 +3407,7 @@ label {
 .report-card {
   padding: 12px 14px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 5%, var(--bg-card));
 }
 
@@ -3388,7 +3464,7 @@ label {
   position: relative;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -3428,7 +3504,7 @@ label {
 
 .archive-title em {
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--accent);
   color: var(--accent-ink);
   font-size: 0.68rem;
@@ -3475,7 +3551,7 @@ label {
   margin-top: 16px;
   padding: 20px;
   border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--line));
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: color-mix(in srgb, var(--accent) 7%, var(--bg-card));
 }
 
@@ -3510,7 +3586,7 @@ label {
   gap: 5px;
   padding: 13px 10px;
   border: 1px solid var(--line);
-  border-radius: 15px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
   color: var(--text);
   font: inherit;
@@ -3542,7 +3618,7 @@ label {
 .referral-notice {
   margin-top: 10px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--gold) !important;
   text-align: center;
@@ -3561,7 +3637,7 @@ label {
   z-index: 60;
   display: flex;
   padding: 4px;
-  border-radius: 24px;
+  border-radius: var(--r-xl);
   overflow: hidden;
   isolation: isolate;
   background: var(--chrome-bg);
@@ -3590,7 +3666,7 @@ label {
 .tabbar-indicator {
   width: calc(100% - 4px);
   height: 58px;
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: var(--chrome-slot);
   border: 0;
   box-shadow: none;
@@ -3618,7 +3694,7 @@ label {
 .tabbar a:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -3px;
-  border-radius: 20px;
+  border-radius: var(--r-xl);
 }
 
 .tabbar-icon {
@@ -3729,7 +3805,7 @@ label {
   margin: 22px 0 16px;
   padding: 8px 14px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
   text-align: left;
 }
@@ -3788,7 +3864,7 @@ label {
   margin-top: 16px;
   padding: 14px;
   border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--gold) 6%, transparent);
   text-align: left;
 }
@@ -3824,7 +3900,7 @@ label {
   margin-top: 14px;
   padding: 12px 14px;
   border-left: 3px solid var(--gold);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: color-mix(in srgb, var(--gold) 8%, transparent);
   text-align: left;
 }
@@ -3876,7 +3952,7 @@ label {
 .admin-passkey-notice {
   margin: 12px 0 0;
   padding: 11px 13px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
   color: var(--accent);
   font-size: 0.82rem;
@@ -3975,7 +4051,7 @@ label {
 .admin-order-card dl {
   margin-top: 14px;
   padding: 8px 12px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
 }
 
@@ -4060,7 +4136,7 @@ label {
   min-width: 0;
   padding: 10px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
   color: var(--text);
   font: inherit;
@@ -4096,7 +4172,7 @@ label {
   margin-top: 16px;
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card2);
 }
 
@@ -4123,7 +4199,7 @@ label {
   height: 28px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: rgba(128, 128, 140, 0.3);
   cursor: pointer;
   transition: background 180ms ease, border-color 180ms ease;
@@ -4154,7 +4230,7 @@ label {
   display: block;
   width: 100%;
   aspect-ratio: 2 / 1;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   border: 1px solid var(--tint-line);
 }
 
@@ -4192,7 +4268,7 @@ label {
   justify-content: center;
   gap: 10px;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--r-lg);
   font: inherit;
   font-size: 0.92rem;
   font-weight: 800;
@@ -4440,7 +4516,7 @@ label {
   width: min(320px, 100%);
   height: 8px;
   margin: 0 auto;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--accent) 14%, var(--bg-card));
 }
 
@@ -4497,7 +4573,7 @@ label {
   min-height: 42px;
   padding: 0 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
   color: var(--text);
   font: inherit;
@@ -4547,7 +4623,7 @@ label {
 .inquiry-chips button {
   padding: 7px 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: transparent;
   color: var(--text-dim);
   font: inherit;
@@ -4575,7 +4651,7 @@ label {
   width: 100%;
   padding: 11px 13px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg);
   color: var(--text);
   font: inherit;
@@ -4613,7 +4689,7 @@ label {
 .admin-inquiry-message {
   margin: 10px 0 14px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 5%, var(--bg));
   color: var(--text);
   font-size: 0.9rem;
@@ -4756,7 +4832,7 @@ label {
 
 .lp-intro-art {
   height: clamp(220px, 62vw, 320px);
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: linear-gradient(160deg, rgba(139, 92, 246, 0.35), rgba(255, 255, 255, 0.18));
   border: 1px solid var(--line);
 }
@@ -4797,7 +4873,7 @@ label {
   width: 100%;
   text-align: left;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   border: 1px solid var(--line);
   background: var(--bg-card);
   color: var(--text);
@@ -4835,7 +4911,7 @@ label {
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
 
@@ -4871,7 +4947,7 @@ label {
   margin: 0;
   padding: 11px 13px;
   border: 1px dashed var(--accent);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   color: var(--text-dim);
   font-size: 0.82rem;
   line-height: 1.6;
@@ -4896,7 +4972,7 @@ label {
   display: grid;
   gap: 10px;
   padding: 16px;
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   border: 1px solid var(--line);
   background: var(--bg-card);
   box-shadow: var(--chrome-shadow);
@@ -4966,7 +5042,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   font-size: 0.78rem;
   font-weight: 700;
   padding: 5px 12px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   color: #eaf6ff;
   background: rgba(12, 22, 38, 0.62);
   border: 1px solid rgba(127, 200, 248, 0.45);
@@ -5012,7 +5088,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   align-items: center;
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--rv-ink) 62%, transparent);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: color-mix(in srgb, var(--rv-ink) 14%, transparent);
   color: var(--rv-ink);
   font-size: 0.58rem;
@@ -5053,7 +5129,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 34px;
   padding: 0;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-dim);
   cursor: pointer;
@@ -5076,7 +5152,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-notice {
   margin: 14px 0 0;
   padding: 11px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--rv-ink) 16%, var(--bg-card));
   color: var(--text);
   font-size: 0.84rem;
@@ -5180,7 +5256,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 .rv-summary-cards > div {
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card);
 }
 
@@ -5216,7 +5292,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   padding: 0;
   list-style: none;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--line);
   overflow: hidden;
 }
@@ -5318,7 +5394,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 /* 본문 카드 — 테두리를 빼고 바탕만 살짝 띄운다. 선이 한 겹 줄면 글이 앞에 선다. */
 .rv-prose {
   padding: 20px 18px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card);
 }
 
@@ -5347,13 +5423,13 @@ body:has(.product-page[data-landing]) .consent-banner {
   gap: 11px;
   padding: 18px 17px;
   border: 1px dashed color-mix(in srgb, var(--rv-ink) 34%, var(--line));
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
 .rv-locked span {
   height: 11px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--text-dim) 22%, transparent),
@@ -5404,7 +5480,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin: 14px 0 0;
   padding: 10px 12px;
   border: 1px dashed var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-dim, var(--text));
@@ -5462,7 +5538,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 24px;
   padding: 20px 18px;
   border: 1px solid color-mix(in srgb, var(--rv-ink) 40%, var(--line));
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background:
     radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--rv-ink) 18%, transparent), transparent 62%),
     var(--bg-card);
@@ -5522,7 +5598,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   gap: 8px;
   padding: 7px 8px 7px 7px;
   border: 1px solid var(--line);
-  border-radius: 20px;
+  border-radius: var(--r-xl);
   background: color-mix(in srgb, var(--bg-card) 92%, transparent);
   backdrop-filter: blur(18px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
@@ -5535,7 +5611,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 42px;
   flex: none;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--text);
   cursor: pointer;
@@ -5563,7 +5639,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 42px;
   padding: 0 16px;
   border: 0;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--accent);
   color: var(--btn-ink);
   font-size: 0.85rem;
@@ -5599,7 +5675,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   max-height: 82dvh;
   overflow-y: auto;
   padding: 16px 16px calc(22px + env(safe-area-inset-bottom));
-  border-radius: 22px 22px 0 0;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
   border-top: 1px solid var(--line);
   background: var(--bg);
   animation: rv-sheet-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -5628,7 +5704,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-bottom: 10px;
   padding: 12px 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--text-dim);
   font-size: 0.85rem;
@@ -5650,7 +5726,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   display: inline-flex;
   padding: 3px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
 }
 
@@ -5658,7 +5734,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   min-width: 68px;
   padding: 7px 14px;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-dim);
   font-size: 0.84rem;
@@ -5719,7 +5795,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   width: 100%;
   padding: 13px 15px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--text);
   font-family: inherit;
@@ -5749,7 +5825,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 18px;
   padding: 16px 17px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -5816,7 +5892,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 18px;
   padding: 14px 16px;
   border-left: 2px solid var(--line);
-  border-radius: 0 10px 10px 0;
+  border-radius: 0 var(--r-md) var(--r-md) 0;
   background: var(--bg-card2);
   color: var(--text-dim);
   font-size: 0.92rem;
@@ -5848,7 +5924,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   align-items: baseline;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--bg-card2);
   font-size: 0.72rem;
   /* 이름표가 잘려 나가면 근거가 무엇에 대한 근거인지 알 수 없다 */
@@ -5880,7 +5956,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-left: 6px;
   padding: 1px 6px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   color: var(--text-dim);
   font-size: 0.66rem;
   font-style: normal;
@@ -5921,7 +5997,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-mark {
   padding: 1px 3px;
   margin: 0 -1px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: transparent;
   color: inherit;
   font-weight: 700;
@@ -5958,7 +6034,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   gap: 8px 14px;
   margin: 22px 0 0;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card);
 }
 
@@ -6005,7 +6081,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 52px;
   padding: 0 16px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card);
   color: var(--text);
   font-family: inherit;
@@ -6067,7 +6143,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin: 26px 0;
   padding: 18px 12px;
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   color: var(--text-dim);
   font-size: 0.8rem;
   font-weight: 700;
@@ -6113,7 +6189,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   width: 100%;
   padding: 13px 14px;
   border: 0;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-dim);
   font-family: inherit;
@@ -6147,7 +6223,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .rv-talisman {
   margin-top: 34px;
   padding: 24px 18px 22px;
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
   text-align: center;
 }
@@ -6172,7 +6248,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   width: min(240px, 62%);
   margin: 0 auto 18px;
   aspect-ratio: 2 / 3;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   overflow: hidden;
 }
 
@@ -6201,7 +6277,7 @@ body:has(.product-page[data-landing]) .consent-banner {
     ),
     linear-gradient(160deg, var(--bg-card2), var(--bg));
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-md);
 }
 
 .rv-talisman-open {
@@ -6247,7 +6323,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 .rv-contrast > div {
   padding: 13px 15px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
 }
 
@@ -6422,7 +6498,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .admin-draft-post pre {
   margin: 0;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: var(--surface-2, rgba(127, 127, 127, 0.08));
   font-family: inherit;
   font-size: 0.86rem;
@@ -6518,7 +6594,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 .admin-draft-notice {
   margin: 0.75rem 0;
   padding: 0.6rem 0.9rem;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: rgba(22, 163, 74, 0.12);
   color: #15803d;
   font-size: 0.9rem;
@@ -6668,7 +6744,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 10px;
   margin-top: 10px;
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: color-mix(in srgb, var(--text) 8%, transparent);
 }
 
@@ -6715,7 +6791,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   gap: 6px 8px;
   padding: 8px 8px 8px 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
@@ -6778,7 +6854,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   gap: 5px;
   padding: 6px 7px;
   border: 1px dashed rgba(0, 0, 0, 0.25);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: var(--tint-1);
   color: inherit;
   font-size: 0.72rem;
@@ -6795,7 +6871,7 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 .transfer-pay-copychip-act {
   padding: 1px 6px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   background: rgba(0, 0, 0, 0.08);
   font-size: 0.66rem;
 }
@@ -6814,7 +6890,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 10px;
   padding: 10px 12px;
   border: 1px dashed var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
 }
 
 .transfer-pay-either {
@@ -6840,7 +6916,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   height: 30px;
   padding: 0 7px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-dim);
   font-size: 0.7rem;
@@ -6870,7 +6946,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 14px;
   padding: 14px 16px;
   border: 1.5px solid var(--gold);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--gold) 9%, transparent);
   color: var(--text);
   font-size: 0.95rem;
@@ -6899,7 +6975,7 @@ body:has(.product-page[data-landing]) .consent-banner {
   margin-top: 14px;
   padding: 14px;
   border: 1.5px solid color-mix(in srgb, var(--gold) 55%, transparent);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--gold) 6%, transparent);
 }
 
@@ -6947,7 +7023,7 @@ label.transfer-pay-confirm.busy {
   margin-top: 12px;
   padding: 14px 12px;
   border: 1.5px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: transparent;
   color: var(--text);
   opacity: 0.75;
@@ -6963,7 +7039,7 @@ label.transfer-pay-confirm.busy {
   margin: 0 0 6px;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: var(--r-xl);
 }
 
 .rv-cover-art img,
@@ -7120,7 +7196,7 @@ label.transfer-pay-confirm.busy {
   padding: 12px 14px;
   border-left: 3px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 8%, var(--bg-card2));
-  border-radius: 0 12px 12px 0;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
   font-size: 0.95rem;
   line-height: 1.65;
 }
@@ -7135,7 +7211,7 @@ label.transfer-pay-confirm.busy {
 .continue-sheet-columns section {
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
 }
 
@@ -7201,7 +7277,7 @@ label.transfer-pay-confirm.busy {
   gap: 6px 8px;
   margin-top: 12px;
   padding: 7px 12px;
-  border-radius: 999px;
+  border-radius: var(--r-pill);
   background: var(--tint-1);
   border: 1px solid var(--tint-line);
   backdrop-filter: blur(6px);
@@ -7295,7 +7371,7 @@ label.transfer-pay-confirm.busy {
   width: 100%;
   aspect-ratio: 4 / 3;
   margin-top: 22px;
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   overflow: hidden;
 }
 
@@ -7330,7 +7406,7 @@ label.transfer-pay-confirm.busy {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   border: 1px solid var(--tint-line);
 }
 .product-lore-seal {
@@ -7367,7 +7443,7 @@ label.transfer-pay-confirm.busy {
 .product-lore-points li {
   position: relative;
   padding: 12px 14px 12px 34px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--tint-1);
   border: 1px solid var(--tint-line);
   font-size: 0.88rem;
@@ -7384,7 +7460,7 @@ label.transfer-pay-confirm.busy {
 .product-lore-close {
   margin-top: 14px;
   padding: 14px 16px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--tint-1);
   border: 1px solid var(--tint-line);
   font-size: 0.9rem;
@@ -7418,7 +7494,7 @@ label.transfer-pay-confirm.busy {
   gap: 10px;
   align-items: start;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--tint-1);
   border: 1px solid var(--tint-line);
 }
@@ -7475,7 +7551,7 @@ label.transfer-pay-confirm.busy {
   gap: 20px;
   padding: 20px 18px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -7505,14 +7581,14 @@ label.transfer-pay-confirm.busy {
   grid-auto-columns: 1fr;
   gap: 6px;
   padding: 4px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
 }
 
 .ms-seg button {
   padding: 10px 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: transparent;
   color: var(--text-dim);
   font: inherit;
@@ -7549,7 +7625,7 @@ label.transfer-pay-confirm.busy {
   width: 100%;
   padding: 12px 12px;
   border: 1px solid var(--line);
-  border-radius: 11px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   color: var(--text);
   font: inherit;
@@ -7583,7 +7659,7 @@ label.transfer-pay-confirm.busy {
   margin-top: 14px;
   padding: 11px 13px;
   border: 1px solid color-mix(in srgb, #e2564f 40%, transparent);
-  border-radius: 11px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, #e2564f 12%, transparent);
   color: var(--text);
   font-size: 0.8rem;
@@ -7594,7 +7670,7 @@ label.transfer-pay-confirm.busy {
 .ms-submit {
   padding: 14px 0;
   border: 0;
-  border-radius: 13px;
+  border-radius: var(--r-lg);
   background: var(--accent);
   color: var(--bg);
   font: inherit;
@@ -7617,7 +7693,7 @@ label.transfer-pay-confirm.busy {
   min-width: 0;
   padding: 18px 16px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -7665,7 +7741,7 @@ label.transfer-pay-confirm.busy {
 
 .ms-col-head {
   padding: 6px 0;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: var(--bg-card2);
   color: var(--text-dim);
   font-size: 0.72rem;
@@ -7683,7 +7759,7 @@ label.transfer-pay-confirm.busy {
   justify-items: center;
   gap: 2px;
   border: 1px solid color-mix(in srgb, var(--sj-c, var(--line)) 34%, transparent);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--sj-c, var(--line)) 13%, transparent);
 }
 
@@ -7729,7 +7805,7 @@ label.transfer-pay-confirm.busy {
   gap: 2px;
   justify-items: center;
   padding: 5px 2px;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   background: var(--bg-card2);
 }
 
@@ -7814,7 +7890,7 @@ label.transfer-pay-confirm.busy {
 
 .ms-bar-track {
   height: 8px;
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   background: var(--bg-card2);
   overflow: hidden;
 }
@@ -7822,7 +7898,7 @@ label.transfer-pay-confirm.busy {
 .ms-bar-track i {
   display: block;
   height: 100%;
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   background: var(--sj-c, var(--accent));
 }
 
@@ -7857,7 +7933,7 @@ label.transfer-pay-confirm.busy {
   gap: 5px;
   padding: 7px 11px;
   border: 1px solid var(--line);
-  border-radius: 99px;
+  border-radius: var(--r-pill);
   background: var(--bg-card2);
   font-size: 0.78rem;
 }
@@ -7896,7 +7972,7 @@ label.transfer-pay-confirm.busy {
   justify-items: center;
   padding: 8px 4px;
   border: 1px solid transparent;
-  border-radius: 13px;
+  border-radius: var(--r-lg);
 }
 
 .ms-luck-col.on {
@@ -7939,7 +8015,7 @@ label.transfer-pay-confirm.busy {
   gap: 10px;
   padding: 22px 18px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
   text-align: center;
 }
@@ -7960,7 +8036,7 @@ label.transfer-pay-confirm.busy {
 .ms-cta-btn {
   margin-top: 4px;
   padding: 14px 0;
-  border-radius: 13px;
+  border-radius: var(--r-lg);
   background: var(--accent);
   color: var(--bg);
   font-size: 0.95rem;
@@ -8052,7 +8128,7 @@ body:has(.admin-shell) .tabbar {
   min-width: 0;
   padding: 15px 16px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-xl);
   background: var(--bg-card);
 }
 
@@ -8144,7 +8220,7 @@ body:has(.admin-shell) .tabbar {
 .fc-swatch {
   width: 11px;
   height: 11px;
-  border-radius: 3px;
+  border-radius: var(--r-xs);
 }
 
 .fc-swatch-base { background: var(--fc-bar); }
@@ -8187,7 +8263,7 @@ body:has(.admin-shell) .tabbar {
 .fc-track {
   min-width: 0;
   height: 16px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: var(--fc-track);
   overflow: hidden;
 }
@@ -8196,7 +8272,7 @@ body:has(.admin-shell) .tabbar {
   display: block;
   height: 100%;
   min-width: 2px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: var(--fc-bar);
   transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -8206,7 +8282,7 @@ body:has(.admin-shell) .tabbar {
 .fc-part {
   display: block;
   height: 100%;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   background: var(--fc-part);
   box-shadow: 2px 0 0 var(--bg-card);
 }
@@ -8263,7 +8339,7 @@ body:has(.admin-shell) .tabbar {
   gap: 3px;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--bg-card2);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
   font-size: 0.76rem;
@@ -8354,7 +8430,7 @@ body:has(.admin-shell) .tabbar {
 .reading-checkout-error {
   margin-top: 14px;
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
   color: var(--accent);
   font-size: 0.82rem;
@@ -8422,7 +8498,7 @@ body:has(.admin-shell) .tabbar {
   width: 100%;
   margin: 0 0 14px;
   padding: 10px 14px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   border: 1px dashed var(--tint-line);
   background: transparent;
   color: inherit;
