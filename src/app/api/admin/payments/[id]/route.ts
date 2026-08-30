@@ -8,6 +8,20 @@ import {
 import { isDatabaseConfigured } from "@/lib/database";
 import { reviewOrderAndFollowUp } from "@/lib/order-review";
 
+/*
+  승인이 곧 생성 시작이다 (order-review.ts). 생성은 waitUntil 로 응답 뒤에
+  돌지만, 그 배경 작업도 이 함수의 수명 안에서만 산다 — 함수가 끝나면 같이
+  죽는다. 선언이 없으면 플랫폼 기본값(초 단위)이라 열두 절을 만들다 중간에
+  잘리고, 그 자리에서 lr_reading_resume.generating_at 만 남는다.
+
+  그 표식은 10분간 아무도 못 집게 막으므로, 승인 직후 열러 온 손님의
+  /api/unlock 도 "준비 중"(503)으로 돌아선다. 돈은 받았는데 글이 안 나오는
+  구간이 여기서 생겼다.
+
+  실제로 만드는 /api/unlock·/api/reading 과 같은 300 으로 맞춘다.
+*/
+export const maxDuration = 300;
+
 type ReviewRequest = {
   decision?: "paid" | "cancelled";
   note?: string;

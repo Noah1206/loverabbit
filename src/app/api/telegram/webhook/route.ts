@@ -6,6 +6,10 @@ import { isDatabaseConfigured } from "@/lib/database";
 import { reviewOrderAndFollowUp, type ReviewDecision } from "@/lib/order-review";
 import { adminChatId, answerCallback, editAdminMessage, webhookSecret } from "@/lib/telegram";
 
+// 텔레그램 버튼도 승인 → 생성으로 이어진다. 관리자 화면과 같은 이유로 300 이
+// 필요하다 (src/app/api/admin/payments/[id]/route.ts 의 설명 참고).
+export const maxDuration = 300;
+
 /*
   텔레그램 알림의 승인·거절 버튼이 여기로 온다.
 

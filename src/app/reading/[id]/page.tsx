@@ -25,6 +25,7 @@ import { savePendingReading, takePendingReading } from "@/lib/pending-reading";
 import { parseReportSections, readingMinutes, summaryPoints } from "@/lib/reading-report";
 import { buildChapters, previewPieces, reportPieces, type ReadingChapter } from "@/lib/reading-chapters";
 import { conceptFor } from "@/lib/reading-concepts";
+import { gateDecision } from "@/lib/reading-gate-redirect";
 import {
   ChapterBody,
   ChapterIndex,
@@ -141,6 +142,8 @@ export default function ReadingReportPage() {
           scoreLabel: detail.scoreLabel,
         };
         if (detail.unlocked) {
+          // 본문을 못 받더라도 권리는 확인됐다. 아래 튕겨내기가 이 값을 본다.
+          setPaidUnlocked(true);
           // 전문은 해금 검증을 거치는 /api/unlock 으로만 받는다. 이미 해금된
           // 리딩이라 재결제 없이 전문이 온다.
           const unlockRes = await fetch("/api/unlock", {
@@ -190,13 +193,21 @@ export default function ReadingReportPage() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || !data.reading?.unlocked) return; // 아직 승인 전 - 그대로 둔다
+        // 승인은 확인됐다. 아래에서 본문을 못 받아 빠져나가더라도 이건 남긴다 —
+        // 이 표시가 없으면 돈 낸 사람이 결제 화면으로 튕겨 나간다.
+        if (alive) setPaidUnlocked(true);
         const unlockRes = await fetch("/api/unlock", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ readingId: id, blob: found?.blob || undefined, userToken: stored?.token }),
         });
         const unlockData = await unlockRes.json().catch(() => ({}));
-        if (!alive || !unlockRes.ok || typeof unlockData.full !== "string") return;
+        if (!alive) return;
+        if (!unlockRes.ok || typeof unlockData.full !== "string") {
+          // 승인은 났는데 본문이 아직이다. 잠긴 화면이 아니라 사정을 보여준다.
+          setNotice(unlockData.error ?? "전문을 준비 중이에요. 잠시 후 다시 열어주세요.");
+          return;
+        }
         const patch = {
           full: unlockData.full as string,
           score: unlockData.score ?? null,
@@ -321,6 +332,14 @@ export default function ReadingReportPage() {
   // 실패해 "찾을 수 없음" 으로 끝난 방문은 여기까지 오지 않는다.
   // 서버에 해금 여부를 물어봤는가. 묻기 전에는 잠금 판단을 미룬다.
   const [unlockChecked, setUnlockChecked] = useState(false);
+  /*
+    DB 가 "이미 해금됨"이라고 답했는가.
+
+    본문(full)과 권리(unlocked)는 다른 것이다. 승인은 났는데 본문이 아직 안
+    끝난 구간이 실제로 있다 — 그때 /api/unlock 은 503(준비 중)을 낸다. 그것을
+    "안 산 사람"으로 읽으면 돈 낸 사람을 결제 화면으로 돌려보내게 된다.
+  */
+  const [paidUnlocked, setPaidUnlocked] = useState(false);
   const viewedRef = useRef<string | null>(null);
   useEffect(() => {
     if (status !== "ready" || !entry) return;
@@ -344,13 +363,22 @@ export default function ReadingReportPage() {
     두 번 내라는 말로 읽힌다.
   */
   useEffect(() => {
-    if (status !== "ready" || !entry || unlocked || !unlockChecked) return;
+    if (status !== "ready" || !entry) return;
+    // 판단은 reading-gate-redirect.ts 에 있다 — 돈 낸 사람을 결제 화면으로
+    // 보내지 않기 위한 규칙이라 테스트가 붙어 있다.
+    const decision = gateDecision({
+      hasFull: unlocked,
+      paidUnlocked,
+      unlockChecked,
+      pendingOrderId: entry.pendingOrderId,
+    });
+    if (decision.kind === "stay") return;
     router.replace(
-      entry.pendingOrderId
-        ? `/payment/pending?orderId=${encodeURIComponent(String(entry.pendingOrderId))}`
+      decision.kind === "pending"
+        ? `/payment/pending?orderId=${encodeURIComponent(String(decision.orderId))}`
         : `/reading/${entry.readingId}/checkout`
     );
-  }, [status, entry, unlocked, unlockChecked, router]);
+  }, [status, entry, unlocked, unlockChecked, paidUnlocked, router]);
 
   const points = useMemo(() => summaryPoints(entry?.teaser ?? ""), [entry?.teaser]);
 
