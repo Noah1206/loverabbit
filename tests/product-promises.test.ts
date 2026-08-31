@@ -37,7 +37,7 @@ describe("상품 약속", () => {
   it("모든 상품이 정확히 한 번씩 있다", () => {
     const ids = PRODUCTS.map((p) => p.id);
     assert.equal(new Set(ids).size, ids.length);
-    assert.equal(ids.length, 13, "상품 수가 바뀌었으면 이 숫자를 함께 고친다 — 몰래 늘거나 줄지 않게");
+    assert.equal(ids.length, 19, "상품 수가 바뀌었으면 이 숫자를 함께 고친다 — 몰래 늘거나 줄지 않게");
   });
 
   for (const product of PRODUCTS) {

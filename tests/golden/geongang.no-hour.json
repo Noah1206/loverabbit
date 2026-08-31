@@ -1,0 +1,96 @@
+{
+  "product": "geongang",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "HEALTH-DM-WOOD",
+    "HEALTH-STR-WEAK",
+    "HEALTH-TG-JEONGIN",
+    "HEALTH-TG-PYEONJAE",
+    "HEALTH-TG-SIKSIN",
+    "HEALTH-MISS-METAL",
+    "HEALTH-SS-HWAGAE",
+    "HEALTH-REL-CLASH"
+  ],
+  "score": {
+    "value": 50,
+    "band": "리듬이 잡히는 중",
+    "factors": [
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -6
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -6
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 5
+      },
+      {
+        "label": "세운 식신",
+        "delta": 5
+      }
+    ]
+  },
+  "scope": {
+    "label": "몸의 리듬 리딩 (일간 기질과 십성으로 읽는 기운 쓰는 방식, 지치는 패턴, 계절 신호, 지금 시기의 리듬 — 의료 판정이 아닌 생활 리듬 해석)",
+    "outline": [
+      "1장 01. 내 일간 — 몸이 기운을 쓰는 기본 결",
+      "1장 02. 명식의 강약 — 버티는 힘과 회복의 속도",
+      "2장 01. 십성이 말하는 몸 쓰는 방식 — 아끼는가 몰아붙이는가",
+      "2장 02. 지치는 패턴 — 기운이 새는 장면",
+      "3장 01. 계절의 신호 — 오르는 철과 꺾이는 철",
+      "3장 02. 없는 오행이 만드는 빈자리와 채우는 습관",
+      "4장 01. 지금 시기의 몸 흐름 — 아껴야 할 달과 움직일 달",
+      "5장 01. 내 리듬에 맞는 생활과 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

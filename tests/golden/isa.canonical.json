@@ -1,0 +1,93 @@
+{
+  "product": "isa",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "MOVE-DM-WOOD",
+    "MOVE-STR-WEAK",
+    "MOVE-TG-PYEONIN",
+    "MOVE-TG-PYEONJAE",
+    "MOVE-TG-SANGGWAN",
+    "MOVE-SS-HWAGAE",
+    "MOVE-REL-CLASH"
+  ],
+  "score": {
+    "value": 55,
+    "band": "움직임의 조짐",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 9
+      },
+      {
+        "label": "지지충 1개",
+        "delta": 6
+      },
+      {
+        "label": "세운 상관",
+        "delta": -6
+      }
+    ]
+  },
+  "scope": {
+    "label": "이사·터 리딩 (역마와 충으로 읽는 이동수, 머무는 결과 옮기는 결, 지금 시기의 이동 흐름 — 방위 추천은 하지 않는다)",
+    "outline": [
+      "1장 01. 내 일간 — 터를 대하는 기질",
+      "1장 02. 역마와 이동수 — 내 명식의 움직이는 힘",
+      "2장 01. 머무는 결인가 옮기는 결인가",
+      "2장 02. 자리의 흔들림 — 충이 건드리는 지점",
+      "3장 01. 나에게 맞는 터의 조건 — 오행이 부르는 공간",
+      "3장 02. 옮길 때 소모되는 지점과 지키는 법",
+      "4장 01. 지금 시기의 이동 흐름 — 움직일 달과 눌러앉을 달",
+      "5장 01. 이사를 앞둔 마음가짐 — 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

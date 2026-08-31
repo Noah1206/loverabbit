@@ -1,0 +1,98 @@
+{
+  "product": "gajok",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "FAMILY-DM-METAL",
+    "FAMILY-STR-BALANCED",
+    "FAMILY-TG-BIGYEON",
+    "FAMILY-TG-GEOPJAE",
+    "FAMILY-TG-PYEONIN",
+    "FAMILY-MISS-WOOD",
+    "FAMILY-SS-YEOKMA",
+    "FAMILY-REL-CLASH"
+  ],
+  "score": {
+    "value": 53,
+    "band": "자리를 찾는 중",
+    "factors": [
+      {
+        "label": "편인 2개",
+        "delta": 7
+      },
+      {
+        "label": "재성 없음",
+        "delta": -7
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 6
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "가족 인연 리딩 (인성=어머니 자리, 재성=아버지 자리, 비겁=형제 자리로 읽는 가족 안의 나, 부딪히는 결과 소모되는 장면, 지금 시기의 가족 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 가족 안에서 정을 쓰는 결",
+      "1장 02. 인성의 자리 — 어머니에게서 받은 것",
+      "2장 01. 재성의 자리 — 아버지와의 결",
+      "2장 02. 비겁의 자리 — 형제·또래 가족과 나",
+      "3장 01. 집안의 틀과 나 — 맞는 결과 부딪히는 결",
+      "3장 02. 가족 안에서 내가 소모되는 장면",
+      "4장 01. 지금 시기의 가족 흐름 — 가까워질 달과 거리 둘 달",
+      "5장 01. 가족과 나 사이 — 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

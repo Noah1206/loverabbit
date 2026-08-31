@@ -1,0 +1,102 @@
+{
+  "product": "jaemul",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "MONEY-DM-METAL",
+    "MONEY-STR-BALANCED",
+    "MONEY-TG-BIGYEON",
+    "MONEY-TG-GEOPJAE",
+    "MONEY-TG-PYEONIN",
+    "MONEY-MISS-WOOD",
+    "MONEY-SS-YEOKMA",
+    "MONEY-REL-CLASH"
+  ],
+  "score": {
+    "value": 57,
+    "band": "물길이 트임",
+    "factors": [
+      {
+        "label": "재성 없음",
+        "delta": -10
+      },
+      {
+        "label": "대운 정관",
+        "delta": 10
+      },
+      {
+        "label": "세운 정관",
+        "delta": 7
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 5
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "재물운 리딩 (일간과 재성으로 읽는 돈을 대하는 결, 모으는 힘과 굴리는 힘, 새는 자리, 지금 시기의 재물 흐름)",
+    "outline": [
+      "1장 01. 내 일간과 재성 — 돈을 대하는 기본 결",
+      "1장 02. 돈 그릇의 크기 — 모으는 힘과 굴리는 힘",
+      "2장 01. 돈이 들어오는 결 — 벌리는 방식",
+      "2장 02. 돈이 새는 자리 — 내 명식의 누수 지점",
+      "3장 01. 강약과 재물 — 그릇이 감당하는 무게",
+      "4장 01. 지금 시기의 재물 흐름 — 들어오는 달과 지키는 달",
+      "4장 02. 돈 그릇을 키우는 습관과 갉아먹는 습관",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

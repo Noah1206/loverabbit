@@ -1,0 +1,101 @@
+{
+  "product": "jikeop",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "WORK-DM-WOOD",
+    "WORK-STR-WEAK",
+    "WORK-TG-PYEONIN",
+    "WORK-TG-PYEONJAE",
+    "WORK-TG-SANGGWAN",
+    "WORK-SS-HWAGAE",
+    "WORK-REL-CLASH"
+  ],
+  "score": {
+    "value": 59,
+    "band": "결이 서는 중",
+    "factors": [
+      {
+        "label": "정관 1개",
+        "delta": 7
+      },
+      {
+        "label": "대운 정관",
+        "delta": 7
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "세운 상관",
+        "delta": -4
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "직업·적성 리딩 (일간 기질과 십성 분포로 읽는 일의 방식, 조직 적합, 직장 인간관계, 지금 시기의 일 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 일을 대하는 기본 기질",
+      "1장 02. 명식의 강약 — 밀어붙이는 힘과 버티는 힘",
+      "2장 01. 십성 분포 — 내 안에서 가장 큰 일 기운",
+      "2장 02. 관성의 자리 — 조직이 맞는가, 내 판이 맞는가",
+      "3장 01. 잘 굴러가는 일의 방식 — 혼자·함께·이끌기",
+      "4장 01. 직장 인간관계 — 부딪히기 쉬운 지점",
+      "4장 02. 지금 시기의 일 흐름 — 움직일 때와 다질 때",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

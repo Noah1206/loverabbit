@@ -1,0 +1,96 @@
+{
+  "product": "gajok",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "FAMILY-DM-WOOD",
+    "FAMILY-STR-WEAK",
+    "FAMILY-TG-JEONGIN",
+    "FAMILY-TG-PYEONJAE",
+    "FAMILY-TG-SIKSIN",
+    "FAMILY-MISS-METAL",
+    "FAMILY-SS-HWAGAE",
+    "FAMILY-REL-CLASH"
+  ],
+  "score": {
+    "value": 65,
+    "band": "온기가 도는 중",
+    "factors": [
+      {
+        "label": "편재 3개",
+        "delta": 9
+      },
+      {
+        "label": "정인 1개",
+        "delta": 6
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 3
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -3
+      }
+    ]
+  },
+  "scope": {
+    "label": "가족 인연 리딩 (인성=어머니 자리, 재성=아버지 자리, 비겁=형제 자리로 읽는 가족 안의 나, 부딪히는 결과 소모되는 장면, 지금 시기의 가족 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 가족 안에서 정을 쓰는 결",
+      "1장 02. 인성의 자리 — 어머니에게서 받은 것",
+      "2장 01. 재성의 자리 — 아버지와의 결",
+      "2장 02. 비겁의 자리 — 형제·또래 가족과 나",
+      "3장 01. 집안의 틀과 나 — 맞는 결과 부딪히는 결",
+      "3장 02. 가족 안에서 내가 소모되는 장면",
+      "4장 01. 지금 시기의 가족 흐름 — 가까워질 달과 거리 둘 달",
+      "5장 01. 가족과 나 사이 — 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

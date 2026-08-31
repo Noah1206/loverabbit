@@ -1,0 +1,100 @@
+{
+  "product": "jikeop",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "WORK-DM-WOOD",
+    "WORK-STR-WEAK",
+    "WORK-TG-JEONGIN",
+    "WORK-TG-PYEONJAE",
+    "WORK-TG-SIKSIN",
+    "WORK-MISS-METAL",
+    "WORK-SS-HWAGAE",
+    "WORK-REL-CLASH"
+  ],
+  "score": {
+    "value": 41,
+    "band": "제 길 찾는 중",
+    "factors": [
+      {
+        "label": "관성 없음",
+        "delta": -8
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -5
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      },
+      {
+        "label": "세운 식신",
+        "delta": 4
+      }
+    ]
+  },
+  "scope": {
+    "label": "직업·적성 리딩 (일간 기질과 십성 분포로 읽는 일의 방식, 조직 적합, 직장 인간관계, 지금 시기의 일 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 일을 대하는 기본 기질",
+      "1장 02. 명식의 강약 — 밀어붙이는 힘과 버티는 힘",
+      "2장 01. 십성 분포 — 내 안에서 가장 큰 일 기운",
+      "2장 02. 관성의 자리 — 조직이 맞는가, 내 판이 맞는가",
+      "3장 01. 잘 굴러가는 일의 방식 — 혼자·함께·이끌기",
+      "4장 01. 직장 인간관계 — 부딪히기 쉬운 지점",
+      "4장 02. 지금 시기의 일 흐름 — 움직일 때와 다질 때",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}
