@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import BrandMark from "@/components/BrandMark";
 import { FIRST_READING_PRICE } from "@/lib/coupons";
 
 /*
@@ -47,7 +48,7 @@ export default function WelcomePopup() {
   return (
     <div className="app-modal-layer welcome-popup-layer" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title" onClick={close}>
       <div className="card welcome-popup" onClick={(event) => event.stopPropagation()}>
-        <span className="welcome-popup-icon" aria-hidden>🐰</span>
+        <BrandMark size={72} className="welcome-popup-icon" />
         <span className="badge">처음 오셨나요?</span>
         <h3 id="welcome-popup-title">
           첫 사주는 무조건
