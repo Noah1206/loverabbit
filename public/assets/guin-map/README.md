@@ -6,7 +6,7 @@
 | `opening-poster.webp` | opening.mp4 의 0.5s 프레임 | `<video poster>` — 로드 전·자동재생 차단 시 |
 | `opening-fallback.webp` | opening.mp4 의 5.0s 프레임 | 공유·OG 등 정지 이미지가 필요한 자리 |
 
-- 생성 1회 (39 크레딧, job dcc4ae01-…). 프롬프트·재생성 체크리스트는
+- 생성 1회 (39 크레딧, job aa9c9beb-… (v2 토끼 보물지도; v1 별자리는 폐기)). 프롬프트·재생성 체크리스트는
   `scripts/higgsfield/prompts.md`.
 - 영상 안에 텍스트·숫자·로고·얼굴 없음. 사용자별 이름·노드는 웹앱이
   `GuinMapIntro` 오버레이로 그린다.

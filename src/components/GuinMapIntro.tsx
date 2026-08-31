@@ -21,7 +21,9 @@ export type GuinIntroMode = "full" | "compact";
 /** 각 장면이 시작하는 시각(ms). 마지막 값이 오프닝 전체 길이다.
  *  지시문 6항: full 은 4~6초, compact 은 1초 안. 테스트가 이 표를 잰다. */
 export const INTRO_BEATS: Record<GuinIntroMode, readonly [number, number, number, number]> = {
-  full: [520, 1500, 2500, 4600],
+  // 영상 박자에 맞춘다: ~2.5s까지 토끼가 마개를 밀고, ~4.5s에 지도가 평평해진다.
+  // 이름·노드는 지도가 다 펼쳐진 뒤(phase 3)에만 얹는다 — 토끼 위에 얹으면 가린다.
+  full: [600, 2000, 4600, 5800],
   compact: [80, 220, 380, 900],
 };
 
@@ -113,11 +115,14 @@ export default function GuinMapIntro({
             preload="auto"
             aria-hidden
             onError={() => setVideoOk(false)}
+            onLoadedMetadata={(e) => {
+              if (mode !== "full") e.currentTarget.currentTime = 5.2;
+            }}
           />
         )}
         <div className={`guin-intro-field${phase >= 1 ? " is-open" : ""}`} aria-hidden>
           {/* 가운데 — 지도 주인 */}
-          <span className={`guin-intro-owner${phase >= 2 ? " is-in" : ""}`}>
+          <span className={`guin-intro-owner${phase >= 3 ? " is-in" : ""}`}>
             {ownerNickname}
           </span>
 

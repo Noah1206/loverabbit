@@ -1,5 +1,65 @@
 # 귀인지도 오프닝 — Higgsfield 생성 프롬프트
 
+## v2 (현재) — 토끼가 여는 보물지도 (2026-08-31)
+
+v1(어두운 별자리)은 방향이 틀렸다 — 운영자가 원한 것은 **밝고 따뜻한
+손그림 보물지도**와 **토끼가 두루마리를 여는 코믹한 연출**이었다.
+
+장면 (한 번의 생성, 6초):
+1. 말린 양피지 두루마리 + 마개. 흰 토끼가 마개를 잡고 민다
+2. 마개가 뻥 — 토끼는 반동으로 밀려나가고, 지도가 쫘라락 펼쳐진다
+3. 카메라가 정면 탑다운으로 앉으며 지도가 화면을 채우고 멈춘다
+
+지도 톤: 낡은 세피아 양피지, 그을린 가장자리, 잉크 손그림 장식은
+**가장자리에만**(나침반·점선·산·물결 낙서) — 가운데는 비워서 귀인 노드가
+얹힌다. 글자·숫자·로고 없음.
+
+```
+model: seedance_2_5 · t2v · 9:16 · 720p · 6s · 무음
+job:   aa9c9beb-72b4-496f-9f2a-18a8a59c102d (39 크레딧)
+```
+
+전송 프롬프트 원문:
+
+```
+Charming hand-drawn treasure-map opening animation for a Korean mobile app,
+vertical 9:16, warm cozy storybook style, soft daylight, cream background.
+
+One continuous shot in three beats.
+Beat one: a rolled-up aged parchment scroll lies horizontally at the center,
+sealed with a round wooden cork plug on its end. A cute small white cartoon
+rabbit with round body and long ears walks up, grabs the cork with both paws
+and pushes hard.
+Beat two: the cork pops out — the rabbit is comically pushed backward and
+slides away off-frame from the recoil, and the released parchment scroll
+unrolls itself rapidly toward the camera with a springy whoosh, flattening out.
+Beat three: the camera settles into a straight top-down view of the fully
+unrolled map filling the entire frame, and holds still. The map is aged
+tan-sepia parchment with burnt irregular darker edges, hand-drawn ink
+decorations ONLY along the borders: a small compass rose in one corner, faint
+dashed trails, tiny mountain and wave doodles near the edges. The center of
+the parchment stays clean and empty. The final frame holds steady for the
+last second.
+
+Warm sepia, tan, parchment cream and brown ink palette. Playful, light,
+storybook feel. No readable text, no letters, no numbers, no logo, no humans,
+no watermark, no UI.
+```
+
+검수 체크리스트 (재생성 판단):
+| 항목 | 통과 기준 |
+|---|---|
+| 토끼 연출 | 마개를 밀고 반동으로 밀려나는 동작이 읽힘 |
+| 펼침 | 지도가 카메라 쪽으로 펼쳐져 마지막에 화면을 채움 |
+| 마지막 프레임 | 정면 탑다운, 1초쯤 정지 — 오버레이와 합성 가능 |
+| 가운데 여백 | 장식이 가장자리에만, 가운데 비어 있음 |
+| 텍스트 오염 | 읽을 수 있는 글자·숫자 없음 |
+| 톤 | 세피아·황갈·크림 (어두운 남색 아님) |
+
+---
+
+## v1 (폐기) — 어두운 별자리 (참고용으로 남김)
+
 지시문의 Clip A/B/C 를 **한 번의 생성**으로 합쳤다. 이유는 아래 "왜 한 클립인가".
 
 ## 모델·설정 (실제 사용값)

@@ -10,26 +10,26 @@
       "resolution": "720x1280",
       "durationSeconds": 6.04,
       "codec": "h264",
-      "sizeBytes": 1780000,
+      "sizeBytes": null,
       "source": "Higgsfield MCP",
       "model": "seedance_2_5 (Bytedance Seedance 2.5, t2v)",
-      "jobId": "dcc4ae01-638e-43ea-8054-b6995c423608",
+      "jobId": "aa9c9beb-72b4-496f-9f2a-18a8a59c102d",
       "creditsSpent": 39,
       "promptFile": "prompts.md",
       "dynamicText": false,
       "audio": false,
-      "note": "지시문의 Clip A/B/C 를 한 번의 생성으로 합침 — 세 장면이 한 카메라 무브 안에 있고, 웹앱이 재생 구간으로 나눈다."
+      "note": "v2 — 토끼가 마개를 밀어 두루마리가 펼쳐지는 보물지도 콘셉트. v1(별자리, job dcc4ae01, 39크레딧)은 폐기. 한 번의 생성으로 세 장면을 담음."
     },
     {
       "id": "guin-opening-poster",
       "filename": "opening-poster.webp",
-      "source": "opening.mp4 의 0.5s 프레임 (ffmpeg + sharp, 추가 생성 없음)",
+      "source": "opening.mp4(v2) 의 0.2s 프레임 — 말린 두루마리",
       "dynamicText": false
     },
     {
       "id": "guin-opening-fallback",
       "filename": "opening-fallback.webp",
-      "source": "opening.mp4 의 5.0s 프레임 (ffmpeg + sharp, 추가 생성 없음)",
+      "source": "opening.mp4(v2) 의 5.5s 프레임 — 펼쳐진 빈 양피지",
       "dynamicText": false
     }
   ]
