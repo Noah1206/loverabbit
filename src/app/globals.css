@@ -746,7 +746,8 @@ label {
 .fortune-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
+  /* 카드 사이 실틈 — 바탕색이 비쳐 판이 갈라져 보인다 (참고 화면과 같은 문법) */
+  gap: 4px;
   margin-top: 16px;
   margin-inline: -8px;
 }
@@ -1017,18 +1018,24 @@ label {
   font-weight: 700;
 }
 
+/* 그림 위·본문 아래 두 켜 (2026-08-31, 참고 화면 문법). 글이 그림을 덮지
+   않으니 그라데이션 가림막도, 톤별 글자색 보정도 필요 없어졌다. */
 .fortune-grid-card {
-  aspect-ratio: 5 / 6.2;
   padding: 0;
   overflow: hidden;
-  position: relative;
-  display: block;
-  /* 그리드만 각지게 (2026-08-31 운영자 결정). 맞닿아 판을 이루는 카드라
-     모서리를 굴리면 사이마다 빈 틈이 파인다 — 나머지 화면은 라운드 그대로다. */
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  /* 그리드만 각지게 (2026-08-31 운영자 결정) — 나머지 화면은 라운드 그대로다. */
   border-radius: 0;
-  /* 맞닿은 판에서는 그림자와 테두리가 카드 사이에 선을 만든다. 둘 다 뺀다. */
   border: 0;
   box-shadow: none;
+}
+
+.fortune-grid-media {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
 }
 
 [data-product="sokgunghap"] { --product-c1: #ff347f; --product-c2: #ff7a3d; --product-glow: rgba(255, 52, 127, 0.42); --product-line: rgba(255, 116, 141, 0.56); }
@@ -1064,194 +1071,84 @@ label {
   height: 100%;
 }
 
+.fortune-grid-body {
+  display: grid;
+  gap: 4px;
+  padding: 11px 12px 13px;
+}
+
+.fortune-grid-body strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.fortune-grid-body p {
+  color: var(--text-dim);
+  font-size: 0.77rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.fortune-grid-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 3px;
+}
+
 .fortune-grid-price {
   display: flex;
   align-items: baseline;
-  gap: 6px;
-  margin: 6px 0 2px;
-  color: #fff;
-}
-
-.fortune-grid-price s {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.72rem;
+  gap: 5px;
+  min-width: 0;
 }
 
 .fortune-grid-price b {
-  font-size: 1rem;
+  color: var(--accent);
+  font-size: 0.95rem;
   font-weight: 900;
-  color: #ffd166;
 }
 
-.fortune-grid-price small {
-  font-size: 0.66rem;
-  color: rgba(255, 255, 255, 0.7);
+.fortune-grid-price s {
+  color: var(--text-dim);
+  font-size: 0.7rem;
 }
 
-.fortune-grid-copy {
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 12px;
-}
-
-/* 카드가 절반 폭이 되면서 제목 위 말머리는 읽히지 않고 자리만 먹는다.
-   같은 정보는 인기 배지와 상세 페이지가 이미 들고 있다. */
-.fortune-grid-kicker {
-  display: none;
-}
-
-.fortune-grid-copy strong {
-  display: block;
-  margin-bottom: 5px;
-  color: #fff;
-  font-size: clamp(0.95rem, 3.9vw, 1.08rem);
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-}
-
-.fortune-grid-copy p {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  margin: 0 0 8px;
-  color: rgba(255, 255, 255, 0.62);
+/* 참고 화면의 알약 버튼. 진짜 버튼이 아니라 카드 전체가 링크다 —
+   눌리는 곳을 좁히면 반은 빗나간다. */
+.fortune-grid-go {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.72rem;
-  font-weight: 450;
-  line-height: 1.5;
-  letter-spacing: -0.012em;
-  text-wrap: pretty;
-}
-
-/* 절반 폭 카드에 알약 버튼을 넣으면 문구가 두 줄로 접힌다.
-   상품 색을 그대로 쓴 텍스트 링크로 바꿔 한 줄에 담는다. */
-.fortune-grid-cta {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  width: 100%;
-  color: color-mix(in srgb, var(--product-c1, #c83cff) 42%, #ffffff);
-  font-size: 0.72rem;
-  font-weight: 850;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  transition: gap 180ms ease;
-}
-
-.fortune-grid-cta > span[aria-hidden] {
-  display: none;
-}
-
-/* 문구가 길면 두 줄로 접히면서 화살표만 반대편으로 밀려난다. 한 줄로 자른다. */
-.fortune-grid-cta-label {
-  overflow: hidden;
-  flex: 1;
-  min-width: 0;
-  text-overflow: ellipsis;
+  font-weight: 800;
   white-space: nowrap;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.fortune-grid-cta b {
-  font-size: 0.8rem;
-  font-weight: 700;
-  /* 화살표는 줄이 다 깔린 뒤에 따라 나간다 — 줄보다 먼저 움직이면 둘이
-     따로 노는 것으로 보인다. */
-  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1) 60ms;
+.fortune-grid-card:hover .fortune-grid-go,
+.fortune-grid-card:focus-visible .fortune-grid-go {
+  filter: brightness(1.12);
 }
 
-/* 굵은 줄. 카드 밑에서 왼쪽부터 밀려 들어온다. scaleX 로 늘리므로 폭을
-   재계산하지 않아 합성만으로 움직인다 — 모바일에서 끊기지 않는 쪽이다.
-   색은 카드가 가진 --product-c1 을 쓴다. 카드마다 제 색으로 그어진다. */
-.fortune-grid-cta::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 3px;
-  background: var(--product-c1, var(--accent));
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
 
-.fortune-grid-card:hover .fortune-grid-cta,
-.fortune-grid-card:focus-visible .fortune-grid-cta {
-  gap: 9px;
-}
 
-.fortune-grid-card:hover .fortune-grid-cta::after,
-.fortune-grid-card:focus-visible .fortune-grid-cta::after {
-  transform: scaleX(1);
-}
 
-.fortune-grid-card:hover .fortune-grid-cta b,
-.fortune-grid-card:focus-visible .fortune-grid-cta b {
-  transform: translateX(3px);
-}
 
-/* 손가락으로 쓰는 화면에는 hover 가 없다. 줄을 처음부터 깔아 두어야
-   여기가 눌리는 자리라는 것이 보인다. */
-@media (hover: none) {
-  .fortune-grid-cta::after {
-    transform: scaleX(1);
-  }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  .fortune-grid-cta::after,
-  .fortune-grid-cta b {
-    transition: none;
-  }
-}
 
-.fortune-grid-card[data-tone="ember"] .fortune-grid-copy p {
-  color: rgba(255, 207, 191, 0.7);
-  font-style: italic;
-}
 
-.fortune-grid-card[data-tone="rose"] .fortune-grid-copy p,
-.fortune-grid-card[data-tone="blush"] .fortune-grid-copy p {
-  color: rgba(255, 202, 220, 0.68);
-}
 
-.fortune-grid-card[data-tone="velvet"] .fortune-grid-copy p,
-.fortune-grid-card[data-tone="midnight"] .fortune-grid-copy p {
-  color: rgba(218, 204, 244, 0.68);
-  letter-spacing: 0.012em;
-}
 
-.fortune-grid-card[data-tone="warning"] .fortune-grid-copy p {
-  padding-left: 10px;
-  border-left: 2px solid rgba(255, 105, 126, 0.62);
-  color: rgba(255, 198, 202, 0.7);
-}
-
-.fortune-grid-card[data-tone="promise"] .fortune-grid-copy p,
-.fortune-grid-card[data-tone="candle"] .fortune-grid-copy p {
-  color: rgba(255, 224, 180, 0.68);
-}
-
-.fortune-grid-card[data-tone="rain"] .fortune-grid-copy p,
-.fortune-grid-card[data-tone="timing"] .fortune-grid-copy p {
-  color: rgba(202, 220, 242, 0.68);
-}
-
-.fortune-grid-card[data-tone="secret"] .fortune-grid-copy p {
-  color: rgba(228, 210, 238, 0.64);
-  font-style: italic;
-}
-
-.fortune-grid-card[data-tone="peach"] .fortune-grid-copy p {
-  color: rgba(255, 211, 222, 0.7);
-}
-
-.fortune-grid-card[data-tone="starlight"] .fortune-grid-copy p {
-  color: rgba(216, 211, 255, 0.68);
-  letter-spacing: 0.01em;
-}
 
 /* ── 홈 후기 ── 사주 카드를 전부 지난 뒤에 오는 마지막 섹션 */
 .review-section {
@@ -8688,8 +8585,9 @@ body:has(.admin-shell) .tabbar {
 /* ── 세트 (2026-08-28) ─────────────────────────────────────── */
 .fortune-grid-set {
   grid-column: 1 / -1;
-  aspect-ratio: auto;
-  min-height: 230px;
+}
+.fortune-grid-set .fortune-grid-media {
+  aspect-ratio: 21 / 9;
 }
 .fortune-grid-set-art {
   position: absolute;
@@ -8700,7 +8598,6 @@ body:has(.admin-shell) .tabbar {
 }
 .fortune-grid-set-art > div { height: 100%; }
 .fortune-grid-set-art img { object-position: center 22% !important; }
-.fortune-grid-set .fortune-grid-copy p { max-width: 70%; }
 
 .set-page { padding-bottom: 120px; }
 .set-hero {

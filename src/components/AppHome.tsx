@@ -218,23 +218,20 @@ export default function AppHome() {
               BUNDLES.map((b) => (
                 <Link key={b.id} href={`/set/${b.id}`} className="card fortune-grid-card fortune-grid-set" data-product={b.first}>
                   {/* 세 상품 그림을 나란히 — 단품 카드와 같은 그림이라 "저 셋이 묶였다"가 한눈에 읽힌다 */}
-                  <div className="fortune-grid-set-art" aria-hidden>
-                    {b.items.map((id) => PRODUCT_MAP[id] && <CardArt key={id} p={PRODUCT_MAP[id]} />)}
+                  <div className="fortune-grid-media">
+                    <div className="fortune-grid-set-art" aria-hidden>
+                      {b.items.map((id) => PRODUCT_MAP[id] && <CardArt key={id} p={PRODUCT_MAP[id]} />)}
+                    </div>
                   </div>
-                  <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(10,6,16,0.05) 30%, rgba(10,6,16,0.7) 62%, rgba(10,6,16,0.97) 90%)" }} />
-                  <div className="fortune-grid-copy">
-                    <span className="fortune-grid-kicker">{b.emoji} 세트</span>
+                  <div className="fortune-grid-body">
                     <strong>{b.title}</strong>
                     <p>{b.items.map((id) => PRODUCT_MAP[id]?.title).join(" + ")}</p>
-                    <span className="fortune-grid-price">
-                      <s>{bundleListPrice(b).toLocaleString("ko-KR")}원</s>
-                      <b>{b.price.toLocaleString("ko-KR")}원</b>
-                      <small>세 장</small>
-                    </span>
-                    <span className="fortune-grid-cta">
-                      <span aria-hidden>{b.emoji}</span>
-                      <span className="fortune-grid-cta-label">세 장 한 번에 열기</span>
-                      <b aria-hidden>→</b>
+                    <span className="fortune-grid-foot">
+                      <span className="fortune-grid-price">
+                        <b>{b.price.toLocaleString("ko-KR")}원</b>
+                        <s>{bundleListPrice(b).toLocaleString("ko-KR")}원</s>
+                      </span>
+                      <span className="fortune-grid-go">세 장 한 번에 열기 ›</span>
                     </span>
                   </div>
                 </Link>
@@ -249,21 +246,18 @@ export default function AppHome() {
                   data-tone={p.tone}
                   data-product={p.id}
                 >
-                  <CardArt p={p} className="fortune-grid-art" />
-                  <div aria-hidden style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 38%, rgba(10,6,16,0.55) 62%, rgba(10,6,16,0.96) 88%)" }} />
-                  <div className="fortune-grid-copy">
-                    <span className="fortune-grid-kicker">{p.emoji} {p.badge}</span>
+                  <div className="fortune-grid-media">
+                    <CardArt p={p} className="fortune-grid-art" />
+                  </div>
+                  <div className="fortune-grid-body">
                     <strong>{p.title}</strong>
                     <p>{p.cardCopy}</p>
-                    <span className="fortune-grid-price">
-                      <s>{p.price.toLocaleString("ko-KR")}원</s>
-                      <b>{FIRST_READING_PRICE.toLocaleString("ko-KR")}원</b>
-                      <small>첫 리딩</small>
-                    </span>
-                    <span className="fortune-grid-cta">
-                      <span aria-hidden>{p.emoji}</span>
-                      <span className="fortune-grid-cta-label">{p.ctaLabel}</span>
-                      <b aria-hidden>→</b>
+                    <span className="fortune-grid-foot">
+                      <span className="fortune-grid-price">
+                        <b>{FIRST_READING_PRICE.toLocaleString("ko-KR")}원</b>
+                        <s>{p.price.toLocaleString("ko-KR")}원</s>
+                      </span>
+                      <span className="fortune-grid-go">{p.ctaLabel} ›</span>
                     </span>
                   </div>
                 </Link>
