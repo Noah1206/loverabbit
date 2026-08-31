@@ -778,21 +778,26 @@ label {
   gap: 5px;
   height: 30px;
   padding: 0 9px;
-  border: 1px solid var(--tint-line);
-  background: var(--tint-1);
-  color: var(--text);
+  border: 0;
+  background: none;
+  /* 브랜드 분홍 — 러브레빗 카드의 그 색 (#ff347f) */
+  color: #ff347f;
   font-size: 0.72rem;
   font-weight: 800;
   white-space: nowrap;
-  transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease;
+  transition: transform 200ms ease;
 }
 
 .app-header-count:hover,
-.app-header-icon:hover,
-.app-header-count:focus-visible,
-.app-header-icon:focus-visible {
+.app-header-count:focus-visible {
   border-color: var(--accent);
   background: var(--canvas-lavender);
+  outline: none;
+}
+
+.app-header-icon:hover,
+.app-header-icon:focus-visible {
+  transform: scale(1.08);
   outline: none;
 }
 
