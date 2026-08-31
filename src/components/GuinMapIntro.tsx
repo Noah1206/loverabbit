@@ -42,7 +42,8 @@ export default function GuinMapIntro({
   mode,
   onDone,
 }: {
-  ownerNickname: string;
+  /** 지도 주인. 만들기 페이지처럼 아직 주인이 없는 자리는 비운다 — 칩이 안 뜬다. */
+  ownerNickname?: string;
   existingNodeCount: number;
   mode: GuinIntroMode;
   onDone: (how: "completed" | "skipped") => void;
@@ -122,9 +123,11 @@ export default function GuinMapIntro({
         )}
         <div className={`guin-intro-field${phase >= 1 ? " is-open" : ""}`} aria-hidden>
           {/* 가운데 — 지도 주인 */}
-          <span className={`guin-intro-owner${phase >= 3 ? " is-in" : ""}`}>
-            {ownerNickname}
-          </span>
+          {ownerNickname && (
+            <span className={`guin-intro-owner${phase >= 3 ? " is-in" : ""}`}>
+              {ownerNickname}
+            </span>
+          )}
 
           {/* 이미 들어와 있는 사람들 */}
           {spots.map((spot, i) => (
@@ -142,7 +145,9 @@ export default function GuinMapIntro({
 
         <p className={`guin-intro-copy${phase >= 2 ? " is-in" : ""}`}>
           {phase >= 2
-            ? `${ownerNickname}님의 귀인 지도`
+            ? ownerNickname
+              ? `${ownerNickname}님의 귀인 지도`
+              : "나의 귀인 지도"
             : "인연 지도를 펼치는 중…"}
         </p>
       </div>

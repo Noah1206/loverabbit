@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
+import GuinMapIntro from "@/components/GuinMapIntro";
 import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { getUser } from "@/lib/user";
@@ -30,6 +31,9 @@ function GuinLanding() {
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  // 오프닝 — 이 페이지에 들어온 순간 영상이 끝까지 돌고, 그 뒤에 폼이 선다.
+  // 로그인 여부와 무관하다. 건너뛰기·Escape·reduced-motion 은 컴포넌트가 연다.
+  const [introDone, setIntroDone] = useState(false);
   // 참여 화면에서 넘어온 사람의 방금 입력값. 동의는 새로 받는다.
   const [prefill, setPrefill] = useState<GuinPrefill | null>(null);
   const viewed = useRef(false);
@@ -124,6 +128,16 @@ function GuinLanding() {
     }
     router.push(`/guin/${match[1]}`);
   };
+
+  if (!introDone) {
+    return (
+      <GuinMapIntro
+        existingNodeCount={0}
+        mode="full"
+        onDone={() => setIntroDone(true)}
+      />
+    );
+  }
 
   return (
     <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
