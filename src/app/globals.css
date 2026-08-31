@@ -8621,22 +8621,6 @@ body:has(.admin-shell) .tabbar {
   text-align: center;
 }
 
-/* ── 세트 (2026-08-28) ─────────────────────────────────────── */
-.fortune-grid-set {
-  grid-column: 1 / -1;
-}
-.fortune-grid-set .fortune-grid-media {
-  aspect-ratio: 21 / 9;
-}
-.fortune-grid-set-art {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-}
-.fortune-grid-set-art > div { height: 100%; }
-.fortune-grid-set-art img { object-position: center 22% !important; }
 
 .set-page { padding-bottom: 120px; }
 .set-hero {
