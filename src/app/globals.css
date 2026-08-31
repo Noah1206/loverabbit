@@ -9252,3 +9252,59 @@ body[data-guin-intro="1"] .tabbar {
   width: 100%;
   text-align: center;
 }
+
+/* ── 귀인 지도 만들기 폼 ────────────────────────────────────────────
+   양력·음력 — 생년월일 인풋과 같은 폭의 2칸 세그먼트. 각지게. */
+.guin-cal-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.guin-cal-seg button {
+  padding: 11px 0;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guin-cal-seg button + button {
+  border-left: 0;
+}
+
+.guin-cal-seg button.on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.guin-cal-seg button.on + button {
+  border-left: 1px solid var(--line);
+}
+
+/* 만들기 = 채운 포인트, 참여하기 = 외곽선. 색과 모양이 역할을 말한다. */
+.guin-form-submit {
+  border-radius: 0;
+}
+
+.guin-join-link {
+  padding: 14px 0;
+  border: 2px solid var(--accent);
+  border-radius: 0;
+  background: var(--bg-card);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.guin-join-link:hover,
+.guin-join-link:focus-visible {
+  background: var(--canvas-lavender);
+  outline: none;
+}

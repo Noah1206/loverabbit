@@ -99,20 +99,39 @@ export default function GuinBirthForm({
         <input
           value={nickname}
           maxLength={20}
-          placeholder="별명을 권해요 (예: 달토끼)"
+          placeholder="별명을 권해요 (예: 러브레빗)"
           onChange={(e) => {
             touch();
             setNickname(e.target.value);
           }}
           disabled={busy}
         />
-        <span style={{ fontSize: "0.76rem", color: "var(--text-dim)" }}>
-          실명·전화번호·주소는 입력하지 마세요. 지도에는 이 이름만 보여요.
-        </span>
       </label>
 
-      <label style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: "grid", gap: 6 }}>
         <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>생년월일</span>
+        {/* 달력 선택이 입력값의 해석을 정한다 — 인풋 바로 위, 같은 폭으로 세운다 */}
+        <div className="guin-cal-seg" role="group" aria-label="달력 종류">
+          {(
+            [
+              ["solar", "양력"],
+              ["lunar", "음력"],
+            ] as const
+          ).map(([value, text]) => (
+            <button
+              key={value}
+              type="button"
+              className={calendar === value ? "on" : ""}
+              onClick={() => {
+                touch();
+                setCalendar(value);
+              }}
+              disabled={busy}
+            >
+              {text}
+            </button>
+          ))}
+        </div>
         <input
           value={dateText}
           inputMode="numeric"
@@ -124,32 +143,11 @@ export default function GuinBirthForm({
           }}
           disabled={busy}
         />
-      </label>
-
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {(
-          [
-            ["solar", "양력"],
-            ["lunar", "음력"],
-          ] as const
-        ).map(([value, text]) => (
-          <button
-            key={value}
-            type="button"
-            className={`chip${calendar === value ? " on" : ""}`}
-            onClick={() => {
-              touch();
-              setCalendar(value);
-            }}
-            disabled={busy}
-          >
-            {text}
-          </button>
-        ))}
         {leapPossible && (
           <button
             type="button"
             className={`chip${leapMonth ? " on" : ""}`}
+            style={{ justifySelf: "start" }}
             onClick={() => setLeapMonth((v) => !v)}
             disabled={busy}
           >
@@ -158,7 +156,8 @@ export default function GuinBirthForm({
         )}
       </div>
 
-      <label style={{ display: "grid", gap: 6 }}>
+      {/* ⑥ 생년월일 묶음과 사이를 띄워 다른 항목임을 보이게 한다 */}
+      <label style={{ display: "grid", gap: 6, marginTop: 14 }}>
         <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>태어난 시간</span>
         <select
           value={hourText}
@@ -190,7 +189,7 @@ export default function GuinBirthForm({
 
       {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem" }}>{error}</p>}
 
-      <button className="btn" onClick={submit} disabled={busy} style={{ width: "100%" }}>
+      <button className="btn guin-form-submit" onClick={submit} disabled={busy} style={{ width: "100%" }}>
         {busy ? "관계를 살피는 중…" : submitLabel}
       </button>
     </div>
