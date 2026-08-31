@@ -1866,12 +1866,17 @@ label {
   padding: 11px 16px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: var(--r-xl);
-  /* 브랜드 핑크 — 러빗 코인과 같은 계열 (2026-08-31 운영자: 오베르진이 별로).
-     전역 버튼 토큰은 그대로 두고 이 결정 버튼만 물들인다 — 불꽃과 한 온도다. */
-  background: linear-gradient(135deg, #ff5c8f, #ff3d6e);
-  box-shadow: 0 8px 24px rgba(255, 61, 110, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  /* 진한 먹색 단색 (2026-08-31 운영자 선택 — 오베르진도 핑크 그라데이션도 반려).
+     검은 판 위에서 불꽃 이모지와 핑크 러빗 값이 살아난다. 전역 버튼 토큰은 그대로다. */
+  background: #16161a;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   color: #fff;
   transition: transform 180ms ease, filter 180ms ease;
+}
+
+.product-sticky-cta .product-sticky-price {
+  color: #ff5c8f;
+  font-weight: 900;
 }
 
 .product-sticky-cta:hover,

@@ -62,7 +62,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                   (2026-08-31) — 원화 오퍼 병기는 단위 혼란만 만든다. */}
               {activeOffer ? (
                 <>
-                  <strong>{READING_SALE_CREDITS}러빗으로 확인하기</strong>
+                  <strong><span className="product-sticky-price">{READING_SALE_CREDITS}러빗</span>으로 확인하기</strong>
                   <small>{p.ctaHook}</small>
                 </>
               ) : (
