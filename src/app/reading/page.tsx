@@ -469,7 +469,18 @@ export default function ReadingPage() {
       생년월일 칸으로, 아니면 고민 칸으로 바로 세운다. 불러오지 못하면
       평소대로 처음부터 — 조용히 물러난다.
     */
-    if (found && stored?.token && params.get("from") === "reading" && !peekReadingDraft()) {
+    /*
+      일반 진입도 채운다 (2026-08-31). 전에는 "다음 질문"으로 온 사람만
+      채웠는데, 홈·네비로 들어온 회원도 같은 사람이다 — 저장된 사주를 두고
+      생년월일을 다시 치게 하는 건 저장한 의미가 없다.
+
+      다른 점 하나: 일반 진입은 단계를 건너뛰지 않는다. 어떤 리딩을 고를지도
+      아직인데 상대 칸으로 밀면 길을 잃는다. 값만 미리 앉혀 두고, 생년월일
+      칸에 왔을 때 채워져 있게 한다. 그 사이 손으로 쓰기 시작했으면 그쪽이
+      이긴다 — 사람이 친 값을 서버 값으로 덮지 않는다.
+    */
+    if (stored?.token && !peekReadingDraft()) {
+      const jumpTo = found && params.get("from") === "reading" ? found : null;
       fetch("/api/reading/prefill", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -478,10 +489,14 @@ export default function ReadingPage() {
         .then((res) => (res.ok ? res.json() : { me: null }))
         .then((data: { me?: PersonForm | null }) => {
           if (!data.me?.year || !data.me.gender) return;
-          setMe({ ...emptyPerson, ...data.me });
-          setWithPartner(found.needsPartner);
-          setPartnerChosen(true);
-          setStep(found.needsPartner ? "partnerBirth" : "concern");
+          if (jumpTo) {
+            setMe({ ...emptyPerson, ...data.me });
+            setWithPartner(jumpTo.needsPartner);
+            setPartnerChosen(true);
+            setStep(jumpTo.needsPartner ? "partnerBirth" : "concern");
+          } else {
+            setMe((prev) => (prev.year ? prev : { ...emptyPerson, ...data.me }));
+          }
         })
         .catch(() => {});
     }

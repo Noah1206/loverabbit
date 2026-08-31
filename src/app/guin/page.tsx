@@ -11,7 +11,7 @@ import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import { trackFunnel } from "@/lib/funnel";
-import { rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
+import { fetchSavedBirth, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { getUser } from "@/lib/user";
 
 const CREATE_CONSENT =
@@ -45,6 +45,15 @@ function GuinLanding() {
       if (kept) setPrefill(kept);
       trackFunnel("guin_form_started");
       setMode("form");
+      if (kept) return;
+    }
+    // 리딩에서 저장해 둔 내 사주가 있으면 그걸로 채운다 — 같은 사람에게
+    // 같은 생년월일을 두 번 치게 하지 않는다. 별명만 새로 받는다.
+    const stored = getUser();
+    if (stored?.token) {
+      void fetchSavedBirth(stored.token).then((saved) => {
+        if (saved) setPrefill((prev) => prev ?? saved);
+      });
     }
   }, [fromInvite]);
 

@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation";
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import { trackFunnel } from "@/lib/funnel";
 import {
+  fetchSavedBirth,
   forgetJoinedGuinMap,
   forgetMyGuinMap,
   joinIdempotencyKey,
@@ -80,6 +81,8 @@ export default function GuinMapPage() {
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
   const [justJoined, setJustJoined] = useState<GuinNodeView | null>(null);
+  // 로그인한 방문자의 저장된 사주 — 참여 폼을 미리 채운다 (별명은 새로 받는다)
+  const [savedBirth, setSavedBirth] = useState<GuinFormValue | null>(null);
   const [myJoinValue, setMyJoinValue] = useState<GuinFormValue | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -131,6 +134,14 @@ export default function GuinMapPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const stored = getUser();
+    if (!stored?.token) return;
+    void fetchSavedBirth(stored.token).then((saved) => {
+      if (saved) setSavedBirth(saved);
+    });
+  }, []);
 
   // 방문자 계측 — 어느 카피가 데려왔는지가 product 로 남는다.
   useEffect(() => {
@@ -333,6 +344,7 @@ export default function GuinMapPage() {
         </p>
         <div className="card" style={{ padding: 20 }}>
           <GuinBirthForm
+            initial={savedBirth}
             submitLabel={copy.inviteCta}
             consentNote={`입력한 정보는 관계 계산과 지도 관리에 사용됩니다. 지도에는 별명만 표시되며, 생년월일과 출생시간은 공개되지 않습니다. 결과는 재미와 자기성찰을 위한 콘텐츠이며 실제 인간관계 판단을 대신하지 않습니다. 만 14세 이상만 이용할 수 있어요.`}
             busy={joining}

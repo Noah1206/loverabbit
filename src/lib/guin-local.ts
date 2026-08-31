@@ -137,3 +137,35 @@ export function storedCopyVariant(assign: () => string): string {
     return "A";
   }
 }
+
+/**
+ * 저장된 내 사주(리딩 폼에서 저장된 것)를 귀인지도 폼 값으로 불러온다.
+ * 없거나(리딩을 안 해봤거나) 실패하면 null — 조용히 빈 폼으로 물러난다.
+ * 별명은 리딩 쪽에 없는 값이라 비워서 돌려준다.
+ */
+export async function fetchSavedBirth(userToken: string): Promise<GuinPrefill | null> {
+  try {
+    const res = await fetch("/api/reading/prefill", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      me?: { year?: string; month?: string; day?: string; hour?: string } | null;
+    };
+    const me = data.me;
+    if (!me?.year || !me.month || !me.day) return null;
+    return {
+      nickname: "",
+      birth: {
+        year: Number(me.year),
+        month: Number(me.month),
+        day: Number(me.day),
+        hour: me.hour === undefined || me.hour === "unknown" ? null : Number(me.hour),
+      },
+    };
+  } catch {
+    return null;
+  }
+}
