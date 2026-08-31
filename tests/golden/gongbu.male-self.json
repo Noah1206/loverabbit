@@ -1,0 +1,101 @@
+{
+  "product": "gongbu",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "STUDY-DM-METAL",
+    "STUDY-STR-BALANCED",
+    "STUDY-TG-BIGYEON",
+    "STUDY-TG-GEOPJAE",
+    "STUDY-TG-PYEONIN",
+    "STUDY-MISS-WOOD",
+    "STUDY-SS-YEOKMA"
+  ],
+  "score": {
+    "value": 75,
+    "band": "탄력이 붙음",
+    "factors": [
+      {
+        "label": "편인 2개",
+        "delta": 9
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 8
+      },
+      {
+        "label": "대운 정관",
+        "delta": 7
+      },
+      {
+        "label": "세운 정관",
+        "delta": 5
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      }
+    ]
+  },
+  "scope": {
+    "label": "시험·공부운 리딩 (인성의 자리로 읽는 공부의 결, 집중이 걸리는 방식, 시험장의 뒷심, 지금 시기의 공부 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 배움을 대하는 기질",
+      "1장 02. 인성의 자리 — 쌓는 공부와 훑는 공부",
+      "2장 01. 집중이 걸리는 방식 — 길게 vs 몰아서",
+      "2장 02. 명식의 강약 — 시험장에서의 뒷심",
+      "3장 01. 흔들리는 지점 — 충이 건드리는 자리",
+      "3장 02. 나에게 맞는 공부 환경과 리듬",
+      "4장 01. 지금 시기의 공부 흐름 — 밀어붙일 달과 정리할 달",
+      "5장 01. 시험 직전에 지킬 것과 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

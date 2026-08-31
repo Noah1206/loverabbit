@@ -83,6 +83,9 @@ type FactorName =
   | "elementFlow"
   | "dohwaLoad"
   | "officialStar"
+  | "careerStar"
+  | "wealthStar"
+  | "resourceStar"
   | "luckFavor"
   | "stability";
 
@@ -199,6 +202,51 @@ function officialStar(facts: SajuFacts): ScoreFactor[] {
   return out;
 }
 
+/**
+ * 비연애 상품용 축 셋 (2026-08-31). officialStar 를 재사용하지 않는 이유:
+ * 그 축의 근거 문구("관계를 형태로 지키는 힘")가 연애 화면용이다. 세는 방법은
+ * 같고 — 명식의 십성 개수 — 문구만 상품의 물음에 맞춘다.
+ */
+
+/** 관성 — 직분·조직·책임의 자리. 직업 상품이 본다. */
+function careerStar(facts: SajuFacts): ScoreFactor[] {
+  const jeonggwan = facts.tenGods.filter((t) => t.tenGod === "정관").length;
+  const pyeongwan = facts.tenGods.filter((t) => t.tenGod === "편관").length;
+  if (jeonggwan === 0 && pyeongwan === 0) {
+    return [{ label: "관성 없음", delta: -8, basis: "명식에 정관·편관이 없다 — 틀에 매이기보다 스스로 정하는 결" }];
+  }
+  const out: ScoreFactor[] = [];
+  if (jeonggwan > 0) out.push({ label: `정관 ${jeonggwan}개`, delta: Math.min(14, jeonggwan * 7), basis: "질서와 직분을 지키는 힘" });
+  if (pyeongwan > 0) out.push({ label: `편관 ${pyeongwan}개`, delta: Math.min(8, pyeongwan * 4), basis: "압박을 견디고 밀어붙이는 힘" });
+  return out;
+}
+
+/** 재성 — 재물을 다루는 자리. 재물 상품이 본다. */
+function wealthStar(facts: SajuFacts): ScoreFactor[] {
+  const jeongjae = facts.tenGods.filter((t) => t.tenGod === "정재").length;
+  const pyeonjae = facts.tenGods.filter((t) => t.tenGod === "편재").length;
+  if (jeongjae === 0 && pyeonjae === 0) {
+    return [{ label: "재성 없음", delta: -8, basis: "명식에 정재·편재가 없다 — 돈이 목적보다 수단으로 흐르는 결" }];
+  }
+  const out: ScoreFactor[] = [];
+  if (jeongjae > 0) out.push({ label: `정재 ${jeongjae}개`, delta: Math.min(14, jeongjae * 7), basis: "차곡차곡 모으고 지키는 힘" });
+  if (pyeonjae > 0) out.push({ label: `편재 ${pyeonjae}개`, delta: Math.min(10, pyeonjae * 5), basis: "크게 굴리고 기회를 잡는 힘" });
+  return out;
+}
+
+/** 인성 — 받아들이고 쌓는 자리. 공부 상품이 본다. */
+function resourceStar(facts: SajuFacts): ScoreFactor[] {
+  const jeongin = facts.tenGods.filter((t) => t.tenGod === "정인").length;
+  const pyeonin = facts.tenGods.filter((t) => t.tenGod === "편인").length;
+  if (jeongin === 0 && pyeonin === 0) {
+    return [{ label: "인성 없음", delta: -8, basis: "명식에 정인·편인이 없다 — 배움이 머리보다 몸으로 익는 결" }];
+  }
+  const out: ScoreFactor[] = [];
+  if (jeongin > 0) out.push({ label: `정인 ${jeongin}개`, delta: Math.min(14, jeongin * 7), basis: "꾸준히 쌓아 제 것으로 만드는 힘" });
+  if (pyeonin > 0) out.push({ label: `편인 ${pyeonin}개`, delta: Math.min(8, pyeonin * 4), basis: "빠르게 훑고 요령을 찾는 힘" });
+  return out;
+}
+
 // 운의 십성이 관계에 어떻게 걸리는가
 const LUCK_WEIGHT: Record<string, number> = {
   정인: 7, 정관: 8, 정재: 7, 식신: 6,
@@ -258,6 +306,10 @@ const DEFAULT_RECIPE: Recipe = {
 };
 
 const RECIPES: Record<string, Recipe> = {
+  // ── 비연애 (2026-08-31) — Threads 비연애 소재의 착지 상품 ──
+  jikeop: { subject: "me", base: 50, weights: { careerStar: 1.0, stability: 0.9, luckFavor: 0.6 } },
+  jaemul: { subject: "me", base: 48, weights: { wealthStar: 1.2, luckFavor: 0.9, stability: 0.6 } },
+  gongbu: { subject: "me", base: 50, weights: { resourceStar: 1.1, stability: 0.9, luckFavor: 0.6 } },
   // 속궁합 — 두 일주의 당김이 전부
   sokgunghap: { subject: "me", base: 50, weights: { pairHarmony: 1.2, elementFlow: 0.9, dohwaLoad: 0.4 } },
   // 재회 — 남은 인력 + 지금 운이 열렸는가
@@ -291,6 +343,9 @@ const FACTORS: Record<FactorName, (subject: SajuFacts, other: SajuFacts | null) 
   elementFlow,
   dohwaLoad: (subject) => dohwaLoad(subject),
   officialStar: (subject) => officialStar(subject),
+  careerStar: (subject) => careerStar(subject),
+  wealthStar: (subject) => wealthStar(subject),
+  resourceStar: (subject) => resourceStar(subject),
   luckFavor: (subject) => luckFavor(subject),
   stability: (subject) => stability(subject),
 };
