@@ -1,0 +1,100 @@
+{
+  "product": "jikjang",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "OFFICE-DM-WOOD",
+    "OFFICE-STR-WEAK",
+    "OFFICE-TG-JEONGIN",
+    "OFFICE-TG-PYEONJAE",
+    "OFFICE-TG-SIKSIN",
+    "OFFICE-MISS-METAL",
+    "OFFICE-SS-HWAGAE",
+    "OFFICE-REL-CLASH"
+  ],
+  "score": {
+    "value": 42,
+    "band": "결을 맞추는 중",
+    "factors": [
+      {
+        "label": "관성 없음",
+        "delta": -6
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -5
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -5
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 4
+      },
+      {
+        "label": "세운 식신",
+        "delta": 4
+      }
+    ]
+  },
+  "scope": {
+    "label": "직장 인간관계 리딩 (일간 기질과 십성으로 읽는 일터에서 사람을 대하는 결, 상사·동료와 부딪히는 지점, 소모를 줄이는 법, 지금 시기의 관계 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 일터에서 사람을 대하는 기본 결",
+      "1장 02. 명식의 강약 — 부딪혔을 때 버티는 힘",
+      "2장 01. 십성 분포 — 동료·상사를 만나는 각도",
+      "2장 02. 위계의 자리 — 틀 안이 편한가, 대등한 판이 편한가",
+      "3장 01. 부딪히기 쉬운 상대와 장면",
+      "3장 02. 소모를 줄이는 관계의 기술",
+      "4장 01. 지금 시기의 관계 흐름 — 넓힐 때와 지킬 때",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

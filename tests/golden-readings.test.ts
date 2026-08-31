@@ -59,7 +59,7 @@ const CASES: Record<string, { me: Person; partner: Person }> = {
 const PRODUCTS = [
   "sokgunghap", "jaehoe", "ibyeol", "yeonae",
   "bamgijil", "baramgi", "gyeolhon", "gwontaegi", "hwanseung", "sseom", "jjak", "bimil", "dohwasal",
-  "jikeop", "jaemul", "gongbu", "geongang", "gajok", "isa",
+  "jikeop", "jaemul", "gongbu", "geongang", "gajok", "isa", "jikjang",
 ] as const;
 
 function pillar(p: { stem: string; branch: string } | null) {

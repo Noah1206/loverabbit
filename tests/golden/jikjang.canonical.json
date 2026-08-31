@@ -1,0 +1,101 @@
+{
+  "product": "jikjang",
+  "case": "canonical",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1993,
+      "month": 1,
+      "day": 24,
+      "hour": 14,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "임신",
+      "month": "계축",
+      "day": "을사",
+      "hour": "계미"
+    },
+    "dayMaster": "을목",
+    "strength": {
+      "label": "신약",
+      "score": 30
+    },
+    "dominantTenGods": [
+      "편인",
+      "편재",
+      "상관"
+    ],
+    "missingElements": [],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "축미충",
+      "사신합"
+    ],
+    "xing": [
+      "yin_si_shen_three_xing:사신:partial",
+      "chou_xu_wei_three_xing:축미:partial"
+    ],
+    "luck": {
+      "major": "경술 정관",
+      "yearly": "병오 상관",
+      "monthly": "병신 상관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "OFFICE-DM-WOOD",
+    "OFFICE-STR-WEAK",
+    "OFFICE-TG-PYEONIN",
+    "OFFICE-TG-PYEONJAE",
+    "OFFICE-TG-SANGGWAN",
+    "OFFICE-SS-HWAGAE",
+    "OFFICE-REL-CLASH"
+  ],
+  "score": {
+    "value": 57,
+    "band": "곁이 트이는 중",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 7
+      },
+      {
+        "label": "정관 1개",
+        "delta": 6
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -5
+      },
+      {
+        "label": "세운 상관",
+        "delta": -4
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "직장 인간관계 리딩 (일간 기질과 십성으로 읽는 일터에서 사람을 대하는 결, 상사·동료와 부딪히는 지점, 소모를 줄이는 법, 지금 시기의 관계 흐름)",
+    "outline": [
+      "1장 01. 내 일간 — 일터에서 사람을 대하는 기본 결",
+      "1장 02. 명식의 강약 — 부딪혔을 때 버티는 힘",
+      "2장 01. 십성 분포 — 동료·상사를 만나는 각도",
+      "2장 02. 위계의 자리 — 틀 안이 편한가, 대등한 판이 편한가",
+      "3장 01. 부딪히기 쉬운 상대와 장면",
+      "3장 02. 소모를 줄이는 관계의 기술",
+      "4장 01. 지금 시기의 관계 흐름 — 넓힐 때와 지킬 때",
+      "5장 01. 분석가의 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

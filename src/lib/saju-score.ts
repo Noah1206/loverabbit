@@ -335,6 +335,7 @@ const RECIPES: Record<string, Recipe> = {
   geongang: { subject: "me", base: 52, weights: { stability: 1.2, luckFavor: 0.8 } },
   gajok: { subject: "me", base: 50, weights: { resourceStar: 0.9, wealthStar: 0.9, stability: 0.7 } },
   isa: { subject: "me", base: 46, weights: { motionLoad: 1.2, luckFavor: 0.8 } },
+  jikjang: { subject: "me", base: 50, weights: { stability: 1.0, careerStar: 0.8, luckFavor: 0.6 } },
   // 속궁합 — 두 일주의 당김이 전부
   sokgunghap: { subject: "me", base: 50, weights: { pairHarmony: 1.2, elementFlow: 0.9, dohwaLoad: 0.4 } },
   // 재회 — 남은 인력 + 지금 운이 열렸는가

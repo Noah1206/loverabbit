@@ -353,6 +353,23 @@ export const PRODUCT_PREVIEWS: Record<string, ProductPreview> = {
       "움직일 달과 눌러앉을 달 — 지금 시기의 흐름",
     ],
   },
+  jikjang: {
+    surfaceQuestion: "직장 사람들이랑 왜 이렇게 안 맞을까요?",
+    hiddenQuestion: "일은 할 만한데 사람 때문에 그만두고 싶은 게 이상한 건지 모르겠어요",
+    scenes: [
+      "그 사람 말투 하나에 하루 기운을 다 쓴다",
+      "팀을 옮겼는데 비슷한 갈등이 또 시작됐다",
+      "싫은 소리를 못 해서 내 일이 조용히 늘어난다",
+    ],
+    hiddenVariable:
+      "누가 나쁘냐가 아니라, 내 명식이 사람을 만나는 결과 상대의 자리가 만나는 각도 — 그리고 어디서 닳는가",
+    unlockReveals: [
+      "내가 일터에서 사람을 대하는 기본 결",
+      "위계가 편한 결인지 대등한 판이 편한 결인지",
+      "부딪히기 쉬운 상대와 장면의 정체",
+      "소모를 줄이는 거리와 지금 시기의 관계 흐름",
+    ],
+  },
 };
 
 export function previewFor(productId: string | undefined): ProductPreview | null {
