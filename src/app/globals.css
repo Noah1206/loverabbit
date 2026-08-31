@@ -1168,7 +1168,7 @@ label {
   justify-content: space-between;
   gap: 8px;
   /* 값 줄은 설명에서 한 뼘 떨어져 선다 (2026-08-31 운영자 — 위쪽에만 여백). */
-  margin-top: 12px;
+  margin-top: 18px;
 }
 
 .fortune-grid-price {
