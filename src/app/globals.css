@@ -9330,36 +9330,50 @@ body[data-guin-intro="1"] .tabbar {
   display: grid;
   place-content: center;
   gap: 18px;
-  background: rgba(250, 245, 235, 0.96);
+  /* 프레임 그림의 흰 바탕과 이어지도록 순백으로 깐다 — 티가 안 난다 */
+  background: #fff;
   text-align: center;
 }
 
 .guin-run-track {
   position: relative;
   width: min(300px, 76vw);
-  height: 54px;
+  height: 76px;
   border-bottom: 2px dashed #b89d78;
   overflow: hidden;
 }
 
-.guin-run-rabbit {
+/* 프레임 애니메이션 — 세 장(움츠림→도약→착지)이 순환하며 트랙을 달린다 */
+.guin-run-sprite {
   position: absolute;
   bottom: 2px;
-  left: -36px;
-  font-size: 2rem;
-  /* 🐇 는 왼쪽을 본다 — 달리는 방향(오른쪽)으로 뒤집는다 */
-  transform: scaleX(-1);
-  animation: guin-run-go 1.7s linear infinite, guin-run-hop 0.34s ease-in-out infinite;
+  left: -72px;
+  width: 68px;
+  height: 68px;
+  animation: guin-run-go 1.9s linear infinite;
+}
+
+.guin-run-sprite img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  animation: guin-run-cycle 0.42s steps(1) infinite;
+}
+
+.guin-run-sprite img:nth-child(2) { animation-delay: 0.14s; }
+.guin-run-sprite img:nth-child(3) { animation-delay: 0.28s; }
+
+@keyframes guin-run-cycle {
+  0%, 33.32% { opacity: 1; }
+  33.33%, 100% { opacity: 0; }
 }
 
 @keyframes guin-run-go {
-  0% { left: -36px; }
-  100% { left: calc(100% + 8px); }
-}
-
-@keyframes guin-run-hop {
-  0%, 100% { bottom: 2px; }
-  50% { bottom: 12px; }
+  0% { left: -72px; }
+  100% { left: calc(100% + 12px); }
 }
 
 .guin-run p {
@@ -9369,8 +9383,14 @@ body[data-guin-intro="1"] .tabbar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .guin-run-rabbit {
+  .guin-run-sprite {
     animation: none;
-    left: 40%;
+    left: calc(50% - 34px);
+  }
+  .guin-run-sprite img {
+    animation: none;
+  }
+  .guin-run-sprite img:first-child {
+    opacity: 1;
   }
 }
