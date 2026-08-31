@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
-import { readingCreditCost } from "@/lib/credits";
+import { saleCreditCost } from "@/lib/credits";
 import { couponPrice, type Coupon } from "@/lib/coupons";
 import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
@@ -207,7 +207,7 @@ export default function ReadingCheckoutPage() {
 
   const label = PRODUCT_MAP[entry.category]?.shortLabel ?? entry.label;
   const bundle = bundleOfReading(entry.category, entry.price);
-  const cost = readingCreditCost(bundle ? bundle.price : entry.price);
+  const cost = saleCreditCost(Boolean(bundle));
   const short = balance === null ? 0 : Math.max(0, cost - balance);
   const enough = balance !== null && balance >= cost;
 

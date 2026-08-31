@@ -78,6 +78,22 @@ export function readingCreditCost(priceKrw: number): number {
   return Math.max(1, Math.round(priceKrw / KRW_PER_CREDIT));
 }
 
+/**
+ * 실제로 받는 판매가 (2026-08-31 운영자: 정가 크레딧은 너무 비싸다).
+ *
+ * 원화 시절의 훅을 크레딧으로 그대로 잇는다 — 어떤 단품이든 "첫 리딩
+ * 1,900원"이었으니 19크레딧, 세트는 세 장을 두 장 값으로. 화면 표기와
+ * 결제창 차감이 반드시 이 같은 숫자를 써야 한다 — 표기 따로 차감 따로면
+ * 그날로 거짓말이 된다.
+ */
+export const READING_SALE_CREDITS = 19;
+export const BUNDLE_SALE_CREDITS = 39;
+
+/** 이 리딩을 여는 데 실제로 깎는 크레딧 */
+export function saleCreditCost(isBundle: boolean): number {
+  return isBundle ? BUNDLE_SALE_CREDITS : READING_SALE_CREDITS;
+}
+
 /** 이 잔액으로 몇 번 물을 수 있나 */
 export function questionsLeft(balance: number): number {
   return Math.max(0, Math.floor(balance / QUESTION_COST));

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { readingCreditCost } from "@/lib/credits";
+import { READING_SALE_CREDITS } from "@/lib/credits";
 import { notFound } from "next/navigation";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductSalesPage from "@/components/ProductSalesPage";
@@ -62,7 +62,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                   (2026-08-31) — 원화 오퍼 병기는 단위 혼란만 만든다. */}
               {activeOffer ? (
                 <>
-                  <strong>{readingCreditCost(p.price)}크레딧으로 확인하기</strong>
+                  <strong>{READING_SALE_CREDITS}크레딧으로 확인하기</strong>
                   <small>{p.ctaHook}</small>
                 </>
               ) : (

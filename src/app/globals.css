@@ -746,8 +746,9 @@ label {
 .fortune-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  /* 카드 사이 실틈 — 바탕색이 비쳐 판이 갈라져 보인다 (참고 화면과 같은 문법) */
-  gap: 4px;
+  /* 틈 없이 붙인다 (2026-08-31 운영자: 가운데 빈 공간 없게). 각진 모서리와
+     한 몸의 문법 — 카드들이 이어진 한 판으로 읽힌다. */
+  gap: 0;
   margin-top: 16px;
   margin-inline: -8px;
 }

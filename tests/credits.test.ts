@@ -98,3 +98,16 @@ describe("리딩 크레딧 단가 (2026-08-31 단일 화폐)", () => {
     assert.equal(FIRST_BUY_PACKS[0].price, 1_900);
   });
 });
+
+describe("리딩 판매가 (2026-08-31 할인)", () => {
+  it("단품 19 · 세트 39 — 표기와 차감이 이 상수 하나를 본다", async () => {
+    const { READING_SALE_CREDITS, BUNDLE_SALE_CREDITS, saleCreditCost } = await import("../src/lib/credits");
+    assert.equal(READING_SALE_CREDITS, 19); // 옛 "첫 리딩 1,900원" 그대로
+    assert.equal(saleCreditCost(false), READING_SALE_CREDITS);
+    assert.equal(saleCreditCost(true), BUNDLE_SALE_CREDITS);
+    // 세트는 세 장을 두 장 값 근처로 — 단품 셋보다 싸야 세트다
+    assert.ok(BUNDLE_SALE_CREDITS < READING_SALE_CREDITS * 3);
+    // 첫 구매 맛보기 팩(100크레딧)으로 다섯 장이 열린다
+    assert.ok(100 >= READING_SALE_CREDITS * 5);
+  });
+});

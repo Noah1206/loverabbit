@@ -9,7 +9,7 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { readingCreditCost } from "@/lib/credits";
+import { READING_SALE_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
 import {
   landingTypeForProduct,
@@ -895,7 +895,7 @@ export default function ReadingReportPage() {
                             <small>{p.title} · {p.needsPartner ? "상대 생년월일 한 칸" : "바로 생성"}</small>
                           </span>
                           <span className="report-crosssell-price">
-                            {readingCreditCost(p.price)}크레딧
+                            {READING_SALE_CREDITS}크레딧
                           </span>
                         </Link>
                       ))}

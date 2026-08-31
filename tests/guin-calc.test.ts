@@ -87,7 +87,7 @@ describe("관계 축 채점 (지시문 8.4)", () => {
   it("긴장이 높은 관계일수록 갈등 회복력이 낮다 — 방향이 뒤집히지 않는다", () => {
     const calm = scoreAxes(computeFeatures({ ownerElement: "목", participantElement: "수" })); // 수생목
     const tense = scoreAxes(computeFeatures({ ownerElement: "목", participantElement: "금" })); // 금극목
-    assert.ok(calm.conflictRecovery > tense.conflictRecovery);
+    assert.ok((calm.conflictRecovery ?? 0) > (tense.conflictRecovery ?? 0));
   });
 });
 
