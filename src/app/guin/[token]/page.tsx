@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
+import GuinMapBackground, { ROLE_DOT } from "@/components/GuinMapBackground";
 import GuinMapIntro from "@/components/GuinMapIntro";
 import { trackFunnel } from "@/lib/funnel";
 import {
@@ -48,19 +49,6 @@ import { downloadGuinShareImage } from "@/lib/share-image";
 import { getUser } from "@/lib/user";
 
 const BUSY_MESSAGE = "지금 귀인지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
-
-/** 역할 구분 점 색. 색만으로 가르지 않는다 — 라벨이 항상 같이 붙는다. */
-const ROLE_DOT: Record<GuinRole, string> = {
-  comforter: "#8fbfd8",
-  right_hand: "#7dc4a5",
-  communicator: "#9aa7d8",
-  growth_teacher: "#c78d5a",
-  // guin-1 시절 역할 — 저장된 지도를 그대로 그리기 위해 남긴다
-  benefactor: "#e8b84b",
-  mirror: "#b8a7d8",
-  stimulator: "#d88da0",
-  neutral: "#a5a3ac",
-};
 
 interface MapResponse extends GuinMapView {
   linkEnabled: boolean;
@@ -494,7 +482,12 @@ export default function GuinMapPage() {
           : `${view.count}명의 인연이 모였어요`;
 
   return (
-    <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
+    <>
+      <GuinMapBackground
+        ownerLabel={view.ownerNickname}
+        nodes={view.nodes.map((node) => ({ id: node.id, nickname: node.nickname, role: node.role, score: node.score }))}
+      />
+    <main className="container guin-scene" style={{ paddingTop: 48, paddingBottom: 120 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
       <h1 style={{ marginBottom: 4 }}>{view.ownerNickname}님의 귀인 지도</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 6 }}>
@@ -792,6 +785,7 @@ export default function GuinMapPage() {
 
       <p style={{ color: "var(--text-dim)", fontSize: "0.76rem" }}>{GUIN_DISCLAIMER}</p>
     </main>
+    </>
   );
 }
 

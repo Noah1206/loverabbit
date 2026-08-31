@@ -46,3 +46,4 @@ cards-raw/
 .axis-compare/
 .gstack/
 .DS_Store
+.env*.local

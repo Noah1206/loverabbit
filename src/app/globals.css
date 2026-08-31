@@ -9108,3 +9108,60 @@ body[data-guin-intro="1"] .tabbar {
 .guin-intro-video.is-open {
   opacity: 1;
 }
+
+/* ── 귀인 지도 배경 — 지도가 페이지의 바탕이고 카드가 그 위에 뜬다 ── */
+.guin-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.guin-bg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.guin-bg-ring {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-opacity: 0.14;
+  stroke-width: 0.25;
+  stroke-dasharray: 0.8 1.6;
+}
+.guin-bg-name {
+  font-size: 2.7px;
+  fill: var(--text-dim);
+  fill-opacity: 0.75;
+}
+.guin-bg-owner {
+  fill: var(--accent);
+  fill-opacity: 0.85;
+  font-weight: 700;
+}
+.guin-bg-empty {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-opacity: 0.4;
+  stroke-width: 0.3;
+  stroke-dasharray: 1 1.2;
+}
+.guin-bg-node {
+  animation: guin-bg-float 7s ease-in-out infinite;
+}
+@keyframes guin-bg-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1.1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .guin-bg-node { animation: none; }
+}
+
+/* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */
+.guin-scene {
+  position: relative;
+  z-index: 1;
+}
+.guin-scene .card {
+  background: color-mix(in srgb, var(--bg-card) 76%, transparent);
+}
