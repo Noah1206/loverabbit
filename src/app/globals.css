@@ -1023,7 +1023,9 @@ label {
   overflow: hidden;
   position: relative;
   display: block;
-  border-radius: var(--r-xl);
+  /* 그리드만 각지게 (2026-08-31 운영자 결정). 맞닿아 판을 이루는 카드라
+     모서리를 굴리면 사이마다 빈 틈이 파인다 — 나머지 화면은 라운드 그대로다. */
+  border-radius: 0;
   /* 맞닿은 판에서는 그림자와 테두리가 카드 사이에 선을 만든다. 둘 다 뺀다. */
   border: 0;
   box-shadow: none;
