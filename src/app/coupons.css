@@ -12,7 +12,7 @@
   width: 100%;
   padding: 14px 16px;
   border: 1px solid var(--line);
-  border-radius: 0;
+  border-radius: 18px;
   background: var(--bg-card);
   color: var(--text);
   text-align: left;
@@ -65,7 +65,7 @@ button.coupon-card[aria-pressed="true"] {
 .coupon-state {
   flex: 0 0 auto;
   padding: 2px 8px;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--bg-card2);
   color: var(--text-dim);
   font-size: 0.68rem;
@@ -80,7 +80,7 @@ button.coupon-card[aria-pressed="true"] {
 .coupon-empty {
   padding: 18px;
   border: 1px dashed var(--line);
-  border-radius: 0;
+  border-radius: 18px;
   color: var(--text-dim);
   font-size: 0.86rem;
   text-align: center;
