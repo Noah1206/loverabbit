@@ -238,9 +238,11 @@ export default function AppHome() {
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
               return (
+                /* 상세 판매 페이지를 건너뛰고 바로 입력 폼으로 (2026-08-31 운영자 결정).
+                   /product/[id] 자체는 남아 있다 — Threads 착지 링크가 그리로 온다. */
                 <Link
                   key={p.id}
-                  href={`/product/${p.id}`}
+                  href={`/reading?c=${p.id}`}
                   className={`card fortune-grid-card${armed === p.id ? " is-armed" : ""}`}
                   data-tone={p.tone}
                   data-product={p.id}
