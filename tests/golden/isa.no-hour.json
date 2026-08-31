@@ -1,0 +1,92 @@
+{
+  "product": "isa",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "MOVE-DM-WOOD",
+    "MOVE-STR-WEAK",
+    "MOVE-TG-JEONGIN",
+    "MOVE-TG-PYEONJAE",
+    "MOVE-TG-SIKSIN",
+    "MOVE-MISS-METAL",
+    "MOVE-SS-HWAGAE",
+    "MOVE-REL-CLASH"
+  ],
+  "score": {
+    "value": 51,
+    "band": "움직임의 조짐",
+    "factors": [
+      {
+        "label": "지지충 1개",
+        "delta": 6
+      },
+      {
+        "label": "대운 겁재",
+        "delta": -6
+      },
+      {
+        "label": "세운 식신",
+        "delta": 5
+      }
+    ]
+  },
+  "scope": {
+    "label": "이사·터 리딩 (역마와 충으로 읽는 이동수, 머무는 결과 옮기는 결, 지금 시기의 이동 흐름 — 방위 추천은 하지 않는다)",
+    "outline": [
+      "1장 01. 내 일간 — 터를 대하는 기질",
+      "1장 02. 역마와 이동수 — 내 명식의 움직이는 힘",
+      "2장 01. 머무는 결인가 옮기는 결인가",
+      "2장 02. 자리의 흔들림 — 충이 건드리는 지점",
+      "3장 01. 나에게 맞는 터의 조건 — 오행이 부르는 공간",
+      "3장 02. 옮길 때 소모되는 지점과 지키는 법",
+      "4장 01. 지금 시기의 이동 흐름 — 움직일 달과 눌러앉을 달",
+      "5장 01. 이사를 앞둔 마음가짐 — 최종 조언"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

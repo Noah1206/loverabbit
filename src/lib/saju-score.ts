@@ -86,6 +86,7 @@ type FactorName =
   | "careerStar"
   | "wealthStar"
   | "resourceStar"
+  | "motionLoad"
   | "luckFavor"
   | "stability";
 
@@ -247,6 +248,27 @@ function resourceStar(facts: SajuFacts): ScoreFactor[] {
   return out;
 }
 
+/** 이동수 — 역마와 충이 만드는 움직임의 힘. 이사 상품이 본다. */
+function motionLoad(facts: SajuFacts): ScoreFactor[] {
+  const out: ScoreFactor[] = [];
+  const yeokma = facts.shinsal.filter((s) => s.name === "역마").length;
+  if (yeokma > 0) {
+    out.push({
+      label: `역마 ${yeokma}개`,
+      delta: Math.min(16, yeokma * 8),
+      basis: facts.shinsal.find((s) => s.name === "역마")?.positions.join("·") ?? "",
+    });
+  }
+  const clashes = facts.notableRelations.filter((r) => r.kind === "지지충").length;
+  if (clashes > 0) {
+    out.push({ label: `지지충 ${clashes}개`, delta: Math.min(10, clashes * 5), basis: "자리가 부딪혀 움직이는 힘" });
+  }
+  if (out.length === 0) {
+    out.push({ label: "역마·충 없음", delta: -8, basis: "명식에 이동의 장치가 없다 — 눌러앉는 결" });
+  }
+  return out;
+}
+
 // 운의 십성이 관계에 어떻게 걸리는가
 const LUCK_WEIGHT: Record<string, number> = {
   정인: 7, 정관: 8, 정재: 7, 식신: 6,
@@ -310,6 +332,9 @@ const RECIPES: Record<string, Recipe> = {
   jikeop: { subject: "me", base: 50, weights: { careerStar: 1.0, stability: 0.9, luckFavor: 0.6 } },
   jaemul: { subject: "me", base: 48, weights: { wealthStar: 1.2, luckFavor: 0.9, stability: 0.6 } },
   gongbu: { subject: "me", base: 50, weights: { resourceStar: 1.1, stability: 0.9, luckFavor: 0.6 } },
+  geongang: { subject: "me", base: 52, weights: { stability: 1.2, luckFavor: 0.8 } },
+  gajok: { subject: "me", base: 50, weights: { resourceStar: 0.9, wealthStar: 0.9, stability: 0.7 } },
+  isa: { subject: "me", base: 46, weights: { motionLoad: 1.2, luckFavor: 0.8 } },
   // 속궁합 — 두 일주의 당김이 전부
   sokgunghap: { subject: "me", base: 50, weights: { pairHarmony: 1.2, elementFlow: 0.9, dohwaLoad: 0.4 } },
   // 재회 — 남은 인력 + 지금 운이 열렸는가
@@ -346,6 +371,7 @@ const FACTORS: Record<FactorName, (subject: SajuFacts, other: SajuFacts | null) 
   careerStar: (subject) => careerStar(subject),
   wealthStar: (subject) => wealthStar(subject),
   resourceStar: (subject) => resourceStar(subject),
+  motionLoad: (subject) => motionLoad(subject),
   luckFavor: (subject) => luckFavor(subject),
   stability: (subject) => stability(subject),
 };
