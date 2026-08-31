@@ -4,13 +4,13 @@ import { getCreditBalance, hasLedgerRef } from "@/lib/credits-db";
 import { claimReading, getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 import {
-  buildWebtoonContent,
   isFortuneType,
   nicknameFromEmail,
   panelsForState,
   webtoonUnlockRef,
   WEBTOON_FORTUNE_CONFIG,
 } from "@/lib/webtoon-saju";
+import { webtoonContentFor } from "@/lib/webtoon-generate";
 
 // 웹툰 사주 상태 조회 — 운세 하나의 패널·텍스트·해금 상태·잔액을 돌려준다.
 //
@@ -19,6 +19,9 @@ import {
 //
 // 유료 문장(전체 패널 오버레이·상세 분석)은 unlocked 일 때만 응답에 실린다 —
 // 내려주는 길이 둘이면 그중 하나는 검증을 건너뛴다 (/api/my-readings 와 같은 원칙).
+
+// 문장을 처음 만드는 호출에 AI 한 번이 든다. 캐시가 차면 그 뒤로는 DB 조회뿐이다.
+export const maxDuration = 120;
 
 interface Body {
   userToken?: string;
@@ -63,7 +66,8 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ readin
   ]);
 
   const nickname = nicknameFromEmail(user.email);
-  const content = buildWebtoonContent(fortuneType, nickname);
+  // 명식으로 쓴 문장. 프로필이 없거나 가드에 걸리면 고정 카피가 온다.
+  const { content } = await webtoonContentFor(reading.id, user.userId, fortuneType, nickname);
   const config = WEBTOON_FORTUNE_CONFIG[fortuneType];
 
   return NextResponse.json(

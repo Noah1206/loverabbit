@@ -9,12 +9,12 @@ import {
 import { claimReading, getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 import {
-  buildWebtoonContent,
   isFortuneType,
   nicknameFromEmail,
   webtoonUnlockRef,
   WEBTOON_FORTUNE_CONFIG,
 } from "@/lib/webtoon-saju";
+import { webtoonContentFor } from "@/lib/webtoon-generate";
 
 // 웹툰 사주 운세 하나 해금 — 서버 원장에서만 차감한다.
 //
@@ -25,6 +25,9 @@ import {
 //      Idempotency-Key 헤더는 받아서 로그에 남긴다. 실제 멱등성은 원장 ref 가 진다 —
 //      클라이언트가 키를 바꿔 보내도 같은 운세는 두 번 차감되지 않는다.
 //   5. 모자라면 402 INSUFFICIENT_LUVIT — 클라이언트는 충전 페이지로 보낸다
+
+// 캐시가 비어 있으면 여기서도 문장을 만든다 (상태 조회를 건너뛰고 온 경우).
+export const maxDuration = 120;
 
 interface Body {
   userToken?: string;
@@ -98,7 +101,8 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ readin
   }
 
   const nickname = nicknameFromEmail(user.email);
-  const content = buildWebtoonContent(fortuneType, nickname);
+  // 상태 조회와 같은 캐시를 본다 — 해금 순간에 문장이 바뀌면 안 된다.
+  const { content } = await webtoonContentFor(reading.id, user.userId, fortuneType, nickname);
 
   return NextResponse.json(
     {
