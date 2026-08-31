@@ -1104,7 +1104,9 @@ label {
 
 .fortune-grid-media {
   position: relative;
-  aspect-ratio: 1 / 1;
+  /* 새 아트가 4:3 가로다 (2026-08-31, 로고 토끼 일러스트) — 비율을 아트에 맞춰
+     자르지 않고 다 보이게 한다. */
+  aspect-ratio: 4 / 3;
   overflow: hidden;
 }
 
