@@ -9153,6 +9153,9 @@ body[data-guin-intro="1"] .tabbar {
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
+  /* 오프닝 영상의 마지막 프레임(빈 양피지)이 그대로 지도 바닥이 된다 —
+     영상이 끝난 종이 위에 실제 노드가 앉는다. */
+  background: url("/assets/guin-map/opening-fallback.webp") center / cover no-repeat #efe2c8;
 }
 .guin-bg svg {
   width: 100%;
@@ -9161,15 +9164,20 @@ body[data-guin-intro="1"] .tabbar {
 }
 .guin-bg-ring {
   fill: none;
-  stroke: var(--text-dim);
-  stroke-opacity: 0.14;
+  stroke: #7a5c39;
+  stroke-opacity: 0.3;
   stroke-width: 0.25;
   stroke-dasharray: 0.8 1.6;
 }
 .guin-bg-name {
   font-size: 2.7px;
-  fill: var(--text-dim);
-  fill-opacity: 0.75;
+  fill: #5b4632;
+  fill-opacity: 0.9;
+}
+/* 관계선 — 영상 속 로즈 잉크 선과 같은 결. 속성값을 CSS 가 덮는다. */
+.guin-bg-node line {
+  stroke: #b0684a;
+  stroke-opacity: 0.55;
 }
 .guin-bg-owner {
   fill: var(--accent);
@@ -9178,8 +9186,8 @@ body[data-guin-intro="1"] .tabbar {
 }
 .guin-bg-empty {
   fill: none;
-  stroke: var(--text-dim);
-  stroke-opacity: 0.4;
+  stroke: #8a6a45;
+  stroke-opacity: 0.55;
   stroke-width: 0.3;
   stroke-dasharray: 1 1.2;
 }
@@ -9307,4 +9315,58 @@ body[data-guin-intro="1"] .tabbar {
 .guin-join-link:focus-visible {
   background: var(--canvas-lavender);
   outline: none;
+}
+
+/* ── 지도 만드는 중 — 달리는 토끼 ──────────────────────────────────
+   스피너 대신 토끼가 발자국 길을 달린다. 만드는 데 몇 초쯤 걸린다. */
+.guin-run {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: grid;
+  place-content: center;
+  gap: 18px;
+  background: rgba(250, 245, 235, 0.96);
+  text-align: center;
+}
+
+.guin-run-track {
+  position: relative;
+  width: min(300px, 76vw);
+  height: 54px;
+  border-bottom: 2px dashed #b89d78;
+  overflow: hidden;
+}
+
+.guin-run-rabbit {
+  position: absolute;
+  bottom: 2px;
+  left: -36px;
+  font-size: 2rem;
+  /* 🐇 는 왼쪽을 본다 — 달리는 방향(오른쪽)으로 뒤집는다 */
+  transform: scaleX(-1);
+  animation: guin-run-go 1.7s linear infinite, guin-run-hop 0.34s ease-in-out infinite;
+}
+
+@keyframes guin-run-go {
+  0% { left: -36px; }
+  100% { left: calc(100% + 8px); }
+}
+
+@keyframes guin-run-hop {
+  0%, 100% { bottom: 2px; }
+  50% { bottom: 12px; }
+}
+
+.guin-run p {
+  color: #5b4632;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guin-run-rabbit {
+    animation: none;
+    left: 40%;
+  }
 }

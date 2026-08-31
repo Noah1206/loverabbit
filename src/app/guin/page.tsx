@@ -11,6 +11,7 @@ import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import GuinMapIntro from "@/components/GuinMapIntro";
+import GuinRunLoader from "@/components/GuinRunLoader";
 import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { getUser } from "@/lib/user";
@@ -141,6 +142,7 @@ function GuinLanding() {
 
   return (
     <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
+      {busy && <GuinRunLoader />}
       <h1 style={{ marginBottom: 8 }}>내 주변에 어떤 인연이 있을까?</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
         생년월일을 입력하면 나와 잘 맞는 사람, 나를 도와주는 사람, 나를 성장시키는 사람을 관계
