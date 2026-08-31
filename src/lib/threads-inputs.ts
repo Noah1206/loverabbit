@@ -25,6 +25,7 @@ import type {
   ThreadGoal,
 } from "@/lib/threads-content";
 import { SITE_URL } from "@/lib/site";
+import { PRODUCT_MAP } from "@/lib/products";
 
 /** 십성 열 가지 — 규칙 표의 키와 같은 표기를 쓴다 */
 export type TenGod =
@@ -330,6 +331,41 @@ export function buildUpsellInput(options: BuildInputOptions): LoveRabbitContentI
     },
   ];
   input.variables.cta = { type: "link", text: `${SITE_URL}/reading — 내 일주로 보는 관계 리딩` };
+  return input;
+}
+
+/**
+ * 비연애 상품 착지 6종.
+ *
+ * Threads 에서 직업·재물·공부·건강·가족·이사 글을 쓰고도 링크 걸 데가 없던
+ * 문제의 답이다. FREE_PREVIEW_PAGES 와 같은 원칙 — 실제로 있는 상품 페이지만
+ * 쓴다. 사실은 그 상품 도메인에 태그된 승인 규칙 하나에서만 나온다.
+ */
+export const PRODUCT_LANDINGS = [
+  { productId: "jikeop", ruleId: "WORK-TG-JEONGGWAN", scope: "정관이 두드러진 명식 — 직업 리딩이 다루는 결" },
+  { productId: "jaemul", ruleId: "MONEY-TG-JEONGJAE", scope: "정재가 두드러진 명식 — 재물 리딩이 다루는 결" },
+  { productId: "gongbu", ruleId: "STUDY-TG-JEONGIN", scope: "정인이 두드러진 명식 — 공부 리딩이 다루는 결" },
+  { productId: "geongang", ruleId: "HEALTH-TG-SIKSIN", scope: "식신이 두드러진 명식 — 건강 리딩이 다루는 결" },
+  { productId: "gajok", ruleId: "FAMILY-TG-JEONGIN", scope: "정인이 두드러진 명식 — 가족 리딩이 다루는 결" },
+  { productId: "isa", ruleId: "MOVE-SS-YEOKMA", scope: "역마가 있는 명식 — 이사·이동 리딩이 다루는 결" },
+] as const;
+
+export function productLandingUrl(productId: string): string {
+  return `${SITE_URL}/product/${productId}`;
+}
+
+export function buildProductLandingInput(
+  options: BuildInputOptions & { productId: string }
+): LoveRabbitContentInput {
+  const input = base(options);
+  const landing = PRODUCT_LANDINGS.find((l) => l.productId === options.productId);
+  const product = PRODUCT_MAP[options.productId];
+  if (!landing || !product) {
+    input.missingFacts = [`실제로 있는 상품 착지가 아니다 — ${options.productId}`];
+    return input;
+  }
+  input.approvedFacts = [approvedFactOf(landing.ruleId, landing.scope)];
+  input.variables.cta = { type: "link", text: `${productLandingUrl(product.id)} — ${product.title}` };
   return input;
 }
 

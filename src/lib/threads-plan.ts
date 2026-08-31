@@ -1,14 +1,16 @@
-// 다음 20개 초안의 편성.
+// 다음 26개 초안의 편성 — 지시 문서 G의 20 + 비연애 상품 착지 6.
 //
 // 지시 문서 G의 표를 그대로 옮기되, 각 칸이 실제로 만들어질 수 있는지를 여기서
 // 판정한다. 판정은 "승인된 사실이 있는가" 하나로 한다.
 //
-// 스무 개 중 일곱은 막힌다. 막힌 이유가 전부 같지 않아서, 이유를 칸마다 따로 적는다 —
+// 이 중 일곱은 막힌다. 막힌 이유가 전부 같지 않아서, 이유를 칸마다 따로 적는다 —
 // 나중에 무엇을 먼저 만들지 정하는 것이 그 목록이기 때문이다.
 
 import {
   MISSING_ADAPTERS,
+  PRODUCT_LANDINGS,
   blockedInput,
+  buildProductLandingInput,
   buildDailyRelationInput,
   buildFreePreviewInput,
   buildTenGodInput,
@@ -186,6 +188,24 @@ export function buildPlan(start = DEFAULT_START): PlanSlot[] {
       date: day(1),
       cta: { type: "link", text: "" },
     }),
+  });
+
+  // ── 비연애 상품 착지 · 6개 ─────────────────────────────────
+  // 직업·재물·공부·건강·가족·이사 글의 링크 걸 데. SS-P08 구조(큰 그림 → 개인화
+  // 전환)를 빌리고, 사실은 각 상품 도메인의 승인 규칙 하나만 쓴다.
+  PRODUCT_LANDINGS.forEach((landing, i) => {
+    slots.push({
+      note: `app_story 착지 ${i + 1}/6 — SS-P08 · ${landing.productId}`,
+      input: buildProductLandingInput({
+        id: `landing-${landing.productId}`,
+        lane: "app_story",
+        goal: "conversion",
+        patternId: "SS-P08-ZODIAC-TO-DAY-PILLAR-UPSELL",
+        date: day(i + 2),
+        productId: landing.productId,
+        cta: { type: "link", text: "" },
+      }),
+    });
   });
 
   return slots;
