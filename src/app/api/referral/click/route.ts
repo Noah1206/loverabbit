@@ -8,7 +8,7 @@ import { isDatabaseConfigured } from "@/lib/database";
 // 항상 false 를 돌려준다. 라우트는 그대로 두어 링크 추적은 유지한다.
 //
 // 크레딧을 안 주므로 어뷰징 유인이 없어졌다. 기기 쿠키(httpOnly)로 같은 기기의
-// 중복 기록만 막는다. 가입 보상(5,000원 쿠폰)은 회원 행 기준이라 별개로 살아 있다.
+// 중복 기록만 막는다. 가입 보상(50크레딧)은 회원 행 기준이라 별개로 살아 있다.
 
 const COOKIE = "lr_device";
 const CODE_RE = /^[A-Z0-9]{6,16}$/;

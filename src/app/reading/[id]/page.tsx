@@ -442,7 +442,7 @@ export default function ReadingReportPage() {
       p.tags.includes("popular") ? 0 : 1,
       p.price,
     ];
-    // 값이 더 비싼 것만 고르던 조건을 뺀다 — 두 번째는 어차피 4,900원이고,
+    // 값이 더 비싼 것만 고르던 조건을 뺀다 — 크레딧 단일 화폐에서는 값 비교가 무의미하고,
     // 12,000원짜리를 본 사람에게 "더 비싼 것"은 없다.
     return PRODUCTS.filter((p) => p.id !== product.id)
       .sort((a, b) => {
