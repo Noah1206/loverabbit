@@ -1,0 +1,36 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-08-31",
+  "assets": [
+    {
+      "id": "guin-opening",
+      "filename": "opening.mp4",
+      "path": "public/assets/guin-map/opening.mp4",
+      "ratio": "9:16",
+      "resolution": "720x1280",
+      "durationSeconds": 6.04,
+      "codec": "h264",
+      "sizeBytes": 1780000,
+      "source": "Higgsfield MCP",
+      "model": "seedance_2_5 (Bytedance Seedance 2.5, t2v)",
+      "jobId": "dcc4ae01-638e-43ea-8054-b6995c423608",
+      "creditsSpent": 39,
+      "promptFile": "prompts.md",
+      "dynamicText": false,
+      "audio": false,
+      "note": "지시문의 Clip A/B/C 를 한 번의 생성으로 합침 — 세 장면이 한 카메라 무브 안에 있고, 웹앱이 재생 구간으로 나눈다."
+    },
+    {
+      "id": "guin-opening-poster",
+      "filename": "opening-poster.webp",
+      "source": "opening.mp4 의 0.5s 프레임 (ffmpeg + sharp, 추가 생성 없음)",
+      "dynamicText": false
+    },
+    {
+      "id": "guin-opening-fallback",
+      "filename": "opening-fallback.webp",
+      "source": "opening.mp4 의 5.0s 프레임 (ffmpeg + sharp, 추가 생성 없음)",
+      "dynamicText": false
+    }
+  ]
+}

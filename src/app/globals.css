@@ -9023,3 +9023,19 @@ body:has(.admin-shell) .tabbar {
 body[data-guin-intro="1"] .tabbar {
   display: none;
 }
+
+/* 오프닝 배경 영상 — CSS 장면 밑에 깔린다. 못 뜨면 이 레이어만 사라지고
+   CSS 장면이 그대로 폴백이 된다. */
+.guin-intro-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+.guin-intro-video.is-open {
+  opacity: 1;
+}

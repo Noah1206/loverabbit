@@ -46,6 +46,9 @@ export default function GuinMapIntro({
   onDone: (how: "completed" | "skipped") => void;
 }) {
   const [phase, setPhase] = useState<0 | 1 | 2 | 3>(0);
+  // Higgsfield 배경 영상. 404·자동재생 차단·인앱 브라우저에서 실패하면
+  // 아래 CSS 장면만 남는다 — 그게 폴백이고, 이미 그 자체로 완결된 오프닝이다.
+  const [videoOk, setVideoOk] = useState(true);
   // onDone 이 매 렌더 새 함수여도 타이머가 다시 깔리지 않게 붙잡아 둔다.
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
@@ -97,6 +100,21 @@ export default function GuinMapIntro({
       <div className="guin-intro-bar" aria-hidden />
 
       <div className="guin-intro-stage">
+        {/* 배경 영상 — Higgsfield 로 한 번 뽑아 둔 고정 에셋. 사용자별 텍스트는
+            영상에 없고, 이름·노드는 그 위에서 웹앱이 그린다. */}
+        {videoOk && (
+          <video
+            className={`guin-intro-video${phase >= 1 ? " is-open" : ""}`}
+            src="/assets/guin-map/opening.mp4"
+            poster="/assets/guin-map/opening-poster.webp"
+            autoPlay
+            muted
+            playsInline
+            preload="auto"
+            aria-hidden
+            onError={() => setVideoOk(false)}
+          />
+        )}
         <div className={`guin-intro-field${phase >= 1 ? " is-open" : ""}`} aria-hidden>
           {/* 가운데 — 지도 주인 */}
           <span className={`guin-intro-owner${phase >= 2 ? " is-in" : ""}`}>
