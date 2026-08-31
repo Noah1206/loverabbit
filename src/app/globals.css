@@ -8878,3 +8878,148 @@ body:has(.admin-shell) .tabbar {
 
 /* 시트 안에 렌더되는 전역 버튼(입금 폼 등)도 같은 톤 */
 .credits-cute .btn { border-radius: 999px; font-weight: 800; }
+
+/* ── 귀인 지도 오프닝 ───────────────────────────────────────────────
+   초대 링크로 들어온 사람이 폼을 만나기 전에 보는 한 장면. 위아래 검은
+   띠로 시야를 좁히고 가운데에서 지도가 펼쳐진다. 길어야 4.6초. */
+/* .app-viewport 가 isolation: isolate 라 그 안의 z-index 는 바깥의 탭바(60)와
+   겨루지 못한다 — 오프닝을 아무리 올려도 탭바가 위에 남는다. 층을 올리는
+   대신 오프닝이 떠 있는 동안 탭바를 감춘다(body[data-guin-intro]). */
+.guin-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-rows: 15vh 1fr 15vh;
+  background: #08060b;
+}
+
+.guin-intro-bar {
+  background: #000;
+}
+
+.guin-intro-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  /* 오베르진을 아주 옅게 깐 밤하늘. 각진 화면이라 굴리지 않는다. */
+  background:
+    radial-gradient(circle at 50% 45%, rgba(74, 21, 75, 0.55), transparent 62%),
+    #0d0a12;
+}
+
+.guin-intro-field {
+  position: absolute;
+  inset: 7%;
+  border: 1px solid rgba(217, 189, 222, 0.16);
+  opacity: 0;
+  transform: scale(0.93);
+  transition: opacity 900ms ease, transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.guin-intro-field.is-open {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 가운데 주인. 원 하나가 아니라 이름이 선다 — 누구의 지도인지가 요점이다. */
+.guin-intro-owner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  min-width: 74px;
+  padding: 13px 14px;
+  border: 1px solid rgba(217, 189, 222, 0.5);
+  background: rgba(74, 21, 75, 0.5);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7);
+  transition: opacity 620ms ease, transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.guin-intro-owner.is-in {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.guin-intro-node {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(217, 189, 222, 0.34);
+  background: rgba(217, 189, 222, 0.14);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.3);
+  transition: opacity 560ms ease, transform 560ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.guin-intro-node.is-in {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.guin-intro-copy {
+  position: relative;
+  z-index: 1;
+  align-self: end;
+  /* 건너뛰기 버튼과 같은 줄에 앉으면 긴 문구가 버튼 밑으로 들어간다.
+     버튼(약 36px) 위로 올린다. */
+  margin-bottom: 68px;
+  padding: 0 16px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 520ms ease, transform 520ms ease;
+}
+
+.guin-intro-copy.is-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.guin-intro-skip {
+  position: absolute;
+  right: 16px;
+  bottom: calc(15vh + 16px);
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.guin-intro-skip:hover,
+.guin-intro-skip:focus-visible {
+  border-color: #fff;
+  color: #fff;
+  outline: none;
+}
+
+/* 모션을 줄여 달라고 한 기기에서는 장면 자체를 건너뛴다(컴포넌트가 처리).
+   혹시 그려지더라도 움직이지는 않게 한다. */
+@media (prefers-reduced-motion: reduce) {
+  .guin-intro-field,
+  .guin-intro-owner,
+  .guin-intro-node,
+  .guin-intro-copy {
+    transition: none;
+  }
+}
+
+/* 오프닝이 떠 있는 동안에는 탭바를 감춘다. 레터박스 안으로 다른 크롬이
+   비치면 화면 하나로 읽히지 않는다. */
+body[data-guin-intro="1"] .tabbar {
+  display: none;
+}

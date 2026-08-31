@@ -69,6 +69,10 @@ export const FUNNEL_EVENTS = [
   "guin_share_image_downloaded",
   /** 초대 링크로 들어왔다 */
   "guin_invite_landing_view",
+  /** 오프닝이 끝까지 재생됐다 */
+  "guin_map_reveal_completed",
+  /** 오프닝을 건너뛰었다 — 끝까지 본 것과 나눠 봐야 길이를 판단할 수 있다 */
+  "guin_map_reveal_skipped",
   /** 참여 폼에 손을 댔다 */
   "guin_participant_form_started",
   /** 참여 폼을 보냈다 (성공 = 지도에 노드가 하나 늘었다) */

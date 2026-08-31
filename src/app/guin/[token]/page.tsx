@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
+import GuinMapIntro from "@/components/GuinMapIntro";
 import { trackFunnel } from "@/lib/funnel";
 import {
   fetchSavedBirth,
@@ -73,6 +74,12 @@ function sizeBucket(n: number): string {
   return n === 0 ? "0" : n === 1 ? "1" : n === 2 ? "2" : n <= 4 ? "3-4" : "5plus";
 }
 
+/** 오프닝을 이미 본 지도인지. 새로고침·뒤로가기로 다시 들어와도 두 번
+ *  보여주지 않는다 — 두 번째부터는 방해다. 탭을 닫으면 잊는다. */
+function introSeenKey(token: string): string {
+  return `lr_guin_intro_${token}`;
+}
+
 export default function GuinMapPage() {
   const { token } = useParams<{ token: string }>();
   const router = useRouter();
@@ -98,6 +105,9 @@ export default function GuinMapPage() {
   // 방금 참여한 사람의 단계형 공개 — 0: 내 역할만, 1: +반대 방향, 2: +상태·다음 행동.
   // 한 번에 하나씩만 새 것이 나타난다. 돌아온 참여자는 이미 본 사람이라 다 펼친다.
   const [revealStep, setRevealStep] = useState<0 | 1 | 2>(0);
+  // 오프닝 — 초대로 들어온 방문자에게 폼 앞에서 한 번만. 이미 본 사람은
+  // 다시 보지 않는다(sessionStorage). 주인·참여자는 아예 지나간다.
+  const [introDone, setIntroDone] = useState(false);
   const inviteTracked = useRef(false);
   const stageTracked = useRef<string | null>(null);
   const claimTried = useRef(false);
@@ -146,6 +156,15 @@ export default function GuinMapPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // 새로고침·뒤로가기로 돌아온 사람은 오프닝을 건너뛴다.
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(introSeenKey(token))) setIntroDone(true);
+    } catch {
+      // 스토리지를 못 읽으면 그냥 보여준다 — 막을 일은 아니다.
+    }
+  }, [token]);
 
   useEffect(() => {
     const stored = getUser();
@@ -384,6 +403,30 @@ export default function GuinMapPage() {
           <Link href="/guin" style={{ color: "var(--accent)" }}>새로운 귀인 지도 만들어보기 →</Link>
         </p>
       </main>
+    );
+  }
+
+  // ── 오프닝 ── 초대로 들어온 방문자에게 폼 앞에서 한 번.
+  // 이미 사람이 있는 지도는 짧게 지나간다 — 볼거리는 첫 방문에만 값이 있다.
+  if (view.viewer === "stranger" && !justJoined && !introDone) {
+    return (
+      <GuinMapIntro
+        ownerNickname={view.ownerNickname}
+        existingNodeCount={view.count}
+        mode={view.count > 0 ? "compact" : "full"}
+        onDone={(how) => {
+          setIntroDone(true);
+          trackFunnel(
+            how === "completed" ? "guin_map_reveal_completed" : "guin_map_reveal_skipped",
+            { product: `copy-${inviteVariant}`, landing: sizeBucket(view.count) }
+          );
+          try {
+            sessionStorage.setItem(introSeenKey(token), "1");
+          } catch {
+            // 사파리 프라이빗 등 — 못 적어도 오프닝만 한 번 더 볼 뿐이다.
+          }
+        }}
+      />
     );
   }
 
