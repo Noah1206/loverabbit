@@ -940,8 +940,7 @@ label {
   padding: 0 20px 12px;
 }
 
-.home-status-card,
-.home-status-slim {
+.home-status-card {
   display: flex;
   align-items: center;
   gap: 11px;
@@ -954,17 +953,13 @@ label {
 }
 
 .home-status-card:hover,
-.home-status-slim:hover,
-.home-status-card:focus-visible,
-.home-status-slim:focus-visible {
+.home-status-card:focus-visible {
   border-color: var(--accent);
   background: var(--canvas-lavender);
   outline: none;
 }
 
 /* 질문권 — 남은 수가 이 줄의 주인공이라 오른쪽에 크게 세운다. */
-
-
 
 
 
@@ -979,14 +974,6 @@ label {
   border: 1px solid var(--line);
   background: var(--canvas-cream);
   font-size: 1.15rem;
-}
-
-.home-status-avatar--sm {
-  /* flex-basis 를 auto 로 두면 슬림 줄에서 칸을 밀고 늘어난다. 폭을 못 박는다. */
-  flex: 0 0 26px;
-  width: 26px;
-  height: 26px;
-  font-size: 0.8rem;
 }
 
 .home-status-body {
@@ -1028,30 +1015,6 @@ label {
   color: var(--text-dim);
   font-size: 1.2rem;
   font-weight: 700;
-}
-
-/* 그 아래 한 줄 — 있다는 것만 알리면 되므로 한 줄로 자른다. */
-.home-status-slim {
-  gap: 8px;
-  padding: 9px 12px;
-  background: var(--bg-card2);
-}
-
-.home-status-slim strong {
-  flex: 0 0 auto;
-  font-size: 0.79rem;
-  font-weight: 800;
-}
-
-/* 아바타도 span 이라 > span 으로 잡으면 같이 늘어난다. 티저만 고른다. */
-.home-status-slim > span:not(.home-status-avatar) {
-  overflow: hidden;
-  flex: 1;
-  min-width: 0;
-  color: var(--text-dim);
-  font-size: 0.76rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fortune-grid-card {

@@ -165,15 +165,6 @@ export default function AppHome() {
               </Link>
             )}
 
-            {recent[1] && (
-              <Link href={`/reading/${recent[1].readingId}`} className="home-status-slim">
-                <span className="home-status-avatar home-status-avatar--sm" aria-hidden>
-                  {PRODUCT_MAP[recent[1].category]?.emoji ?? "\uD83D\uDC30"}
-                </span>
-                <strong>{recent[1].label}</strong>
-                <span>· {recent[1].teaser}</span>
-              </Link>
-            )}
           </div>
         )}
 
