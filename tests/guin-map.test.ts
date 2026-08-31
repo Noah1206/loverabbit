@@ -72,6 +72,53 @@ describe("지도 화면용 정리", () => {
     const owner = shapeMapView({ token: "t", ownerNickname: "주인", showScores: false, nodes, viewer: "owner" });
     assert.ok(owner.nodes.every((item) => item.score !== null));
   });
+
+  it("점수 숨김이 역방향(guin-v3)으로 새지 않는다", () => {
+    const withReverse: GuinNodeView[] = [
+      {
+        ...node("a", 80),
+        reverse: {
+          score: 72,
+          role: "comforter",
+          roleLabel: "안식처형",
+          roleTagline: "마음을 편하게 해주는 사람",
+          elementLabel: "흐르는 물",
+          axes: { comfort: 80, practicalHelp: 60, communication: 70, stimulation: 40, conflictRecovery: 65 },
+          strengths: [],
+          cautions: [],
+          conversationPrompt: "?",
+          facts: [],
+          calculationVersion: "guin-v3",
+        },
+      },
+    ];
+    const hidden = shapeMapView({ token: "t", ownerNickname: "주인", showScores: false, nodes: withReverse, viewer: "participant" });
+    assert.equal(hidden.nodes[0].reverse?.score, null);
+    assert.equal(hidden.nodes[0].reverse?.axes, null);
+    // 역할·문구는 점수가 아니다 — 그대로 남는다.
+    assert.equal(hidden.nodes[0].reverse?.roleLabel, "안식처형");
+    const shown = shapeMapView({ token: "t", ownerNickname: "주인", showScores: true, nodes: withReverse, viewer: "participant", selfParticipantId: "a" });
+    assert.equal(shown.nodes[0].reverse?.score, 72);
+  });
+
+  it("관계 상태·AI 리포트는 당사자와 주인에게만 보인다 (guin-v3)", () => {
+    const report = {
+      summary: "요약", roleExplanation: "설명", strengths: ["a", "b"] as [string, string],
+      caution: "주의", currentContext: "지금", suggestedAction: "행동", conversationPrompt: "질문", disclaimer: "고지",
+    };
+    const withContext: GuinNodeView[] = [
+      { ...node("a", 80), contextStatus: "conflict", aiReport: report },
+      { ...node("b", 60), contextStatus: "crush", aiReport: report },
+    ];
+    // 참여자 a 는 자기 것만 본다 — b 의 "갈등 중"은 제3자에게 안 나간다.
+    const asA = shapeMapView({ token: "t", ownerNickname: "주인", showScores: true, nodes: withContext, viewer: "participant", selfParticipantId: "a" });
+    assert.equal(asA.nodes[0].contextStatus, "conflict");
+    assert.equal(asA.nodes[1].contextStatus, null);
+    assert.equal(asA.nodes[1].aiReport, null);
+    // 주인은 다 본다 — 자기 지도의 관계 당사자다.
+    const asOwner = shapeMapView({ token: "t", ownerNickname: "주인", showScores: true, nodes: withContext, viewer: "owner" });
+    assert.equal(asOwner.nodes[1].contextStatus, "crush");
+  });
 });
 
 describe("공유 카피 배정 (지시문 12)", () => {

@@ -12,6 +12,7 @@ import {
   scoreAxes,
 } from "../src/lib/guin-calc";
 import {
+  GUIN_ALL_AXES,
   GUIN_AXES,
   GUIN_DISCLAIMER,
   GUIN_ROLES,
@@ -62,19 +63,31 @@ describe("관계 축 채점 (지시문 8.4)", () => {
           { ownerYang: true, participantYang: false },
         ]) {
           const axes = scoreAxes(computeFeatures({ ownerElement: owner, participantElement: participant, polarity }));
-          for (const key of GUIN_AXES) {
-            assert.ok(Number.isInteger(axes[key]) && axes[key] >= 0 && axes[key] <= 100, `${key}=${axes[key]}`);
+          for (const key of GUIN_ALL_AXES) {
+            const value = axes[key]!;
+            assert.ok(Number.isInteger(value) && value >= 0 && value <= 100, `${key}=${value}`);
           }
         }
       }
     }
   });
 
-  it("케미도 0~100 이고 가중 평균이 뒤집히지 않는다", () => {
-    const even = chemistryOf({ comfort: 80, practicalHelp: 80, communication: 80, stimulation: 80 });
+  it("케미도 0~100 이고 가중 평균이 뒤집히지 않는다 (5축, guin-v3)", () => {
+    const even = chemistryOf({ comfort: 80, practicalHelp: 80, communication: 80, stimulation: 80, conflictRecovery: 80 });
     assert.equal(even, 80);
+    const skewed = chemistryOf({ comfort: 100, practicalHelp: 0, communication: 0, stimulation: 0, conflictRecovery: 0 });
+    assert.equal(skewed, 24); // comfort 가중치 0.24
+  });
+
+  it("갈등 회복력이 없는 옛(v2) 축은 네 축 배합으로 계산된다 — 소급 변화 없음", () => {
     const skewed = chemistryOf({ comfort: 100, practicalHelp: 0, communication: 0, stimulation: 0 });
-    assert.equal(skewed, 30); // comfort 가중치 0.30
+    assert.equal(skewed, 30); // v2 comfort 가중치 0.30
+  });
+
+  it("긴장이 높은 관계일수록 갈등 회복력이 낮다 — 방향이 뒤집히지 않는다", () => {
+    const calm = scoreAxes(computeFeatures({ ownerElement: "목", participantElement: "수" })); // 수생목
+    const tense = scoreAxes(computeFeatures({ ownerElement: "목", participantElement: "금" })); // 금극목
+    assert.ok(calm.conflictRecovery > tense.conflictRecovery);
   });
 });
 
@@ -114,9 +127,17 @@ describe("관계 하나 (relate, guin-v2)", () => {
   it("계산 버전이 결과에 저장된다", () => {
     const result = relate(birth(1993, 8, 21), birth(1994, 7, 18));
     assert.equal(result.calculationVersion, GUIN_CALC_VERSION);
-    assert.equal(GUIN_CALC_VERSION, "guin-v2");
+    assert.equal(GUIN_CALC_VERSION, "guin-v3");
     assert.ok(result.axes, "축 점수가 결과에 없다");
+    assert.ok(typeof result.axes?.conflictRecovery === "number", "v3 결과에 갈등 회복력이 없다");
     assert.ok(result.scoreBand && result.scoreBand.length > 0);
+  });
+
+  it("A→B 와 B→A 는 별도 계산이다 — 생·극이 비대칭이면 축도 다르다", () => {
+    // 목극토 짝: 한쪽은 극하고 한쪽은 극을 받는다. 뒤집으면 다른 결과여야 한다.
+    const forward = scoreAxes(computeFeatures({ ownerElement: "목", participantElement: "토" }));
+    const reverse = scoreAxes(computeFeatures({ ownerElement: "토", participantElement: "목" }));
+    assert.notDeepEqual(forward, reverse);
   });
 
   it("같은 생년월일끼리 — 같은 오행·같은 극이면 대화형이 1위, 안식처형이 보조로 붙는다", () => {
@@ -126,7 +147,8 @@ describe("관계 하나 (relate, guin-v2)", () => {
     assert.equal(result.secondaryRole, "comforter");
     assert.equal(result.axes?.communication, 80);
     assert.equal(result.axes?.comfort, 78);
-    assert.equal(result.score, 63);
+    assert.equal(result.axes?.conflictRecovery, 74);
+    assert.equal(result.score, 66); // 5축 가중 평균 (guin-v3)
     assert.equal(result.scoreBand, "맞춰가면 좋은 균형형 관계");
   });
 
@@ -138,8 +160,8 @@ describe("관계 하나 (relate, guin-v2)", () => {
       const result = relate(a, b);
       assert.ok(result.score >= 0 && result.score <= 100);
       assert.ok(result.role in GUIN_ROLES);
-      for (const key of GUIN_AXES) {
-        const value = result.axes![key];
+      for (const key of GUIN_ALL_AXES) {
+        const value = result.axes![key]!;
         assert.ok(value >= 0 && value <= 100, `${key}=${value}`);
       }
     }

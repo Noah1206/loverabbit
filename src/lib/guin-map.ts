@@ -192,6 +192,16 @@ export interface GuinNodeView {
   cautions: string[];
   conversationPrompt: string;
   facts: string[];
+  /**
+   * 역방향(참여자에게 주인은 무엇인가) — guin-v3. 옛 행에는 없다.
+   * relate 를 두 번 돌린 별도 계산이지, 정방향을 뒤집은 문구가 아니다.
+   * score 는 지도 설정(showScores)이 꺼져 있으면 정방향과 똑같이 null 로 나간다.
+   */
+  reverse?: (Omit<GuinRelationshipResult, "score"> & { score: number | null }) | null;
+  /** 참여자가 고른 실제 관계 상태 — 축 점수에는 관여하지 않는다 */
+  contextStatus?: GuinRelStatus | null;
+  /** 검증을 통과해 저장된 AI 리포트. 없으면 화면은 템플릿 카드가 전부다. */
+  aiReport?: GuinAiReport | null;
 }
 
 export interface GuinMapView {
@@ -212,6 +222,10 @@ export interface GuinMapView {
  * 낯선 방문자는 노드를 받지 못한다 — 화면에서 가리는 게 아니라 응답에서
  * 뺀다. 점수 숨김도 같다: showScores 가 꺼지면 주인 아닌 모든 화면에서
  * score 가 null 로 나간다. 주인은 자기 설정과 무관하게 다 본다.
+ *
+ * 관계 상태·AI 리포트(guin-v3)는 그 관계의 두 당사자(주인, 그 참여자 본인)
+ * 것이다 — 다른 참여자에게는 응답에서 뺀다. "갈등 중" 같은 상태가 제3자에게
+ * 보이면 안 된다.
  */
 export function shapeMapView(params: {
   token: string;
@@ -219,32 +233,61 @@ export function shapeMapView(params: {
   showScores: boolean;
   nodes: GuinNodeView[];
   viewer: "owner" | "participant" | "stranger";
+  /** viewer 가 participant 일 때 그 사람의 노드 id — 자기 상태·리포트만 남긴다 */
+  selfParticipantId?: string | null;
 }): GuinMapView {
-  const { token, ownerNickname, showScores, nodes, viewer } = params;
+  const { token, ownerNickname, showScores, nodes, viewer, selfParticipantId } = params;
   const roleCounts: Partial<Record<GuinRole, number>> = {};
   for (const node of nodes) roleCounts[node.role] = (roleCounts[node.role] ?? 0) + 1;
-  const visible =
+  const scored =
     viewer === "stranger"
       ? []
       : viewer === "owner" || showScores
         ? nodes
-        : nodes.map((node) => ({ ...node, score: null }));
+        : nodes.map((node) => ({
+            ...node,
+            score: null,
+            // 역방향 점수도 같이 가린다 — 앞은 가리고 뒤로 새면 설정이 거짓말이 된다.
+            reverse: node.reverse ? { ...node.reverse, score: null, axes: null } : node.reverse,
+          }));
+  const visible =
+    viewer === "owner"
+      ? scored
+      : scored.map((node) =>
+          node.id === selfParticipantId ? node : { ...node, contextStatus: null, aiReport: null }
+        );
   return { token, ownerNickname, showScores, count: nodes.length, roleCounts, nodes: visible, viewer };
 }
 
-// ── 관계 축 (guin-v2) ─────────────────────────────────────
+// ── 관계 축 (guin-v2 4축 → guin-v3 5축) ───────────────────
 
-/** 네 축의 순서가 곧 동점일 때의 우선순위다 — 바꾸면 역할 선택이 흔들린다. */
+/** 역할이 되는 네 축. 순서가 곧 동점일 때의 우선순위다 — 바꾸면 역할 선택이 흔들린다. */
 export const GUIN_AXES = ["comfort", "practicalHelp", "communication", "stimulation"] as const;
-export type GuinAxisKey = (typeof GUIN_AXES)[number];
-export type GuinAxes = Record<GuinAxisKey, number>;
+export type GuinRoleAxisKey = (typeof GUIN_AXES)[number];
+
+/**
+ * 화면에 보여주는 다섯 축. 갈등 회복력(guin-v3)은 역할을 만들지 않는다 —
+ * "회복형 친구"라는 라벨은 관계를 갈등 전제로 읽게 해서 역할 사전에 안 넣었다.
+ */
+export const GUIN_ALL_AXES = [...GUIN_AXES, "conflictRecovery"] as const;
+export type GuinAxisKey = (typeof GUIN_ALL_AXES)[number];
+
+/** guin-v2 행에는 conflictRecovery 가 없다 — 소급 계산하지 않는다. */
+export type GuinAxes = Record<GuinRoleAxisKey, number> & { conflictRecovery?: number };
 
 export const AXIS_LABEL: Record<GuinAxisKey, string> = {
   comfort: "편안함",
   practicalHelp: "현실적 도움",
   communication: "대화",
   stimulation: "새로운 자극",
+  conflictRecovery: "갈등 회복력",
 };
+
+/** 이 노드의 축 점수에 실제로 들어 있는 축만 — v2/v3 행이 섞여도 화면이 안 깨진다. */
+export function axisKeysOf(axes: GuinAxes | null | undefined): GuinAxisKey[] {
+  if (!axes) return [];
+  return GUIN_ALL_AXES.filter((key) => typeof axes[key] === "number");
+}
 
 /**
  * 점수 구간 표현 (지시문 8.6). "나쁜 궁합"·"운명" 같은 표현은 만들지 않는다 —
@@ -255,6 +298,56 @@ export function scoreBandOf(score: number): string {
   if (score >= 75) return "서로의 강점이 잘 이어지는 관계";
   if (score >= 60) return "맞춰가면 좋은 균형형 관계";
   return "서로 다른 방식으로 이해해야 하는 관계";
+}
+
+// ── 실제 관계 상태 (guin-v3, 지시문 8) ────────────────────
+//
+// 상태는 사주 축 점수를 절대 바꾸지 않는다. 같은 생년월일이면 상태가 무엇이든
+// 축·역할·케미가 같다 — 상태는 AI 해석의 초점과 행동 제안에만 닿는다.
+
+export const GUIN_STATUSES = [
+  "crush",
+  "dating",
+  "conflict",
+  "no_contact",
+  "reunion",
+  "friend",
+  "family",
+  "coworker",
+  "unclear",
+] as const;
+export type GuinRelStatus = (typeof GUIN_STATUSES)[number];
+
+export const STATUS_LABEL: Record<GuinRelStatus, string> = {
+  crush: "썸",
+  dating: "연인",
+  conflict: "갈등 중",
+  no_contact: "연락이 줄었어요",
+  reunion: "재회 고민",
+  friend: "친구",
+  family: "가족",
+  coworker: "동료",
+  unclear: "잘 모르겠어요",
+};
+
+export function normalizeStatus(value: unknown): GuinRelStatus | null {
+  return GUIN_STATUSES.includes(value as GuinRelStatus) ? (value as GuinRelStatus) : null;
+}
+
+/**
+ * AI 관계 리포트 (guin-v3, 지시문 9). 서버가 계산한 축·역할을 사용자 언어로
+ * 편집한 결과다 — AI 는 점수·역할·축을 만들지도 바꾸지도 않는다.
+ * 생성 실패·검증 실패 시 이 값이 없고, 화면은 결정론 템플릿 카드로 폴백한다.
+ */
+export interface GuinAiReport {
+  summary: string;
+  roleExplanation: string;
+  strengths: [string, string];
+  caution: string;
+  currentContext: string;
+  suggestedAction: string;
+  conversationPrompt: string;
+  disclaimer: string;
 }
 
 // ── 지도 단계 (지시문 11) ─────────────────────────────────

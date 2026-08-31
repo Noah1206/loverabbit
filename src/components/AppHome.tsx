@@ -251,7 +251,9 @@ export default function AppHome() {
                   </div>
                   <div className="fortune-grid-body">
                     <strong>{p.title}</strong>
-                    <p>{p.cardCopy}</p>
+                    {/* 그리드에는 긴 소개(cardCopy) 대신 한 줄 훅 — 참고 화면의 밀도.
+                        긴 소개는 상세 페이지가 이어받는다. */}
+                    <p>{p.ctaHook}</p>
                     <span className="fortune-grid-foot">
                       <span className="fortune-grid-price">
                         <b>{readingCreditCost(p.price)}크레딧</b>

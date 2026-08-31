@@ -93,6 +93,16 @@ export const FUNNEL_EVENTS = [
   "guin_map_deleted",
   /** 서버 오류 화면을 봤다 */
   "guin_server_error",
+
+  // ── 귀인 지도 v3 (2026-08-31) ──────────────────────────
+  /** 양방향(나→상대, 상대→나) 카드를 봤다 */
+  "guin_bidirectional_viewed",
+  /** 실제 관계 상태를 골랐다 — 상태 값은 product 칸에 */
+  "guin_context_status_selected",
+  /** AI 리포트가 만들어져 화면에 보였다 */
+  "guin_ai_report_generated",
+  /** AI 실패·검증 탈락으로 템플릿 카드로 폴백했다 */
+  "guin_ai_report_fallback",
 ] as const;
 
 export type FunnelEventName = (typeof FUNNEL_EVENTS)[number];

@@ -30,27 +30,10 @@ import { getUser, type User } from "@/lib/user";
 */
 
 /*
-  슬랙 4색 (2026-08-31). 흰 면 위에 색은 점·선·숫자로만 얹는 슬랙 문법을
-  따른다 — 오베르진(--accent)이 주인공이고 네 색은 구획 표시다.
-  이 페이지 전용이라 전역 토큰으로 올리지 않았다.
+  아기자기 화이트 가격표 (2026-08-31, 운영자 참고 화면).
+  흰 시트 + 색 타이틀 바 + 크림 MENU 배너 + 구분선 가격표가 뼈대다.
+  스타일은 전부 globals.css 의 .credits-cute 스코프에 있다.
 */
-const SLACK = {
-  aubergine: "#4a154b",
-  blue: "#36c5f0",
-  green: "#2eb67d",
-  yellow: "#ecb22e",
-  red: "#e01e5a",
-} as const;
-
-/** 슬랙식 구획 점 — 배지 옆에 찍는 색 사각형 */
-function Dot({ color }: { color: string }) {
-  return (
-    <i
-      aria-hidden
-      style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: color, marginRight: 6, verticalAlign: "1px" }}
-    />
-  );
-}
 
 export default function CreditsPage() {
   const router = useRouter();
@@ -140,154 +123,173 @@ export default function CreditsPage() {
   const portone = PORTONE_TRANSFER_CONFIGURED && PAYMENT_METHOD_OPEN.portone;
   const manual = TRANSFER_ACCOUNTS.length > 0 && PAYMENT_METHOD_OPEN.manual;
 
+  // BEST 배지 — 할인율이 가장 큰 팩. 전부 0% 면 제일 큰 팩(단가가 유리).
+  const bestId = packs.reduce((best, p) => {
+    const offOf = (x: CreditPack) => (listPriceOf(x) > x.price ? 1 - x.price / listPriceOf(x) : 0);
+    return offOf(p) > offOf(best) || (offOf(p) === offOf(best) && p.credits > best.credits) ? p : best;
+  }, packs[0]);
+
   return (
-    <main className="container" style={{ paddingTop: 48 }}>
+    <main className="container credits-cute" style={{ paddingTop: 48 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>LOVE RABBIT CREDITS</p>
       <h1 style={{ marginBottom: 8 }}>크레딧</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        리딩과 오늘의 질문을 크레딧으로 열어요. 100원이 1크레딧, 질문 한 번에 {QUESTION_COST}크레딧.
+        리딩과 오늘의 질문을 크레딧으로 열어요.
       </p>
 
+      {/* 잔액 — 시트 위의 내 지갑 */}
+      <div className="cc-card cc-balance">
+        <div>
+          <p className="cc-balance-label">내 크레딧</p>
+          <strong className="cc-balance-num">
+            {balance === null ? "—" : <><em>{balance}</em>크레딧</>}
+          </strong>
+          <p className="cc-balance-sub">
+            {balance === null ? "로그인하면 잔액이 보여요" : `질문 ${questionsLeft(balance)}회 남음`}
+          </p>
+        </div>
+        <Link className="cc-btn cc-btn-soft" href="/ask">질문하러 가기</Link>
+      </div>
+
       {approved && (
-        <p className="badge" style={{ marginBottom: 14 }}><Dot color={SLACK.green} />입금이 확인됐어요. 크레딧이 들어왔어요.</p>
+        <p className="cc-card" style={{ background: "#eefaf3", borderColor: "#bfe6d2", color: "#1f7a4d", fontWeight: 700, fontSize: "0.88rem" }}>
+          입금이 확인됐어요. 크레딧이 들어왔어요 🐰
+        </p>
       )}
 
       {welcome && firstBuy && (
-        <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: SLACK.yellow, borderWidth: 2 }}>
-          <span className="badge"><Dot color={SLACK.yellow} />처음 오셨네요</span>
-          <h2 style={{ fontSize: "1.15rem", margin: "10px 0 6px" }}>첫 충전만 이 값이에요</h2>
-          <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
+        <section className="cc-card" style={{ borderColor: "var(--cc-pink)", borderWidth: 2 }}>
+          <p className="cc-head">처음 오셨네요 — 첫 충전만 이 값이에요</p>
+          <p style={{ fontSize: "0.84rem" }}>
             질문 한 번에 {QUESTION_COST}크레딧이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
           </p>
           {nextPath && (
-            <Link
-              className="btn btn-ghost"
-              href={nextPath}
-              style={{ width: "100%", marginTop: 12 }}
-            >
+            <Link className="cc-btn cc-btn-soft cc-btn-block" href={nextPath} style={{ marginTop: 12 }}>
               나중에 하고 보던 화면으로
             </Link>
           )}
         </section>
       )}
 
-      {/* 잔액 — 슬랙 사이드바처럼 오베르진 한 판. 이 페이지의 주인공 숫자다. */}
-      <div
-        className="card"
-        style={{
-          padding: 20,
-          marginBottom: 14,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          background: SLACK.aubergine,
-          border: 0,
-          color: "#fff",
-        }}
-      >
-        <div>
-          <strong style={{ fontSize: "1.5rem", color: "#fff" }}>{balance === null ? "—" : `${balance}크레딧`}</strong>
-          <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.84rem" }}>
-            {balance === null ? "로그인하면 잔액이 보여요" : `질문 ${questionsLeft(balance)}회 남음`}
-          </p>
+      {/* ── 가격표 시트 (참고 화면의 뼈대) ── */}
+      <section className="cc-sheet">
+        <div className="cc-bar">
+          <span>크레딧 가격표</span>
+          <span aria-hidden>🐰</span>
         </div>
-        <Link
-          className="btn"
-          href="/ask"
-          style={{ whiteSpace: "nowrap", background: "#fff", color: SLACK.aubergine, border: 0 }}
-        >
-          질문하러 가기
-        </Link>
-      </div>
 
-      {!user ? (
-        <div className="card" style={{ padding: 24, textAlign: "center" }}>
-          <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>로그인하면 첫 구매 할인가를 볼 수 있어요.</p>
-          <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>로그인 · 가입하기</button>
-        </div>
-      ) : (
-        <>
-          <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge"><Dot color={SLACK.green} />친구 초대</span>
-            <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 가입하면 50크레딧</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 12 }}>
-              크레딧은 리딩에도 질문에도 쓸 수 있어요.
+        {/* MENU 배너 — 환율을 그림 한 장으로 */}
+        <div className="cc-menu">
+          <div className="cc-menu-inner">
+            <p className="cc-menu-title">
+              <span className="cc-spark" aria-hidden>✦ </span>MENU<span className="cc-spark" aria-hidden> ✦</span>
             </p>
-            <button className="btn btn-ghost" style={{ width: "100%" }} onClick={share} disabled={!user.referralCode}>
+            <div className="cc-ovals">
+              <div>
+                <span className="cc-oval pink">1크레딧</span>
+                <p className="cc-oval-price">100원</p>
+              </div>
+              <div>
+                <span className="cc-oval lav">질문 1회</span>
+                <p className="cc-oval-price">{QUESTION_COST}크레딧</p>
+              </div>
+            </div>
+            <p className="cc-menu-note">
+              크레딧 하나로 리딩도 질문도 열 수 있어요
+              <br />쓰지 않은 크레딧은 그대로 남아 있어요
+            </p>
+          </div>
+        </div>
+
+        {!user ? (
+          <div style={{ padding: 16, textAlign: "center" }}>
+            <p style={{ color: "var(--cc-dim)", fontSize: "0.88rem", marginBottom: 12 }}>
+              로그인하면 첫 구매 할인가를 볼 수 있어요.
+            </p>
+            <button className="cc-btn cc-btn-block" onClick={() => setShowSignup(true)}>
+              로그인 · 가입하기
+            </button>
+          </div>
+        ) : (
+          <>
+            {packs.map((p) => {
+              const list = listPriceOf(p);
+              const off = list > p.price ? Math.round((1 - p.price / list) * 100) : 0;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`cc-row${pack?.id === p.id ? " on" : ""}`}
+                  onClick={() => setPack(p)}
+                >
+                  <span>
+                    <span className="cc-row-name">
+                      {p.name}
+                      {p.id === bestId.id && <span className="cc-best">BEST</span>}
+                    </span>
+                    <span className="cc-row-sub" style={{ display: "block" }}>
+                      <span className="pink">{p.credits}크레딧</span>
+                      <span className="orange"> · {p.note}</span>
+                      {firstBuy && off > 0 && <span className="lav"> · {off}% 할인!</span>}
+                    </span>
+                  </span>
+                  <span className="cc-row-price">{p.price.toLocaleString()}원</span>
+                </button>
+              );
+            })}
+
+            {!pack ? (
+              <div className="cc-cta-idle">상품을 선택하세요</div>
+            ) : (
+              <div className="cc-cta-wrap">
+                {portone ? (
+                  <PortOneTransferForm
+                    amount={pack.price}
+                    customerEmail={user.email}
+                    checkoutEndpoint="/api/credits/checkout"
+                    checkoutBody={{ userToken: user.token, packId: pack.id }}
+                    redirectPath="/payment/credits-success"
+                    buttonLabel={`${pack.price.toLocaleString()}원 계좌이체하고 충전`}
+                  />
+                ) : manual ? (
+                  <div className="transfer-payment-fallback">
+                    <p style={{ color: "var(--cc-dim)", fontSize: "0.84rem", marginBottom: 10 }}>
+                      입금자명에 <strong>{creditDepositorCode(user.token)}</strong> 를 적어 주세요. 확인되면 바로 들어와요.
+                    </p>
+                    <TransferSteps amount={pack.price} submitting={submitting} onSubmit={() => void submitTransfer()} />
+                  </div>
+                ) : (
+                  <p className="toss-payment-config-error" role="alert">결제 수단 설정이 아직 완료되지 않았어요.</p>
+                )}
+                {error && <p className="toss-payment-error" role="alert">{error}</p>}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
+      {user && (
+        <>
+          <section className="cc-card">
+            <p className="cc-head">친구가 가입하면 50크레딧 🎁</p>
+            <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>크레딧은 리딩에도 질문에도 쓸 수 있어요.</p>
+            <button className="cc-btn cc-btn-soft cc-btn-block" onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기
             </button>
-            {shareNotice && <p style={{ color: SLACK.green, fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
-          </section>
-
-          <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge"><Dot color={SLACK.blue} />{firstBuy ? "첫 구매 할인" : "충전"}</span>
-            {firstBuy && (
-              <p style={{ color: SLACK.yellow, fontSize: "0.86rem", margin: "10px 0 0", fontWeight: 700 }}>
-                처음 오셨네요. 첫 충전은 한 번만 이 값으로 드려요.
-              </p>
-            )}
-            <div style={{ display: "grid", gap: 10, margin: "12px 0" }}>
-              {packs.map((p, i) => {
-                const list = listPriceOf(p);
-                const off = list > p.price ? Math.round((1 - p.price / list) * 100) : 0;
-                // 슬랙 4색에서 파랑→초록→노랑 순 — 위 칸이 손해로 보이는 계단과 결이 같다.
-                const tier = [SLACK.blue, SLACK.green, SLACK.yellow][i] ?? SLACK.blue;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className={`btn ${pack?.id === p.id ? "" : "btn-ghost"}`}
-                    style={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 10, alignItems: "center" }}
-                    onClick={() => setPack(p)}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center" }}>
-                      <Dot color={tier} />
-                      {p.credits}크레딧 · {p.note}
-                      {firstBuy && off > 0 && (
-                        <strong style={{ color: pack?.id === p.id ? "inherit" : SLACK.green, marginLeft: 6 }}>{off}% 할인</strong>
-                      )}
-                    </span>
-                    <strong>{p.price.toLocaleString()}원</strong>
-                  </button>
-                );
-              })}
-            </div>
-            {pack && (
-              portone ? (
-                <PortOneTransferForm
-                  amount={pack.price}
-                  customerEmail={user.email}
-                  checkoutEndpoint="/api/credits/checkout"
-                  checkoutBody={{ userToken: user.token, packId: pack.id }}
-                  redirectPath="/payment/credits-success"
-                  buttonLabel={`${pack.price.toLocaleString()}원 계좌이체하고 충전`}
-                />
-              ) : manual ? (
-                <div className="transfer-payment-fallback">
-                  <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginBottom: 10 }}>
-                    입금자명에 <strong>{creditDepositorCode(user.token)}</strong> 를 적어 주세요. 확인되면 바로 들어와요.
-                  </p>
-                  <TransferSteps amount={pack.price} submitting={submitting} onSubmit={() => void submitTransfer()} />
-                </div>
-              ) : (
-                <p className="toss-payment-config-error" role="alert">결제 수단 설정이 아직 완료되지 않았어요.</p>
-              )
-            )}
-            {error && <p className="toss-payment-error" role="alert">{error}</p>}
+            {shareNotice && <p style={{ color: "#1f7a4d", fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
           </section>
 
           {ledger.length > 0 && (
-            <section className="card" style={{ padding: 20 }}>
-              <span className="badge"><Dot color={SLACK.aubergine} />내역</span>
-              <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}>
+            <section className="cc-card">
+              <p className="cc-head">내역</p>
+              <ul className="cc-ledger">
                 {ledger.map((row) => (
-                  <li key={row.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
+                  <li key={row.id}>
                     <span>
                       {CREDIT_REASON_LABEL[row.reason]}
-                      <small style={{ color: "var(--text-dim)", marginLeft: 8 }}>{new Date(row.createdAt).toLocaleDateString("ko-KR")}</small>
+                      <small>{new Date(row.createdAt).toLocaleDateString("ko-KR")}</small>
                     </span>
-                    <strong style={{ color: row.delta > 0 ? SLACK.green : SLACK.red }}>
+                    <strong className={row.delta > 0 ? "cc-plus" : "cc-minus"}>
                       {row.delta > 0 ? `+${row.delta}` : row.delta}
                     </strong>
                   </li>

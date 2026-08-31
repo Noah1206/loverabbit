@@ -8,7 +8,14 @@ import "server-only";
 
 import { open, seal } from "@/lib/crypto";
 import { personaOf, relate } from "@/lib/guin-calc";
-import type { GuinBirthInput, GuinNodeView, GuinRelationshipResult } from "@/lib/guin-map";
+import { GUIN_REPORT_VERSION, generateGuinAiReport } from "@/lib/guin-report";
+import type {
+  GuinAiReport,
+  GuinBirthInput,
+  GuinNodeView,
+  GuinRelStatus,
+  GuinRelationshipResult,
+} from "@/lib/guin-map";
 import { hashKey, keyMatches, newSecretKey, newShareToken, participantFingerprint } from "@/lib/guin-token";
 import { databaseError, getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -116,7 +123,9 @@ export async function listGuinNodes(mapId: string): Promise<GuinNodeView[]> {
   if (!db) return [];
   const { data, error } = await db
     .from("lr_guin_relationships")
-    .select("participant_id,score,role,result_json,lr_guin_participants!inner(id,nickname)")
+    .select(
+      "participant_id,score,role,result_json,reverse_json,context_status,ai_report_json,lr_guin_participants!inner(id,nickname)"
+    )
     .eq("map_id", mapId)
     .order("created_at", { ascending: true });
   if (error) throw databaseError("귀인 지도 노드 조회", error);
@@ -138,6 +147,9 @@ export async function listGuinNodes(mapId: string): Promise<GuinNodeView[]> {
       cautions: result.cautions,
       conversationPrompt: result.conversationPrompt,
       facts: result.facts,
+      reverse: (row.reverse_json as GuinRelationshipResult | null) ?? null,
+      contextStatus: (row.context_status as GuinRelStatus | null) ?? null,
+      aiReport: (row.ai_report_json as GuinAiReport | null) ?? null,
     };
   });
 }
@@ -222,8 +234,11 @@ export async function joinGuinMap(params: {
   }
   if (!inserted) return { ok: false, reason: "failed" };
 
-  // 관계는 주인 기준이다 — 참여자가 주인에게 무엇인가.
+  // 관계는 양방향이다 (guin-v3). 정방향(참여자가 주인에게 무엇인가)이 지도의
+  // 기준이고, 역방향은 relate 를 뒤집어 **따로** 계산한다 — 텍스트만 뒤집으면
+  // 생·극의 방향이 거짓말이 된다.
   const result = relate(ownerBirth, params.birth);
+  const reverse = relate(params.birth, ownerBirth);
   const { error: relError } = await db.from("lr_guin_relationships").insert({
     map_id: map.id,
     participant_id: inserted.id,
@@ -232,6 +247,7 @@ export async function joinGuinMap(params: {
     secondary_role: result.secondaryRole ?? null,
     axes_json: result.axes ?? null,
     result_json: result,
+    reverse_json: reverse,
     calculation_version: result.calculationVersion,
   });
   if (relError) {
@@ -255,8 +271,62 @@ export async function joinGuinMap(params: {
     cautions: result.cautions,
     conversationPrompt: result.conversationPrompt,
     facts: result.facts,
+    reverse,
+    contextStatus: null,
+    aiReport: null,
   };
   return { ok: true, participantKey, node, replayed: false };
+}
+
+interface SealedNote {
+  g: "guin-note";
+  text: string;
+}
+
+/**
+ * 참여자가 고른 실제 관계 상태를 저장하고, 그 문맥으로 AI 리포트를 만든다.
+ *
+ * 상태는 축 점수를 건드리지 않는다 — result_json/score 는 여기서 안 바뀐다.
+ * AI 가 실패하면(미설정·오류·검증 탈락) 상태만 저장되고 리포트는 null 로
+ * 남는다. 화면의 템플릿 카드가 폴백이라 재시도 루프를 만들지 않는다.
+ * 같은 입력으로 다시 불러도 결과가 같다(멱등) — 상태가 바뀌면 리포트를
+ * 새 문맥으로 다시 만든다.
+ */
+export async function setGuinRelationshipContext(params: {
+  map: GuinMapRow;
+  participantId: string;
+  status: GuinRelStatus;
+  note?: string | null;
+}): Promise<{ ok: boolean; aiReport: GuinAiReport | null }> {
+  const db = getSupabaseAdmin();
+  if (!db) return { ok: false, aiReport: null };
+  const note = params.note?.trim().slice(0, 300) || null;
+
+  const nodes = await listGuinNodes(params.map.id);
+  const node = nodes.find((item) => item.id === params.participantId);
+  if (!node) return { ok: false, aiReport: null };
+
+  const aiReport = await generateGuinAiReport({
+    ownerNickname: params.map.ownerNickname,
+    participantNickname: node.nickname,
+    node,
+    status: params.status,
+    userNote: note,
+  });
+
+  const { error } = await db
+    .from("lr_guin_relationships")
+    .update({
+      context_status: params.status,
+      context_note_sealed: note ? seal({ g: "guin-note", text: note } satisfies SealedNote) : null,
+      ai_report_json: aiReport,
+      ai_report_version: aiReport ? GUIN_REPORT_VERSION : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("map_id", params.map.id)
+    .eq("participant_id", params.participantId);
+  if (error) throw databaseError("관계 상태 저장", error);
+  return { ok: true, aiReport };
 }
 
 /**

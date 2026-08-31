@@ -59,6 +59,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       showScores: map.showScores,
       nodes: allNodes,
       viewer,
+      selfParticipantId: participantId,
     });
 
     return NextResponse.json(

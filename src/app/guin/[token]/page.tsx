@@ -27,16 +27,20 @@ import {
 } from "@/lib/guin-local";
 import {
   AXIS_LABEL,
-  GUIN_AXES,
   GUIN_COPY,
   GUIN_DISCLAIMER,
+  GUIN_STATUSES,
+  STATUS_LABEL,
   assignCopyVariant,
+  axisKeysOf,
   getMapStage,
   normalizeCopyVariant,
+  type GuinAiReport,
   type GuinAxisKey,
   type GuinCopyVariant,
   type GuinMapView,
   type GuinNodeView,
+  type GuinRelStatus,
   type GuinRole,
 } from "@/lib/guin-map";
 import { downloadGuinShareImage } from "@/lib/share-image";
@@ -87,9 +91,17 @@ export default function GuinMapPage() {
   const [showShare, setShowShare] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [notice, setNotice] = useState("");
+  // 실제 관계 상태 + AI 리포트 (guin-v3). 서버 값이 정본이고 여기는 방금 고른 것.
+  const [myStatus, setMyStatus] = useState<GuinRelStatus | null>(null);
+  const [myAiReport, setMyAiReport] = useState<GuinAiReport | null>(null);
+  const [contextSaving, setContextSaving] = useState(false);
+  // 방금 참여한 사람의 단계형 공개 — 0: 내 역할만, 1: +반대 방향, 2: +상태·다음 행동.
+  // 한 번에 하나씩만 새 것이 나타난다. 돌아온 참여자는 이미 본 사람이라 다 펼친다.
+  const [revealStep, setRevealStep] = useState<0 | 1 | 2>(0);
   const inviteTracked = useRef(false);
   const stageTracked = useRef<string | null>(null);
   const claimTried = useRef(false);
+  const bidirectionalTracked = useRef(false);
 
   const ownerKey = useMemo(() => ownerKeyOf(token), [token]);
   const joined = useMemo(() => joinedGuinMap(token), [token]);
@@ -163,6 +175,17 @@ export default function GuinMapPage() {
     if (stage === "two") trackFunnel("guin_axis_comparison_viewed", { landing: sizeBucket(view.count) });
     if (stage === "three_plus") trackFunnel("guin_pattern_report_viewed", { landing: sizeBucket(view.count) });
   }, [view]);
+
+  // 양방향 카드 계측 — 역방향 결과가 **실제로 화면에 보인** 순간 한 번만.
+  // 방금 참여한 사람은 "반대 방향 보기"를 눌러야 보이므로 revealStep 이 조건에 든다.
+  useEffect(() => {
+    if (bidirectionalTracked.current || !view || view.viewer !== "participant") return;
+    const mine = justJoined ?? view.nodes.find((node) => node.id === view.myParticipantId) ?? null;
+    if (!mine?.reverse) return;
+    if (justJoined && revealStep < 1) return;
+    bidirectionalTracked.current = true;
+    trackFunnel("guin_bidirectional_viewed");
+  }, [view, justJoined, revealStep]);
 
   // 게스트로 만든 지도를 로그인한 계정에 잇는다 — 한 번만, 조용히.
   useEffect(() => {
@@ -300,6 +323,40 @@ export default function GuinMapPage() {
     } else setNotice(BUSY_MESSAGE);
   };
 
+  /**
+   * 실제 관계 상태 선택 (guin-v3). 상태는 축 점수를 바꾸지 않는다 — 서버가
+   * 해석 문맥으로만 쓰고, 성공하면 AI 리포트가 같이 돌아온다. AI 가 실패해도
+   * 오류가 아니다: 이미 보이는 템플릿 카드가 폴백이다.
+   */
+  const pickStatus = async (participantId: string, status: GuinRelStatus) => {
+    if (contextSaving || !joined?.participantKey) return;
+    setContextSaving(true);
+    setMyStatus(status);
+    trackFunnel("guin_context_status_selected", { product: status });
+    try {
+      const res = await fetch(
+        `/api/guin/${encodeURIComponent(token)}/participants/${encodeURIComponent(participantId)}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ participantKey: joined.participantKey, status }),
+        }
+      );
+      const data = (await res.json().catch(() => ({}))) as { aiReport?: GuinAiReport | null };
+      if (res.ok && data.aiReport) {
+        setMyAiReport(data.aiReport);
+        trackFunnel("guin_ai_report_generated", { product: status });
+      } else {
+        setMyAiReport(null);
+        trackFunnel("guin_ai_report_fallback", { product: status });
+      }
+    } catch {
+      trackFunnel("guin_ai_report_fallback", { product: status });
+    } finally {
+      setContextSaving(false);
+    }
+  };
+
   const goMakeMyMap = () => {
     trackFunnel("guin_second_map_cta_clicked");
     // 방금 넣은 값을 자기 지도 폼에 미리 채운다. 동의는 새로 받는다 (지시문 5항).
@@ -369,6 +426,13 @@ export default function GuinMapPage() {
   const isOwner = view.viewer === "owner";
   const stage = getMapStage(view.count);
   const myNode = justJoined ?? view.nodes.find((node) => node.id === view.myParticipantId) ?? null;
+  // 방금 고른 값이 있으면 그것, 없으면 서버에 저장돼 있던 값 (돌아온 참여자).
+  const shownStatus = myStatus ?? myNode?.contextStatus ?? null;
+  const shownReport = myAiReport ?? myNode?.aiReport ?? null;
+  // 방금 참여한 사람에게만 한 걸음씩 연다. 역방향이 없는 옛(v2) 기록이면 단계 없이 다 편다.
+  const staged = justJoined !== null && Boolean(myNode?.reverse);
+  const showReverse = !staged || revealStep >= 1;
+  const showContext = !staged || revealStep >= 2;
   const filtered = filter.trim()
     ? view.nodes.filter((node) => node.nickname.includes(filter.trim()))
     : view.nodes;
@@ -404,7 +468,7 @@ export default function GuinMapPage() {
       )}
       {notice && <p className="badge" style={{ marginBottom: 10 }}>{notice}</p>}
 
-      {/* 방금 참여한 사람(또는 돌아온 참여자)의 결과 카드 */}
+      {/* 방금 참여한 사람(또는 돌아온 참여자)의 결과 카드 — 양방향 (guin-v3) */}
       {myNode && !isOwner && (
         <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: ROLE_DOT[myNode.role] }}>
           <span className="badge">{view.ownerNickname}님에게 나는</span>
@@ -417,20 +481,87 @@ export default function GuinMapPage() {
             {myNode.score !== null ? ` · 케미 ${myNode.score}점` : ""}
           </p>
           <NodeDetail node={myNode} />
-          <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
-            <button className="btn" onClick={() => void goMakeMyMap()}>
-              내 귀인 지도도 만들어보기
+
+          {/* 1단계 → 2단계: 반대 방향은 눌러야 열린다 — 한 번에 하나씩. */}
+          {staged && revealStep === 0 && (
+            <button className="btn" style={{ width: "100%", marginTop: 14 }} onClick={() => setRevealStep(1)}>
+              그럼 나에게 {view.ownerNickname}님은? · 반대 방향 보기
             </button>
-            <button className="btn btn-ghost" onClick={() => void shareLink("guin_result_card_shared")}>
-              내 결과 카드 공유하기
+          )}
+
+          {/* 역방향 — 색이 아니라 제목이 방향을 가른다 (지시문 4). */}
+          {showReverse && myNode.reverse && (
+            <div className="card" style={{ padding: 14, marginTop: 12, background: "var(--bg)" }}>
+              <span className="badge">나에게 {view.ownerNickname}님은</span>
+              <p style={{ fontWeight: 700, margin: "8px 0 2px" }}>
+                {myNode.reverse.roleLabel} 인연
+                {myNode.reverse.score !== null ? ` · 케미 ${myNode.reverse.score}점` : ""}
+              </p>
+              <p style={{ color: "var(--text-dim)", fontSize: "0.84rem" }}>{myNode.reverse.roleTagline}</p>
+              {myNode.reverse.strengths[0] && (
+                <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginTop: 6 }}>
+                  · {myNode.reverse.strengths[0]}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* 2단계 → 3단계 */}
+          {staged && revealStep === 1 && (
+            <button className="btn" style={{ width: "100%", marginTop: 14 }} onClick={() => setRevealStep(2)}>
+              다음 · 지금 우리 관계 알려주기
             </button>
-            <button
-              className="btn btn-ghost"
-              onClick={() => joined && void deleteParticipant(joined.participantId)}
-            >
-              이 지도에서 내 기록 지우기
-            </button>
-          </div>
+          )}
+
+          {/* 실제 관계 상태 — 축 점수는 안 바뀐다. 해석의 초점만 바뀐다. */}
+          {showContext && joined && (
+            <div style={{ marginTop: 14 }}>
+              <p style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 8 }}>
+                {view.ownerNickname}님과 지금 어떤 관계인가요?
+              </p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {GUIN_STATUSES.map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    className={`chip${shownStatus === status ? " on" : ""}`}
+                    disabled={contextSaving}
+                    onClick={() => void pickStatus(joined.participantId, status)}
+                  >
+                    {STATUS_LABEL[status]}
+                  </button>
+                ))}
+              </div>
+              {contextSaving && (
+                <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: 8 }}>
+                  결과를 읽기 쉬운 관계 리포트로 정리하고 있어요…
+                </p>
+              )}
+              <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 6 }}>
+                상태는 관계 점수를 바꾸지 않아요 — 지금 상황에 맞는 해석을 다듬는 데만 쓰여요.
+                고르지 않아도 괜찮아요.
+              </p>
+            </div>
+          )}
+
+          {showContext && shownReport && !contextSaving && <AiReportCard report={shownReport} />}
+
+          {showContext && (
+            <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+              <button className="btn" onClick={() => void goMakeMyMap()}>
+                내 귀인 지도도 만들어보기
+              </button>
+              <button className="btn btn-ghost" onClick={() => void shareLink("guin_result_card_shared")}>
+                내 결과 카드 공유하기
+              </button>
+              <button
+                className="btn btn-ghost"
+                onClick={() => joined && void deleteParticipant(joined.participantId)}
+              >
+                이 지도에서 내 기록 지우기
+              </button>
+            </div>
+          )}
         </section>
       )}
 
@@ -489,18 +620,20 @@ export default function GuinMapPage() {
         </section>
       )}
 
+      {/* 방금 참여한 사람에게는 아래 지도 섹션이 자기 카드 단계를 마친 뒤에 열린다 —
+          화면에 새로 나타나는 것이 항상 하나가 되도록. */}
       {/* 2명 — 축별 비교 */}
-      {stage === "two" && view.nodes.every((node) => node.axes) && (
+      {(isOwner || showContext) && stage === "two" && view.nodes.every((node) => node.axes) && (
         <AxisComparison nodes={view.nodes} showScores={isOwner || view.showScores} />
       )}
 
       {/* 3명+ — 분포와 패턴 리포트 */}
-      {stage === "three_plus" && (
+      {(isOwner || showContext) && stage === "three_plus" && (
         <PatternReport nodes={view.nodes} roleSummary={roleSummary} />
       )}
 
       {/* 관계 카드 목록 */}
-      {view.count > 0 && (
+      {(isOwner || showContext) && view.count > 0 && (
         <section className="card" style={{ padding: 20, marginBottom: 14 }}>
           {view.count > 20 && (
             <input
@@ -542,6 +675,19 @@ export default function GuinMapPage() {
                 {selectedNode.secondaryRoleLabel ? ` · 보조: ${selectedNode.secondaryRoleLabel}` : ""}
               </p>
               <NodeDetail node={selectedNode} />
+              {selectedNode.reverse && (
+                <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginTop: 8 }}>
+                  거꾸로, {selectedNode.nickname}님에게 당신은{" "}
+                  <strong style={{ color: "var(--text)" }}>{selectedNode.reverse.roleLabel}</strong> 인연이에요
+                  {selectedNode.reverse.score !== null ? ` (케미 ${selectedNode.reverse.score}점)` : ""}.
+                </p>
+              )}
+              {selectedNode.contextStatus && (
+                <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginTop: 4 }}>
+                  {selectedNode.nickname}님이 알려준 지금 관계: {STATUS_LABEL[selectedNode.contextStatus]}
+                </p>
+              )}
+              {selectedNode.aiReport && <AiReportCard report={selectedNode.aiReport} />}
               {(isOwner || joined?.participantId === selectedNode.id) && (
                 <button
                   className="btn btn-ghost"
@@ -617,10 +763,37 @@ function summarizeRoles(
     .join(" · ");
 }
 
+/** 검증을 통과한 AI 리포트 — 없으면 이 카드 자체가 안 그려진다 (템플릿 폴백). */
+function AiReportCard({ report }: { report: GuinAiReport }) {
+  return (
+    <div className="card" style={{ padding: 14, marginTop: 12, background: "var(--bg)", fontSize: "0.86rem" }}>
+      <span className="badge">관계 리포트</span>
+      <p style={{ marginTop: 8 }}>{report.summary}</p>
+      <p style={{ color: "var(--text-dim)", marginTop: 6 }}>{report.roleExplanation}</p>
+      <div style={{ marginTop: 8 }}>
+        <span style={{ fontWeight: 700 }}>강점</span>
+        {report.strengths.map((line) => (
+          <p key={line} style={{ color: "var(--text-dim)", marginTop: 2 }}>· {line}</p>
+        ))}
+      </div>
+      <p style={{ color: "var(--text-dim)", marginTop: 6 }}>
+        <span style={{ fontWeight: 700, color: "var(--text)" }}>주의점</span> · {report.caution}
+      </p>
+      <p style={{ color: "var(--text-dim)", marginTop: 6 }}>{report.currentContext}</p>
+      <p style={{ color: "var(--text-dim)", marginTop: 6 }}>
+        <span style={{ fontWeight: 700, color: "var(--text)" }}>해볼 만한 것</span> · {report.suggestedAction}
+      </p>
+      <p style={{ color: "var(--text-dim)", marginTop: 6 }}>
+        <span style={{ fontWeight: 700, color: "var(--text)" }}>대화 질문</span> · “{report.conversationPrompt}”
+      </p>
+      <p style={{ color: "var(--text-dim)", fontSize: "0.74rem", marginTop: 8 }}>{report.disclaimer}</p>
+    </div>
+  );
+}
+
 function NodeDetail({ node }: { node: GuinNodeView }) {
-  const top = node.axes
-    ? GUIN_AXES.reduce((best, key) => (node.axes![key] > node.axes![best] ? key : best), GUIN_AXES[0])
-    : null;
+  const keys = axisKeysOf(node.axes);
+  const top = keys.length > 0 ? keys.reduce((best, key) => (node.axes![key]! > node.axes![best]! ? key : best)) : null;
   return (
     <div style={{ display: "grid", gap: 8, fontSize: "0.88rem" }}>
       {top && (
@@ -670,16 +843,21 @@ function AxisComparison({ nodes, showScores }: { nodes: GuinNodeView[]; showScor
   const [axis, setAxis] = useState<GuinAxisKey>("comfort");
   const withAxes = nodes.filter((node) => node.axes);
   if (withAxes.length < 2) return null;
-  const bestValue = Math.max(...withAxes.map((node) => node.axes![axis]));
+  // v2(4축)·v3(5축) 행이 섞이면 모두가 가진 축만 비교한다 — 빈 막대를 안 만든다.
+  const sharedAxes = axisKeysOf(withAxes[0].axes).filter((key) =>
+    withAxes.every((node) => typeof node.axes![key] === "number")
+  );
+  const activeAxis = sharedAxes.includes(axis) ? axis : sharedAxes[0];
+  const bestValue = Math.max(...withAxes.map((node) => node.axes![activeAxis]!));
   return (
     <section className="card" style={{ padding: 20, marginBottom: 14 }}>
       <span className="badge">관계 축 비교</span>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "12px 0" }}>
-        {GUIN_AXES.map((key) => (
+        {sharedAxes.map((key) => (
           <button
             key={key}
             type="button"
-            className={`chip${axis === key ? " on" : ""}`}
+            className={`chip${activeAxis === key ? " on" : ""}`}
             onClick={() => setAxis(key)}
           >
             {AXIS_LABEL[key]}
@@ -692,9 +870,9 @@ function AxisComparison({ nodes, showScores }: { nodes: GuinNodeView[]; showScor
             <AxisBar
               key={node.id}
               nickname={node.nickname}
-              value={node.axes![axis]}
+              value={node.axes![activeAxis]!}
               color={ROLE_DOT[node.role]}
-              best={node.axes![axis] === bestValue}
+              best={node.axes![activeAxis] === bestValue}
             />
           ))}
         </div>
@@ -721,14 +899,28 @@ function PatternReport({ nodes, roleSummary }: { nodes: GuinNodeView[]; roleSumm
   }
   const distribution = [...byRole.values()].sort((a, b) => b.count - a.count);
   const withAxes = nodes.filter((node) => node.axes);
+  const sharedAxes =
+    withAxes.length > 0
+      ? axisKeysOf(withAxes[0].axes).filter((key) =>
+          withAxes.every((node) => typeof node.axes![key] === "number")
+        )
+      : [];
 
   // 축별 대표 — 동점이면 공동 1위로 다 적는다.
-  const topByAxis = GUIN_AXES.map((key) => {
-    if (withAxes.length === 0) return null;
-    const best = Math.max(...withAxes.map((node) => node.axes![key]));
+  const topByAxis = sharedAxes.map((key) => {
+    const best = Math.max(...withAxes.map((node) => node.axes![key]!));
     const winners = withAxes.filter((node) => node.axes![key] === best).map((node) => node.nickname);
     return { key, winners };
-  }).filter((item) => item !== null);
+  });
+
+  // 축 평균 → 강한 축과 더 탐색해볼 축 (지시문 6.3). 사람의 부족함이 아니라
+  // 현재 지도에 들어온 관계 집합의 분포다 — 문구도 그렇게 쓴다.
+  const averages = sharedAxes.map((key) => ({
+    key,
+    average: Math.round(withAxes.reduce((sum, node) => sum + node.axes![key]!, 0) / withAxes.length),
+  }));
+  const strongest = averages.length > 0 ? [...averages].sort((a, b) => b.average - a.average)[0] : null;
+  const developing = averages.length > 1 ? [...averages].sort((a, b) => a.average - b.average)[0] : null;
 
   const diverse = distribution.length >= 3;
   return (
@@ -755,12 +947,19 @@ function PatternReport({ nodes, roleSummary }: { nodes: GuinNodeView[]; roleSumm
           ? "당신 주변에는 서로 다른 역할의 인연이 고르게 모여 있어요. 마음을 편하게 하는 사람, 현실적으로 움직이게 하는 사람, 새로운 방향을 여는 사람이 각자의 자리에 있어요."
           : `지금은 ${distribution[0]?.label ?? ""} 인연이 모여 있어요. 다음 초대가 지도의 폭을 넓혀 줄 거예요.`}
       </p>
+      {strongest && developing && strongest.key !== developing.key && (
+        <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 10 }}>
+          현재 지도에 등록된 인연 기준으로 <strong style={{ color: "var(--text)" }}>{AXIS_LABEL[strongest.key]}</strong>{" "}
+          축이 가장 든든하고, <strong style={{ color: "var(--text)" }}>{AXIS_LABEL[developing.key]}</strong> 축은
+          상대적으로 더 탐색해볼 여지가 있어요. 좋고 나쁨이 아니라 지금 들어온 사람들의 분포예요.
+        </p>
+      )}
       {topByAxis.length > 0 && (
         <div style={{ display: "grid", gap: 6, fontSize: "0.84rem" }}>
           {topByAxis.map((item) => (
-            <p key={item!.key} style={{ color: "var(--text-dim)" }}>
-              {AXIS_LABEL[item!.key]}이 가장 강한 관계:{" "}
-              <strong style={{ color: "var(--text)" }}>{item!.winners.join(" · ")}</strong>
+            <p key={item.key} style={{ color: "var(--text-dim)" }}>
+              {AXIS_LABEL[item.key]}이 가장 강한 관계:{" "}
+              <strong style={{ color: "var(--text)" }}>{item.winners.join(" · ")}</strong>
             </p>
           ))}
         </div>

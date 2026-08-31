@@ -82,11 +82,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       showScores: map.showScores,
       nodes,
       viewer: "participant",
+      selfParticipantId: joined.node.id,
     });
     return NextResponse.json({
       participantKey: joined.participantKey,
       participantId: joined.node.id,
-      node: map.showScores ? joined.node : { ...joined.node, score: null },
+      node: map.showScores
+        ? joined.node
+        : {
+            ...joined.node,
+            score: null,
+            // 역방향 점수도 같이 가린다 (shapeMapView 와 같은 규칙).
+            reverse: joined.node.reverse ? { ...joined.node.reverse, score: null, axes: null } : null,
+          },
       map: view,
       // 이미 참여한 기록이 있어 기존 결과를 돌려준 경우 — 화면이 안내한다.
       replayed: joined.replayed,

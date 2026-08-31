@@ -113,3 +113,11 @@ guin_share_link_copied, share_card_saved → guin_share_image_downloaded,
 participant_form_submitted → guin_participant_submitted,
 relationship_calculation_started 는 계산이 제출과 한 요청이라 따로 없음,
 kakao_share_clicked 는 Web Share 로 합쳐짐(SDK 미연동).
+
+---
+
+# v3 — 5축·양방향·관계 상태·AI 리포트 (2026-08-31)
+
+기록 위치가 바뀌었다: v3 의 저장소 검사·구현 파일·지시문과 다르게 한 결정은
+`guin-map-architecture.md`, 부록 19(만세력 기준 구현) 대비 결정은
+`saju-calculation-decision-log.md` 에 있다.

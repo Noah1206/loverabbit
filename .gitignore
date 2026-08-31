@@ -44,3 +44,4 @@ cards-raw/
 
 # 축 비교 결과 — 비교본이지 자산이 아니다
 .axis-compare/
+.gstack/

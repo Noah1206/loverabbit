@@ -23,13 +23,15 @@ import {
   GUIN_ROLES,
   scoreBandOf,
   type GuinAxes,
-  type GuinAxisKey,
   type GuinBirthInput,
   type GuinRelationshipResult,
   type GuinRole,
+  type GuinRoleAxisKey,
 } from "@/lib/guin-map";
 
-export const GUIN_CALC_VERSION = "guin-v2";
+// v2 → v3: 갈등 회복력 축이 추가되고 케미가 5축 가중 평균이 된다 (지시문 3.3).
+// 기존 네 축의 배합은 그대로다 — 이미 나간 지도의 숫자 감각을 흔들지 않는다.
+export const GUIN_CALC_VERSION = "guin-v3";
 
 // ── 오행 관계 → feature (지시문 8.2, 8.3) ─────────────────
 
@@ -58,6 +60,8 @@ export interface RelationshipFeatures {
   tension: number;
   polarityHarmony: number;
   seasonalHarmony: number;
+  /** 대화 통로 근사값 (지시문 19.11) — 갈등 회복력 축의 재료다. */
+  communicationProxy: number;
 }
 
 /** 지시문 8.3 의 feature 표 그대로. 숫자를 고치면 버전을 올려라. */
@@ -87,11 +91,21 @@ export function computeFeatures(params: {
       ? 0.7
       : 0.9
     : 0.6;
+  const base = FEATURE_TABLE[elementRelation];
   return {
     elementRelation,
-    ...FEATURE_TABLE[elementRelation],
+    ...base,
     polarityHarmony,
     seasonalHarmony: NEUTRAL_SEASONAL,
+    // 지시문 19.11 그대로. 축 수식이 아니라 feature 단계에서 계산한다 —
+    // 갈등 회복력이 "대화" 축 점수를 재귀 참조하지 않게 하기 위해서다.
+    communicationProxy: Math.min(
+      1,
+      Math.max(
+        0,
+        0.45 * polarityHarmony + 0.35 * (1 - base.tension) + 0.2 * ((base.sameElement + base.supportToOwner) / 2)
+      )
+    ),
   };
 }
 
@@ -114,12 +128,21 @@ export function scoreAxes(f: RelationshipFeatures): GuinAxes {
   const stimulation = clamp100(
     100 * (0.4 * f.practicalComplement + 0.3 * f.tension + 0.15 * (1 - f.sameElement) + 0.15 * (1 - f.polarityHarmony * 0.5))
   );
-  return { comfort, practicalHelp, communication, stimulation };
+  // 갈등 회복력 (guin-v3, 지시문 19.11). 역할은 되지 않는 다섯 번째 축이다.
+  const conflictRecovery = clamp100(
+    100 *
+      (0.3 * (1 - f.tension) +
+        0.25 * f.supportToOwner +
+        0.2 * f.communicationProxy +
+        0.15 * f.polarityHarmony +
+        0.1 * f.sameElement)
+  );
+  return { comfort, practicalHelp, communication, stimulation, conflictRecovery };
 }
 
 // ── 역할 선택 (지시문 8.5) ────────────────────────────────
 
-const AXIS_ROLE: Record<GuinAxisKey, GuinRole> = {
+const AXIS_ROLE: Record<GuinRoleAxisKey, GuinRole> = {
   comfort: "comforter",
   practicalHelp: "right_hand",
   communication: "communicator",
@@ -143,10 +166,22 @@ export function chooseRole(axes: GuinAxes): {
   };
 }
 
-/** 케미 = 네 축의 가중 평균 (지시문 8.6) */
+/**
+ * 케미 = 다섯 축의 가중 평균 (지시문 3.3). 갈등 회복력이 없는 옛(v2) 축에는
+ * 네 축 배합으로 계산한다 — 저장된 값을 다시 만들 일이 생겨도 숫자가 안 튄다.
+ */
 export function chemistryOf(axes: GuinAxes): number {
+  if (typeof axes.conflictRecovery !== "number") {
+    return clamp100(
+      axes.comfort * 0.3 + axes.practicalHelp * 0.25 + axes.communication * 0.25 + axes.stimulation * 0.2
+    );
+  }
   return clamp100(
-    axes.comfort * 0.3 + axes.practicalHelp * 0.25 + axes.communication * 0.25 + axes.stimulation * 0.2
+    axes.comfort * 0.24 +
+      axes.practicalHelp * 0.2 +
+      axes.communication * 0.22 +
+      axes.stimulation * 0.16 +
+      axes.conflictRecovery * 0.18
   );
 }
 
