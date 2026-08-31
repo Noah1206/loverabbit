@@ -12,8 +12,9 @@ export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [showSignup, setShowSignup] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
-  // 테마 선택은 뺐다 (2026-08-27). 블랙 하나다. 저장 형식은 그대로 두고 값만 고정한다.
-  const selectedTheme: Theme = "dark";
+  // 테마 선택은 뺐다. 아이보리 하나다 (2026-08-30). 저장 형식은 그대로 두고 값만 고정한다.
+  // 예전 "블랙 하나" 시절의 "dark" 가 여기 남아, 프로필만 열면 앱이 다크로 뒤집혔다.
+  const selectedTheme: Theme = "light";
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileNotice, setProfileNotice] = useState("");
@@ -31,7 +32,6 @@ export default function ProfilePage() {
         showMatureLabels?: boolean;
       };
       if (response.ok) {
-        setTheme("dark");
         if (typeof data.showMatureLabels === "boolean") {
           setShowMatureLabels(data.showMatureLabels);
         }
