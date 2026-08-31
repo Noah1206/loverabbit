@@ -83,9 +83,13 @@ export function questionsLeft(balance: number): number {
   return Math.max(0, Math.floor(balance / QUESTION_COST));
 }
 
+/** 친구가 가입하면 초대인이 받는 크레딧 (리딩 반 장 값) */
+export const REFERRAL_SIGNUP_CREDITS = 50;
+
 export type CreditReason =
   | "signup"
   | "referral_click"
+  | "referral_signup"
   | "purchase"
   | "question"
   | "reading"
@@ -95,6 +99,7 @@ export type CreditReason =
 export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   signup: "가입 선물",
   referral_click: "친구가 초대 링크를 열었어요",
+  referral_signup: "친구가 가입했어요",
   purchase: "크레딧 구매",
   question: "질문",
   reading: "리딩 열람",

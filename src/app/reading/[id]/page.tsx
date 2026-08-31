@@ -9,7 +9,7 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { SECOND_READING_PRICE } from "@/lib/coupons";
+import { readingCreditCost } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
 import {
   landingTypeForProduct,
@@ -873,14 +873,13 @@ export default function ReadingReportPage() {
 
                 {/* 다음 질문 — 같은 명식에서 갈라지는 두 가지. 폼을 처음부터가
                     아니라 상대 생년월일 한 칸(?from=reading)만 남긴 채로 간다.
-                    두 번째 리딩은 4,900원 쿠폰이 결제창에서 자동으로 붙는다. */}
+                    값은 크레딧 하나로 말한다 (2026-08-31 단일 화폐). */}
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">
                     <span className="badge">다음 질문</span>
                     <h2>이 명식으로, 다음은 이게 궁금할 거예요</h2>
                     <p className="report-crosssell-note">
-                      내 생년월일은 저장돼 있어요. {nextReadings.some((p) => p.needsPartner) ? "상대 생년월일만 넣으면 바로 나와요. " : ""}
-                      두 번째 리딩은 <b>{SECOND_READING_PRICE.toLocaleString()}원</b>.
+                      내 생년월일은 저장돼 있어요. {nextReadings.some((p) => p.needsPartner) ? "상대 생년월일만 넣으면 바로 나와요." : ""}
                     </p>
                     <div className="report-crosssell-list">
                       {nextReadings.map((p) => (
@@ -896,7 +895,7 @@ export default function ReadingReportPage() {
                             <small>{p.title} · {p.needsPartner ? "상대 생년월일 한 칸" : "바로 생성"}</small>
                           </span>
                           <span className="report-crosssell-price">
-                            <s>{p.price.toLocaleString()}원</s> {SECOND_READING_PRICE.toLocaleString()}원
+                            {readingCreditCost(p.price)}크레딧
                           </span>
                         </Link>
                       ))}
@@ -915,12 +914,12 @@ export default function ReadingReportPage() {
         {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
-            <h2>친구가 가입하면 5,000원 쿠폰을 드려요</h2>
-            <p>전문 리딩은 결제 후 열리고, 초대 쿠폰은 다음 결제에 바로 쓸 수 있어요.</p>
+            <h2>친구가 가입하면 50크레딧을 드려요</h2>
+            <p>크레딧은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
-                <strong>5,000원 할인 쿠폰</strong>
-                <span>친구 1명 가입 시 바로 지급 · 30일 유효</span>
+                <strong>50크레딧</strong>
+                <span>친구 1명 가입 시 바로 지급</span>
               </button>
             </div>
             <small>링크 클릭이 아니라 친구의 실제 가입이 완료되어야 지급돼요.</small>

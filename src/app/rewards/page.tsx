@@ -40,7 +40,7 @@ export default function RewardsPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setNotice("공유했어요. 친구가 가입하면 5,000원 쿠폰이 자동 지급돼요.");
+        setNotice("공유했어요. 친구가 가입하면 50크레딧이 자동 지급돼요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setNotice("초대 링크를 복사했어요.");
@@ -71,9 +71,9 @@ export default function RewardsPage() {
 
       <div className="card" style={{ padding: 24 }}>
         <span className="badge">보상 02</span>
-        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>5,000원 할인 쿠폰</h2>
+        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>50크레딧</h2>
         <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginBottom: 8 }}>
-          30일 안에 어떤 사주에도 쓸 수 있어요.
+          리딩 반 장 값이에요. 질문에도, 리딩에도 쓸 수 있어요.
         </p>
         <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginBottom: 16 }}>
           링크 클릭이 아니라 친구의 가입 완료를 기준으로 지급됩니다.

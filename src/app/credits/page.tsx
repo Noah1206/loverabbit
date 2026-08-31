@@ -129,7 +129,7 @@ export default function CreditsPage() {
     try {
       if (navigator.share) await navigator.share({ title: "러브레빗 무료 사주", text, url });
       else await navigator.clipboard.writeText(`${text}\n${url}`);
-      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 5,000원 쿠폰이 들어와요.");
+      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 50크레딧이 들어와요.");
     } catch {
       setShareNotice("");
     }
@@ -210,9 +210,9 @@ export default function CreditsPage() {
         <>
           <section className="card" style={{ padding: 20, marginBottom: 14 }}>
             <span className="badge"><Dot color={SLACK.green} />친구 초대</span>
-            <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 가입하면 5,000원 쿠폰</h2>
+            <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 가입하면 50크레딧</h2>
             <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 12 }}>
-              쿠폰은 리딩 결제에 쓸 수 있어요.
+              크레딧은 리딩에도 질문에도 쓸 수 있어요.
             </p>
             <button className="btn btn-ghost" style={{ width: "100%" }} onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기

@@ -19,6 +19,7 @@ import { useCallback, useEffect, useState } from "react";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { readingCreditCost } from "@/lib/credits";
+import { couponPrice, type Coupon } from "@/lib/coupons";
 import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
 import { PRODUCT_MAP } from "@/lib/products";
@@ -33,6 +34,8 @@ export default function ReadingCheckoutPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  // 이 리딩을 0원으로 여는 쿠폰(세트 나머지 장). 있으면 크레딧보다 먼저 권한다.
+  const [freeCoupon, setFreeCoupon] = useState<Coupon | null>(null);
   const [paying, setPaying] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   const [error, setError] = useState("");
@@ -67,8 +70,55 @@ export default function ReadingCheckoutPage() {
           if (typeof data?.balance === "number") setBalance(data.balance);
         })
         .catch(() => {});
+      // 세트로 산 사람의 나머지 장은 0원 쿠폰으로 열린다. 크레딧 결제창이
+      // 그 쿠폰을 못 보면 세트 약속("나머지 장은 무료")이 깨진다.
+      void fetch("/api/coupons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: stored.token }),
+      })
+        .then(async (res) => (res.ok ? ((await res.json()) as { coupons?: Coupon[] }) : null))
+        .then((data) => {
+          const free = (data?.coupons ?? []).find((item) => couponPrice(found.price, item) === 0) ?? null;
+          setFreeCoupon(free);
+        })
+        .catch(() => {});
     }
   }, [id, router]);
+
+  /*
+    0원 쿠폰 해금 — 계좌이체 0원 경로를 그대로 탄다. 서버(/api/unlock transfer)가
+    0원 주문을 만들고 그 자리에서 승인·생성까지 돌린다(reviewOrderAndFollowUp).
+    크레딧 경로에 쿠폰 계산을 새로 넣으면 정산 로직이 두 벌이 된다.
+  */
+  const unlockWithCoupon = useCallback(async () => {
+    if (!entry || !user || !freeCoupon || paying) return;
+    setPaying(true);
+    setError("");
+    trackFunnel("checkout_submitted", { product: entry.category });
+    try {
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          readingId: entry.readingId,
+          blob: entry.blob,
+          method: "transfer",
+          depositorCode: `레빗-${entry.readingId.slice(0, 4).toUpperCase()}`,
+          userToken: user.token,
+          couponId: freeCoupon.id,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { status?: string; error?: string };
+      if (!res.ok || data.status !== "paid") throw new Error(data.error ?? "쿠폰 사용에 실패했어요.");
+      trackFunnel("purchase_done", { product: entry.category });
+      router.push(`/reading/${entry.readingId}?payment=approved`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "쿠폰 사용 중 오류가 발생했어요.");
+    } finally {
+      setPaying(false);
+    }
+  }, [entry, user, freeCoupon, paying, router]);
 
   const unlock = useCallback(async () => {
     if (!entry || paying) return;
@@ -177,7 +227,12 @@ export default function ReadingCheckoutPage() {
             : "로그인하면 크레딧으로 바로 열 수 있어요."}
         </p>
 
-        {user && balance !== null && !enough ? (
+        {freeCoupon && (
+          <button className="btn" style={{ width: "100%" }} onClick={() => void unlockWithCoupon()} disabled={paying}>
+            {paying ? "여는 중…" : "세트 쿠폰으로 무료로 열기"}
+          </button>
+        )}
+        {user && balance !== null && !enough && !freeCoupon ? (
           <>
             <p style={{ color: "var(--accent)", fontSize: "0.88rem" }}>
               {short}크레딧이 모자라요. 충전하고 돌아오면 이 화면에서 바로 열려요.
@@ -186,7 +241,7 @@ export default function ReadingCheckoutPage() {
               크레딧 충전하러 가기
             </Link>
           </>
-        ) : (
+        ) : freeCoupon ? null : (
           <button className="btn" style={{ width: "100%" }} onClick={() => void unlock()} disabled={paying}>
             {paying ? "여는 중…" : user ? `${cost}크레딧으로 열기` : "로그인하고 열기"}
           </button>

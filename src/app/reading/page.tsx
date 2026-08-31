@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { readingCreditCost } from "@/lib/credits";
 import { PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { BUNDLE_MAP, bundleListPrice, resolveBundle } from "@/lib/bundles";
@@ -1019,8 +1020,8 @@ export default function ReadingPage() {
                     <div>
                       <dt>세트</dt>
                       <dd>
-                        {BUNDLE_MAP[bundleId].title} · <s>{bundleListPrice(BUNDLE_MAP[bundleId]).toLocaleString("ko-KR")}원</s>{" "}
-                        <b>{BUNDLE_MAP[bundleId].price.toLocaleString("ko-KR")}원</b>
+                        {BUNDLE_MAP[bundleId].title} · <s>{readingCreditCost(bundleListPrice(BUNDLE_MAP[bundleId]))}크레딧</s>{" "}
+                        <b>{readingCreditCost(BUNDLE_MAP[bundleId].price)}크레딧</b>
                       </dd>
                     </div>
                   )}
