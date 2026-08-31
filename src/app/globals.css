@@ -227,6 +227,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .product-participant-badge,
+  .lp-participant-badge {
+    animation: none;
+  }
+
   .route-transition-veil {
     animation: none;
     visibility: hidden;
@@ -2065,8 +2070,17 @@ label {
   line-height: 1;
 }
 
+/* 참여자 수 배지 — 물에 뜬 것처럼 가볍게 위아래로 계속 떠다닌다
+   (2026-08-31 운영자). 4초 한 호흡, 5px 진폭 — 눈에 걸리되 어지럽지 않게. */
+@keyframes participant-badge-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
 .product-participant-badge,
 .lp-participant-badge {
+  animation: participant-badge-float 4s ease-in-out infinite;
+  will-change: transform;
   display: inline-flex;
   align-items: center;
   gap: 6px;
