@@ -1047,6 +1047,20 @@ label {
   border-radius: 0;
   border: 0;
   box-shadow: none;
+  /* 누르면 살짝 들어간다 — 손끝의 반응. 놓으면 제자리로. */
+  transition: transform 140ms ease;
+}
+
+.fortune-grid-card:active {
+  transform: scale(0.965);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fortune-grid-card,
+  .fortune-grid-card:active {
+    transition: none;
+    transform: none;
+  }
 }
 
 .fortune-grid-media {
@@ -1136,7 +1150,8 @@ label {
   letter-spacing: -0.01em;
 }
 
-/* 설명은 한 줄 훅 — 두 줄로 늘어나면 카드 높이가 카드마다 달라진다. */
+/* 설명은 긴 소개(cardCopy) — 세 줄에서 자른다. 소개문이 다 세 줄을 넘겨
+   카드 높이는 여전히 고르다. */
 .fortune-grid-body p {
   color: var(--text-dim);
   font-size: 0.74rem;
@@ -1144,7 +1159,7 @@ label {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 3;
 }
 
 .fortune-grid-foot {

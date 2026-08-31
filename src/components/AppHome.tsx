@@ -138,7 +138,13 @@ export default function AppHome() {
               </Link>
             )}
             <Link href="/rewards" className="app-header-icon" aria-label="선물함">
-              <span aria-hidden>🎁</span>
+              {/* 선물 상자 — BottomNav 처럼 24 격자 stroke 로만 그린다 */}
+              <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="4" y="9.5" width="16" height="10.5" rx="1.2" />
+                <path d="M3.2 6.8h17.6v2.7H3.2z" />
+                <path d="M12 6.8v13.2" />
+                <path d="M12 6.8c-1.5-2.6-4.6-3.4-5.6-2S7.5 7 12 6.8Zm0 0c1.5-2.6 4.6-3.4 5.6-2S16.5 7 12 6.8Z" />
+              </svg>
             </Link>
             <button
               onClick={async () => {
@@ -245,9 +251,8 @@ export default function AppHome() {
                   </div>
                   <div className="fortune-grid-body">
                     <strong>{p.title}</strong>
-                    {/* 그리드에는 긴 소개(cardCopy) 대신 한 줄 훅 — 참고 화면의 밀도.
-                        긴 소개는 상세 페이지가 이어받는다. */}
-                    <p>{p.ctaHook}</p>
+                    {/* 긴 소개(cardCopy)로 복귀 (2026-08-31 운영자 결정) — 세 줄에서 자른다. */}
+                    <p>{p.cardCopy}</p>
                     <span className="fortune-grid-foot">
                       <span className="fortune-grid-price">
                         {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}

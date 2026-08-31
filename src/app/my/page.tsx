@@ -102,6 +102,7 @@ export default function MyPage() {
       return;
     }
     if (stored) load(stored);
+    else setEntries(listArchive());
   }, [router, load]);
 
   const remove = (readingId: string) => {
@@ -130,40 +131,15 @@ export default function MyPage() {
   // 로컬 저장소를 읽기 전에는 아무것도 그리지 않는다 — 관문이 깜빡이며 지나가지 않게.
   if (!checked) return <main className="container" style={{ paddingTop: 48 }} />;
 
-  if (!user) {
-    return (
-      <main className="container" style={{ paddingTop: 48 }}>
-        <h1 style={{ marginBottom: 6 }}>📜 내 상담</h1>
-        <p style={{ color: "var(--text-dim)", marginBottom: 24 }}>
-          받은 리딩과 쿠폰함은 계정에 묶여 있어요.
-        </p>
-        <div className="card my-login-gate">
-          <div style={{ display: "flex", justifyContent: "center" }}><BrandMark size={52} /></div>
-          <p>로그인하면 이 기기와 다른 기기에서 받은 리딩, 그리고 쿠폰함이 열려요.</p>
-          <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>
-            로그인 · 가입하기
-          </button>
-          <Link href="/reading" className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }}>
-            로그인 없이 무료 사주 먼저 보기 →
-          </Link>
-        </div>
-        {showSignup && (
-          <SignupModal
-            reason="내 상담과 쿠폰함을 보려면 로그인이 필요해요"
-            onClose={() => setShowSignup(false)}
-          />
-        )}
-      </main>
-    );
-  }
-
   const usable = coupons.filter((coupon) => coupon.state === "available").length;
 
   return (
     <main className="container" style={{ paddingTop: 48 }}>
       <h1 style={{ marginBottom: 6 }}>📜 내 상담</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 18 }}>
-        받은 리딩이 자동으로 보관됩니다. 다른 기기에서 받은 리딩도 함께 보여요.
+        {user
+          ? "받은 리딩이 자동으로 보관됩니다. 다른 기기에서 받은 리딩도 함께 보여요."
+          : "받은 리딩이 이 기기에 자동으로 보관됩니다."}
       </p>
       <Link href="/reading" className="btn" style={{ width: "100%", marginBottom: 6 }}>
         새 사주 보기 →
@@ -178,44 +154,63 @@ export default function MyPage() {
         </div>
       )}
 
-      <div className="my-section-title">
-        <h2>🎟️ 쿠폰함</h2>
-        <small>{usable > 0 ? `쓸 수 있는 쿠폰 ${usable}장` : "결제창에서 자동으로 적용돼요"}</small>
-      </div>
-      {coupons.length === 0 ? (
-        <div className="coupon-empty">
-          아직 쿠폰이 없어요. 친구가 내 링크로 가입하면 50러빗이 들어와요.
-        </div>
-      ) : (
-        <div className="coupon-list">
-          {coupons.map((coupon) => (
-            <div key={coupon.id} className="coupon-card" data-state={coupon.state}>
-              <span className="coupon-amount">{couponHeadline(coupon)}</span>
-              <span className="coupon-copy">
-                <strong>{COUPON_LABEL[coupon.kind]}</strong>
-                <span>
-                  {coupon.state === "used"
-                    ? "사용한 쿠폰이에요"
-                    : `${new Date(coupon.expiresAt).toLocaleDateString("ko-KR")}까지 · ${couponMeaning(coupon)}`}
-                </span>
-              </span>
-              <em className={`coupon-state${coupon.state === "available" ? " on" : ""}`}>
-                {STATE_LABEL[coupon.state]}
-              </em>
-            </div>
-          ))}
+      {/* 쿠폰·다른 기기 리딩은 계정의 것 — 이 부분만 로그인을 요구한다 (2026-08-31,
+          탭 전체 게이트는 걷었다: 사주는 로그인 없이 바로 본다). */}
+      {!user && (
+        <div className="card my-login-gate" style={{ marginTop: 16 }}>
+          <p>로그인하면 쿠폰함과 다른 기기에서 받은 리딩이 열려요.</p>
+          <button className="btn btn-ghost" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>
+            로그인 · 가입하기
+          </button>
         </div>
       )}
-      <button
-        className="btn btn-ghost"
-        style={{ width: "100%", marginTop: 10 }}
-        onClick={share}
-        disabled={!user.referralCode}
-      >
-        친구 초대하고 50러빗 받기
-      </button>
-      {shareNotice && (
-        <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 8 }}>{shareNotice}</p>
+      {user && (<>
+        <div className="my-section-title">
+          <h2>🎟️ 쿠폰함</h2>
+          <small>{usable > 0 ? `쓸 수 있는 쿠폰 ${usable}장` : "결제창에서 자동으로 적용돼요"}</small>
+        </div>
+        {coupons.length === 0 ? (
+          <div className="coupon-empty">
+            아직 쿠폰이 없어요. 친구가 내 링크로 가입하면 50러빗이 들어와요.
+          </div>
+        ) : (
+          <div className="coupon-list">
+            {coupons.map((coupon) => (
+              <div key={coupon.id} className="coupon-card" data-state={coupon.state}>
+                <span className="coupon-amount">{couponHeadline(coupon)}</span>
+                <span className="coupon-copy">
+                  <strong>{COUPON_LABEL[coupon.kind]}</strong>
+                  <span>
+                    {coupon.state === "used"
+                      ? "사용한 쿠폰이에요"
+                      : `${new Date(coupon.expiresAt).toLocaleDateString("ko-KR")}까지 · ${couponMeaning(coupon)}`}
+                  </span>
+                </span>
+                <em className={`coupon-state${coupon.state === "available" ? " on" : ""}`}>
+                  {STATE_LABEL[coupon.state]}
+                </em>
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          className="btn btn-ghost"
+          style={{ width: "100%", marginTop: 10 }}
+          onClick={share}
+          disabled={!user?.referralCode}
+        >
+          친구 초대하고 50러빗 받기
+        </button>
+        {shareNotice && (
+          <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 8 }}>{shareNotice}</p>
+        )}
+      </>)}
+
+      {showSignup && (
+        <SignupModal
+          reason="쿠폰함과 다른 기기 리딩을 보려면 로그인이 필요해요"
+          onClose={() => setShowSignup(false)}
+        />
       )}
 
       <div className="my-section-title">
