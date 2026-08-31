@@ -809,9 +809,12 @@ label {
 .app-header-icon {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  height: 30px;
-  padding: 0 9px;
+  /* 로그인 버튼과 같은 키 — 오른쪽 줄의 눈높이를 맞춘다 */
+  height: 38px;
+  width: 38px;
+  padding: 0;
   border: 0;
   background: none;
   /* 브랜드 분홍 — 러브레빗 카드의 그 색 (#ff347f) */
@@ -841,7 +844,6 @@ label {
 }
 
 .app-header-icon {
-  padding: 0 8px;
   font-size: 0.85rem;
 }
 
@@ -2499,14 +2501,14 @@ label {
 }
 
 .app-header-action {
-  height: 30px;
-  padding: 0 10px;
+  height: 38px;
+  padding: 0 14px;
   border: 1px solid var(--tint-line);
-  border-radius: var(--r-xl);
+  border-radius: 0;
   background: var(--tint-1);
   color: var(--text-dim);
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.78rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;

@@ -122,7 +122,7 @@ export default function AppHome() {
             )}
             <Link href="/credits" className="app-header-icon" aria-label="선물함 · 내 러빗">
               {/* 선물 상자 — BottomNav 처럼 24 격자 stroke 로만 그린다 */}
-              <svg aria-hidden width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="4" y="9.5" width="16" height="10.5" rx="1.2" />
                 <path d="M3.2 6.8h17.6v2.7H3.2z" />
                 <path d="M12 6.8v13.2" />
