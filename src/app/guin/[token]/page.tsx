@@ -406,14 +406,16 @@ export default function GuinMapPage() {
     );
   }
 
-  // ── 오프닝 ── 초대로 들어온 방문자에게 폼 앞에서 한 번.
-  // 이미 사람이 있는 지도는 짧게 지나간다 — 볼거리는 첫 방문에만 값이 있다.
-  if (view.viewer === "stranger" && !justJoined && !introDone) {
+  // ── 오프닝 ── 지도가 열릴 때마다 한 번, 탭 세션당 지도마다 한 번만.
+  // 처음 초대받아 온 방문자(빈 지도)만 full 을 본다 — 여기가 뭔지 모르는
+  // 사람에게 보여주는 장면이라서다. 주인·참여자·재방문은 0.9초 compact 로
+  // 짧게 지나간다 (지시문 1.2: 재방문은 1초 축약).
+  if (!justJoined && !introDone) {
     return (
       <GuinMapIntro
         ownerNickname={view.ownerNickname}
         existingNodeCount={view.count}
-        mode={view.count > 0 ? "compact" : "full"}
+        mode={view.viewer === "stranger" && view.count === 0 ? "full" : "compact"}
         onDone={(how) => {
           setIntroDone(true);
           trackFunnel(
