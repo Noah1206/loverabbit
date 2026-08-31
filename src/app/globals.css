@@ -3942,83 +3942,32 @@ label {
    바닥에 붙은 면이다 — 굴림도 그림자도 없다. 위쪽 실선 하나로만 본문과
    가른다. --nav-count 는 컴포넌트가 실제 탭 수로 덮어쓴다. */
 .tabbar {
-  --active-index: 0;
-  --nav-count: 3;
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: min(100vw, var(--app-max-width));
-  height: calc(62px + env(safe-area-inset-bottom));
+  height: calc(58px + env(safe-area-inset-bottom));
   padding: 0 0 env(safe-area-inset-bottom);
   z-index: 60;
   display: flex;
-  border-radius: 0;
-  overflow: hidden;
-  isolation: isolate;
   background: var(--chrome-bg);
-  border: 0;
-  /* 선 대신 그림자로 가른다. 위로만 퍼지게 해서 바가 본문 위에 떠 보인다 —
-     선은 자르고 그림자는 얹는다. */
-  box-shadow: 0 -6px 18px rgba(29, 29, 29, 0.09);
-}
-
-.tabbar::after {
-  content: none;
-}
-
-.tabbar-indicator-slot {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: calc(100% / var(--nav-count));
-  height: 100%;
-  display: grid;
-  place-items: start center;
-  pointer-events: none;
-  transform: translateX(calc(100% * var(--active-index)));
-  transition: transform 460ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: transform;
-}
-
-/* 판을 깔지 않는다. 고른 탭 위에 오베르진 막대가 얹히고, 그 아래로
-   아주 옅은 라벤더가 깔려 어디에 서 있는지만 짚는다. */
-.tabbar-indicator {
-  width: 34px;
-  height: 3px;
-  border-radius: 0;
-  background: var(--accent);
-  border: 0;
-  box-shadow: none;
-}
-
-/* 라벤더는 아주 옅게만. 판으로 읽히면 각진 네모가 하나 더 생긴다 —
-   막대 밑에 빛이 번지는 정도면 충분하다. */
-.tabbar-indicator-slot::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--accent) 9%, transparent),
-    transparent 58%
-  );
-  z-index: -1;
+  /* 슬랙식 플랫 바 — 그림자도 미끄러지는 표시기도 없다. 본문과는
+     헤어라인 하나로만 가른다. 활성 탭은 색과 선 굵기가 전부다. */
+  border-top: 1px solid var(--line);
 }
 
 .tabbar a {
   flex: 1;
   min-width: 0;
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 3px;
   color: var(--chrome-ink);
   -webkit-tap-highlight-color: transparent;
-  transition: color 220ms ease, transform 220ms ease;
+  transition: color 180ms ease, transform 180ms ease;
 }
 
 .tabbar a:active {
@@ -4028,36 +3977,39 @@ label {
 .tabbar a:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -3px;
-  border-radius: var(--r-xl);
 }
 
 .tabbar-icon {
-  width: 25px;
-  height: 25px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
 }
 
 .tabbar-icon svg {
-  width: 23px;
-  height: 23px;
-  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.24));
-}
-
-.tabbar-home-shape {
-  fill: currentColor;
-  stroke: currentColor;
+  width: 22px;
+  height: 22px;
 }
 
 .tabbar-label {
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   line-height: 1;
-  font-weight: 700;
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .tabbar .on {
   color: var(--chrome-ink-on);
+}
+
+/* 채움 대신 무게 — 활성 아이콘은 선이 굵어진다. 채우면 말풍선·나침반처럼
+   속이 빈 도형이 덩어리로 뭉개진다. */
+.tabbar .on .tabbar-icon svg {
+  stroke-width: 2.3;
+}
+
+.tabbar .on .tabbar-label {
+  font-weight: 800;
 }
 
 @media (max-width: 479px) {
@@ -4077,7 +4029,6 @@ label {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tabbar-indicator-slot,
   .tabbar a {
     transition-duration: 0.01ms;
   }

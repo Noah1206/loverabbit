@@ -2,25 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type CSSProperties, useEffect, useState } from "react";
 
-// 아이콘은 전부 24 격자에 stroke 로만 그린다 (fill="none" 은 svg 쪽에 걸려 있다).
-// 홈만 예외로 .tabbar-home-shape 가 채운다 — 그래서 홈 도형은 안쪽을 파지 않는다.
-// 겹치는 조각은 채워질 때 하나로 합쳐지므로 굴뚝을 따로 그려도 된다.
+// 슬랙식 플랫 탭바 (2026-08-31).
 //
-// 탭은 넷이다 (2026-08-31 귀인지도 추가). "내 사주"(/reading 으로 가는 링크)와 "내 상담"(보관함)이 따로
-// 있었는데 둘 다 결국 내 리딩 이야기라 하나로 합쳤다 (2026-08-26). 새 사주는
-// 홈과 보관함 안의 버튼에서 시작한다. 보관함은 로그인해야 열린다.
+// 미끄러지는 표시기·라벤더 번짐을 걷었다 — 활성 탭은 색과 선 굵기로만
+// 말한다. 움직이는 부품이 없어지면서 visualIndex 상태도 같이 사라졌다:
+// 활성 표시는 경로에서 곧장 나온다.
+//
+// 아이콘은 전부 24 격자에 stroke 로만 그린다. 채움 없음 — 활성일 때 CSS 가
+// 선을 굵혀(2.4) 무게가 실린 것처럼 읽히게 한다.
+//
+// 탭은 넷이다 (2026-08-31 귀인지도 추가). "내 사주"와 "내 상담"은 결국
+// 같은 이야기라 하나로 합쳤다 (2026-08-26). 보관함은 로그인해야 열린다.
 const NAV_ITEMS = [
   {
     href: "/",
     label: "홈",
     matches: (path: string) => path === "/",
-    // 처마가 넓은 지붕 + 굴뚝
+    // 집 — 지붕 한 획, 몸통, 문
     icon: (
       <>
-        <path className="tabbar-home-shape" d="M12 2.9 1.9 11.4h2.9v7.9c0 .95.77 1.72 1.72 1.72h11c.95 0 1.72-.77 1.72-1.72v-7.9h2.9L12 2.9Z" />
-        <path className="tabbar-home-shape" d="M16.4 4.3h2.2v4.6h-2.2Z" />
+        <path d="M4 10.6 12 3.9l8 6.7" />
+        <path d="M5.9 9.6V19a1.2 1.2 0 0 0 1.2 1.2h9.8a1.2 1.2 0 0 0 1.2-1.2V9.6" />
+        <path d="M10 20.2v-4.9h4v4.9" />
       </>
     ),
   },
@@ -28,14 +32,11 @@ const NAV_ITEMS = [
     href: "/guin",
     label: "귀인지도",
     matches: (path: string) => path.startsWith("/guin"),
-    // 관계 그래프 — 가운데 나, 위로 뻗은 인연 둘
+    // 나침반 — 지도의 물건. 바늘은 마름모 한 획.
     icon: (
       <>
-        <circle cx="12" cy="15.2" r="3.1" />
-        <circle cx="5.6" cy="6.6" r="2.3" />
-        <circle cx="18.4" cy="6.6" r="2.3" />
-        <path d="M10.2 12.8 7.1 8.6" />
-        <path d="M13.8 12.8 16.9 8.6" />
+        <circle cx="12" cy="12" r="8.4" />
+        <path d="M15.2 8.8l-1.9 5.1-5.1 1.9 1.9-5.1z" />
       </>
     ),
   },
@@ -47,12 +48,9 @@ const NAV_ITEMS = [
       path.startsWith("/reading") ||
       path.startsWith("/product") ||
       path.startsWith("/payment"),
-    // 초승달 + 반짝임
+    // 말풍선 — 상담의 물건
     icon: (
-      <>
-        <path d="M20.3 14.9A8.1 8.1 0 0 1 9.6 4.2a8.4 8.4 0 1 0 10.7 10.7Z" />
-        <path d="M17.6 2.9l.62 1.72 1.72.62-1.72.62-.62 1.72-.62-1.72-1.72-.62 1.72-.62.62-1.72Z" />
-      </>
+      <path d="M20 6.9a2.4 2.4 0 0 0-2.4-2.4H6.4A2.4 2.4 0 0 0 4 6.9v7.2a2.4 2.4 0 0 0 2.4 2.4h2.1v3l3.8-3h5.3a2.4 2.4 0 0 0 2.4-2.4Z" />
     ),
   },
   {
@@ -61,12 +59,11 @@ const NAV_ITEMS = [
     // /rewards 는 탭에서 뺐지만 페이지는 남아 있다 (공유 링크가 그리로 간다).
     // 여기서 받지 않으면 activeIndex 가 못 찾아 0 을 돌려줘 표시가 홈으로 튄다.
     matches: (path: string) => path.startsWith("/profile") || path.startsWith("/rewards"),
-    // 원 안에 든 사람
+    // 사람 — 머리와 어깨. 두르는 원은 뺐다, 작아질수록 선이 뭉친다.
     icon: (
       <>
-        <circle cx="12" cy="12" r="8.9" />
-        <circle cx="12" cy="9.8" r="3.05" />
-        <path d="M5.95 18.7a6.6 6.6 0 0 1 12.1 0" />
+        <circle cx="12" cy="8.1" r="3.4" />
+        <path d="M5.4 19.8a6.9 6.9 0 0 1 13.2 0" />
       </>
     ),
   },
@@ -80,36 +77,24 @@ function activeIndex(path: string): number {
 export default function BottomNav() {
   const path = usePathname();
   const routeIndex = activeIndex(path);
-  const [visualIndex, setVisualIndex] = useState(routeIndex);
-
-  useEffect(() => setVisualIndex(routeIndex), [routeIndex]);
 
   // 생성 대기 화면과 장별 리딩 뷰어는 몰입을 유지하도록 하단 네비게이션을 숨긴다.
   // (뷰어는 자체 장 넘김 바를 그 자리에 둔다)
   if (path === "/reading" || path.startsWith("/reading/") || path.startsWith("/product/") || path.startsWith("/set/") || path.startsWith("/saju/")) return null;
 
   return (
-    <nav
-      className="tabbar"
-      aria-label="주요 메뉴"
-      style={{ "--active-index": visualIndex, "--nav-count": NAV_ITEMS.length } as CSSProperties}
-    >
-      <span className="tabbar-indicator-slot" aria-hidden>
-        <span className="tabbar-indicator" />
-      </span>
+    <nav className="tabbar" aria-label="주요 메뉴">
       {NAV_ITEMS.map((item, index) => {
         const active = routeIndex === index;
-        const visuallyActive = visualIndex === index;
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={visuallyActive ? "on" : ""}
+            className={active ? "on" : ""}
             aria-current={active ? "page" : undefined}
-            onClick={() => setVisualIndex(index)}
           >
             <span className="tabbar-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 {item.icon}
               </svg>
             </span>
