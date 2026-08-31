@@ -11,7 +11,6 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { readingCreditCost } from "@/lib/credits";
-import { BUNDLES, bundleListPrice } from "@/lib/bundles";
 import { PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import { questionsLeft } from "@/lib/credits";
 import InquiryButton from "@/components/InquiryButton";
@@ -212,30 +211,8 @@ export default function AppHome() {
           </div>
 
           <div className="fortune-grid">
-            {/* 세트 카드 — 전체 보기에서만, 맨 앞에. 세 번 사게 하는 것보다
-                한 번에 셋을 파는 쪽이 이 규모에선 현실적이다 (2026-08-28). */}
-            {filter === "all" &&
-              BUNDLES.map((b) => (
-                <Link key={b.id} href={`/set/${b.id}`} className="card fortune-grid-card fortune-grid-set" data-product={b.first}>
-                  {/* 세 상품 그림을 나란히 — 단품 카드와 같은 그림이라 "저 셋이 묶였다"가 한눈에 읽힌다 */}
-                  <div className="fortune-grid-media">
-                    <div className="fortune-grid-set-art" aria-hidden>
-                      {b.items.map((id) => PRODUCT_MAP[id] && <CardArt key={id} p={PRODUCT_MAP[id]} />)}
-                    </div>
-                  </div>
-                  <div className="fortune-grid-body">
-                    <strong>{b.title}</strong>
-                    <p>{b.items.map((id) => PRODUCT_MAP[id]?.title).join(" + ")}</p>
-                    <span className="fortune-grid-foot">
-                      <span className="fortune-grid-price">
-                        <b>{readingCreditCost(b.price)}크레딧</b>
-                        <s>{readingCreditCost(bundleListPrice(b))}크레딧</s>
-                      </span>
-                      <span className="fortune-grid-go">세 장 열기 ›</span>
-                    </span>
-                  </div>
-                </Link>
-              ))}
+            {/* 세트(모음집) 카드는 뺐다 (2026-08-31 운영자 결정) — 단품만 보여준다.
+                /set/[id] 판매 페이지 자체는 남아 있어 직접 링크는 여전히 열린다. */}
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
               return (
