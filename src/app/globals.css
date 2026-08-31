@@ -8936,17 +8936,33 @@ body:has(.admin-shell) .tabbar {
   position: fixed;
   inset: 0;
   z-index: 90;
-  display: grid;
-  grid-template-rows: 15vh 1fr 15vh;
   background: #08060b;
 }
 
+/* 위아래 띠 — 순검정 판이 아니라 영상이 흐릿하게 비치는 검정 블러다.
+   영상이 화면 전체에 깔리고 그 위에 띠가 얹힌다. */
 .guin-intro-bar {
-  background: #000;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 15vh;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.guin-intro-bar:first-child {
+  top: 0;
+}
+
+.guin-intro-bar:not(:first-child) {
+  bottom: 0;
 }
 
 .guin-intro-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -9017,9 +9033,8 @@ body:has(.admin-shell) .tabbar {
   align-self: end;
   /* 배경 영상이 밝은 양피지라 흰 글자가 묻는다. 그림자로 받친다. */
   text-shadow: 0 1px 6px rgba(30, 20, 10, 0.85), 0 0 2px rgba(30, 20, 10, 0.9);
-  /* 건너뛰기 버튼과 같은 줄에 앉으면 긴 문구가 버튼 밑으로 들어간다.
-     버튼(약 36px) 위로 올린다. */
-  margin-bottom: 68px;
+  /* 아래 블러 띠 바로 위에 앉는다. 버튼은 이제 띠 안에 있다. */
+  margin-bottom: calc(15vh + 14px);
   padding: 0 16px;
   color: rgba(255, 255, 255, 0.82);
   font-size: 0.88rem;
@@ -9035,12 +9050,15 @@ body:has(.admin-shell) .tabbar {
   transform: translateY(0);
 }
 
+/* 건너뛰기는 아래 블러 띠 안에 선다 — 스케치대로. */
 .guin-intro-skip {
   position: absolute;
-  right: 16px;
+  left: 50%;
+  bottom: calc(7.5vh - 18px);
+  z-index: 3;
+  transform: translateX(-50%);
   text-shadow: 0 1px 4px rgba(30, 20, 10, 0.8);
   background: rgba(20, 14, 8, 0.35);
-  bottom: calc(15vh + 16px);
   padding: 9px 14px;
   border: 1px solid rgba(255, 255, 255, 0.34);
   background: transparent;
