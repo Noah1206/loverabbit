@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
 import SignupModal from "@/components/SignupModal";
 import { getUser, logoutUser, type User } from "@/lib/user";
@@ -62,23 +62,6 @@ export default function AppHome() {
   // 로그인한 사람에게만 보이는 자리. 크레딧과 최근 리딩은 서버가 답한다.
   const [balance, setBalance] = useState<number | null>(null);
   const [recent, setRecent] = useState<RecentReading[]>([]);
-  /*
-    손가락 화면의 hover 대역 (2026-08-31). 첫 탭은 카드를 "무장"만 시켜
-    hover 애니메이션(굵은 줄·알약 밝아짐)을 보여주고, 같은 카드를 한 번 더
-    탭해야 상세로 들어간다. 다른 카드를 탭하면 무장이 그쪽으로 옮겨 간다.
-    hover 가 있는 기기(마우스)에서는 끼어들지 않는다.
-  */
-  const [armed, setArmed] = useState<string | null>(null);
-  const noHover = useRef(false);
-  useEffect(() => {
-    noHover.current = window.matchMedia("(hover: none)").matches;
-  }, []);
-  const armOrGo = (id: string) => (event: React.MouseEvent) => {
-    if (!noHover.current || armed === id) return; // 두 번째 탭 — 그대로 진입
-    event.preventDefault();
-    setArmed(id);
-  };
-
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
@@ -243,10 +226,9 @@ export default function AppHome() {
                 <Link
                   key={p.id}
                   href={`/reading?c=${p.id}`}
-                  className={`card fortune-grid-card${armed === p.id ? " is-armed" : ""}`}
+                  className="card fortune-grid-card"
                   data-tone={p.tone}
                   data-product={p.id}
-                  onClick={armOrGo(p.id)}
                 >
                   <div className="fortune-grid-media">
                     <CardArt p={p} className="fortune-grid-art" />

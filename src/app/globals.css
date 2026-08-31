@@ -1127,16 +1127,9 @@ label {
 }
 
 .fortune-grid-card:hover .fortune-grid-body::before,
-.fortune-grid-card:focus-visible .fortune-grid-body::before,
-.fortune-grid-card.is-armed .fortune-grid-body::before {
+.fortune-grid-card:focus-visible .fortune-grid-body::before {
   transform: scaleX(1);
 }
-
-/* 손가락으로 쓰는 화면에는 hover 가 없다. 줄을 처음부터 깔아 두어야
-   카드마다 제 색이 보인다. */
-/* 손가락 화면에는 hover 가 없다. 대신 첫 탭이 hover 를 대신한다 —
-   1탭: is-armed 로 줄이 밀려 들어오고, 2탭: 그때 상세로 들어간다
-   (AppHome 의 armed 상태). 그래서 처음부터 깔아 두지 않는다. */
 
 @media (prefers-reduced-motion: reduce) {
   .fortune-grid-body::before {
@@ -1235,8 +1228,7 @@ label {
 }
 
 .fortune-grid-card:hover .fortune-grid-go,
-.fortune-grid-card:focus-visible .fortune-grid-go,
-.fortune-grid-card.is-armed .fortune-grid-go {
+.fortune-grid-card:focus-visible .fortune-grid-go {
   filter: brightness(1.12);
 }
 
