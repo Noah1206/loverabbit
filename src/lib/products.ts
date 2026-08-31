@@ -47,6 +47,10 @@ export interface Product {
   timeHorizonMonths?: number;
 }
 
+// 그리드에서 내린 상품 (2026-08-31 운영자 결정) — 홈·리딩 선택 그리드에는 안 보인다.
+// 상품 자체는 남는다: Threads 착지(/product/[id])와 /reading?c= 고정 흐름은 계속 연다.
+export const GRID_HIDDEN = new Set(["geongang", "gajok", "isa"]);
+
 export const PRODUCTS: Product[] = [
   // ── 비연애 라인이 앞에 선다 (2026-08-31 운영자 결정) ─────────
   // 새로 연 재물·학업·건강·가족·이사·직업·직장 7종을 그리드 위로 올린다.

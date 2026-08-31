@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { readingCreditCost } from "@/lib/credits";
-import { PRODUCTS } from "@/lib/products";
+import { GRID_HIDDEN, PRODUCTS } from "@/lib/products";
 import { resolveAdOffer } from "@/lib/ad-offers";
 import { BUNDLE_MAP, bundleListPrice, resolveBundle } from "@/lib/bundles";
 import { useRouter } from "next/navigation";
@@ -874,7 +874,7 @@ export default function ReadingPage() {
                 <div className="reading-category-grid">
                   {/* 혼자/함께 선택에 맞는 상품만 보여준다. 여기서 커플 상품을 고르게
                       두면 상대 정보 없이 궁합을 사게 된다 — meDetails 주석의 그 사고다. */}
-                  {CATEGORIES.filter((item) => item.needsPartner === withPartner).map((item) => (
+                  {CATEGORIES.filter((item) => !GRID_HIDDEN.has(item.id) && item.needsPartner === withPartner).map((item) => (
                     <button
                       key={item.id}
                       type="button"
