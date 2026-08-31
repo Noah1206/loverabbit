@@ -373,13 +373,10 @@ export default function GuinMapPage() {
 
   // ── 로딩 / 오류 ──
   if (status === "loading") {
-    return (
-      <main className="container" style={{ paddingTop: 48 }}>
-        <div className="card" style={{ padding: 24 }}>
-          <p style={{ color: "var(--text-dim)" }}>지도를 펼치는 중…</p>
-        </div>
-      </main>
-    );
+    // 로딩 화면을 그리지 않는다 (운영자 결정). 만들기의 토끼 로더에서
+    // 넘어올 때 다른 화면이 사이에 번쩍이던 것을 없앤다 — 데이터가 오면
+    // 바로 오프닝(또는 지도)이 선다. 그동안은 빈 흰 화면이다.
+    return null;
   }
   if (status === "error" || !view) {
     return (
