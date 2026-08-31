@@ -669,6 +669,17 @@ select {
   font-size: 1rem;
 }
 
+/* 체크박스·라디오는 위 width:100% 의 예외다. 전역 규칙이 그대로 먹으면
+   체크박스가 판을 다 차지하고 옆 글자가 한 자 폭으로 세로로 선다 —
+   귀인지도 동의문·설정 화면에서 실제로 그랬다 (2026-08-31). */
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
 input:focus,
 select:focus {
   outline: 2px solid var(--accent);
