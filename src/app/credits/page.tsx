@@ -29,6 +29,29 @@ import { getUser, type User } from "@/lib/user";
   송금만 열려 있다. 크레딧에는 쿠폰이 붙지 않는다 — 리딩은 쿠폰, 질문은 크레딧.
 */
 
+/*
+  슬랙 4색 (2026-08-31). 흰 면 위에 색은 점·선·숫자로만 얹는 슬랙 문법을
+  따른다 — 오베르진(--accent)이 주인공이고 네 색은 구획 표시다.
+  이 페이지 전용이라 전역 토큰으로 올리지 않았다.
+*/
+const SLACK = {
+  aubergine: "#4a154b",
+  blue: "#36c5f0",
+  green: "#2eb67d",
+  yellow: "#ecb22e",
+  red: "#e01e5a",
+} as const;
+
+/** 슬랙식 구획 점 — 배지 옆에 찍는 색 사각형 */
+function Dot({ color }: { color: string }) {
+  return (
+    <i
+      aria-hidden
+      style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: color, marginRight: 6, verticalAlign: "1px" }}
+    />
+  );
+}
+
 export default function CreditsPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -126,12 +149,12 @@ export default function CreditsPage() {
       </p>
 
       {approved && (
-        <p className="badge" style={{ marginBottom: 14 }}>입금이 확인됐어요. 크레딧이 들어왔어요.</p>
+        <p className="badge" style={{ marginBottom: 14 }}><Dot color={SLACK.green} />입금이 확인됐어요. 크레딧이 들어왔어요.</p>
       )}
 
       {welcome && firstBuy && (
-        <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: "var(--gold)" }}>
-          <span className="badge">처음 오셨네요</span>
+        <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: SLACK.yellow, borderWidth: 2 }}>
+          <span className="badge"><Dot color={SLACK.yellow} />처음 오셨네요</span>
           <h2 style={{ fontSize: "1.15rem", margin: "10px 0 6px" }}>첫 충전만 이 값이에요</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
             질문 한 번에 {QUESTION_COST}크레딧이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
@@ -148,14 +171,34 @@ export default function CreditsPage() {
         </section>
       )}
 
-      <div className="card" style={{ padding: 20, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      {/* 잔액 — 슬랙 사이드바처럼 오베르진 한 판. 이 페이지의 주인공 숫자다. */}
+      <div
+        className="card"
+        style={{
+          padding: 20,
+          marginBottom: 14,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
+          background: SLACK.aubergine,
+          border: 0,
+          color: "#fff",
+        }}
+      >
         <div>
-          <strong style={{ fontSize: "1.3rem" }}>{balance === null ? "—" : `${balance}크레딧`}</strong>
-          <p style={{ color: "var(--text-dim)", fontSize: "0.84rem" }}>
+          <strong style={{ fontSize: "1.5rem", color: "#fff" }}>{balance === null ? "—" : `${balance}크레딧`}</strong>
+          <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "0.84rem" }}>
             {balance === null ? "로그인하면 잔액이 보여요" : `질문 ${questionsLeft(balance)}회 남음`}
           </p>
         </div>
-        <Link className="btn" href="/ask" style={{ whiteSpace: "nowrap" }}>질문하러 가기</Link>
+        <Link
+          className="btn"
+          href="/ask"
+          style={{ whiteSpace: "nowrap", background: "#fff", color: SLACK.aubergine, border: 0 }}
+        >
+          질문하러 가기
+        </Link>
       </div>
 
       {!user ? (
@@ -166,7 +209,7 @@ export default function CreditsPage() {
       ) : (
         <>
           <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge">친구 초대</span>
+            <span className="badge"><Dot color={SLACK.green} />친구 초대</span>
             <h2 style={{ fontSize: "1.1rem", margin: "10px 0 6px" }}>친구가 가입하면 5,000원 쿠폰</h2>
             <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 12 }}>
               쿠폰은 리딩 결제에 쓸 수 있어요.
@@ -174,32 +217,35 @@ export default function CreditsPage() {
             <button className="btn btn-ghost" style={{ width: "100%" }} onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기
             </button>
-            {shareNotice && <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
+            {shareNotice && <p style={{ color: SLACK.green, fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
           </section>
 
           <section className="card" style={{ padding: 20, marginBottom: 14 }}>
-            <span className="badge">{firstBuy ? "첫 구매 할인" : "충전"}</span>
+            <span className="badge"><Dot color={SLACK.blue} />{firstBuy ? "첫 구매 할인" : "충전"}</span>
             {firstBuy && (
-              <p style={{ color: "var(--gold)", fontSize: "0.86rem", margin: "10px 0 0" }}>
+              <p style={{ color: SLACK.yellow, fontSize: "0.86rem", margin: "10px 0 0", fontWeight: 700 }}>
                 처음 오셨네요. 첫 충전은 한 번만 이 값으로 드려요.
               </p>
             )}
             <div style={{ display: "grid", gap: 10, margin: "12px 0" }}>
-              {packs.map((p) => {
+              {packs.map((p, i) => {
                 const list = listPriceOf(p);
                 const off = list > p.price ? Math.round((1 - p.price / list) * 100) : 0;
+                // 슬랙 4색에서 파랑→초록→노랑 순 — 위 칸이 손해로 보이는 계단과 결이 같다.
+                const tier = [SLACK.blue, SLACK.green, SLACK.yellow][i] ?? SLACK.blue;
                 return (
                   <button
                     key={p.id}
                     type="button"
                     className={`btn ${pack?.id === p.id ? "" : "btn-ghost"}`}
-                    style={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 10 }}
+                    style={{ display: "flex", justifyContent: "space-between", width: "100%", gap: 10, alignItems: "center" }}
                     onClick={() => setPack(p)}
                   >
-                    <span>
+                    <span style={{ display: "inline-flex", alignItems: "center" }}>
+                      <Dot color={tier} />
                       {p.credits}크레딧 · {p.note}
                       {firstBuy && off > 0 && (
-                        <strong style={{ color: "var(--gold)", marginLeft: 6 }}>{off}% 할인</strong>
+                        <strong style={{ color: pack?.id === p.id ? "inherit" : SLACK.green, marginLeft: 6 }}>{off}% 할인</strong>
                       )}
                     </span>
                     <strong>{p.price.toLocaleString()}원</strong>
@@ -233,7 +279,7 @@ export default function CreditsPage() {
 
           {ledger.length > 0 && (
             <section className="card" style={{ padding: 20 }}>
-              <span className="badge">내역</span>
+              <span className="badge"><Dot color={SLACK.aubergine} />내역</span>
               <ul style={{ listStyle: "none", padding: 0, margin: "12px 0 0", display: "grid", gap: 8 }}>
                 {ledger.map((row) => (
                   <li key={row.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.88rem" }}>
@@ -241,7 +287,7 @@ export default function CreditsPage() {
                       {CREDIT_REASON_LABEL[row.reason]}
                       <small style={{ color: "var(--text-dim)", marginLeft: 8 }}>{new Date(row.createdAt).toLocaleDateString("ko-KR")}</small>
                     </span>
-                    <strong style={{ color: row.delta > 0 ? "var(--gold)" : "inherit" }}>
+                    <strong style={{ color: row.delta > 0 ? SLACK.green : SLACK.red }}>
                       {row.delta > 0 ? `+${row.delta}` : row.delta}
                     </strong>
                   </li>
