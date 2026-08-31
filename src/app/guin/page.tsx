@@ -11,7 +11,7 @@ import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import { trackFunnel } from "@/lib/funnel";
-import { fetchSavedBirth, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
+import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { getUser } from "@/lib/user";
 
 const CREATE_CONSENT =
@@ -26,7 +26,7 @@ function GuinLanding() {
   // 초대 링크에서 "나도 만들기"로 넘어온 사람 — 2차 바이럴 계측용
   const fromInvite = params.get("from") === "invite";
 
-  const [mode, setMode] = useState<"intro" | "form" | "paste">("intro");
+  const [mode, setMode] = useState<"form" | "paste">("form");
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -37,7 +37,15 @@ function GuinLanding() {
   useEffect(() => {
     if (viewed.current) return;
     viewed.current = true;
+    // 이미 만든 지도가 있으면 묻지 않고 바로 연다 — 네비 탭은 입력을 다시
+    // 시키지 않는다 (2026-08-31 운영자 결정). 최근 것 하나.
+    const mine = myGuinMaps();
+    if (mine.length > 0) {
+      router.replace(`/guin/${mine[mine.length - 1].token}`);
+      return;
+    }
     trackFunnel("guin_landing_view", { path: "/guin" });
+    trackFunnel("guin_form_started");
     // 초대에서 "나도 만들기"로 온 사람은 이미 결심했다 — 소개 화면을 다시
     // 보여주면 한 번 더 결심하게 만드는 셈이다. 값 채운 폼으로 바로 연다.
     if (fromInvite) {
@@ -126,30 +134,6 @@ function GuinLanding() {
         지도에서 확인할 수 있어요.
       </p>
 
-      {mode === "intro" && (
-        <div style={{ display: "grid", gap: 10 }}>
-          <button
-            className="btn"
-            style={{ width: "100%" }}
-            onClick={() => {
-              trackFunnel("guin_start_clicked");
-              if (!getUser()) trackFunnel("guin_guest_mode_started");
-              trackFunnel("guin_form_started");
-              setMode("form");
-            }}
-          >
-            내 귀인 지도 만들기
-          </button>
-          <button className="btn btn-ghost" style={{ width: "100%" }} onClick={() => setMode("paste")}>
-            친구가 보낸 링크로 참여하기
-          </button>
-          <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", textAlign: "center" }}>
-            가입 없이 이 브라우저에서 먼저 해볼 수 있어요. 로그인은 지도를 다른 기기에서도 볼 때만
-            필요해요.
-          </p>
-        </div>
-      )}
-
       {mode === "paste" && (
         <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
           <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>친구가 보낸 링크</span>
@@ -162,7 +146,7 @@ function GuinLanding() {
           <button className="btn" onClick={openPasted}>
             지도 열기
           </button>
-          <button className="btn btn-ghost" onClick={() => setMode("intro")}>
+          <button className="btn btn-ghost" onClick={() => setMode("form")}>
             뒤로
           </button>
         </div>
@@ -184,6 +168,15 @@ function GuinLanding() {
             </button>
           )}
         </div>
+      )}
+      {mode === "form" && (
+        <button
+          className="btn btn-ghost"
+          style={{ width: "100%", marginTop: 10 }}
+          onClick={() => setMode("paste")}
+        >
+          친구가 보낸 링크로 참여하기
+        </button>
       )}
     </main>
   );
