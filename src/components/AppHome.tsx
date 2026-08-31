@@ -10,7 +10,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { FIRST_READING_PRICE } from "@/lib/coupons";
+import { readingCreditCost } from "@/lib/credits";
 import { BUNDLES, bundleListPrice } from "@/lib/bundles";
 import { PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import { questionsLeft } from "@/lib/credits";
@@ -228,10 +228,10 @@ export default function AppHome() {
                     <p>{b.items.map((id) => PRODUCT_MAP[id]?.title).join(" + ")}</p>
                     <span className="fortune-grid-foot">
                       <span className="fortune-grid-price">
-                        <b>{b.price.toLocaleString("ko-KR")}원</b>
-                        <s>{bundleListPrice(b).toLocaleString("ko-KR")}원</s>
+                        <b>{readingCreditCost(b.price)}크레딧</b>
+                        <s>{readingCreditCost(bundleListPrice(b))}크레딧</s>
                       </span>
-                      <span className="fortune-grid-go">세 장 한 번에 열기 ›</span>
+                      <span className="fortune-grid-go">세 장 열기 ›</span>
                     </span>
                   </div>
                 </Link>
@@ -254,10 +254,9 @@ export default function AppHome() {
                     <p>{p.cardCopy}</p>
                     <span className="fortune-grid-foot">
                       <span className="fortune-grid-price">
-                        <b>{FIRST_READING_PRICE.toLocaleString("ko-KR")}원</b>
-                        <s>{p.price.toLocaleString("ko-KR")}원</s>
+                        <b>{readingCreditCost(p.price)}크레딧</b>
                       </span>
-                      <span className="fortune-grid-go">{p.ctaLabel} ›</span>
+                      <span className="fortune-grid-go">보러가기 ›</span>
                     </span>
                   </div>
                 </Link>

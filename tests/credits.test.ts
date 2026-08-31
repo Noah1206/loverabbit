@@ -82,3 +82,19 @@ describe("첫 구매 할인 팩", () => {
     }
   });
 });
+
+describe("리딩 크레딧 단가 (2026-08-31 단일 화폐)", () => {
+  it("원화 정가를 환율로 접는다 — 9,900원 리딩은 99크레딧", async () => {
+    const { readingCreditCost } = await import("../src/lib/credits");
+    assert.equal(readingCreditCost(9_900), 99);
+    assert.equal(readingCreditCost(12_900), 129);
+    assert.equal(readingCreditCost(19_900), 199);
+    assert.equal(readingCreditCost(49_900), 499);
+  });
+
+  it("첫 구매 맛보기 팩이 첫 리딩을 연다 — 1,900원 훅이 크레딧 세계에서도 산다", async () => {
+    const { FIRST_BUY_PACKS, readingCreditCost } = await import("../src/lib/credits");
+    assert.ok(FIRST_BUY_PACKS[0].credits >= readingCreditCost(9_900), "맛보기 팩으로 기본 단품이 안 열린다");
+    assert.equal(FIRST_BUY_PACKS[0].price, 1_900);
+  });
+});

@@ -143,9 +143,9 @@ export default function CreditsPage() {
   return (
     <main className="container" style={{ paddingTop: 48 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>LOVE RABBIT CREDITS</p>
-      <h1 style={{ marginBottom: 8 }}>질문 크레딧</h1>
+      <h1 style={{ marginBottom: 8 }}>크레딧</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        오늘의 질문 한 번에 {QUESTION_COST}크레딧. 100원이 1크레딧이에요.
+        리딩과 오늘의 질문을 크레딧으로 열어요. 100원이 1크레딧, 질문 한 번에 {QUESTION_COST}크레딧.
       </p>
 
       {approved && (

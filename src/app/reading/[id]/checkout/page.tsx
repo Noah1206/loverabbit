@@ -1,26 +1,25 @@
 "use client";
 
 /*
-  결제 화면.
+  결제 화면 — 크레딧으로 연다 (2026-08-31).
 
-  리딩 주소는 이제 돈을 낸 사람만 들어간다. 그 앞에 서는 자리가 여기다.
+  리딩 주소는 돈을 낸 사람만 들어간다. 그 앞에 서는 자리가 여기다.
+  보이는 것은 셋뿐이다: 무엇을 사는지, 몇 크레딧인지, 잔액이 되는지.
 
-  여기서는 명식도 목차도 보여주지 않는다 (2026-08-26 운영자 결정). 사기 전에
-  보이는 것은 무엇을 사는지와 얼마인지, 어디로 보내는지 셋뿐이다. 명식은 계산이
-  공짜라 보여줄 수도 있었지만, 그것부터 읽기 시작하면 결제 화면이 다시 읽을거리가
-  된다 — 표지에서 119명이 그만두던 자리가 그런 화면이었다.
+  원화 결제창(PaymentModal)은 이 화면에서 물러났다 — 크레딧이 단일 화폐다.
+  서버의 계좌이체·포트원 경로는 남아 있다(세트 0원 쿠폰이 그 길을 쓴다).
 
-  글은 아직 없다. 입금이 승인되는 순간 서버가 만든다(reading-gate.ts).
+  글은 아직 없다. 크레딧이 깎이는 순간 서버가 만든다(reading-gate.ts).
 */
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import PaymentModal from "@/components/PaymentModal";
+import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
-import { readAttribution } from "@/lib/attribution";
-import { hasMarketingConsent } from "@/lib/consent";
+import { readingCreditCost } from "@/lib/credits";
+import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
 import { PRODUCT_MAP } from "@/lib/products";
 import { getUser, type User } from "@/lib/user";
@@ -33,7 +32,9 @@ export default function ReadingCheckoutPage() {
   const [entry, setEntry] = useState<ArchiveEntry | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
   const [paying, setPaying] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -49,53 +50,90 @@ export default function ReadingCheckoutPage() {
       router.replace(`/reading/${id}`);
       return;
     }
+    // 크레딧 전환 전에 계좌이체를 보낸 사람 — 그 승인 흐름은 그대로 산다.
     if (found.pendingOrderId) {
       router.replace(`/payment/pending?orderId=${encodeURIComponent(String(found.pendingOrderId))}`);
       return;
     }
     trackFunnel("checkout_opened", { product: found.category });
+    if (stored) {
+      void fetch("/api/credits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: stored.token }),
+      })
+        .then(async (res) => (res.ok ? ((await res.json()) as { balance?: number }) : null))
+        .then((data) => {
+          if (typeof data?.balance === "number") setBalance(data.balance);
+        })
+        .catch(() => {});
+    }
   }, [id, router]);
 
-  const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";
-
-  const confirmTransfer = useCallback(
-    async (couponId?: string) => {
-      if (!entry) return;
-      setPaying(true);
-      setError("");
-      // 계좌번호를 보고 닫은 사람과 실제로 보낸 사람은 다르다. 여기가 그 경계다.
-      trackFunnel("checkout_submitted", { product: entry.category });
-      try {
-        const res = await fetch("/api/unlock", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            readingId: entry.readingId,
-            blob: entry.blob,
-            method: "transfer",
-            depositorCode,
-            userToken: user?.token,
-            couponId,
-            // 어느 광고가 팔았는지. 승인은 몇 시간 뒤에 나고 그때는 이 기기가 없다.
-            attribution: readAttribution(),
-            marketingConsent: hasMarketingConsent(),
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error ?? "입금 확인 요청 실패");
-        if (!Number.isSafeInteger(Number(data.orderId))) {
-          throw new Error("승인 대기 주문 번호를 받지 못했어요.");
+  const unlock = useCallback(async () => {
+    if (!entry || paying) return;
+    if (!user) {
+      setShowSignup(true);
+      return;
+    }
+    setPaying(true);
+    setError("");
+    trackFunnel("checkout_submitted", { product: entry.category });
+    try {
+      const res = await fetch("/api/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          readingId: entry.readingId,
+          blob: entry.blob,
+          method: "credits",
+          userToken: user.token,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        full?: string;
+        report?: ArchiveEntry["report"];
+        score?: number | null;
+        scoreBand?: string | null;
+        scoreFactors?: ArchiveEntry["scoreFactors"];
+        scoreAsOf?: ArchiveEntry["scoreAsOf"];
+        error?: string;
+        needCredits?: boolean;
+        balance?: number;
+        paid?: boolean;
+      };
+      if (typeof data.balance === "number") setBalance(data.balance);
+      if (!res.ok) {
+        // 깎이긴 했는데 본문이 아직이다 — 리딩 화면이 "준비 중"을 안다.
+        if (data.paid) {
+          router.push(`/reading/${entry.readingId}?payment=approved`);
+          return;
         }
-        updateArchive(entry.readingId, { pendingOrderId: Number(data.orderId) });
-        router.push(`/payment/pending?orderId=${encodeURIComponent(String(data.orderId))}`);
-      } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "결제 처리 중 오류가 발생했습니다.");
-      } finally {
-        setPaying(false);
+        if (data.needCredits) {
+          setError("");
+          return; // 잔액 부족 안내는 아래 화면이 그린다
+        }
+        throw new Error(data.error ?? "결제에 실패했어요.");
       }
-    },
-    [entry, depositorCode, user, router]
-  );
+      if (typeof data.full === "string") {
+        updateArchive(entry.readingId, {
+          full: data.full,
+          report: data.report ?? null,
+          score: data.score ?? null,
+          scoreBand: data.scoreBand ?? null,
+          scoreFactors: data.scoreFactors ?? [],
+          scoreAsOf: data.scoreAsOf ?? null,
+          pendingOrderId: undefined,
+        });
+      }
+      trackFunnel("purchase_done", { product: entry.category });
+      router.push(`/reading/${entry.readingId}?payment=approved`);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "결제 처리 중 오류가 발생했습니다.");
+    } finally {
+      setPaying(false);
+    }
+  }, [entry, user, paying, router]);
 
   if (!ready) {
     return (
@@ -118,30 +156,54 @@ export default function ReadingCheckoutPage() {
   }
 
   const label = PRODUCT_MAP[entry.category]?.shortLabel ?? entry.label;
+  const bundle = bundleOfReading(entry.category, entry.price);
+  const cost = readingCreditCost(bundle ? bundle.price : entry.price);
+  const short = balance === null ? 0 : Math.max(0, cost - balance);
+  const enough = balance !== null && balance >= cost;
 
   return (
     <main className="container reading-flow-page">
-      {/*
-        PaymentModal 을 그대로 쓴다. 이 화면 전용 결제 폼을 따로 만들면 계좌·쿠폰·
-        입금 확인이 두 벌이 되고, 그중 하나는 반드시 뒤처진다. 원래도 화면 전체를
-        덮는 모양이라 페이지로 세워도 같은 그림이다.
-      */}
-      <PaymentModal
-        readingId={entry.readingId}
-        price={entry.price}
-        userToken={user?.token ?? ""}
-        customerEmail={user?.email ?? ""}
-        depositorCode={depositorCode}
-        paying={paying}
-        onTransferSubmitted={confirmTransfer}
-        onClose={() => router.push("/my")}
-      />
-      {error && (
-        <p className="reading-checkout-error" role="alert">
-          {error}
+      <div className="card reading-checkout-card" style={{ display: "grid", gap: 12 }}>
+        <h1 style={{ fontSize: "1.2rem" }}>{label} 전문 열기</h1>
+        <p style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+          <b style={{ fontSize: "1.5rem", color: "var(--accent)" }}>{cost}크레딧</b>
+          {bundle && <small style={{ color: "var(--text-dim)" }}>세트 값 · 나머지 장 쿠폰 포함</small>}
         </p>
+        <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
+          {user
+            ? balance === null
+              ? "잔액을 확인하는 중…"
+              : `지금 잔액 ${balance}크레딧`
+            : "로그인하면 크레딧으로 바로 열 수 있어요."}
+        </p>
+
+        {user && balance !== null && !enough ? (
+          <>
+            <p style={{ color: "var(--accent)", fontSize: "0.88rem" }}>
+              {short}크레딧이 모자라요. 충전하고 돌아오면 이 화면에서 바로 열려요.
+            </p>
+            <Link className="btn" href="/credits" style={{ width: "100%" }}>
+              크레딧 충전하러 가기
+            </Link>
+          </>
+        ) : (
+          <button className="btn" style={{ width: "100%" }} onClick={() => void unlock()} disabled={paying}>
+            {paying ? "여는 중…" : user ? `${cost}크레딧으로 열기` : "로그인하고 열기"}
+          </button>
+        )}
+        <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에 열게요</button>
+        {error && (
+          <p className="reading-checkout-error" role="alert">{error}</p>
+        )}
+      </div>
+      <p className="reading-checkout-note">100원이 1크레딧이에요. 열리는 순간 전문이 만들어져요.</p>
+
+      {showSignup && (
+        <SignupModal
+          reason="리딩은 계정에 묶여 보관돼요. 3초 로그인하고 열어 주세요."
+          onClose={() => setShowSignup(false)}
+        />
       )}
-      <p className="reading-checkout-note">{label} · 입금이 확인되면 전문이 열립니다.</p>
     </main>
   );
 }

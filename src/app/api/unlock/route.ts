@@ -8,10 +8,13 @@ import {
   getOrderByProviderOrderId,
   getUsableCoupon,
   isDatabaseConfigured,
+  issueBundleCoupons,
   reserveCoupon,
   settleCouponsForOrder,
 } from "@/lib/database";
 import { couponPrice, couponSaving } from "@/lib/coupons";
+import { readingCreditCost } from "@/lib/credits";
+import { InsufficientCreditsError, applyCredit, getCreditBalance } from "@/lib/credits-db";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
@@ -20,7 +23,7 @@ import { snapshotMetaMatch } from "@/lib/meta-capi";
 import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { claimReadingForPayment } from "@/lib/reading-claim";
-import { bundleOfReading } from "@/lib/bundles";
+import { bundleOfReading, bundleRest } from "@/lib/bundles";
 import { reviewOrderAndFollowUp } from "@/lib/order-review";
 import { PortOnePaymentError } from "@/lib/portone-validation";
 
@@ -44,7 +47,7 @@ export const maxDuration = 300;
 interface Body {
   readingId: string;
   blob?: string;
-  method?: "transfer" | "toss-pg" | "portone-pg" | "referral";
+  method?: "transfer" | "toss-pg" | "portone-pg" | "referral" | "credits";
   userToken?: string; // 회원가입 토큰 — 유료 해금은 가입 필수
   depositorCode?: string;
   paymentKey?: string;
@@ -218,6 +221,71 @@ export async function POST(req: NextRequest) {
   }
 
   const now = new Date().toISOString();
+
+  // ── 크레딧 (2026-08-31, 기본 결제 수단) ──
+  //
+  // 잔액을 깎고 그 자리에서 연다. 이중 차감은 원장이 막는다 —
+  // (reason, ref) unique 라 같은 리딩의 두 번째 차감은 지급 없이 현재 잔액만
+  // 돌아온다. 그래서 더블클릭·새로고침이 두 번 깎지 못한다.
+  if (body.method === "credits") {
+    let user;
+    try {
+      user = await resolveUserToken(body.userToken);
+    } catch (error) {
+      console.error("크레딧 결제 회원 확인 실패:", error);
+      return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
+    }
+    if (!user?.userId) {
+      return NextResponse.json({ error: "리딩을 열려면 로그인이 필요해요.", needSignup: true }, { status: 401 });
+    }
+    if (stored?.userId && stored.userId !== user.userId) {
+      return NextResponse.json({ error: "이 리딩의 결제 권한을 확인할 수 없어요." }, { status: 403 });
+    }
+    {
+      const claim = await claimReadingForPayment(stored, user.userId);
+      if (claim) return NextResponse.json({ error: claim.error }, { status: claim.status });
+    }
+
+    // 세트 리딩은 세트 값을 깎고, 나머지 장을 여는 0원 쿠폰이 나간다 —
+    // 계좌이체 시절의 세트 흐름 그대로다.
+    const bundle = bundleOfReading(stored?.category ?? "", price);
+    const cost = readingCreditCost(bundle ? bundle.price : price);
+
+    try {
+      const balance = await getCreditBalance(user.userId);
+      if (balance < cost) {
+        return NextResponse.json(
+          { error: `크레딧이 ${cost - balance}만큼 모자라요.`, needCredits: true, balance, cost },
+          { status: 402 }
+        );
+      }
+      await applyCredit(user.userId, -cost, "reading", body.readingId);
+    } catch (error) {
+      if (error instanceof InsufficientCreditsError) {
+        const balance = await getCreditBalance(user.userId).catch(() => 0);
+        return NextResponse.json(
+          { error: "크레딧이 모자라요.", needCredits: true, balance, cost },
+          { status: 402 }
+        );
+      }
+      console.error("리딩 크레딧 차감 실패:", error);
+      return NextResponse.json({ error: "크레딧을 쓰지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+    }
+
+    try {
+      const unlocked = await markUnlocked(body.readingId, { method: "credits", at: now }, user.userId);
+      if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
+      if (bundle) await issueBundleCoupons(user.userId, bundleRest(bundle).length);
+    } catch (error) {
+      // 깎였는데 못 열었다 — 되돌리고 사정을 말한다. 되돌리기도 실패하면
+      // 원장에 reading 만 남아 운영자가 찾을 수 있다.
+      console.error("크레딧 해금 저장 실패:", error);
+      await applyCredit(user.userId, cost, "refund", body.readingId).catch(() => {});
+      return NextResponse.json({ error: "결제를 저장하지 못했어요. 크레딧은 돌려드렸어요." }, { status: 503 });
+    }
+    console.log(`[결제:크레딧] userId=${user.userId} reading=${body.readingId} cost=${cost}`);
+    return deliver({ method: "credits", cost });
+  }
 
   // ── 포트원 V2 · KG이니시스 실시간 계좌이체 ──
   if (body.method === "portone-pg") {

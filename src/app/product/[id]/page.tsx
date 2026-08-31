@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { readingCreditCost } from "@/lib/credits";
 import { notFound } from "next/navigation";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductSalesPage from "@/components/ProductSalesPage";
@@ -56,17 +57,13 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
               <span>🔥</span>
             </span>
             <span className="product-sticky-copy">
-              {/* 값을 버튼에 바로 적는다 — 정가를 긋고 첫 리딩 값을 옆에. 사람은 버튼에서
-                  "얼마인지"를 먼저 찾고, 그 답이 없으면 누르기 전에 스크롤을 올린다.
-                  (전에는 오퍼 값을 정가 자리에 넣어 "전문은 1,900원"으로 나가고 있었다.) */}
+              {/* 값을 버튼에 바로 적는다 — 사람은 버튼에서 "얼마인지"를 먼저 찾고,
+                  그 답이 없으면 누르기 전에 스크롤을 올린다. 단위는 크레딧 하나다
+                  (2026-08-31) — 원화 오퍼 병기는 단위 혼란만 만든다. */}
               {activeOffer ? (
                 <>
-                  <strong>
-                    <s>{p.price.toLocaleString("ko-KR")}원</s> {activeOffer.price.toLocaleString("ko-KR")}원에 확인하기
-                  </strong>
-                  <small>
-                    첫 리딩 {Math.round((1 - activeOffer.price / p.price) * 100)}% 할인 · {p.ctaHook}
-                  </small>
+                  <strong>{readingCreditCost(p.price)}크레딧으로 확인하기</strong>
+                  <small>{p.ctaHook}</small>
                 </>
               ) : (
                 <strong>{p.ctaLabel}</strong>
