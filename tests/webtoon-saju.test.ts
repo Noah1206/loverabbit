@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import {
+  bubbleAt,
   buildShareText,
   buildWebtoonContent,
   FORTUNE_TYPES,
@@ -35,7 +36,7 @@ describe("웹툰 사주 운세 분리", () => {
       const { panels } = buildWebtoonContent(type, "테스터");
       panels.forEach((panel, i) => {
         assert.ok(panel.alt.length > 0, `${panel.id} 에 alt 가 없다`);
-        assert.ok(panel.imageUrl.startsWith("/assets/love-rabbit/scenes/"));
+        assert.ok(panel.imageUrl.startsWith("/assets/webtoon-saju/"));
         assert.equal(panel.isPreview, i < FREE_PANEL_COUNT);
       });
     }
@@ -102,6 +103,61 @@ describe("개인정보", () => {
       const { panels } = buildWebtoonContent(type, "테스터");
       for (const overlay of panels.flatMap((p) => p.overlays)) {
         assert.ok(!/\d{4}[-.]\d{1,2}[-.]\d{1,2}/.test(overlay.text));
+      }
+    }
+  });
+});
+
+describe("말풍선 앵커", () => {
+  it("화자 위치에서 말풍선 자리가 나온다", () => {
+    const low = bubbleAt("left-low");
+    assert.ok(low.y < 40, "화자가 아래면 말풍선은 위에 떠야 한다");
+    assert.equal(low.tail, "bottom-left", "꼬리가 화자 쪽을 향해야 한다");
+
+    const high = bubbleAt("left-high");
+    assert.ok(high.y > 50, "화자가 위면 말풍선은 아래로 내려와야 한다");
+  });
+
+  it("두 번째 말풍선은 겹치지 않게 내려앉는다", () => {
+    const first = bubbleAt("left-low", 0);
+    const second = bubbleAt("left-low", 1);
+    assert.ok(second.y > first.y, "계단식으로 앉아야 한다");
+    assert.ok(second.y - first.y >= 12, "간격이 말풍선 높이만큼은 돼야 한다");
+  });
+
+  it("모든 말풍선이 패널 안에 들어온다", () => {
+    for (const anchor of ["left-low", "right-low", "left-high", "right-high"] as const) {
+      for (const i of [0, 1]) {
+        const b = bubbleAt(anchor, i);
+        assert.ok(b.y >= 0 && b.y <= 80, `${anchor}:${i} y가 화면을 벗어난다`);
+        assert.ok(b.x + b.width <= 100, `${anchor}:${i} 가로가 넘친다`);
+      }
+    }
+  });
+
+  it("말풍선이 실제 패널에서 화자를 가리지 않는다", () => {
+    // 앵커 규약: 화자는 아래(y>55%), 말풍선은 위(y<40%). 겹치면 화자가 가려진다.
+    for (const type of FORTUNE_TYPES) {
+      const { panels } = buildWebtoonContent(type, "테스터");
+      for (const panel of panels) {
+        for (const speech of panel.overlays.filter((o) => o.type === "speech")) {
+          assert.ok(speech.y < 45, `${speech.id} 말풍선이 화자 영역까지 내려왔다`);
+          assert.ok(speech.tail, `${speech.id} 에 꼬리가 없다 — 누가 말하는지 알 수 없다`);
+        }
+      }
+    }
+  });
+});
+
+describe("웹툰 컷 자산", () => {
+  it("패널·표지가 가리키는 파일이 실제로 있다", async () => {
+    const fs = await import("node:fs");
+    for (const type of FORTUNE_TYPES) {
+      const content = buildWebtoonContent(type, "테스터");
+      const urls = [content.coverImageUrl, ...content.panels.map((p) => p.imageUrl)];
+      for (const url of urls) {
+        const path = `public${url}`;
+        assert.ok(fs.existsSync(path), `${path} 가 없다 — 화면에 깨진 그림이 나간다`);
       }
     }
   });

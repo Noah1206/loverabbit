@@ -9631,6 +9631,53 @@ body[data-guin-intro="1"] .tabbar {
 .tone-rabbit .webtoon-speech-bubble {
   border: 1.5px solid var(--accent-soft);
 }
+
+/* 말풍선 꼬리 — 화자를 가리킨다. 웹툰에서 누가 말하는지는 꼬리가 정한다.
+   화자가 말풍선 바로 아래가 아니라 한참 아래에 있으므로(하늘에 뜬 말풍선,
+   바닥에 앉은 토끼) 짧은 삼각형만으로는 둘이 이어지지 않는다. 얇고 긴
+   지시선을 함께 내려 시선이 화자까지 따라가게 한다. */
+.webtoon-speech-bubble[class*="tail-"]::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 11px solid rgba(255, 255, 255, 0.94);
+  filter: drop-shadow(0 2px 2px rgba(20, 16, 40, 0.18));
+}
+.webtoon-speech-bubble[class*="tail-"]::before {
+  content: "";
+  position: absolute;
+  bottom: -30px;
+  width: 2px;
+  height: 22px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.15)
+  );
+  border-radius: 2px;
+}
+.webtoon-speech-bubble {
+  position: relative;
+}
+.tail-bottom-left::after,
+.tail-bottom-left::before {
+  left: 18%;
+}
+.tail-bottom-right::after,
+.tail-bottom-right::before {
+  right: 18%;
+}
+.tail-bottom-center::after {
+  left: 50%;
+  transform: translateX(-50%);
+}
+.tone-subject .webtoon-speech-bubble[class*="tail-"]::after {
+  border-top-color: rgba(244, 237, 228, 0.95);
+}
 .tone-subject .webtoon-speech-bubble {
   background: rgba(244, 237, 228, 0.95);
 }

@@ -60,6 +60,45 @@ export interface TextOverlay {
   width: number;
   align?: "left" | "center" | "right";
   tone?: "rabbit" | "subject" | "system";
+  /**
+   * 꼬리가 가리키는 쪽. 말풍선은 화자 위에 뜨고 꼬리가 화자를 향해 내려간다 —
+   * 웹툰의 기본 문법이다. 없으면 꼬리 없는 사각 말풍선.
+   */
+  tail?: "bottom-left" | "bottom-right" | "bottom-center";
+}
+
+/**
+ * 화자가 그림 어디에 서 있는가. 말풍선 좌표는 여기서 파생된다 —
+ * 패널마다 좌표를 손으로 찍으면 그림이 바뀔 때마다 겹친다.
+ *
+ * 이미지 프롬프트가 이 자리를 못박고(왼쪽 아래에 토끼, 오른쪽에 인물),
+ * 여기가 그 약속을 코드 쪽에서 받는다. 둘이 같은 규약을 보고 있어야
+ * 말풍선이 화자 위에 앉고 얼굴을 가리지 않는다.
+ */
+export type SpeakerAnchor = "left-low" | "right-low" | "left-high" | "right-high";
+
+/**
+ * 화자 위치에서 말풍선 자리를 낸다.
+ *
+ * 규칙(레퍼런스 웹툰의 문법):
+ *   · 말풍선은 화자의 머리 위 또는 대각 위에 뜬다
+ *   · 화자의 몸·얼굴을 덮지 않는다
+ *   · 꼬리는 화자 쪽을 향한다
+ *   · 한 컷에 둘이면 위아래 계단식으로 앉는다 (index 로 내린다)
+ */
+export function bubbleAt(anchor: SpeakerAnchor, index = 0): Pick<TextOverlay, "x" | "y" | "width" | "align" | "tail"> {
+  const step = index * 18; // 두 번째 말풍선은 아래로 한 칸
+  switch (anchor) {
+    case "left-low":
+      return { x: 6, y: 9 + step, width: 56, align: "left", tail: "bottom-left" };
+    case "right-low":
+      return { x: 38, y: 9 + step, width: 56, align: "left", tail: "bottom-right" };
+    case "left-high":
+      // 화자가 위에 있으면 말풍선은 아래 빈 바닥으로 내려온다
+      return { x: 6, y: 66 - step, width: 56, align: "left", tail: "bottom-left" };
+    case "right-high":
+      return { x: 38, y: 66 - step, width: 56, align: "left", tail: "bottom-right" };
+  }
 }
 
 export interface WebtoonPanelData {
@@ -78,7 +117,20 @@ export interface WebtoonContent {
   fullParagraphs: string[];
 }
 
-const scene = (name: string) => `/assets/love-rabbit/scenes/scene_${name}.webp`;
+/**
+ * 웹툰 전용 컷. 운세마다 표지 1장 + 패널 4장.
+ *
+ * 리딩 화면의 씬 일러스트(love-rabbit/scenes)를 빌려 쓰던 것을 갈아끼웠다.
+ * 그쪽은 감정 결 하나를 담은 단일 그림이라 화자가 없다 — 웹툰은 토끼가 장면
+ * 안에 있어야 말풍선의 꼬리가 가리킬 곳이 생긴다.
+ *
+ * 모든 컷이 같은 약속을 지킨다 (프롬프트에 못박았다):
+ *   · 상단 34% 는 비어 있다 — 말풍선이 앉는 자리
+ *   · 토끼는 아래 왼쪽 또는 아래 오른쪽 (bubbleAt 의 앵커와 짝)
+ *   · 사람 얼굴은 보이지 않는다 (뒷모습·실루엣)
+ *   · 글자가 그려져 있지 않다 — 문장은 전부 오버레이가 그린다
+ */
+const cut = (name: string) => `/assets/webtoon-saju/${name}.webp`;
 
 /**
  * 이메일에서 화면용 별명. 생년월일·전화번호 같은 개인정보는 여기 절대 안 들어온다.
@@ -96,7 +148,7 @@ export function nicknameFromEmail(email?: string | null): string {
 export function buildWebtoonContent(fortuneType: FortuneType, nickname: string): WebtoonContent {
   if (fortuneType === "money") {
     return {
-      coverImageUrl: scene("hesitation_bright"),
+      coverImageUrl: cut("money-cover"),
       previewText: `${nickname}, 이번 재물운은 큰 한 방보다 방향을 잡는 장이야. 새는 곳을 먼저 찾으면 흐름이 한 줄로 모여.`,
       previewPoints: [
         "기회는 속도보다 방향에서 시작돼요",
@@ -112,41 +164,41 @@ export function buildWebtoonContent(fortuneType: FortuneType, nickname: string):
       panels: [
         {
           id: "money-01",
-          imageUrl: scene("hesitation_mid"),
+          imageUrl: cut("money-01"),
           alt: "달빛 아래 토끼가 갈림길 앞에서 돈의 흐름을 살피는 장면",
           isPreview: true,
           overlays: [
             { id: "m01-title", type: "title", text: "이번 재물운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-            { id: "m01-rabbit", type: "speech", text: "지금은 크게 벌 기회보다, 새는 곳을 먼저 발견하는 흐름이야.", x: 6, y: 66, width: 56, tone: "rabbit" },
+            { id: "m01-rabbit", type: "speech", text: "지금은 크게 벌 기회보다, 새는 곳을 먼저 발견하는 흐름이야.", tone: "rabbit", ...bubbleAt("left-low") },
           ],
         },
         {
           id: "money-02",
-          imageUrl: scene("wavering_mid"),
+          imageUrl: cut("money-02"),
           alt: "선택지 앞에서 소비와 축적 사이를 고민하는 장면",
           isPreview: true,
           overlays: [
             { id: "m02-caption", type: "caption", text: "기회는 속도보다 방향에서 시작돼요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "m02-subject", type: "speech", text: "이번엔 내가 진짜 필요한 것부터 골라볼까?", x: 40, y: 68, width: 52, tone: "subject" },
+            { id: "m02-subject", type: "speech", text: "이번엔 내가 진짜 필요한 것부터 골라볼까?", tone: "subject", ...bubbleAt("right-low", 1) },
           ],
         },
         {
           id: "money-03",
-          imageUrl: scene("resolve_bright"),
+          imageUrl: cut("money-03"),
           alt: "결심한 토끼가 한 방향으로 나아가는 장면",
           isPreview: false,
           overlays: [
-            { id: "m03-rabbit", type: "speech", text: "미루던 자리에서 하나를 정하면, 돈의 흐름도 한 줄로 모여.", x: 8, y: 64, width: 56, tone: "rabbit" },
+            { id: "m03-rabbit", type: "speech", text: "미루던 자리에서 하나를 정하면, 돈의 흐름도 한 줄로 모여.", tone: "rabbit", ...bubbleAt("left-low") },
           ],
         },
         {
           id: "money-04",
-          imageUrl: scene("thrill_bright"),
+          imageUrl: cut("money-04"),
           alt: "작은 반복이 쌓여 밝아진 결말 장면",
           isPreview: false,
           overlays: [
             { id: "m04-caption", type: "caption", text: "쌓이는 건 큰 한 방이 아니라 반복이에요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "m04-rabbit", type: "speech", text: "네 소비 습관의 결은 아래 상세 분석에서 이어서 볼게.", x: 8, y: 66, width: 58, tone: "rabbit" },
+            { id: "m04-rabbit", type: "speech", text: "네 소비 습관의 결은 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("right-low", 1) },
           ],
         },
       ],
@@ -155,7 +207,7 @@ export function buildWebtoonContent(fortuneType: FortuneType, nickname: string):
 
   if (fortuneType === "love") {
     return {
-      coverImageUrl: scene("attraction_bright"),
+      coverImageUrl: cut("love-cover"),
       previewText: `${nickname}, 이번 연애운은 마음이 먼저 도착해 있는 계절이야. 속도는 네가 정해도 돼.`,
       previewPoints: [
         "표현은 크기보다 타이밍이에요",
@@ -171,41 +223,41 @@ export function buildWebtoonContent(fortuneType: FortuneType, nickname: string):
       panels: [
         {
           id: "love-01",
-          imageUrl: scene("attraction_mid"),
+          imageUrl: cut("love-01"),
           alt: "달빛 아래 두 마음이 가까워지는 첫 장면",
           isPreview: true,
           overlays: [
             { id: "l01-title", type: "title", text: "이번 연애운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-            { id: "l01-rabbit", type: "speech", text: "마음이 먼저 도착해 있는 계절이야. 속도는 네가 정해도 돼.", x: 6, y: 66, width: 56, tone: "rabbit" },
+            { id: "l01-rabbit", type: "speech", text: "마음이 먼저 도착해 있는 계절이야. 속도는 네가 정해도 돼.", tone: "rabbit", ...bubbleAt("left-low") },
           ],
         },
         {
           id: "love-02",
-          imageUrl: scene("waiting_mid"),
+          imageUrl: cut("love-02"),
           alt: "연락을 기다리며 마음을 고르는 장면",
           isPreview: true,
           overlays: [
             { id: "l02-caption", type: "caption", text: "표현은 크기보다 타이밍이에요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "l02-subject", type: "speech", text: "먼저 안부를 물어봐도 괜찮을까?", x: 42, y: 68, width: 50, tone: "subject" },
+            { id: "l02-subject", type: "speech", text: "먼저 안부를 물어봐도 괜찮을까?", tone: "subject", ...bubbleAt("left-low", 1) },
           ],
         },
         {
           id: "love-03",
-          imageUrl: scene("attraction_bright"),
+          imageUrl: cut("love-03"),
           alt: "대화가 열려 온기가 도는 장면",
           isPreview: false,
           overlays: [
-            { id: "l03-rabbit", type: "speech", text: "대화가 열리는 순간을 놓치지 마. 짧은 안부가 문을 열어.", x: 8, y: 64, width: 56, tone: "rabbit" },
+            { id: "l03-rabbit", type: "speech", text: "대화가 열리는 순간을 놓치지 마. 짧은 안부가 문을 열어.", tone: "rabbit", ...bubbleAt("right-low") },
           ],
         },
         {
           id: "love-04",
-          imageUrl: scene("waiting_bright"),
+          imageUrl: cut("love-04"),
           alt: "주고받는 리듬이 맞아 편안해진 결말 장면",
           isPreview: false,
           overlays: [
             { id: "l04-caption", type: "caption", text: "감정의 균형은 주고받는 리듬에서 와요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "l04-rabbit", type: "speech", text: "관계의 속도 이야기는 아래 상세 분석에서 이어서 볼게.", x: 8, y: 66, width: 58, tone: "rabbit" },
+            { id: "l04-rabbit", type: "speech", text: "관계의 속도 이야기는 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("left-low", 1) },
           ],
         },
       ],
@@ -214,7 +266,7 @@ export function buildWebtoonContent(fortuneType: FortuneType, nickname: string):
 
   // breakup — 이별을 확정적으로 예언하지 않는다. 지금을 돌보는 선택으로만 말한다.
   return {
-    coverImageUrl: scene("recovery_bright"),
+    coverImageUrl: cut("breakup-cover"),
     previewText: `${nickname}, 이 장은 끝을 점치는 장이 아니야. 지금 마음의 거리를 재고, 나를 돌보는 순서를 찾는 장이야.`,
     previewPoints: [
       "미련은 지워야 할 게 아니라 읽어야 할 신호예요",
@@ -230,41 +282,41 @@ export function buildWebtoonContent(fortuneType: FortuneType, nickname: string):
     panels: [
       {
         id: "breakup-01",
-        imageUrl: scene("crack_mid"),
+        imageUrl: cut("breakup-01"),
         alt: "금이 간 마음의 거리를 가늠하는 첫 장면",
         isPreview: true,
         overlays: [
           { id: "b01-title", type: "title", text: "이번 이별운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-          { id: "b01-rabbit", type: "speech", text: "끝을 점치는 장이 아니야. 지금 마음의 거리를 재는 장이야.", x: 6, y: 66, width: 56, tone: "rabbit" },
+          { id: "b01-rabbit", type: "speech", text: "끝을 점치는 장이 아니야. 지금 마음의 거리를 재는 장이야.", tone: "rabbit", ...bubbleAt("left-low") },
         ],
       },
       {
         id: "breakup-02",
-        imageUrl: scene("longing_mid"),
+        imageUrl: cut("breakup-02"),
         alt: "지난 마음을 돌아보며 그리움을 읽는 장면",
         isPreview: true,
         overlays: [
           { id: "b02-caption", type: "caption", text: "미련은 지워야 할 게 아니라 읽어야 할 신호예요.", x: 10, y: 8, width: 80, align: "center", tone: "system" },
-          { id: "b02-subject", type: "speech", text: "나는 지금 무엇을 붙잡고 있을까?", x: 42, y: 68, width: 50, tone: "subject" },
+          { id: "b02-subject", type: "speech", text: "나는 지금 무엇을 붙잡고 있을까?", tone: "subject", ...bubbleAt("right-low", 1) },
         ],
       },
       {
         id: "breakup-03",
-        imageUrl: scene("separation_dark"),
+        imageUrl: cut("breakup-03"),
         alt: "거리를 두고 자신을 돌보기 시작하는 장면",
         isPreview: false,
         overlays: [
-          { id: "b03-rabbit", type: "speech", text: "거리를 두는 건 버리는 게 아니라, 나를 돌보는 방법일 수 있어.", x: 8, y: 64, width: 58, tone: "rabbit" },
+          { id: "b03-rabbit", type: "speech", text: "거리를 두는 건 버리는 게 아니라, 나를 돌보는 방법일 수 있어.", tone: "rabbit", ...bubbleAt("left-low") },
         ],
       },
       {
         id: "breakup-04",
-        imageUrl: scene("recovery_bright"),
+        imageUrl: cut("breakup-04"),
         alt: "밝아진 빛 속에서 회복을 시작하는 결말 장면",
         isPreview: false,
         overlays: [
           { id: "b04-caption", type: "caption", text: "회복은 언제나 나를 돌보는 선택에서 시작돼요.", x: 10, y: 8, width: 80, align: "center", tone: "system" },
-          { id: "b04-rabbit", type: "speech", text: "회복의 순서는 아래 상세 분석에서 이어서 볼게.", x: 8, y: 66, width: 58, tone: "rabbit" },
+          { id: "b04-rabbit", type: "speech", text: "회복의 순서는 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("right-low", 1) },
         ],
       },
     ],

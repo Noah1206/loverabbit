@@ -18,7 +18,12 @@ export function WebtoonTextOverlay({ overlay }: { overlay: TextOverlay }) {
   };
   return (
     <div className={`webtoon-text-overlay overlay-${overlay.type} tone-${overlay.tone ?? "system"}`} style={style}>
-      {overlay.type === "speech" ? <div className="webtoon-speech-bubble">{overlay.text}</div> : overlay.text}
+      {overlay.type === "speech" ? (
+        // 꼬리가 화자를 가리킨다 — 말풍선은 화자 위에 뜨고 꼬리가 아래로 내려간다
+        <div className={`webtoon-speech-bubble${overlay.tail ? ` tail-${overlay.tail}` : ""}`}>{overlay.text}</div>
+      ) : (
+        overlay.text
+      )}
     </div>
   );
 }
