@@ -2864,16 +2864,8 @@ label {
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.reading-birth-control:has(input:not(:placeholder-shown)) {
-  background-color: var(--tint-1);
-  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
-}
-
 .reading-birth-control:focus-within {
   border-color: var(--accent);
-  background-color: var(--tint-1);
-  background-color: color-mix(in srgb, var(--accent) 10%, var(--bg-card2));
-  box-shadow: 0 0 0 3px var(--tint-ring);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   transform: translateY(-1px);
 }
@@ -2958,12 +2950,11 @@ label {
   bottom: calc(22px + env(safe-area-inset-bottom));
   left: 50%;
   width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
-  height: 66px;
-  padding: 5px;
-  border: 1px solid var(--chrome-line);
-  border-radius: var(--r-pill);
-  background: var(--chrome-bg);
-  box-shadow: var(--chrome-shadow);
+  height: 56px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
   transform: translate3d(-50%, 0, 0);
   animation: reading-action-enter 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -2973,7 +2964,7 @@ label {
   -webkit-appearance: none;
   width: 100%;
   height: 100%;
-  border-radius: var(--r-pill);
+  border-radius: 0;
   background: var(--btn-bg);
   border-color: transparent;
   color: var(--btn-ink);
