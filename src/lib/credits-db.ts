@@ -283,3 +283,20 @@ export async function listUnlockedReadingsForContext(userId: number, limit = 3):
     createdAt: String(row.created_at),
   }));
 }
+
+/**
+ * (reason, ref) 원장 기록이 이미 있는가 — 웹툰 해금처럼 원장 자체가
+ * 해금 상태의 정본인 곳에서 쓴다. unique 인덱스가 이중 차감을 막는다.
+ */
+export async function hasLedgerRef(userId: number, reason: CreditReason, ref: string): Promise<boolean> {
+  const db = getSupabaseAdmin();
+  if (!db) return false;
+  const { count, error } = await db
+    .from("lr_credit_ledger")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("reason", reason)
+    .eq("ref", ref);
+  if (error) throw databaseError("원장 ref 조회", error);
+  return (count ?? 0) > 0;
+}
