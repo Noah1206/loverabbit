@@ -213,40 +213,60 @@ export default function ReadingCheckoutPage() {
 
   return (
     <main className="container reading-flow-page">
-      <div className="card reading-checkout-card" style={{ display: "grid", gap: 12 }}>
-        <h1 style={{ fontSize: "1.2rem" }}>{label} 전문 열기</h1>
-        <p style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <b style={{ fontSize: "1.5rem", color: "var(--accent)" }}>{cost}러빗</b>
-          {bundle && <small style={{ color: "var(--text-dim)" }}>세트 값 · 나머지 장 쿠폰 포함</small>}
-        </p>
-        <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
-          {user
-            ? balance === null
-              ? "잔액을 확인하는 중…"
-              : `지금 잔액 ${balance}러빗`
-            : "로그인하면 러빗으로 바로 열 수 있어요."}
-        </p>
+      <div className="card reading-checkout-card" style={{ display: "grid", gap: 14 }}>
+        <div style={{ textAlign: "center", display: "grid", gap: 4 }}>
+          <h1 style={{ fontSize: "1.2rem" }}>{label} 전문</h1>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.9rem" }}>열어볼까요?</p>
+          <p style={{ color: "var(--accent)", fontWeight: 800, fontSize: "0.95rem" }}>
+            {cost}러빗이 사용됩니다
+            {bundle && <small style={{ display: "block", color: "var(--text-dim)", fontWeight: 400 }}>세트 값 · 나머지 장 쿠폰 포함</small>}
+          </p>
+        </div>
+
+        {/* 보유·사용을 나란히 — 잔액이 값을 감당하는지 눈으로 바로 비교된다 */}
+        <div className="checkout-stats">
+          <div>
+            <span>보유 러빗</span>
+            <b className={user && balance !== null && !enough ? "is-short" : "is-ok"}>
+              {user ? (balance === null ? "…" : balance) : "-"}
+            </b>
+          </div>
+          <div>
+            <span>사용 러빗</span>
+            <b>{cost}</b>
+          </div>
+        </div>
+        {user && balance !== null && !enough && !freeCoupon && (
+          <p style={{ color: "var(--accent)", fontSize: "0.85rem", textAlign: "center", margin: "-4px 0 0" }}>
+            {short}러빗이 모자라요. 충전하고 돌아오면 여기서 바로 열려요.
+          </p>
+        )}
+        {!user && (
+          <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", textAlign: "center", margin: "-4px 0 0" }}>
+            로그인하면 러빗으로 바로 열 수 있어요.
+          </p>
+        )}
 
         {freeCoupon && (
           <button className="btn" style={{ width: "100%" }} onClick={() => void unlockWithCoupon()} disabled={paying}>
             {paying ? "여는 중…" : "세트 쿠폰으로 무료로 열기"}
           </button>
         )}
-        {user && balance !== null && !enough && !freeCoupon ? (
-          <>
-            <p style={{ color: "var(--accent)", fontSize: "0.88rem" }}>
-              {short}러빗이 모자라요. 충전하고 돌아오면 이 화면에서 바로 열려요.
-            </p>
-            <Link className="btn" href="/credits" style={{ width: "100%" }}>
-              러빗 충전하러 가기
-            </Link>
-          </>
-        ) : freeCoupon ? null : (
-          <button className="btn" style={{ width: "100%" }} onClick={() => void unlock()} disabled={paying}>
-            {paying ? "여는 중…" : user ? `${cost}러빗으로 열기` : "로그인하고 열기"}
-          </button>
+        {!freeCoupon && (
+          <div className="checkout-actions">
+            <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에</button>
+            {user && balance !== null && !enough ? (
+              <Link className="btn" href="/credits">러빗 사러가기</Link>
+            ) : (
+              <button className="btn" onClick={() => void unlock()} disabled={paying || (user !== null && balance === null)}>
+                {paying ? "여는 중…" : user ? "열기" : "로그인하고 열기"}
+              </button>
+            )}
+          </div>
         )}
-        <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에 열게요</button>
+        {freeCoupon && (
+          <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에 열게요</button>
+        )}
         {error && (
           <p className="reading-checkout-error" role="alert">{error}</p>
         )}

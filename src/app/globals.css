@@ -9202,3 +9202,53 @@ body[data-guin-intro="1"] .tabbar {
 .guin-scene .card {
   background: color-mix(in srgb, var(--bg-card) 76%, transparent);
 }
+
+/* ── 결제 확인 — 보유·사용 비교 박스 ────────────────────────────────
+   잔액이 값을 감당하는지 숫자 두 개를 나란히 세워 바로 보이게 한다.
+   모자라면 보유 쪽이 포인트색으로 바뀌고 버튼이 충전으로 간다. */
+.checkout-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 14px 0;
+  background: var(--bg-card2);
+}
+
+.checkout-stats > div {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+}
+
+.checkout-stats > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.checkout-stats span {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.checkout-stats b {
+  font-size: 1.35rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout-stats b.is-ok {
+  color: var(--semantic-success);
+}
+
+.checkout-stats b.is-short {
+  color: var(--accent);
+}
+
+.checkout-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+}
+
+.checkout-actions .btn {
+  width: 100%;
+  text-align: center;
+}
