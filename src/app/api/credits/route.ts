@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       { headers: { "Cache-Control": "private, no-store, max-age=0" } }
     );
   } catch (error) {
-    console.error("크레딧 조회 실패:", error);
-    return NextResponse.json({ error: "크레딧을 불러오지 못했어요." }, { status: 503 });
+    console.error("러빗 조회 실패:", error);
+    return NextResponse.json({ error: "러빗을 불러오지 못했어요." }, { status: 503 });
   }
 }

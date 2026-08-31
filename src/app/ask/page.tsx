@@ -83,7 +83,7 @@ export default function AskPage() {
       if (typeof data.balance === "number") setBalance(data.balance);
       if (!res.ok) {
         if (data.insufficient) {
-          setError("크레딧이 부족해요. 충전하고 다시 물어봐 주세요.");
+          setError("러빗이 부족해요. 충전하고 다시 물어봐 주세요.");
           return;
         }
         if (data.needProfile) {
@@ -121,12 +121,12 @@ export default function AskPage() {
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>ASK LOVE RABBIT</p>
       <h1 style={{ marginBottom: 8 }}>오늘의 질문</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        내 사주와 이미 받은 리딩을 바탕으로 한 가지를 물어요. 한 번에 {QUESTION_COST}크레딧.
+        내 사주와 이미 받은 리딩을 바탕으로 한 가지를 물어요. 한 번에 {QUESTION_COST}러빗.
       </p>
 
       <div className="card" style={{ padding: 20, marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
         <div>
-          <strong style={{ fontSize: "1.2rem" }}>{balance === null ? "—" : `${balance}크레딧`}</strong>
+          <strong style={{ fontSize: "1.2rem" }}>{balance === null ? "—" : `${balance}러빗`}</strong>
           <p style={{ color: "var(--text-dim)", fontSize: "0.84rem" }}>
             {left === null ? "로그인하면 잔액이 보여요" : `질문 ${left}회 남음`}
           </p>
@@ -151,7 +151,7 @@ export default function AskPage() {
         <div className="card" style={{ padding: 24, textAlign: "center" }}>
           <p style={{ fontWeight: 700, marginBottom: 6 }}>내 사주가 아직 없어요</p>
           <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
-            사주를 한 번 보고 나면 그 명식으로 답해 드려요. 크레딧은 쓰지 않았어요.
+            사주를 한 번 보고 나면 그 명식으로 답해 드려요. 러빗은 쓰지 않았어요.
           </p>
           <Link className="btn" href="/reading" style={{ width: "100%" }}>내 사주 보러 가기</Link>
         </div>
@@ -167,11 +167,11 @@ export default function AskPage() {
             style={{ width: "100%", resize: "vertical", marginBottom: 10 }}
           />
           <button className="btn" style={{ width: "100%" }} onClick={ask} disabled={!canAsk || sending || !input.trim()}>
-            {sending ? "명식을 다시 보는 중…" : `${QUESTION_COST}크레딧으로 물어보기`}
+            {sending ? "명식을 다시 보는 중…" : `${QUESTION_COST}러빗으로 물어보기`}
           </button>
           {!canAsk && balance !== null && (
             <p style={{ color: "var(--text-dim)", fontSize: "0.82rem", marginTop: 10 }}>
-              크레딧이 모자라요. <Link href="/credits" style={{ color: "var(--accent)" }}>충전하기</Link>
+              러빗이 모자라요. <Link href="/credits" style={{ color: "var(--accent)" }}>충전하기</Link>
             </p>
           )}
           {error && <p style={{ color: "var(--accent)", fontSize: "0.85rem", marginTop: 10 }} role="alert">{error}</p>}
@@ -187,7 +187,7 @@ export default function AskPage() {
                 <p style={{ whiteSpace: "pre-wrap", fontSize: "0.94rem", lineHeight: 1.65 }}>{row.answer}</p>
               ) : (
                 <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
-                  {row.status === "failed" ? "답을 만들지 못했어요. 크레딧은 돌려드렸어요." : "답을 만드는 중…"}
+                  {row.status === "failed" ? "답을 만들지 못했어요. 러빗은 돌려드렸어요." : "답을 만드는 중…"}
                 </p>
               )}
               <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 10 }}>

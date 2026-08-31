@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     user = await resolveUserToken(body.userToken);
   } catch (error) {
-    console.error("크레딧 결제 승인 회원 확인 실패:", error);
+    console.error("러빗 결제 승인 회원 확인 실패:", error);
     return NextResponse.json({ error: "로그인 정보를 확인하지 못했어요." }, { status: 503 });
   }
   if (!user?.userId) return NextResponse.json({ error: "결제 정보가 올바르지 않아요." }, { status: 400 });
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       alreadyPaid: completed.alreadyPaid,
     });
   } catch (error) {
-    console.error("크레딧 포트원 결제 검증 실패:", error);
+    console.error("러빗 포트원 결제 검증 실패:", error);
     const status = error instanceof PortOnePaymentError ? error.status : 503;
     return NextResponse.json(
       { error: error instanceof PortOnePaymentError ? error.message : "결제 확인 중 오류가 발생했어요. 잠시 후 다시 확인해주세요." },

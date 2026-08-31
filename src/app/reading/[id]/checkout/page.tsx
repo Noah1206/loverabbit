@@ -216,15 +216,15 @@ export default function ReadingCheckoutPage() {
       <div className="card reading-checkout-card" style={{ display: "grid", gap: 12 }}>
         <h1 style={{ fontSize: "1.2rem" }}>{label} 전문 열기</h1>
         <p style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-          <b style={{ fontSize: "1.5rem", color: "var(--accent)" }}>{cost}크레딧</b>
+          <b style={{ fontSize: "1.5rem", color: "var(--accent)" }}>{cost}러빗</b>
           {bundle && <small style={{ color: "var(--text-dim)" }}>세트 값 · 나머지 장 쿠폰 포함</small>}
         </p>
         <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
           {user
             ? balance === null
               ? "잔액을 확인하는 중…"
-              : `지금 잔액 ${balance}크레딧`
-            : "로그인하면 크레딧으로 바로 열 수 있어요."}
+              : `지금 잔액 ${balance}러빗`
+            : "로그인하면 러빗으로 바로 열 수 있어요."}
         </p>
 
         {freeCoupon && (
@@ -235,15 +235,15 @@ export default function ReadingCheckoutPage() {
         {user && balance !== null && !enough && !freeCoupon ? (
           <>
             <p style={{ color: "var(--accent)", fontSize: "0.88rem" }}>
-              {short}크레딧이 모자라요. 충전하고 돌아오면 이 화면에서 바로 열려요.
+              {short}러빗이 모자라요. 충전하고 돌아오면 이 화면에서 바로 열려요.
             </p>
             <Link className="btn" href="/credits" style={{ width: "100%" }}>
-              크레딧 충전하러 가기
+              러빗 충전하러 가기
             </Link>
           </>
         ) : freeCoupon ? null : (
           <button className="btn" style={{ width: "100%" }} onClick={() => void unlock()} disabled={paying}>
-            {paying ? "여는 중…" : user ? `${cost}크레딧으로 열기` : "로그인하고 열기"}
+            {paying ? "여는 중…" : user ? `${cost}러빗으로 열기` : "로그인하고 열기"}
           </button>
         )}
         <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에 열게요</button>
@@ -251,7 +251,7 @@ export default function ReadingCheckoutPage() {
           <p className="reading-checkout-error" role="alert">{error}</p>
         )}
       </div>
-      <p className="reading-checkout-note">100원이 1크레딧이에요. 열리는 순간 전문이 만들어져요.</p>
+      <p className="reading-checkout-note">100원이 1러빗이에요. 열리는 순간 전문이 만들어져요.</p>
 
       {showSignup && (
         <SignupModal

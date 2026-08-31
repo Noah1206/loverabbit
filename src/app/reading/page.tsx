@@ -1035,8 +1035,8 @@ export default function ReadingPage() {
                     <div>
                       <dt>세트</dt>
                       <dd>
-                        {BUNDLE_MAP[bundleId].title} · <s>{readingCreditCost(bundleListPrice(BUNDLE_MAP[bundleId]))}크레딧</s>{" "}
-                        <b>{readingCreditCost(BUNDLE_MAP[bundleId].price)}크레딧</b>
+                        {BUNDLE_MAP[bundleId].title} · <s>{readingCreditCost(bundleListPrice(BUNDLE_MAP[bundleId]))}러빗</s>{" "}
+                        <b>{readingCreditCost(BUNDLE_MAP[bundleId].price)}러빗</b>
                       </dd>
                     </div>
                   )}

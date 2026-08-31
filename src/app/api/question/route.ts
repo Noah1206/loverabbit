@@ -101,12 +101,12 @@ export async function POST(req: NextRequest) {
     if (error instanceof InsufficientCreditsError) {
       const current = await getCreditBalance(userId).catch(() => 0);
       return NextResponse.json(
-        { error: "크레딧이 부족해요.", insufficient: true, balance: current, cost: QUESTION_COST },
+        { error: "러빗이 부족해요.", insufficient: true, balance: current, cost: QUESTION_COST },
         { status: 402 }
       );
     }
-    console.error("질문 크레딧 차감 실패:", error);
-    return NextResponse.json({ error: "크레딧을 처리하지 못했어요." }, { status: 503 });
+    console.error("질문 러빗 차감 실패:", error);
+    return NextResponse.json({ error: "러빗을 처리하지 못했어요." }, { status: 503 });
   }
 
   try {
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
       const refunded = await applyCredit(userId, QUESTION_COST, "refund", record.id);
       await settleQuestion(record.id, { failed: true });
       return NextResponse.json({
-        answer: "[데모 모드] 지금은 답을 만들 수 없어요. 크레딧은 돌려드렸어요.",
+        answer: "[데모 모드] 지금은 답을 만들 수 없어요. 러빗은 돌려드렸어요.",
         demo: true,
         balance: refunded,
       });
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
     const refunded = await applyCredit(userId, QUESTION_COST, "refund", record.id).catch(() => balance);
     await settleQuestion(record.id, { failed: true }).catch(() => {});
     return NextResponse.json(
-      { error: "답을 만들지 못했어요. 크레딧은 돌려드렸어요.", balance: refunded },
+      { error: "답을 만들지 못했어요. 러빗은 돌려드렸어요.", balance: refunded },
       { status: 502 }
     );
   }

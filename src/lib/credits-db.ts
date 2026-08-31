@@ -14,7 +14,7 @@ export async function getCreditBalance(userId: number): Promise<number> {
   const db = getSupabaseAdmin();
   if (!db) return 0;
   const { data, error } = await db.from("lr_users").select("chat_credits").eq("id", userId).maybeSingle();
-  if (error) throw databaseError("크레딧 잔액 조회", error);
+  if (error) throw databaseError("러빗 잔액 조회", error);
   return Number(data?.chat_credits ?? 0);
 }
 
@@ -33,7 +33,7 @@ export async function applyCredit(
   ref?: string
 ): Promise<number> {
   const db = getSupabaseAdmin();
-  if (!db) throw new Error("크레딧 DB 연결이 없습니다.");
+  if (!db) throw new Error("러빗 DB 연결이 없습니다.");
   const { data, error } = await db.rpc("lr_credit_apply", {
     p_user_id: userId,
     p_delta: delta,
@@ -42,7 +42,7 @@ export async function applyCredit(
   });
   if (error) {
     if ((error.message ?? "").includes("INSUFFICIENT_CREDITS")) throw new InsufficientCreditsError();
-    throw databaseError("크레딧 증감", error);
+    throw databaseError("러빗 증감", error);
   }
   return Number(data ?? 0);
 }
@@ -80,7 +80,7 @@ export async function listCreditLedger(userId: number, limit = 30): Promise<Cred
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);
-  if (error) throw databaseError("크레딧 내역 조회", error);
+  if (error) throw databaseError("러빗 내역 조회", error);
   return (data ?? []).map((row) => ({
     id: Number(row.id),
     delta: Number(row.delta),
@@ -115,7 +115,7 @@ async function findPendingCreditTransferOrder(userId: number): Promise<TransferO
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
-  if (error) throw databaseError("크레딧 이체 대기 주문 조회", error);
+  if (error) throw databaseError("러빗 이체 대기 주문 조회", error);
   return data ? mapTransferOrder(data as Record<string, unknown>) : null;
 }
 
@@ -149,7 +149,7 @@ export async function createPendingCreditTransferOrder(input: {
     .maybeSingle();
   // 대기 주문은 한 사람에 하나다 (lr_orders_pending_transfer_chat_key). 경쟁하면 그것을 돌려준다.
   if (error?.code === "23505") return findPendingCreditTransferOrder(input.userId);
-  if (error) throw databaseError("크레딧 계좌이체 승인 요청 저장", error);
+  if (error) throw databaseError("러빗 계좌이체 승인 요청 저장", error);
   return data ? { ...mapTransferOrder(data as Record<string, unknown>), created: true } : null;
 }
 
@@ -163,7 +163,7 @@ export async function completeCreditOrder(
     p_provider_order_id: providerOrderId,
     p_user_id: userId,
   });
-  if (error) throw databaseError("크레딧 결제 완료", error);
+  if (error) throw databaseError("러빗 결제 완료", error);
   const row = Array.isArray(data) ? data[0] : null;
   if (!row) return null;
   return { orderId: Number(row.order_id), creditsRemaining: Number(row.credits_remaining) };

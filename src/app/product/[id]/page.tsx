@@ -58,11 +58,11 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
             </span>
             <span className="product-sticky-copy">
               {/* 값을 버튼에 바로 적는다 — 사람은 버튼에서 "얼마인지"를 먼저 찾고,
-                  그 답이 없으면 누르기 전에 스크롤을 올린다. 단위는 크레딧 하나다
+                  그 답이 없으면 누르기 전에 스크롤을 올린다. 단위는 러빗 하나다
                   (2026-08-31) — 원화 오퍼 병기는 단위 혼란만 만든다. */}
               {activeOffer ? (
                 <>
-                  <strong>{READING_SALE_CREDITS}크레딧으로 확인하기</strong>
+                  <strong>{READING_SALE_CREDITS}러빗으로 확인하기</strong>
                   <small>{p.ctaHook}</small>
                 </>
               ) : (

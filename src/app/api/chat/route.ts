@@ -105,13 +105,13 @@ export async function POST(req: NextRequest) {
     try {
       balance = await getCreditBalance(userId);
     } catch (error) {
-      console.error("크레딧 잔액 조회 실패:", error);
-      return NextResponse.json({ error: "크레딧을 확인하지 못했어요." }, { status: 503 });
+      console.error("러빗 잔액 조회 실패:", error);
+      return NextResponse.json({ error: "러빗을 확인하지 못했어요." }, { status: 503 });
     }
     if (balance < QUESTION_COST) {
       return NextResponse.json(
         {
-          error: `크레딧이 모자라요. 질문 한 번에 ${QUESTION_COST}크레딧이 들어요.`,
+          error: `러빗이 모자라요. 질문 한 번에 ${QUESTION_COST}러빗이 들어요.`,
           needCredits: true,
           balance,
         },
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     try {
       await applyCredit(userId, QUESTION_COST, "refund", record ? String(record.id) : undefined);
     } catch (error) {
-      console.error("크레딧 환불 실패:", error);
+      console.error("러빗 환불 실패:", error);
     }
   };
 
@@ -142,12 +142,12 @@ export async function POST(req: NextRequest) {
       if (record) await settleQuestion(record.id, { failed: true }).catch(() => {});
       if (error instanceof InsufficientCreditsError) {
         return NextResponse.json(
-          { error: `크레딧이 모자라요. 질문 한 번에 ${QUESTION_COST}크레딧이 들어요.`, needCredits: true },
+          { error: `러빗이 모자라요. 질문 한 번에 ${QUESTION_COST}러빗이 들어요.`, needCredits: true },
           { status: 402 }
         );
       }
-      console.error("크레딧 차감 실패:", error);
-      return NextResponse.json({ error: "크레딧을 쓰지 못했어요." }, { status: 503 });
+      console.error("러빗 차감 실패:", error);
+      return NextResponse.json({ error: "러빗을 쓰지 못했어요." }, { status: 503 });
     }
   }
 

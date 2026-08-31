@@ -49,8 +49,8 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
         <h1>{bundle.title}</h1>
         <p>{bundle.copy}</p>
         <p className="set-price">
-          <s>{READING_SALE_CREDITS * 3}크레딧</s>
-          <b>{BUNDLE_SALE_CREDITS}크레딧</b>
+          <s>{READING_SALE_CREDITS * 3}러빗</s>
+          <b>{BUNDLE_SALE_CREDITS}러빗</b>
         </p>
       </section>
 
@@ -62,7 +62,7 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
             <div className="set-item-copy">
               <strong>{p.title}</strong>
               <small>{p.headline}</small>
-              <em>{p.needsPartner ? "상대 생년월일 필요" : "내 생년월일만"} · 단품 {READING_SALE_CREDITS}크레딧</em>
+              <em>{p.needsPartner ? "상대 생년월일 필요" : "내 생년월일만"} · 단품 {READING_SALE_CREDITS}러빗</em>
             </div>
           </article>
         ))}
@@ -71,7 +71,7 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
       <section className="card set-how">
         <h2>이렇게 열려요</h2>
         <ol>
-          <li><b>{first.title}</b>부터 시작해요. 이 한 장을 세트 값 {BUNDLE_SALE_CREDITS}크레딧으로 열어요.</li>
+          <li><b>{first.title}</b>부터 시작해요. 이 한 장을 세트 값 {BUNDLE_SALE_CREDITS}러빗으로 열어요.</li>
           <li>입금이 확인되면 나머지 {items.length - 1}장을 여는 <b>0원 쿠폰</b>이 바로 들어와요.</li>
           <li>각 리딩은 읽은 리딩 끝의 “다음 질문”에서 한 칸만 넣으면 이어져요. 내 생년월일은 저장돼 있어요.</li>
         </ol>
@@ -81,7 +81,7 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
       <div className="product-sticky-shell set-sticky">
         <Link href={`/reading?c=${bundle.first}&bundle=${bundle.id}`} className="btn product-sticky-cta">
           <span className="product-sticky-copy">
-            <strong><s>{READING_SALE_CREDITS * 3}크레딧</s> {BUNDLE_SALE_CREDITS}크레딧에 세 장 열기</strong>
+            <strong><s>{READING_SALE_CREDITS * 3}러빗</s> {BUNDLE_SALE_CREDITS}러빗에 세 장 열기</strong>
             <small>{first.title}부터 · 나머지는 쿠폰으로</small>
           </span>
         </Link>

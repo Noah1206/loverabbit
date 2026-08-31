@@ -40,7 +40,7 @@ export default function RewardsPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setNotice("공유했어요. 친구가 가입하면 50크레딧이 자동 지급돼요.");
+        setNotice("공유했어요. 친구가 가입하면 50러빗이 자동 지급돼요.");
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setNotice("초대 링크를 복사했어요.");
@@ -71,7 +71,7 @@ export default function RewardsPage() {
 
       <div className="card" style={{ padding: 24 }}>
         <span className="badge">보상 02</span>
-        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>50크레딧</h2>
+        <h2 style={{ fontSize: "1.2rem", margin: "12px 0 6px" }}>50러빗</h2>
         <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginBottom: 8 }}>
           리딩 반 장 값이에요. 질문에도, 리딩에도 쓸 수 있어요.
         </p>

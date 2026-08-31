@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     }
     seen.add(userId);
     const ok = await sendKakaoMemo(userId, {
-      text: "지난주에 본 러브레빗 리딩, 다음 질문이 남았다면 — 내 생년월일은 저장돼 있어서 상대 생년월일만 넣으면 바로 나와요. 크레딧으로 그 자리에서 열려요.",
+      text: "지난주에 본 러브레빗 리딩, 다음 질문이 남았다면 — 내 생년월일은 저장돼 있어서 상대 생년월일만 넣으면 바로 나와요. 러빗으로 그 자리에서 열려요.",
       url: `${SITE_URL}/my`,
       buttonTitle: "내 상담 열기",
     });

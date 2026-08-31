@@ -18,7 +18,7 @@ interface Body {
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as Body;
   const pack = getCreditPack(body.packId);
-  if (!pack) return NextResponse.json({ error: "크레딧 상품을 확인하지 못했어요." }, { status: 400 });
+  if (!pack) return NextResponse.json({ error: "러빗 상품을 확인하지 못했어요." }, { status: 400 });
 
   const portOneConfig = getPortOneServerConfig();
   if (!portOneConfig) {
@@ -35,11 +35,11 @@ export async function POST(request: NextRequest) {
   try {
     user = await resolveUserToken(body.userToken);
   } catch (error) {
-    console.error("크레딧 결제 회원 확인 실패:", error);
+    console.error("러빗 결제 회원 확인 실패:", error);
     return NextResponse.json({ error: "로그인 정보를 확인하지 못했어요." }, { status: 503 });
   }
   if (!user?.userId) {
-    return NextResponse.json({ error: "크레딧을 사려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
+    return NextResponse.json({ error: "러빗을 사려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
   }
 
 
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
       metadata: { packId: pack.id, credits: pack.credits, checkout_created_at: new Date().toISOString() },
     });
   } catch (error) {
-    console.error("크레딧 주문 생성 실패:", error);
-    return NextResponse.json({ error: "크레딧 주문을 만들지 못했어요." }, { status: 503 });
+    console.error("러빗 주문 생성 실패:", error);
+    return NextResponse.json({ error: "러빗 주문을 만들지 못했어요." }, { status: 503 });
   }
 
   return NextResponse.json({

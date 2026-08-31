@@ -194,7 +194,7 @@ export async function finalizePortOnePayment(
   }
   try {
     const completed = await completeCreditOrder(paymentId, order.userId);
-    if (!completed) throw new Error("완료할 크레딧 주문이 없습니다.");
+    if (!completed) throw new Error("완료할 러빗 주문이 없습니다.");
     return { ...base, creditsRemaining: completed.creditsRemaining, alreadyPaid: false };
   } catch (error) {
     const latest = await getOrderByProviderOrderId(paymentId);

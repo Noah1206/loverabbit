@@ -84,7 +84,7 @@ export default function ChatSection({
           <p style={{ fontSize: "0.88rem", color: "var(--text-dim)" }}>
             이번 리딩의 무료 추가 상담을 사용했어요. 더 묻고 싶으면{" "}
             <Link href="/ask" style={{ color: "var(--accent)", fontWeight: 700 }}>오늘의 질문</Link>
-            에서 크레딧으로 이어가 주세요.
+            에서 러빗으로 이어가 주세요.
           </p>
         </div>
       ) : (

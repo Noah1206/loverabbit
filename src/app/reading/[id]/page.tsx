@@ -873,7 +873,7 @@ export default function ReadingReportPage() {
 
                 {/* 다음 질문 — 같은 명식에서 갈라지는 두 가지. 폼을 처음부터가
                     아니라 상대 생년월일 한 칸(?from=reading)만 남긴 채로 간다.
-                    값은 크레딧 하나로 말한다 (2026-08-31 단일 화폐). */}
+                    값은 러빗 하나로 말한다 (2026-08-31 단일 화폐). */}
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">
                     <span className="badge">다음 질문</span>
@@ -895,7 +895,7 @@ export default function ReadingReportPage() {
                             <small>{p.title} · {p.needsPartner ? "상대 생년월일 한 칸" : "바로 생성"}</small>
                           </span>
                           <span className="report-crosssell-price">
-                            {READING_SALE_CREDITS}크레딧
+                            {READING_SALE_CREDITS}러빗
                           </span>
                         </Link>
                       ))}
@@ -914,11 +914,11 @@ export default function ReadingReportPage() {
         {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
-            <h2>친구가 가입하면 50크레딧을 드려요</h2>
-            <p>크레딧은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
+            <h2>친구가 가입하면 50러빗을 드려요</h2>
+            <p>러빗은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
-                <strong>50크레딧</strong>
+                <strong>50러빗</strong>
                 <span>친구 1명 가입 시 바로 지급</span>
               </button>
             </div>

@@ -87,7 +87,7 @@ export default function ContinueSheet({
         </div>
 
         <button className="btn continue-sheet-cta" type="button" onClick={onContinue}>
-          {READING_SALE_CREDITS}크레딧으로 전체 풀이 열기
+          {READING_SALE_CREDITS}러빗으로 전체 풀이 열기
         </button>
         <button className="btn btn-ghost continue-sheet-later" type="button" onClick={onClose}>
           조금 더 읽어 볼게요

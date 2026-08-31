@@ -250,9 +250,14 @@ export default function AppHome() {
                     <p>{p.ctaHook}</p>
                     <span className="fortune-grid-foot">
                       <span className="fortune-grid-price">
-                        <b>{READING_SALE_CREDITS}크레딧</b>
+                        {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
+                        <i className="rabbit-coin" aria-hidden>
+                          <Image src={loveRabbitLogo} alt="" width={12} height={12} />
+                        </i>
+                        <b>{READING_SALE_CREDITS}</b>
+                        <small>러빗</small>
                       </span>
-                      <span className="fortune-grid-go">보러가기 ›</span>
+                      <span className="fortune-grid-go" aria-hidden>›</span>
                     </span>
                   </div>
                 </Link>

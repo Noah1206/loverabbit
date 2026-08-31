@@ -69,7 +69,7 @@ export function questionSystemPrompt(ctx: QuestionContext): string {
     })
     .join("\n\n");
 
-  return `당신은 러브레빗의 수석 명리 분석가입니다. 회원이 크레딧을 내고 오늘의 질문 하나를 합니다.
+  return `당신은 러브레빗의 수석 명리 분석가입니다. 회원이 러빗을 내고 오늘의 질문 하나를 합니다.
 
 [회원 명식]
 ${me ?? "저장된 사주 정보가 없습니다. 명식 없이 일반적인 흐름만 말하세요."}

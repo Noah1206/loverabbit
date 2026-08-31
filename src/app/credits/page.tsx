@@ -112,7 +112,7 @@ export default function CreditsPage() {
     try {
       if (navigator.share) await navigator.share({ title: "러브레빗 무료 사주", text, url });
       else await navigator.clipboard.writeText(`${text}\n${url}`);
-      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 50크레딧이 들어와요.");
+      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 50러빗이 들어와요.");
     } catch {
       setShareNotice("");
     }
@@ -132,17 +132,17 @@ export default function CreditsPage() {
   return (
     <main className="container credits-cute" style={{ paddingTop: 48 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>LOVE RABBIT CREDITS</p>
-      <h1 style={{ marginBottom: 8 }}>크레딧</h1>
+      <h1 style={{ marginBottom: 8 }}>러빗</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        리딩과 오늘의 질문을 크레딧으로 열어요.
+        리딩과 오늘의 질문을 러빗으로 열어요.
       </p>
 
       {/* 잔액 — 시트 위의 내 지갑 */}
       <div className="cc-card cc-balance">
         <div>
-          <p className="cc-balance-label">내 크레딧</p>
+          <p className="cc-balance-label">내 러빗</p>
           <strong className="cc-balance-num">
-            {balance === null ? "—" : <><em>{balance}</em>크레딧</>}
+            {balance === null ? "—" : <><em>{balance}</em>러빗</>}
           </strong>
           <p className="cc-balance-sub">
             {balance === null ? "로그인하면 잔액이 보여요" : `질문 ${questionsLeft(balance)}회 남음`}
@@ -153,7 +153,7 @@ export default function CreditsPage() {
 
       {approved && (
         <p className="cc-card" style={{ background: "#eefaf3", borderColor: "#bfe6d2", color: "#1f7a4d", fontWeight: 700, fontSize: "0.88rem" }}>
-          입금이 확인됐어요. 크레딧이 들어왔어요 🐰
+          입금이 확인됐어요. 러빗이 들어왔어요 🐰
         </p>
       )}
 
@@ -161,7 +161,7 @@ export default function CreditsPage() {
         <section className="cc-card" style={{ borderColor: "var(--cc-pink)", borderWidth: 2 }}>
           <p className="cc-head">처음 오셨네요 — 첫 충전만 이 값이에요</p>
           <p style={{ fontSize: "0.84rem" }}>
-            질문 한 번에 {QUESTION_COST}크레딧이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
+            질문 한 번에 {QUESTION_COST}러빗이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
           </p>
           {nextPath && (
             <Link className="cc-btn cc-btn-soft cc-btn-block" href={nextPath} style={{ marginTop: 12 }}>
@@ -174,7 +174,7 @@ export default function CreditsPage() {
       {/* ── 가격표 시트 (참고 화면의 뼈대) ── */}
       <section className="cc-sheet">
         <div className="cc-bar">
-          <span>크레딧 가격표</span>
+          <span>러빗 가격표</span>
           <span aria-hidden>🐰</span>
         </div>
 
@@ -186,17 +186,17 @@ export default function CreditsPage() {
             </p>
             <div className="cc-ovals">
               <div>
-                <span className="cc-oval pink">1크레딧</span>
+                <span className="cc-oval pink">1러빗</span>
                 <p className="cc-oval-price">100원</p>
               </div>
               <div>
                 <span className="cc-oval lav">질문 1회</span>
-                <p className="cc-oval-price">{QUESTION_COST}크레딧</p>
+                <p className="cc-oval-price">{QUESTION_COST}러빗</p>
               </div>
             </div>
             <p className="cc-menu-note">
-              크레딧 하나로 리딩도 질문도 열 수 있어요
-              <br />쓰지 않은 크레딧은 그대로 남아 있어요
+              러빗 하나로 리딩도 질문도 열 수 있어요
+              <br />쓰지 않은 러빗은 그대로 남아 있어요
             </p>
           </div>
         </div>
@@ -228,7 +228,7 @@ export default function CreditsPage() {
                       {p.id === bestId.id && <span className="cc-best">BEST</span>}
                     </span>
                     <span className="cc-row-sub" style={{ display: "block" }}>
-                      <span className="pink">{p.credits}크레딧</span>
+                      <span className="pink">{p.credits}러빗</span>
                       <span className="orange"> · {p.note}</span>
                       {firstBuy && off > 0 && <span className="lav"> · {off}% 할인!</span>}
                     </span>
@@ -271,8 +271,8 @@ export default function CreditsPage() {
       {user && (
         <>
           <section className="cc-card">
-            <p className="cc-head">친구가 가입하면 50크레딧 🎁</p>
-            <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>크레딧은 리딩에도 질문에도 쓸 수 있어요.</p>
+            <p className="cc-head">친구가 가입하면 50러빗 🎁</p>
+            <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>러빗은 리딩에도 질문에도 쓸 수 있어요.</p>
             <button className="cc-btn cc-btn-soft cc-btn-block" onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기
             </button>
@@ -302,7 +302,7 @@ export default function CreditsPage() {
 
       {showSignup && (
         <SignupModal
-          reason="크레딧은 계정에 묶여 있어요. 로그인하고 충전해 주세요."
+          reason="러빗은 계정에 묶여 있어요. 로그인하고 충전해 주세요."
           onClose={() => setShowSignup(false)}
         />
       )}

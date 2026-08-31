@@ -232,7 +232,7 @@ export async function POST(req: NextRequest) {
     try {
       user = await resolveUserToken(body.userToken);
     } catch (error) {
-      console.error("크레딧 결제 회원 확인 실패:", error);
+      console.error("러빗 결제 회원 확인 실패:", error);
       return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
     }
     if (!user?.userId) {
@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
       const balance = await getCreditBalance(user.userId);
       if (balance < cost) {
         return NextResponse.json(
-          { error: `크레딧이 ${cost - balance}만큼 모자라요.`, needCredits: true, balance, cost },
+          { error: `러빗이 ${cost - balance}만큼 모자라요.`, needCredits: true, balance, cost },
           { status: 402 }
         );
       }
@@ -264,12 +264,12 @@ export async function POST(req: NextRequest) {
       if (error instanceof InsufficientCreditsError) {
         const balance = await getCreditBalance(user.userId).catch(() => 0);
         return NextResponse.json(
-          { error: "크레딧이 모자라요.", needCredits: true, balance, cost },
+          { error: "러빗이 모자라요.", needCredits: true, balance, cost },
           { status: 402 }
         );
       }
-      console.error("리딩 크레딧 차감 실패:", error);
-      return NextResponse.json({ error: "크레딧을 쓰지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
+      console.error("리딩 러빗 차감 실패:", error);
+      return NextResponse.json({ error: "러빗을 쓰지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
     }
 
     try {
@@ -279,11 +279,11 @@ export async function POST(req: NextRequest) {
     } catch (error) {
       // 깎였는데 못 열었다 — 되돌리고 사정을 말한다. 되돌리기도 실패하면
       // 원장에 reading 만 남아 운영자가 찾을 수 있다.
-      console.error("크레딧 해금 저장 실패:", error);
+      console.error("러빗 해금 저장 실패:", error);
       await applyCredit(user.userId, cost, "refund", body.readingId).catch(() => {});
-      return NextResponse.json({ error: "결제를 저장하지 못했어요. 크레딧은 돌려드렸어요." }, { status: 503 });
+      return NextResponse.json({ error: "결제를 저장하지 못했어요. 러빗은 돌려드렸어요." }, { status: 503 });
     }
-    console.log(`[결제:크레딧] userId=${user.userId} reading=${body.readingId} cost=${cost}`);
+    console.log(`[결제:러빗] userId=${user.userId} reading=${body.readingId} cost=${cost}`);
     return deliver({ method: "credits", cost });
   }
 

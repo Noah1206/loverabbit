@@ -17,7 +17,7 @@ interface Body {
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as Body;
   const pack = getCreditPack(body.packId);
-  if (!pack) return NextResponse.json({ error: "크레딧 상품을 확인하지 못했어요." }, { status: 400 });
+  if (!pack) return NextResponse.json({ error: "러빗 상품을 확인하지 못했어요." }, { status: 400 });
   if (!process.env.NEXT_PUBLIC_BANK_NAME || !process.env.NEXT_PUBLIC_BANK_ACCOUNT) {
     return NextResponse.json({ error: "계좌이체 결제 설정이 아직 완료되지 않았어요." }, { status: 503 });
   }
@@ -29,11 +29,11 @@ export async function POST(request: NextRequest) {
   try {
     user = await resolveUserToken(body.userToken);
   } catch (error) {
-    console.error("크레딧 계좌이체 회원 확인 실패:", error);
+    console.error("러빗 계좌이체 회원 확인 실패:", error);
     return NextResponse.json({ error: "로그인 정보를 확인하지 못했어요." }, { status: 503 });
   }
   if (!user?.userId || !body.userToken) {
-    return NextResponse.json({ error: "크레딧을 사려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
+    return NextResponse.json({ error: "러빗을 사려면 먼저 로그인해주세요.", needSignup: true }, { status: 401 });
   }
 
   const expectedCode = creditDepositorCode(body.userToken);
@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     if (order.created) {
       await notifyAdmin(
         [
-          "[입금 확인 요청] 질문 크레딧",
-          `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${pack.credits}크레딧`,
+          "[입금 확인 요청] 질문 러빗",
+          `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${pack.credits}러빗`,
           `입금코드 ${order.depositorCode}`,
           "https://loverebbit.xyz/admin/payments",
         ].join("\n"),
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
       depositorCode: order.depositorCode,
     });
   } catch (error) {
-    console.error("크레딧 계좌이체 승인 요청 실패:", error);
+    console.error("러빗 계좌이체 승인 요청 실패:", error);
     return NextResponse.json({ error: "입금 확인 요청을 저장하지 못했어요." }, { status: 503 });
   }
 }

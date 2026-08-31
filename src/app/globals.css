@@ -1152,15 +1152,41 @@ label {
 
 .fortune-grid-price {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 5px;
   min-width: 0;
 }
 
+/* 러빗 코인 — 동그라미 안의 토끼. 배경 없이 테두리와 로고만.
+   값이 CTA(오베르진)와 같은 색이면 눈이 못 가른다 — 화폐는 브랜드 핑크다. */
+.rabbit-coin {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #ff5c8f;
+  background: none;
+}
+
+.rabbit-coin img {
+  width: 12px;
+  height: 12px;
+  object-fit: contain;
+}
+
 .fortune-grid-price b {
-  color: var(--accent);
-  font-size: 0.84rem;
+  color: #ff5c8f;
+  font-size: 1rem;
   font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.fortune-grid-price small {
+  color: #ff5c8f;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .fortune-grid-price s {
@@ -1170,18 +1196,21 @@ label {
 
 /* 참고 화면의 알약 버튼. 진짜 버튼이 아니라 카드 전체가 링크다 —
    눌리는 곳을 좁히면 반은 빗나간다. */
+/* 화살표만 — 글자 CTA 는 뺐다 (2026-08-31 운영자). 카드 전체가 링크라
+   이 원은 방향 표시일 뿐이다. */
 .fortune-grid-go {
   flex: 0 0 auto;
-  padding: 5px 10px;
-  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 0.7rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  white-space: nowrap;
-  max-width: 60%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1;
+  padding-bottom: 2px;
 }
 
 .fortune-grid-card:hover .fortune-grid-go,

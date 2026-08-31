@@ -40,11 +40,11 @@ export default function CreditsSuccessClient({
         });
         const data = (await res.json().catch(() => ({}))) as { creditsRemaining?: number; error?: string };
         if (!res.ok || typeof data.creditsRemaining !== "number") {
-          throw new Error(data.error ?? "크레딧 결제 승인을 완료하지 못했어요.");
+          throw new Error(data.error ?? "러빗 결제 승인을 완료하지 못했어요.");
         }
         setCredits(data.creditsRemaining);
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "크레딧 결제 승인을 완료하지 못했어요.");
+        setError(reason instanceof Error ? reason.message : "러빗 결제 승인을 완료하지 못했어요.");
       }
     };
     void confirm();
@@ -60,20 +60,20 @@ export default function CreditsSuccessClient({
             <h1>결제를 확인하고 있어요</h1>
             <p className="payment-result-error" role="alert">{error}</p>
             <p className="payment-order-reference">주문번호 {paymentId || "확인 중"}</p>
-            <Link className="btn" href="/credits">크레딧함으로</Link>
+            <Link className="btn" href="/credits">러빗함으로</Link>
           </>
         ) : credits !== null ? (
           <>
             <div className="payment-result-icon" aria-hidden>✓</div>
             <span className="badge">결제 완료</span>
-            <h1>크레딧이 충전됐어요</h1>
-            <p>현재 <strong>{credits}크레딧</strong></p>
+            <h1>러빗이 충전됐어요</h1>
+            <p>현재 <strong>{credits}러빗</strong></p>
             <Link className="btn" href="/ask">질문하러 가기 →</Link>
           </>
         ) : (
           <>
             <div className="auth-loader" aria-label="결제 승인 처리 중" />
-            <h1>크레딧을 충전하고 있어요</h1>
+            <h1>러빗을 충전하고 있어요</h1>
             <p>창을 닫지 말고 잠시만 기다려주세요.</p>
           </>
         )}

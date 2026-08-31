@@ -27,8 +27,8 @@ export interface CreditPack {
  * 100원 = 1크레딧이므로 50크레딧 = 5,000원이 정직한 값이고, 큰 팩만 보너스다.
  */
 export const CREDIT_PACKS: CreditPack[] = [
-  { id: "credits-50", name: "질문 크레딧 50", credits: 50, price: 5_000, note: "질문 10회" },
-  { id: "credits-120", name: "질문 크레딧 120", credits: 120, price: 10_000, note: "질문 24회 · 20% 보너스" },
+  { id: "credits-50", name: "질문 러빗 50", credits: 50, price: 5_000, note: "질문 10회" },
+  { id: "credits-120", name: "질문 러빗 120", credits: 120, price: 10_000, note: "질문 24회 · 20% 보너스" },
 ];
 
 /**
@@ -116,7 +116,7 @@ export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   signup: "가입 선물",
   referral_click: "친구가 초대 링크를 열었어요",
   referral_signup: "친구가 가입했어요",
-  purchase: "크레딧 구매",
+  purchase: "러빗 구매",
   question: "질문",
   reading: "리딩 열람",
   refund: "질문 실패 되돌림",
