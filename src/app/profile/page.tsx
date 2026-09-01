@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import Link from "next/link";
 import InquiryButton from "@/components/InquiryButton";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
@@ -42,7 +43,7 @@ export default function ProfilePage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setShareNotice("공유했어요. 친구가 가입하면 50러빗이 들어와요.");
+        setShareNotice(`공유했어요. 친구가 가입하면 ${REFERRAL_SIGNUP_CREDITS}러빗이 들어와요.`);
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareNotice("초대 링크를 복사했어요.");
@@ -115,7 +116,7 @@ export default function ProfilePage() {
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
           <span className="badge">친구 초대 보상</span>
-          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>친구가 가입하면 50러빗</h2>
+          <h2 style={{ fontSize: "1.15rem", margin: "12px 0 6px" }}>친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.88rem", marginBottom: 14 }}>
             친구가 링크를 열면 질문 1회분, 가입까지 마치면 30일 안에 쓸 수 있는 쿠폰이 들어와요.
           </p>

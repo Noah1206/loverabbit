@@ -9,7 +9,7 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { READING_SALE_CREDITS } from "@/lib/credits";
+import { READING_SALE_CREDITS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
 import RabbitLoader from "@/components/RabbitLoader";
 import {
@@ -931,11 +931,11 @@ export default function ReadingReportPage() {
         {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
-            <h2>친구가 가입하면 50러빗을 드려요</h2>
+            <h2>친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 드려요</h2>
             <p>러빗은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
-                <strong>50러빗</strong>
+                <strong>{REFERRAL_SIGNUP_CREDITS}러빗</strong>
                 <span>친구 1명 가입 시 바로 지급</span>
               </button>
             </div>

@@ -7,11 +7,17 @@
 // 값은 supabase/migrations/…_question_credits.sql 의 머리말과 같아야 한다.
 // 가입·클릭 지급량은 DB 함수 안에 상수로 있고, 여기 것은 화면 문구용이다.
 
-/** 100원 = 1크레딧. 정가 팩의 기준값이다. */
-export const KRW_PER_CREDIT = 100;
+/**
+ * 1,000원 = 1러빗 (2026-09-01 운영자 결정 — 100원이던 것을 바꾼다).
+ *
+ * 손님이 내는 돈은 그대로 두고 러빗 숫자만 1/10 로 접었다. 19러빗짜리 리딩은
+ * 2러빗이 되고 값은 여전히 1,900원이다 — 단위가 커지면 "19러빗"이 얼마인지
+ * 가늠해야 했던 것이 "2러빗 = 2천 원"으로 바로 읽힌다.
+ */
+export const KRW_PER_CREDIT = 1_000;
 
-/** 질문 한 번에 드는 크레딧 */
-export const QUESTION_COST = 5;
+/** 질문 한 번에 드는 러빗 (500원) */
+export const QUESTION_COST = 1;
 
 export interface CreditPack {
   id: string;
@@ -23,12 +29,12 @@ export interface CreditPack {
 }
 
 /**
- * 정가 팩. 50 은 환율 그대로, 120 은 20% 더 준다.
- * 100원 = 1크레딧이므로 50크레딧 = 5,000원이 정직한 값이고, 큰 팩만 보너스다.
+ * 정가 팩. 5 는 환율 그대로, 12 는 20% 더 준다.
+ * 1,000원 = 1러빗이므로 5러빗 = 5,000원이 정직한 값이고, 큰 팩만 보너스다.
  */
 export const CREDIT_PACKS: CreditPack[] = [
-  { id: "credits-50", name: "질문 러빗 50", credits: 50, price: 5_000, note: "질문 10회" },
-  { id: "credits-120", name: "질문 러빗 120", credits: 120, price: 10_000, note: "질문 24회 · 20% 보너스" },
+  { id: "credits-50", name: "러빗 5", credits: 5, price: 5_000, note: "질문 5회" },
+  { id: "credits-120", name: "러빗 12", credits: 12, price: 10_000, note: "질문 12회 · 20% 보너스" },
 ];
 
 /**
@@ -38,18 +44,18 @@ export const CREDIT_PACKS: CreditPack[] = [
  * 여기서 사거나 아무것도 못 한다 — 그래서 첫 칸을 리딩 첫 결제와 같은
  * 1,900원에 둔다. 이미 넘어 본 문턱이라 다시 넘기가 쉽다.
  *
- * 리딩이 크레딧이 되면서(2026-08-31) "첫 리딩 1,900원" 훅을 이 팩이 잇는다 —
- * 100크레딧이면 99크레딧 리딩 한 장이 열린다. 값이 올라갈수록 장당 단가가
- * 내려간다 (19원 → 16원 → 14원). 위 칸이 손해로 보여야 아래 칸이 팔린다.
+ * 리딩이 러빗이 되면서(2026-08-31) "첫 리딩 1,900원" 훅을 이 팩이 잇는다 —
+ * 2러빗이면 리딩 한 장이 열린다. 값이 올라갈수록 러빗당 단가가 내려간다
+ * (950원 → 817원 → 769원). 위 칸이 손해로 보여야 아래 칸이 팔린다.
  *
  * **한 번만 살 수 있다.** 서버가 원장에서 purchase 기록을 보고 막는다
  * (credits/checkout·transfer 라우트). 화면 문구로만 막으면 링크를 아는
  * 사람은 계속 산다.
  */
 export const FIRST_BUY_PACKS: CreditPack[] = [
-  { id: "first-100", name: "맛보기", credits: 100, price: 1_900, note: "리딩 한 장" },
-  { id: "first-300", name: "기본", credits: 300, price: 4_900, note: "리딩 두 장 + 질문" },
-  { id: "first-700", name: "넉넉히", credits: 700, price: 10_000, note: "리딩 네 장 + 질문" },
+  { id: "first-100", name: "맛보기", credits: 2, price: 1_900, note: "리딩 한 장" },
+  { id: "first-300", name: "기본", credits: 6, price: 4_900, note: "리딩 세 장" },
+  { id: "first-700", name: "넉넉히", credits: 13, price: 10_000, note: "리딩 여섯 장 + 질문 1회" },
 ];
 
 export const CREDIT_PACK_MAP: Record<string, CreditPack> = Object.fromEntries(
@@ -86,8 +92,8 @@ export function readingCreditCost(priceKrw: number): number {
  * 결제창 차감이 반드시 이 같은 숫자를 써야 한다 — 표기 따로 차감 따로면
  * 그날로 거짓말이 된다.
  */
-export const READING_SALE_CREDITS = 19;
-export const BUNDLE_SALE_CREDITS = 39;
+export const READING_SALE_CREDITS = 2;
+export const BUNDLE_SALE_CREDITS = 4;
 
 /** 이 리딩을 여는 데 실제로 깎는 크레딧 */
 export function saleCreditCost(isBundle: boolean): number {
@@ -99,8 +105,8 @@ export function questionsLeft(balance: number): number {
   return Math.max(0, Math.floor(balance / QUESTION_COST));
 }
 
-/** 친구가 가입하면 초대인이 받는 크레딧 (리딩 반 장 값) */
-export const REFERRAL_SIGNUP_CREDITS = 50;
+/** 친구가 가입하면 초대인이 받는 러빗 (리딩 두 장 반 값 — 5,000원) */
+export const REFERRAL_SIGNUP_CREDITS = 5;
 
 export type CreditReason =
   | "signup"

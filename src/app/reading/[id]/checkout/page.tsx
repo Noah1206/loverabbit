@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
-import { saleCreditCost } from "@/lib/credits";
+import { saleCreditCost, KRW_PER_CREDIT} from "@/lib/credits";
 import { couponPrice, type Coupon } from "@/lib/coupons";
 import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
@@ -273,7 +273,7 @@ export default function ReadingCheckoutPage() {
           <p className="reading-checkout-error" role="alert">{error}</p>
         )}
       </div>
-      <p className="reading-checkout-note">100원이 1러빗이에요. 열리는 순간 전문이 만들어져요.</p>
+      <p className="reading-checkout-note">{KRW_PER_CREDIT.toLocaleString("ko-KR")}원이 1러빗이에요. 열리는 순간 전문이 만들어져요.</p>
 
       {showSignup && (
         <SignupModal
