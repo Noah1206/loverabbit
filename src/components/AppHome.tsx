@@ -10,7 +10,6 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import { questionsLeft } from "@/lib/credits";
@@ -59,6 +58,9 @@ export default function AppHome() {
   const [notice, setNotice] = useState(0);
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
   const [user, setUser] = useState<User | null>(null);
+  // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
+  // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
+  const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   // 로그인한 사람에게만 보이는 자리. 크레딧과 최근 리딩은 서버가 답한다.
   const [balance, setBalance] = useState<number | null>(null);
@@ -66,6 +68,7 @@ export default function AppHome() {
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
+    setChecked(true);
     return () => clearInterval(t);
   }, []);
 
@@ -149,20 +152,25 @@ export default function AppHome() {
           </div>
         </header>
 
-        {/* ── 히어로 배너 ── 토끼는 그림의 오른쪽 3분의 1에만 있다. 왼쪽 3분의 2는
-             비워 둔 라벤더 단색이고, 글자는 거기에 웹앱이 얹는다 — 그림 안에 글자를
-             굽지 않아야 문구를 언제든 고칠 수 있다. */}
-        <Link href="/reading" className="home-hero" aria-label="첫 사주 보러 가기">
-          <div className="home-hero-copy">
-            <span className="home-hero-badge">첫 사주 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원</span>
-            <strong className="home-hero-title">
-              오늘의 인연,
-              <br />
-              사주로 먼저 봐요
-            </strong>
-            <span className="home-hero-cta">사주 보러 가기 →</span>
-          </div>
-        </Link>
+        {/* ── 로그인 배너 ── 헤더 바로 밑에 고정. 아직 로그인하지 않은 사람에게만
+             보인다 — 이미 들어온 사람에게는 "로그인하세요"가 소음이다.
+
+             그림에는 글자가 없다. 문구는 왼쪽 빈 자리에 얹는 텍스트라서
+             카피를 바꿔도 이미지를 다시 만들 필요가 없다. */}
+        {checked && !user && (
+          <button type="button" className="home-login-banner" onClick={() => setShowSignup(true)}>
+            <span className="home-login-banner-copy">
+              <strong>
+                지금 로그인하고
+                <br />
+                러빗을 받아보세요!
+              </strong>
+              <span className="home-login-banner-cta">
+                로그인하고 시작하기 <i aria-hidden>›</i>
+              </span>
+            </span>
+          </button>
+        )}
 
         {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
              먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
