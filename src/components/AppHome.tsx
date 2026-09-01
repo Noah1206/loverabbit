@@ -196,40 +196,6 @@ export default function AppHome() {
           </div>
         )}
 
-        {/* ── 공지 배너 ── 참고 화면의 제목줄 달린 창 모양. 제목줄이 무엇에
-             대한 알림인지 먼저 말하고, 본문이 바뀔 때 아래에서 올라온다. */}
-        <div className="home-notice-wrap">
-          <div className="home-notice">
-            <div className="home-notice-bar">
-              <span className="home-notice-bar-title">
-                <span aria-hidden>🐰</span> 러브레빗 소식
-              </span>
-              <span className="home-notice-bar-dots" aria-hidden>
-                <i /><i /><i />
-              </span>
-            </div>
-            <div className="home-notice-body">
-              {/* key 가 바뀌면 새로 그려지면서 올라오는 동작이 다시 돈다 */}
-              <div key={notice} className="home-notice-copy">
-                <p className="home-notice-title">{NOTICES[notice].text}</p>
-                <p className="home-notice-sub">{NOTICES[notice].sub}</p>
-              </div>
-              <div className="home-notice-tabs" role="tablist" aria-label="공지">
-                {NOTICES.map((_, i) => (
-                  <button
-                    key={i}
-                    role="tab"
-                    aria-selected={i === notice}
-                    aria-label={`공지 ${i + 1}`}
-                    className={"home-notice-tab" + (i === notice ? " on" : "")}
-                    onClick={() => setNotice(i)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px" }}>
@@ -278,6 +244,45 @@ export default function AppHome() {
             })}
           </div>
         </section>
+
+        {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지
+             먼저 말하고, 본문이 바뀔 때 아래에서 올라온다.
+
+             상품 그리드 아래로 내렸다 (2026-09-01 운영자 결정). 헤더 바로 밑은
+             로그인 배너가 쓰고, 홈에 들어온 사람이 먼저 볼 것은 살 수 있는
+             리딩이지 공지가 아니다. */}
+        <div className="home-notice-wrap">
+          <div className="home-notice">
+            <div className="home-notice-bar">
+              <span className="home-notice-bar-title">
+                <span aria-hidden>🐰</span> 러브레빗 소식
+              </span>
+              <span className="home-notice-bar-dots" aria-hidden>
+                <i /><i /><i />
+              </span>
+            </div>
+            <div className="home-notice-body">
+              {/* key 가 바뀌면 새로 그려지면서 올라오는 동작이 다시 돈다 */}
+              <div key={notice} className="home-notice-copy">
+                <p className="home-notice-title">{NOTICES[notice].text}</p>
+                <p className="home-notice-sub">{NOTICES[notice].sub}</p>
+              </div>
+              <div className="home-notice-tabs" role="tablist" aria-label="공지">
+                {NOTICES.map((_, i) => (
+                  <button
+                    key={i}
+                    role="tab"
+                    aria-selected={i === notice}
+                    aria-label={`공지 ${i + 1}`}
+                    className={"home-notice-tab" + (i === notice ? " on" : "")}
+                    onClick={() => setNotice(i)}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
