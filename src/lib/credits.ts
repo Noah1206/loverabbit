@@ -95,9 +95,38 @@ export function readingCreditCost(priceKrw: number): number {
 export const READING_SALE_CREDITS = 2;
 export const BUNDLE_SALE_CREDITS = 4;
 
-/** 이 리딩을 여는 데 실제로 깎는 크레딧 */
-export function saleCreditCost(isBundle: boolean): number {
-  return isBundle ? BUNDLE_SALE_CREDITS : READING_SALE_CREDITS;
+/**
+ * 사주 한 장의 값은 그 사람이 지금까지 열어본 장수에 따라 오른다
+ * (2026-09-01 운영자 결정).
+ *
+ *   처음 열어보는 사람   2러빗
+ *   한 장 열어본 사람    4러빗
+ *   두 장 이상           10러빗
+ *
+ * 첫 장을 싸게 열어 들어오게 하고, 계속 보는 사람에게 제값을 받는다.
+ * 세는 것은 원장의 reason='reading' 기록이다 — 잔액이 아니라 기록이라,
+ * 러빗을 다 쓴 사람도 열어본 장수는 그대로 남는다.
+ */
+export const READING_PRICE_TIERS = [2, 4, 10] as const;
+
+/** 지금까지 n 장 열어본 사람이 다음 한 장에 내는 러빗 */
+export function readingPriceForCount(openedCount: number): number {
+  // NaN 은 Math.min/max 를 그대로 통과해 표 밖(undefined)으로 나간다 —
+  // 값이 사라지면 결제창이 빈 숫자를 그린다. 셀 수 없으면 첫 장 값이다.
+  const n = Number.isFinite(openedCount) ? Math.floor(openedCount) : 0;
+  const i = Math.min(Math.max(n, 0), READING_PRICE_TIERS.length - 1);
+  return READING_PRICE_TIERS[i];
+}
+
+/**
+ * 이 리딩을 여는 데 실제로 깎는 크레딧.
+ *
+ * openedCount 를 넘기지 않으면 첫 장 값이 나온다 — 서버(차감하는 자리)는
+ * 반드시 실제 장수를 넘겨야 한다. 화면이 값을 덜 부르는 것은 안내가
+ * 틀리는 것이고, 서버가 덜 깎는 것은 값을 못 받는 것이다.
+ */
+export function saleCreditCost(isBundle: boolean, openedCount = 0): number {
+  return isBundle ? BUNDLE_SALE_CREDITS : readingPriceForCount(openedCount);
 }
 
 /** 이 잔액으로 몇 번 물을 수 있나 */

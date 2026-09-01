@@ -71,6 +71,27 @@ export async function hasPurchasedCredits(userId: number): Promise<boolean> {
   return (count ?? 0) > 0;
 }
 
+/**
+ * 이 회원이 지금까지 사주를 몇 장 열었나.
+ *
+ * 다음 한 장의 값을 여기서 가른다 (2·4·10러빗). 원장의 reading 기록으로
+ * 센다 — 잔액이 아니라 기록이라, 러빗을 다 쓴 사람도 장수는 남는다.
+ *
+ * DB 가 없으면 0 을 돌려준다. 로컬에서 첫 장 값이 나오는 쪽이,
+ * 운영에서 세다 실패해 열람을 막는 것보다 낫다.
+ */
+export async function countOpenedReadings(userId: number): Promise<number> {
+  const db = getSupabaseAdmin();
+  if (!db) return 0;
+  const { count, error } = await db
+    .from("lr_credit_ledger")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("reason", "reading");
+  if (error) throw databaseError("열어본 사주 수 조회", error);
+  return count ?? 0;
+}
+
 export async function listCreditLedger(userId: number, limit = 30): Promise<CreditLedgerEntry[]> {
   const db = getSupabaseAdmin();
   if (!db) return [];

@@ -10,8 +10,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { BUNDLES } from "@/lib/bundles";
-import { BUNDLE_SALE_CREDITS, READING_SALE_CREDITS } from "@/lib/credits";
+import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
@@ -58,6 +57,10 @@ export default function AppHome() {
      readingId 가 있어야 열린다 — 해금된 것 중 가장 최근 것을 집는다.
      없으면 배너는 폼으로 보낸다(먼저 한 장을 만들어야 웹툰이 생긴다). */
   const [webtoonId, setWebtoonId] = useState<string | null>(null);
+  /* 그리드에 적는 사주 한 장 값. 사람마다 다르다 (2·4·10러빗 — 지금까지
+     열어본 장수를 탄다). 로그인 전에는 첫 장 값을 적는다: 아직 아무것도
+     열지 않은 사람이 실제로 낼 값이다. */
+  const [readingCost, setReadingCost] = useState(READING_SALE_CREDITS);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
@@ -69,9 +72,22 @@ export default function AppHome() {
   useEffect(() => {
     if (!user) {
       setWebtoonId(null);
+      setReadingCost(READING_SALE_CREDITS);
       return;
     }
     let alive = true;
+    // 이 사람이 다음 한 장에 낼 값. 못 가져오면 첫 장 값 그대로 둔다 —
+    // 결제창이 정본이라, 여기서 틀려도 깎이는 값은 서버가 정한다.
+    fetch("/api/credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d: { readingCost?: number } | null) => {
+        if (alive && typeof d?.readingCost === "number") setReadingCost(d.readingCost);
+      })
+      .catch(() => {});
     fetch("/api/my-readings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -203,20 +219,8 @@ export default function AppHome() {
           <span className="home-webtoon-go" aria-hidden>›</span>
         </Link>
 
-        {/* ── 세트 ── 그리드에서는 뺐지만(2026-08-31) 판매 페이지와 쿠폰 정산은
-             그대로 살아 있었다. 들어갈 문만 막혀 있던 셈이라 한 줄로 다시 낸다. */}
-        {BUNDLES.map((bundle) => (
-          <Link key={bundle.id} href={`/set/${bundle.id}`} className="home-webtoon">
-            <span className="home-webtoon-emoji" aria-hidden>{bundle.emoji}</span>
-            <span className="home-webtoon-copy">
-              <strong>{bundle.title}</strong>
-              {/* 실제로 깎는 값을 적는다 — 정가를 환산해 적으면 결제창에서
-                  다른 숫자를 보게 된다 (세트는 saleCreditCost 가 정본). */}
-              <small>세 장을 한 번에 · {BUNDLE_SALE_CREDITS}러빗</small>
-            </span>
-            <span className="home-webtoon-go" aria-hidden>›</span>
-          </Link>
-        ))}
+        {/* 세트 줄은 홈에서 뺐다 (2026-09-01 운영자). /set/[id] 판매 페이지와
+             쿠폰 정산은 그대로 살아 있어 직접 링크는 여전히 열린다. */}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>
@@ -255,7 +259,7 @@ export default function AppHome() {
                         <i className="rabbit-coin" aria-hidden>
                           <Image src={loveRabbitLogo} alt="" width={12} height={12} />
                         </i>
-                        <b>{READING_SALE_CREDITS}</b>
+                        <b>{readingCost}</b>
                         <small>러빗</small>
                       </span>
                       <span className="fortune-grid-go" aria-hidden>›</span>

@@ -14,7 +14,7 @@ import {
 } from "@/lib/database";
 import { couponPrice, couponSaving } from "@/lib/coupons";
 import { saleCreditCost } from "@/lib/credits";
-import { InsufficientCreditsError, applyCredit, getCreditBalance } from "@/lib/credits-db";
+import { InsufficientCreditsError, applyCredit, getCreditBalance, countOpenedReadings } from "@/lib/credits-db";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
@@ -249,7 +249,10 @@ export async function POST(req: NextRequest) {
     // 세트 리딩은 세트 값을 깎고, 나머지 장을 여는 0원 쿠폰이 나간다 —
     // 계좌이체 시절의 세트 흐름 그대로다.
     const bundle = bundleOfReading(stored?.category ?? "", price);
-    const cost = saleCreditCost(Boolean(bundle));
+    // 단품 값은 지금까지 열어본 장수에 따라 오른다 (2·4·10러빗). 세는 것은
+    // 원장이고, 깎기 직전에 센다 — 화면이 뭐라 적었든 여기가 정본이다.
+    const openedCount = bundle ? 0 : await countOpenedReadings(user.userId);
+    const cost = saleCreditCost(Boolean(bundle), openedCount);
 
     try {
       const balance = await getCreditBalance(user.userId);

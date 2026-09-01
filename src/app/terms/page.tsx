@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import LegalFieldList from "@/components/LegalFieldList";
 import { BUSINESS, businessFields, missingLegalFields } from "@/lib/business-info";
-import { KRW_PER_CREDIT, QUESTION_COST, READING_SALE_CREDITS } from "@/lib/credits";
+import { KRW_PER_CREDIT, QUESTION_COST, READING_PRICE_TIERS } from "@/lib/credits";
 import { WEBTOON_FORTUNE_CONFIG } from "@/lib/webtoon-saju";
 
 /*
@@ -75,7 +75,12 @@ export default function TermsPage() {
           결제 후 계정에 적립됩니다.
         </p>
         <ul className="lp-doc-list">
-          <li>사주 리딩 전문 열람 — {READING_SALE_CREDITS}러빗</li>
+          {/* 값이 사람마다 다르므로(열어본 장수에 따라 오른다) 약관에는 표를
+              그대로 적는다 — "2러빗"만 적으면 둘째 장에서 약관과 다른 값을 낸다. */}
+          <li>
+            사주 리딩 전문 열람 — 첫 장 {READING_PRICE_TIERS[0]}러빗, 둘째 장{" "}
+            {READING_PRICE_TIERS[1]}러빗, 셋째 장부터 {READING_PRICE_TIERS[2]}러빗
+          </li>
           <li>웹툰 사주 상세 — 운세 1종당 {webtoonCost}러빗</li>
           <li>오늘의 질문 — 1회 {QUESTION_COST}러빗</li>
         </ul>

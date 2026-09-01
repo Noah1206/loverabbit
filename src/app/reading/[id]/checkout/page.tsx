@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
-import { saleCreditCost, KRW_PER_CREDIT} from "@/lib/credits";
+import { saleCreditCost, KRW_PER_CREDIT, READING_SALE_CREDITS } from "@/lib/credits";
 import { couponPrice, type Coupon } from "@/lib/coupons";
 import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
@@ -34,6 +34,8 @@ export default function ReadingCheckoutPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  // 이 사람이 낼 단품 값. 서버가 열어본 장수로 정한다 (2·4·10러빗).
+  const [readingCost, setReadingCost] = useState(READING_SALE_CREDITS);
   // 이 리딩을 0원으로 여는 쿠폰(세트 나머지 장). 있으면 크레딧보다 먼저 권한다.
   const [freeCoupon, setFreeCoupon] = useState<Coupon | null>(null);
   const [paying, setPaying] = useState(false);
@@ -65,9 +67,11 @@ export default function ReadingCheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userToken: stored.token }),
       })
-        .then(async (res) => (res.ok ? ((await res.json()) as { balance?: number }) : null))
+        .then(async (res) => (res.ok ? ((await res.json()) as { balance?: number; readingCost?: number }) : null))
         .then((data) => {
           if (typeof data?.balance === "number") setBalance(data.balance);
+          // 단품 값은 사람마다 다르다 (2·4·10러빗) — 서버가 센 장수로 정해진다.
+          if (typeof data?.readingCost === "number") setReadingCost(data.readingCost);
         })
         .catch(() => {});
       // 세트로 산 사람의 나머지 장은 0원 쿠폰으로 열린다. 크레딧 결제창이
@@ -207,7 +211,9 @@ export default function ReadingCheckoutPage() {
 
   const label = PRODUCT_MAP[entry.category]?.shortLabel ?? entry.label;
   const bundle = bundleOfReading(entry.category, entry.price);
-  const cost = saleCreditCost(Boolean(bundle));
+  // 세트는 값이 하나지만 단품은 그 사람이 열어본 장수를 탄다. 서버가 준
+  // readingCost 가 오기 전에는 첫 장 값으로 그린다 — 오면 그것으로 바뀐다.
+  const cost = bundle ? saleCreditCost(true) : readingCost;
   const short = balance === null ? 0 : Math.max(0, cost - balance);
   const enough = balance !== null && balance >= cost;
 
