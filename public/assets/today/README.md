@@ -23,7 +23,9 @@ rabbit-inseong     귀 처지고 졸린 눈     인성 — 쉬고 채우는 날
 ```
 1. nano_banana_pro 로 정지 그림           2크레딧
    → welcome-rabbit.webp 를 image_references 로 넣어 같은 얼굴 유지
-2. seedance_2_5 로 4초 영상               10크레딧
+2. seedance_2_5 로 4초 영상, resolution "1080p"   20크레딧
+   → 1440x1440 으로 나온다. **480p 로 만들면 화면에서 뭉갠다** —
+     처음에 그랬다가 전부 다시 뽑았다
    → 그 정지 그림을 start_image 로. 카메라 고정·배경 정지를 프롬프트에 못박는다
 3. remove_background (media_type: video)  → 배경이 순수 검정인 mp4
 4. ffmpeg 로 밝기를 알파로:
@@ -32,9 +34,9 @@ rabbit-inseong     귀 처지고 졸린 눈     인성 — 쉬고 채우는 날
    "[0:v]format=gbrp,split[c][m];\
     [m]colorchannelmixer=rr=.30:rg=.59:rb=.11:gr=.30:gg=.59:gb=.11:br=.30:bg=.59:bb=.11,\
     curves=all='0/0 0.06/0 0.16/1 1/1'[a];\
-    [c][a]alphamerge,format=yuva420p,scale=448:448,fps=12" \
+    [c][a]alphamerge,format=yuva420p,scale=896:896,fps=12" \
    -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 \
-   -b:v 120k -maxrate 200k -bufsize 500k -an out.webm
+   -b:v 400k -maxrate 700k -bufsize 1400k -an out.webm
 ```
 
 **colorkey 를 쓰지 마라.** 처음에 그렇게 했다가 테두리에 검은 실밥이
@@ -47,10 +49,18 @@ rabbit-inseong     귀 처지고 졸린 눈     인성 — 쉬고 채우는 날
 
 ## 크기
 
-448px, 12fps, 120k. 화면에서는 240px 폭(`.today-rabbit`)으로 그린다 —
-캐릭터가 프레임 가운데 70% 정도만 차지해서 실제로 그려지는 건 180px
-남짓이라 이 해상도로 충분하다. **320px 로 뽑았다가 뭉개진 적이 있다**,
-화면 크기보다 작게 만들지 마라.
+896px, 12fps, 400k. 편당 ~250KB, 정지 그림까지 여섯 쌍 1.6MB.
+화면에서는 260px 폭(`.today-rabbit`)으로 그린다.
+
+**화면 크기보다 작게 만들지 마라.** 320px → 448px 로 두 번 뭉갰다.
+캐릭터가 프레임의 70% 만 차지하므로 유효 해상도는 파일 크기의 70% 다 —
+레티나(2배)까지 감안하면 표시 폭의 최소 3배로 잡아야 한다.
+
+## 정지 그림도 같은 영상에서 뽑는다
+
+`hqstill.sh` 가 배경 지운 영상의 첫 프레임을 투명 webp 로 만든다.
+따로 만들면 자세가 어긋나고, 배경을 안 지우면 네모난 판이 화면에 뜬다
+(둘 다 실제로 겪었다).
 
 `ffprobe` 가 `pix_fmt=yuv420p` 로 보고해도 정상이다 — WebM 은 알파를 별도
 채널로 담아서 `alpha_mode=1` 태그로 확인해야 한다.
