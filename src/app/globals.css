@@ -4565,6 +4565,14 @@ label {
   text-align: center;
 }
 
+/* 준비 중인 로그인 수단을 눌렀을 때. 팝업과 마이 화면이 같이 쓴다. */
+.social-login-error {
+  margin: 8px 4px 0;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .auth-shell {
   min-height: 100dvh;
   display: grid;

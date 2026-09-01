@@ -2,13 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import SignupModal from "@/components/SignupModal";
+import SocialLoginButtons from "@/components/SocialLoginButtons";
 import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
 import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
-  const [showSignup, setShowSignup] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
 
 
@@ -61,7 +60,17 @@ export default function ProfilePage() {
       </p>
       <div className="card" style={{ padding: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-          <span style={{ width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--bg-card2)", fontSize: "1.5rem" }}>🐰</span>
+          {/* 게스트는 빈 사람. 토끼는 브랜드의 얼굴이지 내 얼굴이 아니다 — 로그인하면
+              내 자리가 채워진다는 것을 아이콘이 먼저 말한다. */}
+          <span
+            aria-hidden
+            style={{ width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--bg-card2)", color: "var(--text-dim)" }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8.1" r="3.4" fill={user ? "currentColor" : "none"} />
+              <path d="M5.4 19.8a6.9 6.9 0 0 1 13.2 0" />
+            </svg>
+          </span>
           <div>
             <strong>{user ? "러브레빗 회원" : "게스트"}</strong>
             <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>{user?.email ?? "로그인하고 상담 기록을 연결해보세요."}</p>
@@ -79,9 +88,8 @@ export default function ProfilePage() {
             로그아웃
           </button>
         ) : (
-          <button className="btn" style={{ width: "100%" }} onClick={() => setShowSignup(true)}>
-            로그인 · 가입하기
-          </button>
+          /* 팝업을 한 번 더 열게 하지 않는다 — 여기가 이미 로그인하러 온 자리다. */
+          <SocialLoginButtons />
         )}
       </div>
       {user && (
@@ -96,11 +104,6 @@ export default function ProfilePage() {
           </button>
           {shareNotice && <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
         </div>
-      )}
-      {showSignup && (
-        <SignupModal
-          onClose={() => setShowSignup(false)}
-        />
       )}
     </main>
   );
