@@ -9794,6 +9794,13 @@ body[data-guin-intro="1"] .tabbar {
   overflow: hidden;
 }
 
+/* 로그인한 사람에게는 다른 그림 — 손 흔들어 부르는 대신 두루마리를 펼쳐
+   보인다. 이미 들어온 사람에게 필요한 것은 인사가 아니라 다음 걸음이다.
+   규격(1200x420 · 왼쪽 3분의 2 비움 · 같은 라벤더)이 같아서 그림만 바꾼다. */
+.home-member-banner {
+  background-image: url("/assets/home/member-banner.webp");
+}
+
 .home-login-banner-copy {
   position: absolute;
   left: 6%;

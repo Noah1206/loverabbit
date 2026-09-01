@@ -161,7 +161,7 @@ export default function AppHome() {
              그림에는 글자가 없다. 문구는 왼쪽 빈 자리에 얹는 텍스트라서
              카피를 바꿔도 이미지를 다시 만들 필요가 없다. */}
         {checked && (user ? (
-          <Link href="/reading" className="home-login-banner">
+          <Link href="/reading" className="home-login-banner home-member-banner">
             <span className="home-login-banner-copy">
               <strong>
                 오늘의 인연,
