@@ -8817,6 +8817,12 @@ body:has(.admin-shell) .tabbar {
   overflow: hidden;
   margin-bottom: 14px;
 }
+/* 타이틀 바의 토끼 — 이모지 대신 로고. 로고 자체가 짙은 원판이라
+   흰 테를 두르면 토끼가 그만큼 작아져 검은 점으로 보인다. 그냥 키운다. */
+.credits-cute .cc-bar-logo {
+  border-radius: 50% !important;
+  display: block;
+}
 .credits-cute .cc-bar {
   display: flex;
   justify-content: space-between;

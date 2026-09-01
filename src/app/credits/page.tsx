@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -12,9 +13,9 @@ import {
   CREDIT_PACKS,
   CREDIT_REASON_LABEL,
   listPriceOf,
-  QUESTION_COST,
+  KRW_PER_CREDIT,
+  READING_PRICE_TIERS,
   creditDepositorCode,
-  questionsLeft,
   type CreditLedgerEntry,
   type CreditPack,
   REFERRAL_SIGNUP_CREDITS,
@@ -23,12 +24,13 @@ import { peekCreditsReturn, rememberCreditsReturn } from "@/lib/credits-return";
 import { PAYMENT_METHOD_OPEN } from "@/lib/pay-method";
 import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { getUser, type User } from "@/lib/user";
+import loveRabbitLogo from "../../../public/logo.png";
 
 /*
   크레딧함 — 잔액, 내역, 충전.
 
   결제 수단은 리딩과 같은 것을 같은 순서로 쓴다 (pay-method.ts). 지금은 직접
-  송금만 열려 있다. 크레딧에는 쿠폰이 붙지 않는다 — 리딩은 쿠폰, 질문은 크레딧.
+  송금만 열려 있다. 크레딧에는 쿠폰이 붙지 않는다.
 */
 
 /*
@@ -136,10 +138,9 @@ export default function CreditsPage() {
 
   return (
     <main className="container credits-cute" style={{ paddingTop: 48 }}>
-      <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>LOVE RABBIT CREDITS</p>
-      <h1 style={{ marginBottom: 8 }}>러빗</h1>
+      <h1 style={{ marginBottom: 8 }}>러빗 충전소</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        리딩과 오늘의 질문을 러빗으로 열어요.
+        사주를 러빗으로 열어요.
       </p>
 
       {/* 잔액 — 시트 위의 내 지갑 */}
@@ -150,10 +151,9 @@ export default function CreditsPage() {
             {balance === null ? "—" : <><em>{balance}</em>러빗</>}
           </strong>
           <p className="cc-balance-sub">
-            {balance === null ? "로그인하면 잔액이 보여요" : `질문 ${questionsLeft(balance)}회 남음`}
+            {balance === null ? "로그인하면 잔액이 보여요" : "사주를 열 때 쓰여요"}
           </p>
         </div>
-        <Link className="cc-btn cc-btn-soft" href="/ask">질문하러 가기</Link>
       </div>
 
       {approved && (
@@ -173,7 +173,7 @@ export default function CreditsPage() {
         <section className="cc-card" style={{ borderColor: "var(--cc-pink)", borderWidth: 2 }}>
           <p className="cc-head">처음 오셨네요 — 첫 충전만 이 값이에요</p>
           <p style={{ fontSize: "0.84rem" }}>
-            질문 한 번에 {QUESTION_COST}러빗이 들어요. 아래에서 고르면 바로 물어볼 수 있어요.
+            첫 사주 한 장에 {READING_PRICE_TIERS[0]}러빗이 들어요. 아래에서 고르면 바로 열 수 있어요.
           </p>
           {nextPath && (
             <Link className="cc-btn cc-btn-soft cc-btn-block" href={nextPath} style={{ marginTop: 12 }}>
@@ -187,7 +187,7 @@ export default function CreditsPage() {
       <section className="cc-sheet">
         <div className="cc-bar">
           <span>러빗 가격표</span>
-          <span aria-hidden>🐰</span>
+          <Image src={loveRabbitLogo} alt="" width={30} height={30} className="cc-bar-logo" />
         </div>
 
         {/* MENU 배너 — 환율을 그림 한 장으로 */}
@@ -199,15 +199,15 @@ export default function CreditsPage() {
             <div className="cc-ovals">
               <div>
                 <span className="cc-oval pink">1러빗</span>
-                <p className="cc-oval-price">100원</p>
+                <p className="cc-oval-price">{KRW_PER_CREDIT.toLocaleString()}원</p>
               </div>
               <div>
-                <span className="cc-oval lav">질문 1회</span>
-                <p className="cc-oval-price">{QUESTION_COST}러빗</p>
+                <span className="cc-oval lav">첫 사주</span>
+                <p className="cc-oval-price">{READING_PRICE_TIERS[0]}러빗</p>
               </div>
             </div>
             <p className="cc-menu-note">
-              러빗 하나로 리딩도 질문도 열 수 있어요
+              러빗으로 사주를 열어요
               <br />쓰지 않은 러빗은 그대로 남아 있어요
             </p>
           </div>
@@ -216,7 +216,7 @@ export default function CreditsPage() {
         {!user ? (
           <div style={{ padding: 16, textAlign: "center" }}>
             <p style={{ color: "var(--cc-dim)", fontSize: "0.88rem", marginBottom: 12 }}>
-              로그인하면 첫 구매 할인가를 볼 수 있어요.
+              러빗은 계정에 쌓여요. 로그인하고 충전해 주세요.
             </p>
             <button className="cc-btn cc-btn-block" onClick={() => setShowSignup(true)}>
               로그인 · 가입하기
@@ -284,7 +284,7 @@ export default function CreditsPage() {
         <>
           <section className="cc-card">
             <p className="cc-head">친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗 🎁</p>
-            <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>러빗은 리딩에도 질문에도 쓸 수 있어요.</p>
+            <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>러빗으로 사주를 열어요.</p>
             <button className="cc-btn cc-btn-soft cc-btn-block" onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기
             </button>

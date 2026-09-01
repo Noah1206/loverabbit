@@ -29,34 +29,33 @@ export interface CreditPack {
 }
 
 /**
- * 정가 팩. 5 는 환율 그대로, 12 는 20% 더 준다.
- * 1,000원 = 1러빗이므로 5러빗 = 5,000원이 정직한 값이고, 큰 팩만 보너스다.
+ * 충전 팩 (2026-09-01 운영자 — 세 칸을 1,900 / 4,900 / 12,000 으로 고정).
+ *
+ * 질문 기능이 없어졌으므로 팩의 단위는 사주 장수다. 사주 값은 열어본
+ * 장수를 타므로(2·4·10러빗) 몇 장인지는 사람마다 다르다 — 그래서 note 는
+ * "몇 장"이 아니라 러빗 수만 말한다. 첫 장 기준의 장수를 적으면 셋째
+ * 장부터 그 말이 틀린다.
+ *
+ * 1,000원 = 1러빗이 환율이고, 큰 칸일수록 러빗을 더 얹는다
+ * (950원 → 817원 → 800원). 위 칸이 손해로 보여야 아래 칸이 팔린다.
  */
 export const CREDIT_PACKS: CreditPack[] = [
-  { id: "credits-50", name: "러빗 5", credits: 5, price: 5_000, note: "질문 5회" },
-  { id: "credits-120", name: "러빗 12", credits: 12, price: 10_000, note: "질문 12회 · 20% 보너스" },
+  { id: "credits-2", name: "맛보기", credits: 2, price: 1_900, note: "첫 사주 한 장" },
+  { id: "credits-6", name: "기본", credits: 6, price: 4_900, note: "러빗당 817원" },
+  { id: "credits-15", name: "넉넉히", credits: 15, price: 12_000, note: "러빗당 800원 · 가장 이득" },
 ];
 
 /**
- * 첫 구매 전용 팩 (2026-08-30).
+ * 첫 구매 전용 팩은 없앴다 (2026-09-01 운영자 — 세 칸을 하나로 고정).
  *
- * 무료 크레딧을 없앤 자리를 이것이 받는다. 가입 선물이 없으므로 신규 유저는
- * 여기서 사거나 아무것도 못 한다 — 그래서 첫 칸을 리딩 첫 결제와 같은
- * 1,900원에 둔다. 이미 넘어 본 문턱이라 다시 넘기가 쉽다.
+ * 값은 누구에게나 같다. 첫 구매자에게만 다른 표를 보이면 "로그인해야
+ * 할인가가 보인다"는 말이 생기고, 두 번째 구매에서 값이 오른 것처럼
+ * 보인다. 대신 사주 값 자체가 열어본 장수를 탄다(2·4·10러빗) — 싸게
+ * 들어오게 하는 일은 거기서 한다.
  *
- * 리딩이 러빗이 되면서(2026-08-31) "첫 리딩 1,900원" 훅을 이 팩이 잇는다 —
- * 2러빗이면 리딩 한 장이 열린다. 값이 올라갈수록 러빗당 단가가 내려간다
- * (950원 → 817원 → 769원). 위 칸이 손해로 보여야 아래 칸이 팔린다.
- *
- * **한 번만 살 수 있다.** 서버가 원장에서 purchase 기록을 보고 막는다
- * (credits/checkout·transfer 라우트). 화면 문구로만 막으면 링크를 아는
- * 사람은 계속 산다.
+ * 이름은 남긴다: 결제 라우트 둘과 /api/credits 가 아직 이 이름을 부른다.
  */
-export const FIRST_BUY_PACKS: CreditPack[] = [
-  { id: "first-100", name: "맛보기", credits: 2, price: 1_900, note: "리딩 한 장" },
-  { id: "first-300", name: "기본", credits: 6, price: 4_900, note: "리딩 세 장" },
-  { id: "first-700", name: "넉넉히", credits: 13, price: 10_000, note: "리딩 여섯 장 + 질문 1회" },
-];
+export const FIRST_BUY_PACKS: CreditPack[] = CREDIT_PACKS;
 
 export const CREDIT_PACK_MAP: Record<string, CreditPack> = Object.fromEntries(
   [...CREDIT_PACKS, ...FIRST_BUY_PACKS].map((pack) => [pack.id, pack])
@@ -68,7 +67,10 @@ export function getCreditPack(value?: string | null): CreditPack | null {
 
 /** 첫 구매 전용 팩인가. 서버가 자격을 확인할 때 쓴다. */
 export function isFirstBuyPack(id: string): boolean {
-  return FIRST_BUY_PACKS.some((pack) => pack.id === id);
+  // 한 번만 살 수 있는 팩이 없어졌다 (2026-09-01). 팩 목록으로 판정하면
+  // 이제 모든 팩이 "첫 구매 전용"이 되어 두 번째 충전이 통째로 막힌다.
+  void id;
+  return false;
 }
 
 /** 이 팩의 정가 — 첫 구매 할인율을 화면에 보여주기 위해. */

@@ -24,10 +24,10 @@ describe("질문 크레딧", () => {
   it("팩은 환율보다 비싸지 않다 — 작은 팩은 정직한 값, 큰 팩만 보너스", () => {
     for (const pack of CREDIT_PACKS) {
       assert.ok(pack.price <= pack.credits * KRW_PER_CREDIT, `${pack.id} 가 환율보다 비싸다`);
-      assert.ok(pack.credits % QUESTION_COST === 0, `${pack.id} 는 질문 단위로 떨어지지 않는다`);
+      assert.ok(Number.isInteger(pack.credits), `${pack.id} 의 러빗이 정수가 아니다`);
       assert.ok(pack.credits >= 1 && pack.credits <= 1000, "DB 승인 RPC 의 상한(1..1000) 안");
     }
-    assert.equal(getCreditPack("credits-50")?.price, 5_000);
+    assert.equal(getCreditPack("credits-2")?.price, 1_900);
     assert.equal(getCreditPack("nope"), null);
   });
 
@@ -45,12 +45,18 @@ describe("질문 크레딧", () => {
   });
 });
 
-describe("첫 구매 할인 팩", () => {
+describe("충전 팩", () => {
+  // 2026-09-01: 첫 구매 전용 표를 없애고 세 칸을 하나로 고정했다.
+  // 누가 보든 같은 값이다 — 싸게 들어오게 하는 일은 사주 값(2·4·10러빗)이 한다.
   it("요청받은 세 가격 그대로다", () => {
     assert.deepEqual(
-      FIRST_BUY_PACKS.map((pack) => pack.price),
-      [1_900, 4_900, 10_000]
+      CREDIT_PACKS.map((pack) => pack.price),
+      [1_900, 4_900, 12_000]
     );
+  });
+
+  it("첫 구매자와 그 뒤 사람이 같은 표를 본다", () => {
+    assert.deepEqual(FIRST_BUY_PACKS, CREDIT_PACKS);
   });
 
   it("비쌀수록 장당 단가가 내려간다 — 위 칸이 손해로 보여야 아래가 팔린다", () => {
@@ -63,21 +69,22 @@ describe("첫 구매 할인 팩", () => {
     }
   });
 
-  it("전부 정가보다 싸고, 질문 단위로 떨어진다", () => {
-    for (const pack of FIRST_BUY_PACKS) {
+  it("전부 정가보다 싸고, 러빗은 정수다", () => {
+    for (const pack of CREDIT_PACKS) {
       assert.ok(pack.price < listPriceOf(pack), `${pack.id} 가 정가보다 싸지 않다`);
-      assert.ok(pack.credits % QUESTION_COST === 0, `${pack.id} 는 질문 단위로 안 떨어진다`);
+      assert.ok(Number.isInteger(pack.credits), `${pack.id} 의 러빗이 정수가 아니다`);
       assert.ok(pack.credits >= 1 && pack.credits <= 1000, "DB 승인 RPC 의 상한(1..1000) 안");
     }
   });
 
-  it("첫 구매 팩만 자격 검사에 걸린다", () => {
-    for (const pack of FIRST_BUY_PACKS) assert.ok(isFirstBuyPack(pack.id));
-    for (const pack of CREDIT_PACKS) assert.ok(!isFirstBuyPack(pack.id));
+  // 한 번만 살 수 있는 팩이 없어졌다. 팩 목록으로 판정하던 자리를 그대로
+  // 두면 이제 모든 팩이 "첫 구매 전용"이 되어 두 번째 충전이 통째로 막힌다.
+  it("어떤 팩도 한 번 쓰고 잠기지 않는다", () => {
+    for (const pack of CREDIT_PACKS) assert.ok(!isFirstBuyPack(pack.id), `${pack.id} 가 잠긴다`);
   });
 
   it("id 로 찾을 수 있다 — 결제 라우트가 이걸로 금액을 정한다", () => {
-    for (const pack of FIRST_BUY_PACKS) {
+    for (const pack of CREDIT_PACKS) {
       assert.deepEqual(getCreditPack(pack.id), pack);
     }
   });
