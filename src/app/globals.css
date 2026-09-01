@@ -812,14 +812,14 @@ label {
   justify-content: center;
   gap: 5px;
   /* 로그인 버튼과 같은 키 — 오른쪽 줄의 눈높이를 맞춘다 */
-  height: 38px;
-  width: 38px;
+  height: 44px;
+  width: 44px;
   padding: 0;
   border: 0;
   background: none;
-  /* 브랜드 분홍 — 러브레빗 카드의 그 색 (#ff347f) */
-  color: #ff347f;
-  font-size: 0.72rem;
+  /* 분홍을 걷고 본문 색으로 통일한다 (2026-09-01 운영자) */
+  color: var(--text);
+  font-size: 0.8rem;
   font-weight: 800;
   white-space: nowrap;
   transition: transform 200ms ease;
@@ -844,15 +844,15 @@ label {
 }
 
 .app-header-icon {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 /* 값이 바뀌면 key 가 바뀌어 다시 그려진다 — 그때 숫자가 한 번 튄다.
    바뀐 것을 눈이 놓치지 않게 하는 것이 목적이라 짧게 끝낸다. */
 .app-header-count b {
   display: inline-block;
-  color: var(--accent);
-  font-size: 0.82rem;
+  color: var(--text);
+  font-size: 0.92rem;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
   animation: header-count-pop 420ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -2351,8 +2351,8 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
-  /* 상단바가 화면 맨 위(0)에 붙어 48px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
-  padding-top: calc(64px + env(safe-area-inset-top));
+  /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
+  padding-top: calc(76px + env(safe-area-inset-top));
 }
 
 /* 떠 있는 카드가 아니라 화면 맨 위에 붙은 면이다. 테두리도 그림자도 두지
@@ -2364,9 +2364,10 @@ label {
   left: 50%;
   z-index: 40;
   width: min(100vw, var(--app-max-width));
-  min-height: 48px;
+  /* 헤더를 키운다 (2026-09-01 운영자) — 브랜드와 아이콘이 눌리지 않게 */
+  min-height: 60px;
   margin: 0;
-  padding: calc(5px + env(safe-area-inset-top)) 14px 5px 14px;
+  padding: calc(9px + env(safe-area-inset-top)) 16px 9px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2392,16 +2393,16 @@ label {
   /* 흰 글자가 박혀 있었다. 헤더가 진한 보라였을 때의 값이라, 헤더가 흰
      카드가 된 뒤로는 "LOVE" 가 바탕에 묻혀 안 보였다. */
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: 1.08rem;
   line-height: 1;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .app-header-logo {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   box-shadow: none;
@@ -2416,14 +2417,16 @@ label {
 }
 
 .app-header-action {
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--tint-line);
+  height: 44px;
+  padding: 0 10px;
+  /* 상자를 걷는다 (2026-09-01) — 헤더가 커지자 회색 판만 떠 보였다.
+     옆의 동전 아이콘과 같은 결로, 글자만 검게 선다. */
+  border: 0;
   border-radius: 0;
-  background: var(--tint-1);
-  color: var(--text-dim);
+  background: none;
+  color: var(--text);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
@@ -2441,7 +2444,7 @@ label {
 }
 
 .app-header-login {
-  max-width: 96px;
+  max-width: 108px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -2449,20 +2452,20 @@ label {
 @media (max-width: 360px) {
   .app-header-brand {
     gap: 5px;
-    font-size: 0.88rem;
+    font-size: 0.98rem;
   }
 
   .app-header-logo {
-    width: 29px;
-    height: 29px;
+    width: 32px;
+    height: 32px;
   }
 
   .app-header-action {
-    padding-inline: 9px;
+    padding-inline: 12px;
   }
 
   .app-header-login {
-    max-width: 82px;
+    max-width: 92px;
   }
 }
 

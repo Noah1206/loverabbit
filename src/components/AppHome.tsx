@@ -96,12 +96,12 @@ export default function AppHome() {
               className="app-header-logo"
               src={loveRabbitLogo}
               alt="러브레빗 토끼 로고"
-              width={30}
-              height={30}
+              width={36}
+              height={36}
               priority
-              sizes="30px"
+              sizes="36px"
             />
-            LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
+            LOVE<span>RABBIT</span>
           </strong>
           <div className="app-header-actions">
             {/* 질문권 — 참고 화면의 카운터 자리. 값이 바뀌면 숫자가 한 번 튄다. */}
@@ -113,7 +113,7 @@ export default function AppHome() {
             )}
             <Link href="/credits" className="app-header-icon" aria-label="크레딧 충전 · 내 러빗">
               {/* 쌓인 동전 — 눌러서 가는 곳이 충전 페이지다. BottomNav 처럼 24 격자 stroke 로만 */}
-              <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <ellipse cx="14.5" cy="6.8" rx="5.5" ry="2.6" />
                 <path d="M9 6.8v3.6c0 1.44 2.46 2.6 5.5 2.6s5.5-1.16 5.5-2.6V6.8" />
                 <path d="M9 10.4v3.6c0 1.44 2.46 2.6 5.5 2.6s5.5-1.16 5.5-2.6v-3.6" />
