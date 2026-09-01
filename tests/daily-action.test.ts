@@ -295,3 +295,26 @@ test("오늘 화면은 색인에서 빠진다", async () => {
   const source = await readFile("src/app/today/layout.tsx", "utf8");
   assert.match(source, /index: false/, "검수 중 화면이 검색에 걸리면 안 된다");
 });
+
+/**
+ * 정지 그림도 배경이 투명해야 한다.
+ *
+ * 영상만 투명하게 만들고 그림은 연보라 배경 그대로 둔 적이 있다. 영상이
+ * 안 나오는 자리마다 네모난 판이 화면에 떠 있었는데, 파일은 멀쩡히
+ * 존재해서 "파일 있음" 검사는 통과했다 — 여기서 알파를 직접 본다.
+ */
+function webpHasAlpha(bytes: Buffer): boolean {
+  // 확장 포맷(VP8X)은 헤더의 알파 플래그, 무손실(VP8L)·손실+알파는 ALPH 청크
+  if (bytes.subarray(12, 16).toString() === "VP8X") return (bytes[20] & 0x10) !== 0;
+  return bytes.subarray(0, 200).includes(Buffer.from("ALPH"));
+}
+
+test("토끼 정지 그림은 배경이 투명하다", async () => {
+  for (const flow of FLOWS) {
+    const art = FLOW_RABBIT[flow].art;
+    const bytes = await readFile(`public${art}`);
+    assert.ok(webpHasAlpha(bytes), `${flow}: 배경이 안 지워졌다 — public${art}`);
+  }
+  const greeting = await readFile(`public${GREETING_RABBIT_ART}`);
+  assert.ok(webpHasAlpha(greeting), "인사 그림의 배경이 안 지워졌다");
+});

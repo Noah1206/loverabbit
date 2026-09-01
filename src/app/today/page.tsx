@@ -229,7 +229,7 @@ export default function TodayPage() {
     return (
       <main className="today">
         <div className="today-stage">
-          <RabbitArt art={GREETING_RABBIT_ART} alt="" />
+          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" />
           {screen.kind === "guest" && (
             <>
               <h1 className="today-title">안녕! 오늘 뭐 하면 좋을지 같이 볼까?</h1>
@@ -310,7 +310,7 @@ export default function TodayPage() {
     return (
       <main className="today">
         <div className="today-stage">
-          <RabbitArt art={GREETING_RABBIT_ART} alt="" small />
+          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" small />
           <h1 className="today-title today-title-sm">어떤 게 궁금해?</h1>
           <p className="today-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
         </div>
@@ -424,6 +424,11 @@ export default function TodayPage() {
  *
  * poster 를 쓰지 않는 이유: poster 는 영상이 재생 가능할 때만 그려지므로,
  * 코덱이 아예 안 되는 브라우저에서는 아무것도 안 남는다.
+ *
+ * **정지 그림도 배경이 투명해야 한다.** 처음에 영상만 투명하게 만들고
+ * 그림은 연보라 배경 그대로 뒀더니, 영상이 안 나오는 자리마다 네모난
+ * 판이 화면에 떠 있었다. 지금은 배경을 지운 영상의 첫 프레임에서 그림을
+ * 뽑으므로 자세도 배경도 어긋나지 않는다.
  */
 function RabbitArt({
   video,
