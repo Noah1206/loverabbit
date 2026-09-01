@@ -15,14 +15,6 @@ import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products
 import { questionsLeft } from "@/lib/credits";
 import InquiryButton from "@/components/InquiryButton";
 
-interface RecentReading {
-  readingId: string;
-  category: string;
-  label: string;
-  teaser: string;
-  unlocked: boolean;
-  createdAt: string;
-}
 
 const NOTICES = [
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
@@ -62,9 +54,8 @@ export default function AppHome() {
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  // 로그인한 사람에게만 보이는 자리. 크레딧과 최근 리딩은 서버가 답한다.
+  // 헤더의 질문권 카운터가 쓰는 잔액. 서버가 답한다.
   const [balance, setBalance] = useState<number | null>(null);
-  const [recent, setRecent] = useState<RecentReading[]>([]);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
@@ -76,7 +67,6 @@ export default function AppHome() {
   useEffect(() => {
     if (!user) {
       setBalance(null);
-      setRecent([]);
       return;
     }
     let alive = true;
@@ -89,9 +79,6 @@ export default function AppHome() {
 
     post("/api/credits")
       .then((d: { balance?: number } | null) => { if (alive && typeof d?.balance === "number") setBalance(d.balance); })
-      .catch(() => {});
-    post("/api/my-readings")
-      .then((d: { readings?: RecentReading[] } | null) => { if (alive) setRecent(d?.readings ?? []); })
       .catch(() => {});
     return () => { alive = false; };
   }, [user]);
@@ -170,31 +157,6 @@ export default function AppHome() {
               </span>
             </span>
           </button>
-        )}
-
-        {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
-             먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
-        {user && recent.length > 0 && (
-          <div className="home-status">
-            {recent[0] && (
-              <Link href={`/reading/${recent[0].readingId}`} className="home-status-card">
-                <span className="home-status-avatar" aria-hidden>
-                  {PRODUCT_MAP[recent[0].category]?.emoji ?? "\uD83D\uDC30"}
-                </span>
-                <span className="home-status-body">
-                  <strong>
-                    {recent[0].unlocked
-                      ? `${recent[0].label} 리딩을 다시 볼 수 있어요`
-                      : `${recent[0].label} 리딩이 기다리고 있어요`}
-                    {!recent[0].unlocked && <i className="home-status-dot" aria-hidden />}
-                  </strong>
-                  <span>{recent[0].teaser}</span>
-                </span>
-                <span className="home-status-go" aria-hidden>›</span>
-              </Link>
-            )}
-
-          </div>
         )}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
