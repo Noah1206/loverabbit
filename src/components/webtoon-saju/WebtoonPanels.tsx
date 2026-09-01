@@ -24,10 +24,13 @@ function BubbleShape({ tail }: { tail?: TextOverlay["tail"] }) {
       </svg>
     );
   }
+  // 꼬리는 화자가 있는 쪽으로 내려간다 — 가운데면 가운데로.
   const d =
     tail === "bottom-left"
       ? "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L74,116 L54,148 L58,114 C22,107 4,94 4,60 C4,26 45,4 100,4 Z"
-      : "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L126,116 L146,148 L142,114 C110,110 4,94 4,60 C4,26 45,4 100,4 Z";
+      : tail === "bottom-right"
+        ? "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L126,116 L146,148 L142,114 C110,110 4,94 4,60 C4,26 45,4 100,4 Z"
+        : "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L112,116 L100,148 L88,116 C45,116 4,94 4,60 C4,26 45,4 100,4 Z";
   return (
     <svg viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden="true">
       <path d={d} fill="#fff" stroke="#3a3a3a" strokeWidth="2.5" strokeLinejoin="round" />

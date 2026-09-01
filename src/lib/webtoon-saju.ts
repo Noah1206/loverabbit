@@ -108,16 +108,28 @@ export const BUBBLE_GAP = BUBBLE_BODY_HEIGHT + 2;
 export function bubbleAt(
   side: "left" | "right",
   index = 0,
-  total = 1
+  total = 1,
+  /**
+   * 그림 속 화자의 가로 위치(%). 꼬리는 이 자리를 가리킨다.
+   *
+   * side 는 말풍선이 앉을 쪽일 뿐이고 화자가 어디 있는지와는 다르다. 둘을
+   * 같은 값으로 쓰다가 꼬리가 허공을 가리켰다 — 컷 15장 중 14장에서 토끼는
+   * 거의 정중앙(45~59%)에 있는데 꼬리는 말풍선 쪽 끝으로 내려갔다.
+   */
+  speakerX = 50
 ): Pick<TextOverlay, "x" | "y" | "width" | "align" | "tail"> {
   const last = index === total - 1;
   const x = side === "left" ? 4 + index * 6 : 44 - index * 6;
+  // 화자가 말풍선의 어느 쪽에 있는가 — 그쪽으로 꼬리를 내린다.
+  const mid = x + BUBBLE_WIDTH / 2;
+  const tailSide =
+    Math.abs(speakerX - mid) < 6 ? "bottom-center" : speakerX < mid ? "bottom-left" : "bottom-right";
   return {
     x,
     y: 3 + index * BUBBLE_GAP,
     width: BUBBLE_WIDTH,
     align: "center",
-    tail: last ? (side === "left" ? "bottom-left" : "bottom-right") : undefined,
+    tail: last ? tailSide : undefined,
   };
 }
 
@@ -175,6 +187,8 @@ export function nicknameFromEmail(email?: string | null): string {
  *
  *   lines  화자의 말. 여러 줄이면 위에서부터 쌓이고 마지막에만 꼬리가 붙는다.
  *   side   말풍선이 앉을 쪽. 화자가 오른쪽에 있으면 "left" 로 피한다.
+ *   at     그림 속 화자의 가로 위치(%). 꼬리가 이 자리를 가리킨다. 기본 50 —
+ *          컷 15장을 재어 보니 14장에서 토끼가 45~59% 였다.
  *   cap    화자 없는 컷의 한 줄. 말풍선 대신 상단 띠로 나간다.
  *   sfx    효과음. 이미지에 굽지 않고 오버레이로 얹는다.
  */
@@ -183,6 +197,8 @@ interface CutSpec {
   alt: string;
   free: boolean;
   side?: "left" | "right";
+  /** 그림 속 화자의 가로 위치(%). 재서 넣는다 — 기본은 가운데. */
+  at?: number;
   lines?: string[];
   cap?: string;
   sfx?: string;
@@ -217,7 +233,7 @@ function toPanel(spec: CutSpec): WebtoonPanelData {
       type: "speech",
       text,
       tone: "rabbit",
-      ...bubbleAt(spec.side ?? "left", i, lines.length),
+      ...bubbleAt(spec.side ?? "left", i, lines.length, spec.at ?? 50),
     });
   });
 
@@ -304,7 +320,7 @@ const EPISODES: Record<FortuneType, { cover: string; cuts: CutSpec[] }> = {
         lines: ["그 마음, 저는\n알 것 같아요"] },
       { id: "breakup-06", free: false, alt: "비가 갠 새벽 하늘",
         cap: "비는 언젠가\n그치더라고요" },
-      { id: "breakup-07", free: false, side: "left", alt: "찻잔을 건네는 토끼의 앞발",
+      { id: "breakup-07", free: false, side: "left", at: 20, alt: "찻잔을 건네는 토끼의 앞발",
         lines: ["잠깐 쉬어가도\n괜찮아요"], sfx: "호록" },
       { id: "breakup-08", free: false, side: "right", alt: "아침 빛 속에서 배웅하는 토끼",
         lines: ["회복의 순서를\n알려드릴게요"], sfx: "방긋" },

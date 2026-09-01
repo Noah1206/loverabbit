@@ -133,8 +133,23 @@ describe("말풍선 기하", () => {
   it("꼬리는 마지막 말풍선에만 붙는다", () => {
     // 앞 풍선에도 달면 그 꼬리가 뒤 풍선을 뚫는다. 웹툰의 관행이기도 하다.
     assert.equal(bubbleAt("left", 0, 2).tail, undefined, "앞 풍선에 꼬리가 있다");
-    assert.equal(bubbleAt("left", 1, 2).tail, "bottom-left");
-    assert.equal(bubbleAt("right", 0, 1).tail, "bottom-right", "단독이면 꼬리가 있어야 한다");
+    assert.ok(bubbleAt("left", 1, 2).tail, "마지막 풍선에 꼬리가 없다");
+    assert.ok(bubbleAt("right", 0, 1).tail, "단독이면 꼬리가 있어야 한다");
+  });
+
+  it("꼬리는 말풍선이 앉은 쪽이 아니라 화자를 가리킨다", () => {
+    /*
+      side 는 말풍선이 앉을 쪽일 뿐이다. 둘을 같은 값으로 쓰다가 꼬리가 허공을
+      가리켰다 — 컷 15장 중 14장에서 토끼는 정중앙(45~59%)에 있는데 꼬리는
+      말풍선 쪽 끝으로 내려갔다.
+    */
+    // 왼쪽 말풍선(중심 30%) + 오른쪽에 선 화자(70%) → 꼬리는 오른쪽으로
+    assert.equal(bubbleAt("left", 0, 1, 70).tail, "bottom-right");
+    // 오른쪽 말풍선(중심 70%) + 왼쪽에 선 화자(20%) → 꼬리는 왼쪽으로
+    assert.equal(bubbleAt("right", 0, 1, 20).tail, "bottom-left");
+    // 화자가 말풍선 바로 아래면 가운데로 내린다
+    const left = bubbleAt("left", 0, 1);
+    assert.equal(bubbleAt("left", 0, 1, left.x + BUBBLE_WIDTH / 2).tail, "bottom-center");
   });
 
   it("모든 말풍선이 패널 안에 들어온다", () => {
