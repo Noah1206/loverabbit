@@ -65,17 +65,17 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
     <div className="lp-flow" data-offer={offerActive ? OFFER_ID : undefined}>
       {stage === "intro" ? (
         <div className="lp-intro">
-          {/* 광고 소재의 속마음 후킹을 실제 판매 상품인 썸 해부 사주로 이어 준다. */}
+          {/* 광고 소재의 속마음 후킹을 실제 판매 상품인 썸 사주로 이어 준다. */}
           <div className="lp-intro-art">
             <Image
               src="/cards-pastel/sseom.jpg"
-              alt="썸 해부 사주"
+              alt="썸 사주"
               fill
               priority
               sizes="(max-width: 640px) 100vw, 480px"
               style={{ objectFit: "cover", objectPosition: "center 22%" }}
             />
-            <span className="lp-intro-art-tag">썸 해부 사주</span>
+            <span className="lp-intro-art-tag">썸 사주</span>
           </div>
           <p className="lp-intro-line">
             다정함인지 호감인지 애매했던 신호, 이 썸이 멈춘 진짜 이유부터 확인해 볼까요.
@@ -126,7 +126,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
         <SignupModal
           title="로그인하고 시작하기"
           nextPath={formPath}
-          reason="로그인 후 썸 해부 사주 입력 화면으로 바로 이어져요."
+          reason="로그인 후 썸 사주 입력 화면으로 바로 이어져요."
           onClose={() => setShowSignup(false)}
         />
       ) : null}

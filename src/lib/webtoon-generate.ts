@@ -16,6 +16,7 @@ import "server-only";
 //   · 가드를 우회하지 않는다 — 걸리면 고정 카피로 내려간다
 
 import { chatComplete } from "@/lib/ai";
+import { computeSaju, type SajuChart } from "@/lib/saju";
 import { getUserSajuProfile } from "@/lib/database";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { buildSajuFacts, type SajuFacts } from "@/lib/saju-facts";
@@ -116,6 +117,33 @@ async function draftFor(
  * 프로필이 없거나, AI 가 없거나, 가드에 걸리면 고정 카피를 그대로 돌려준다.
  * 화면은 어느 쪽이든 똑같이 그려진다 — 문장만 명식을 반영하느냐 아니냐가 다르다.
  */
+/**
+ * 이 사람의 명식(만세력 표) — 화면이 그대로 그릴 수 있는 모양으로.
+ *
+ * 웹툰은 이미 이 명식으로 문장을 쓴다. 그런데 화면에는 그 근거가 보이지
+ * 않아서, 읽는 사람은 "내 사주로 쓴 글"인지 알 길이 없었다. 표를 함께 내려
+ * 보내 폼에 넣은 값이 실제로 쓰였다는 것을 눈으로 보이게 한다.
+ *
+ * 생년월일이 없으면 null — 지어내지 않는다.
+ */
+export async function webtoonChartFor(
+  userId: number
+): Promise<{ chart: SajuChart; birthLine: string } | null> {
+  const profile = await getUserSajuProfile(userId).catch(() => null);
+  if (!profile?.birthdate) return null;
+  const [year, month, day] = profile.birthdate.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  const hour = profile.birthTimeUnknown ? null : profile.birthHour;
+  try {
+    const chart = computeSaju({ year, month, day, hour });
+    const time = hour === null ? "시간 모름" : `${String(hour).padStart(2, "0")}시`;
+    return { chart, birthLine: `${year}.${month}.${day} · ${time}` };
+  } catch (error) {
+    console.error("웹툰 명식 표 계산 실패:", error);
+    return null;
+  }
+}
+
 export async function generateWebtoonContent(
   userId: number,
   fortuneType: FortuneType,

@@ -10,20 +10,11 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { FIRST_READING_PRICE } from "@/lib/coupons";
-import { READING_SALE_CREDITS } from "@/lib/credits";
+import { BUNDLES } from "@/lib/bundles";
+import { BUNDLE_SALE_CREDITS, READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
-import { questionsLeft } from "@/lib/credits";
 import InquiryButton from "@/components/InquiryButton";
 
-interface RecentReading {
-  readingId: string;
-  category: string;
-  label: string;
-  teaser: string;
-  unlocked: boolean;
-  createdAt: string;
-}
 
 const NOTICES = [
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
@@ -59,41 +50,44 @@ export default function AppHome() {
   const [notice, setNotice] = useState(0);
   const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
   const [user, setUser] = useState<User | null>(null);
+  // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
+  // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
+  const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  // 로그인한 사람에게만 보이는 자리. 크레딧과 최근 리딩은 서버가 답한다.
-  const [balance, setBalance] = useState<number | null>(null);
-  const [recent, setRecent] = useState<RecentReading[]>([]);
+  /* 웹툰으로 열 수 있는 리딩 하나. 웹툰은 이미 산 리딩을 다시 읽는 화면이라
+     readingId 가 있어야 열린다 — 해금된 것 중 가장 최근 것을 집는다.
+     없으면 배너는 폼으로 보낸다(먼저 한 장을 만들어야 웹툰이 생긴다). */
+  const [webtoonId, setWebtoonId] = useState<string | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
+    setChecked(true);
     return () => clearInterval(t);
   }, []);
 
-  // 못 가져와도 그냥 지나간다 — 이 줄은 덤이고, 없다고 홈이 막히면 안 된다.
+  // 못 가져와도 그냥 지나간다 — 배너는 폼으로 보내면 되고, 홈이 막히면 안 된다.
   useEffect(() => {
     if (!user) {
-      setBalance(null);
-      setRecent([]);
+      setWebtoonId(null);
       return;
     }
     let alive = true;
-    const post = (path: string) =>
-      fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userToken: user.token }),
-      }).then((res) => (res.ok ? res.json() : null));
-
-    post("/api/credits")
-      .then((d: { balance?: number } | null) => { if (alive && typeof d?.balance === "number") setBalance(d.balance); })
+    fetch("/api/my-readings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d: { readings?: { readingId: string; unlocked: boolean }[] } | null) => {
+        if (!alive) return;
+        setWebtoonId(d?.readings?.find((r) => r.unlocked)?.readingId ?? null);
+      })
       .catch(() => {});
-    post("/api/my-readings")
-      .then((d: { readings?: RecentReading[] } | null) => { if (alive) setRecent(d?.readings ?? []); })
-      .catch(() => {});
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [user]);
 
-  const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
   const list = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id) && (filter === "all" || p.tags.includes(filter)));
 
   return (
@@ -101,29 +95,23 @@ export default function AppHome() {
       <div className="app-home-shell" style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── 상단바 ── */}
         <header className="app-header">
+          {/* 글자를 걷고 로고만 남긴다 (2026-09-01 운영자). 이름은 alt 가 진다 —
+              눈으로는 안 보여도 낭독기와 검색에는 남아야 한다. */}
           <strong className="app-header-brand">
             <Image
               className="app-header-logo"
               src={loveRabbitLogo}
-              alt="러브레빗 토끼 로고"
-              width={30}
-              height={30}
+              alt="러브레빗"
+              width={36}
+              height={36}
               priority
-              sizes="30px"
+              sizes="36px"
             />
-            LOVE<span style={{ color: "var(--accent)" }}>RABBIT</span>
           </strong>
           <div className="app-header-actions">
-            {/* 질문권 — 참고 화면의 카운터 자리. 값이 바뀌면 숫자가 한 번 튄다. */}
-            {balance !== null && (
-              <Link href="/credits" className="app-header-count" aria-label={`질문권 ${questionsLeft(balance)}번 남음`}>
-                <span aria-hidden>🎫</span>
-                <b key={questionsLeft(balance)}>{questionsLeft(balance)}</b>
-              </Link>
-            )}
             <Link href="/credits" className="app-header-icon" aria-label="크레딧 충전 · 내 러빗">
               {/* 쌓인 동전 — 눌러서 가는 곳이 충전 페이지다. BottomNav 처럼 24 격자 stroke 로만 */}
-              <svg aria-hidden width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <ellipse cx="14.5" cy="6.8" rx="5.5" ry="2.6" />
                 <path d="M9 6.8v3.6c0 1.44 2.46 2.6 5.5 2.6s5.5-1.16 5.5-2.6V6.8" />
                 <path d="M9 10.4v3.6c0 1.44 2.46 2.6 5.5 2.6s5.5-1.16 5.5-2.6v-3.6" />
@@ -142,52 +130,93 @@ export default function AppHome() {
                   setShowSignup(true);
                 }
               }}
-              className="app-header-action app-header-login"
+              className="app-header-icon"
+              aria-label={user ? `${user.email.split("@")[0]} · 로그아웃` : "로그인"}
+              title={user ? `${user.email.split("@")[0]} · 로그아웃` : "로그인"}
             >
-              {user ? user.email.split("@")[0] : "로그인"}
+              {/* 사람 아이콘. 로그인하면 안을 채워 "들어와 있음"을 색으로 말한다 —
+                  글자를 걷었으니 상태는 모양이 대신 진다. 동전 아이콘과 같은 24 격자. */}
+              <svg
+                aria-hidden
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="8" r="3.6" fill={user ? "currentColor" : "none"} />
+                <path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8" />
+              </svg>
             </button>
           </div>
         </header>
 
-        {/* ── 히어로 배너 ── 토끼는 그림의 오른쪽 3분의 1에만 있다. 왼쪽 3분의 2는
-             비워 둔 라벤더 단색이고, 글자는 거기에 웹앱이 얹는다 — 그림 안에 글자를
-             굽지 않아야 문구를 언제든 고칠 수 있다. */}
-        <Link href="/reading" className="home-hero" aria-label="첫 사주 보러 가기">
-          <div className="home-hero-copy">
-            <span className="home-hero-badge">첫 사주 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원</span>
-            <strong className="home-hero-title">
-              오늘의 인연,
-              <br />
-              사주로 먼저 봐요
-            </strong>
-            <span className="home-hero-cta">사주 보러 가기 →</span>
-          </div>
+        {/* ── 배너 ── 헤더 바로 밑에 고정. 그림은 하나지만 문구는 사람에 따라
+             갈린다 — 아직 로그인하지 않았으면 로그인을, 이미 들어온 사람에게는
+             사주를 권한다. "로그인하세요"를 로그인한 사람에게 다시 보이면 소음이다.
+
+             그림에는 글자가 없다. 문구는 왼쪽 빈 자리에 얹는 텍스트라서
+             카피를 바꿔도 이미지를 다시 만들 필요가 없다. */}
+        {checked && (user ? (
+          <Link href="/reading" className="home-login-banner home-member-banner">
+            <span className="home-login-banner-copy">
+              <strong>
+                오늘의 인연,
+                <br />
+                사주로 먼저 봐요
+              </strong>
+              <span className="home-login-banner-cta">
+                내 사주 보러 가기 <i aria-hidden>›</i>
+              </span>
+            </span>
+          </Link>
+        ) : (
+          <button type="button" className="home-login-banner" onClick={() => setShowSignup(true)}>
+            <span className="home-login-banner-copy">
+              <strong>
+                지금 로그인하고
+                <br />
+                러빗을 받아보세요!
+              </strong>
+              <span className="home-login-banner-cta">
+                로그인하고 시작하기 <i aria-hidden>›</i>
+              </span>
+            </span>
+          </button>
+        ))}
+
+        {/* ── 웹툰 사주 ── 리딩 끝에서만 열리던 길을 홈으로 옮긴다 (2026-09-01
+             운영자). 이미 산 리딩이 있으면 그 리딩의 웹툰으로, 없으면 폼으로 —
+             웹툰은 명식이 있어야 그려지므로 한 장을 먼저 만들어야 한다. */}
+        <Link
+          href={webtoonId ? `/webtoon-saju/${webtoonId}` : "/reading"}
+          className="home-webtoon"
+        >
+          <span className="home-webtoon-emoji" aria-hidden>🐰</span>
+          <span className="home-webtoon-copy">
+            <strong>내 사주를 웹툰으로 읽어요</strong>
+            <small>재물운 · 연애운 · 이별운 · 앞 장면은 무료</small>
+          </span>
+          <span className="home-webtoon-go" aria-hidden>›</span>
         </Link>
 
-        {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
-             먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
-        {user && recent.length > 0 && (
-          <div className="home-status">
-            {recent[0] && (
-              <Link href={`/reading/${recent[0].readingId}`} className="home-status-card">
-                <span className="home-status-avatar" aria-hidden>
-                  {PRODUCT_MAP[recent[0].category]?.emoji ?? "\uD83D\uDC30"}
-                </span>
-                <span className="home-status-body">
-                  <strong>
-                    {recent[0].unlocked
-                      ? `${recent[0].label} 리딩을 다시 볼 수 있어요`
-                      : `${recent[0].label} 리딩이 기다리고 있어요`}
-                    {!recent[0].unlocked && <i className="home-status-dot" aria-hidden />}
-                  </strong>
-                  <span>{recent[0].teaser}</span>
-                </span>
-                <span className="home-status-go" aria-hidden>›</span>
-              </Link>
-            )}
-
-          </div>
-        )}
+        {/* ── 세트 ── 그리드에서는 뺐지만(2026-08-31) 판매 페이지와 쿠폰 정산은
+             그대로 살아 있었다. 들어갈 문만 막혀 있던 셈이라 한 줄로 다시 낸다. */}
+        {BUNDLES.map((bundle) => (
+          <Link key={bundle.id} href={`/set/${bundle.id}`} className="home-webtoon">
+            <span className="home-webtoon-emoji" aria-hidden>{bundle.emoji}</span>
+            <span className="home-webtoon-copy">
+              <strong>{bundle.title}</strong>
+              {/* 실제로 깎는 값을 적는다 — 정가를 환산해 적으면 결제창에서
+                  다른 숫자를 보게 된다 (세트는 saleCreditCost 가 정본). */}
+              <small>세 장을 한 번에 · {BUNDLE_SALE_CREDITS}러빗</small>
+            </span>
+            <span className="home-webtoon-go" aria-hidden>›</span>
+          </Link>
+        ))}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>
@@ -195,7 +224,6 @@ export default function AppHome() {
             {([["all", "전체"], ["popular", "인기"], ["new", "신규"]] as const).map(([k, label]) => (
               <button key={k} className={`chip${filter === k ? " on" : ""}`} onClick={() => setFilter(k)}>{label}</button>
             ))}
-            <button className="chip" style={{ marginLeft: "auto", color: "var(--accent-soft)" }} onClick={() => soon("태그 검색")}>태그 &gt;</button>
           </div>
 
           <div className="fortune-grid">
@@ -204,11 +232,12 @@ export default function AppHome() {
             {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
             {list.map((p) => {
               return (
-                /* 상세 판매 페이지를 건너뛰고 바로 입력 폼으로 (2026-08-31 운영자 결정).
-                   /product/[id] 자체는 남아 있다 — Threads 착지 링크가 그리로 온다. */
+                /* 카드는 상세 판매 페이지로 간다 (2026-09-01 운영자 결정 — 8/31 의
+                   "바로 폼으로"를 되돌린다). 무엇을 사는지 먼저 읽고 나서 폼으로
+                   간다. 폼으로 바로 가는 길은 상세 페이지의 CTA 가 잇는다. */
                 <Link
                   key={p.id}
-                  href={`/reading?c=${p.id}`}
+                  href={`/product/${p.id}`}
                   className="card fortune-grid-card"
                   data-tone={p.tone}
                   data-product={p.id}
@@ -279,21 +308,20 @@ export default function AppHome() {
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
-          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-            {["𝕏", "📷", "🎵"].map((s, i) => (
-              <button key={i} onClick={() => soon("공식 SNS")} aria-label="SNS" style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--line)", background: "var(--bg-card)", color: "var(--text)", fontSize: "1rem", cursor: "pointer" }}>{s}</button>
-            ))}
-          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, fontSize: "0.82rem" }}>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>지원</strong>
-              <p style={{ marginTop: 6 }}><button onClick={() => soon("고객센터")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>고객센터</button></p>
-              <p><button onClick={() => soon("자주 묻는 질문")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>자주 묻는 질문</button></p>
+              {/* 문의 기능은 이미 있다(InquiryButton) — 가짜 alert 대신 그것을 연다. */}
+              {/* 문의는 한 곳이다 — "고객센터"와 "자주 묻는 질문"을 따로 두면
+                  같은 창을 여는 버튼이 셋이 된다. 이름 하나로 합친다. */}
+              <p style={{ marginTop: 6 }}><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>문의하기</button></p>
             </div>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>법적 고지</strong>
-              <p style={{ marginTop: 6 }}><button onClick={() => soon("이용약관")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>이용약관</button></p>
-              <p><button onClick={() => soon("개인정보처리방침")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>개인정보처리방침</button></p>
+              {/* 문서는 실제로 있다 — 가짜 alert 을 걷고 링크로 잇는다 (2026-09-01).
+                  돈을 받는 화면에서 약관으로 가는 길이 없으면 안 된다. */}
+              <p style={{ marginTop: 6 }}><Link href="/terms" style={{ color: "var(--text)" }}>이용약관</Link></p>
+              <p><Link href="/privacy" style={{ color: "var(--text)" }}>개인정보처리방침</Link></p>
             </div>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>러브레빗</strong>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
+import SajuChart from "@/components/SajuChart";
 import SignupModal from "@/components/SignupModal";
 import {
   FortuneTabBar,
@@ -39,7 +40,7 @@ export default function WebtoonSajuPage() {
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
-  const { reading, status, error, reload, applyServerState } = useWebtoonReading(readingId, fortuneType);
+  const { reading, status, error, reload, applyServerState, giveUp } = useWebtoonReading(readingId, fortuneType);
   const { unlock, pending, error: unlockError } = useWebtoonUnlock(readingId);
 
   // 주소의 탭·복귀 상태. useSearchParams 는 Suspense 경계를 요구해서
@@ -120,7 +121,7 @@ export default function WebtoonSajuPage() {
       </main>
     );
   }
-  if (status === "loading") return <WebtoonLoadingState />;
+  if (status === "loading") return <WebtoonLoadingState onTimeout={giveUp} />;
   if (status === "error" || !reading) return <WebtoonErrorState error={error} onRetry={reload} />;
 
   const isUnlocked = reading.unlocked;
@@ -153,8 +154,21 @@ export default function WebtoonSajuPage() {
             className="webtoon-cover"
             src={reading.coverImageUrl}
             alt={`${reading.subjectNickname}님의 ${label} 웹툰 표지`}
+            onError={(event) => {
+              event.currentTarget.style.visibility = "hidden";
+            }}
           />
         </section>
+
+        {/* 내 명식 — 이 글이 무엇을 보고 쓰였는지 먼저 보인다. 폼에 넣은 값이
+            실제로 쓰였다는 것을 표로 확인시킨다 (없으면 그리지 않는다). */}
+        {reading.chart && (
+          <SajuChart
+            chart={reading.chart}
+            name={`${reading.subjectNickname}님의 명식`}
+            birthLine={reading.birthLine ?? undefined}
+          />
+        )}
 
         <RabbitNarrationCard text={reading.previewText} />
         <WebtoonPanelViewer panels={reading.panels} unlocked={isUnlocked} />

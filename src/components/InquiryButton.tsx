@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 
 import { getUser, type User } from "@/lib/user";
 
-// 하단 탭바 바로 위에 뜨는 문의 버튼.
-// 한 번 눌러 문의창을 열고, 내용을 보내면 lr_inquiries에 쌓여 /admin/inquiries에서 읽는다.
+// 문의창.
 //
-// 첫 화면에서는 숨긴다. 고정 배치라 화면 오른쪽 아래를 늘 차지하는데, 맨 위에서는
-// 그 자리에 태그 필터가 와서 버튼을 눌러도 문의창이 열린다. 조금이라도 내리면 나타난다.
+// 떠 있는 버튼(FAB)은 걷었다 (2026-09-01 운영자) — 화면 오른쪽 아래를 늘
+// 차지하는데 푸터에 이미 "문의하기" 가 있다. 이제 이 컴포넌트는 창만 들고
+// 있고, 여는 것은 loverabbit:inquiry 이벤트다.
+//
+// 보낸 내용은 lr_inquiries 에 쌓여 /admin/inquiries 에서 읽는다.
 
 const CATEGORIES = [
   { id: "payment", label: "결제·입금" },
@@ -36,6 +38,14 @@ export default function InquiryButton() {
     setUser(stored);
     if (stored?.email) setEmail(stored.email);
   }, [open]);
+
+  /* 푸터의 "고객센터"처럼 멀리 있는 자리에서도 이 창을 연다. 문의는 여기
+     하나뿐이라 화면마다 새로 만들 이유가 없다 — 부르는 쪽은 이벤트만 쏜다. */
+  useEffect(() => {
+    const openInquiry = () => setOpen(true);
+    window.addEventListener("loverabbit:inquiry", openInquiry);
+    return () => window.removeEventListener("loverabbit:inquiry", openInquiry);
+  }, []);
 
   // 열려 있는 동안에는 뒤 배경이 스크롤되지 않게 한다.
   useEffect(() => {
@@ -86,29 +96,8 @@ export default function InquiryButton() {
     }
   };
 
-  // 첫 화면(스크롤 0 근처)에서는 접어 둔다.
-  const [lifted, setLifted] = useState(false);
-  useEffect(() => {
-    const onScroll = () => setLifted(window.scrollY > 220);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <>
-      <div className={`inquiry-fab-slot${lifted ? "" : " inquiry-fab-slot-hidden"}`}>
-        <button
-          type="button"
-          className="inquiry-fab"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-        >
-          <span aria-hidden>✉</span>
-          문의하기
-        </button>
-      </div>
-
       {open && (
         <div
           className="inquiry-overlay"

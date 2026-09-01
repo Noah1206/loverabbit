@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { listArchive, removeFromArchive, type ArchiveEntry } from "@/lib/archive";
@@ -118,7 +119,7 @@ export default function MyPage() {
     try {
       if (navigator.share) {
         await navigator.share({ title: "러브레빗 무료 사주", text, url });
-        setShareNotice("공유했어요. 친구가 가입하면 50러빗이 들어와요.");
+        setShareNotice(`공유했어요. 친구가 가입하면 ${REFERRAL_SIGNUP_CREDITS}러빗이 들어와요.`);
       } else {
         await navigator.clipboard.writeText(`${text}\n${url}`);
         setShareNotice("초대 링크를 복사했어요.");
@@ -171,7 +172,7 @@ export default function MyPage() {
         </div>
         {coupons.length === 0 ? (
           <div className="coupon-empty">
-            아직 쿠폰이 없어요. 친구가 내 링크로 가입하면 50러빗이 들어와요.
+            아직 쿠폰이 없어요. 친구가 내 링크로 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗이 들어와요.
           </div>
         ) : (
           <div className="coupon-list">
@@ -199,7 +200,7 @@ export default function MyPage() {
           onClick={share}
           disabled={!user?.referralCode}
         >
-          친구 초대하고 50러빗 받기
+          친구 초대하고 {REFERRAL_SIGNUP_CREDITS}러빗 받기
         </button>
         {shareNotice && (
           <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 8 }}>{shareNotice}</p>

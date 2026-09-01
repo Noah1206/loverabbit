@@ -9,8 +9,9 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { READING_SALE_CREDITS } from "@/lib/credits";
+import { READING_SALE_CREDITS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
+import RabbitLoader from "@/components/RabbitLoader";
 import {
   landingTypeForProduct,
   trackInitiateCheckout,
@@ -597,9 +598,16 @@ export default function ReadingReportPage() {
   };
 
   if (status === "loading") {
+    /* 기다림에는 끝을 둔다 — 서버가 응답하지 않으면 catch 도 안 돌아 예전에는
+       스피너가 영원히 돌았다. 20초가 지나면 나갈 길이 있는 화면으로 보낸다. */
     return (
       <main className="container report-page">
-        <div className="auth-loader" aria-label="리딩 불러오는 중" />
+        <RabbitLoader
+          message="사주를 불러오는 중이에요"
+          sub="잠시만 기다려 주세요."
+          timeoutMs={20_000}
+          onTimeout={() => setStatus("missing")}
+        />
       </main>
     );
   }
@@ -703,7 +711,16 @@ export default function ReadingReportPage() {
       />
 
       <div className="rv-scroll">
-        {notice && <p className="rv-notice">{notice}</p>}
+        {notice && (
+          /* "잠시 후 다시 열어주세요" 라고만 하고 열 자리를 안 주면, 사용자는
+             무엇을 해야 하는지 모른 채 결제한 글을 기다린다. 누를 자리를 준다. */
+          <p className="rv-notice">
+            {notice}
+            <button type="button" className="rv-notice-retry" onClick={() => window.location.reload()}>
+              지금 다시 확인하기
+            </button>
+          </p>
+        )}
 
         {page === 0 ? (
           <>
@@ -863,18 +880,6 @@ export default function ReadingReportPage() {
                 {/* 마지막 장 끝 — 다 읽은 사람만 받는다 */}
                 <Talisman image={imageOf(TALISMAN_SLOT)} label={entry.label} />
 
-                {/* 같은 명식을 웹툰으로도 — 다 읽은 직후에만 권한다. 새 폼도
-                    새 결제도 없이 이미 만든 이 리딩이 그대로 세 편의 이야기가
-                    된다. 앞 두 패널은 무료라 눌러 보는 값이 0 이다. */}
-                <Link href={`/webtoon-saju/${entry.readingId}`} className="report-webtoon-link">
-                  <span className="report-webtoon-emoji" aria-hidden>🐰</span>
-                  <span className="report-webtoon-copy">
-                    <strong>이 명식을 웹툰으로도 볼래요?</strong>
-                    <small>재물운·연애운·이별운 · 앞 장면은 무료</small>
-                  </span>
-                  <span className="report-webtoon-go" aria-hidden>→</span>
-                </Link>
-
                 {/* 후기는 다음 상품을 권하기 전에 묻는다. 다 읽은 직후가 할 말이
                     남아 있는 유일한 순간이고, 홈에 걸리는 후기는 전부 여기서 온다. */}
                 <ReviewPrompt
@@ -926,11 +931,11 @@ export default function ReadingReportPage() {
         {!unlocked && user && page === 0 && (
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
-            <h2>친구가 가입하면 50러빗을 드려요</h2>
+            <h2>친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 드려요</h2>
             <p>러빗은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
-                <strong>50러빗</strong>
+                <strong>{REFERRAL_SIGNUP_CREDITS}러빗</strong>
                 <span>친구 1명 가입 시 바로 지급</span>
               </button>
             </div>

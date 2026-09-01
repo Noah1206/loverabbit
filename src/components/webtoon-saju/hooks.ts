@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { SajuChart } from "@/lib/saju";
 
 import { getUser } from "@/lib/user";
 import type { FortuneType, WebtoonPanelData } from "@/lib/webtoon-saju";
@@ -16,6 +17,9 @@ export interface WebtoonReadingState {
   luvitCost: number;
   luvitBalance: number;
   coverImageUrl: string;
+  /** 폼에 넣은 값으로 세운 명식. 생년월일이 없으면 null. */
+  chart: SajuChart | null;
+  birthLine: string | null;
   previewText: string;
   previewPoints: string[];
   panels: WebtoonPanelData[];
@@ -63,7 +67,14 @@ export function useWebtoonReading(readingId: string, fortuneType: FortuneType) {
     if (readingId) void load();
   }, [readingId, load]);
 
-  return { reading, status, error, reload: load, applyServerState: setReading };
+  /* 응답이 오지 않을 때 화면이 부른다 — 로딩에 갇히지 않고 에러 화면으로
+     넘어가면 거기엔 재시도와 홈이 있다. */
+  const giveUp = useCallback(() => {
+    setStatus((current) => (current === "loading" ? "error" : current));
+    setError((current) => current ?? "응답이 늦어지고 있어요. 잠시 후 다시 시도해 주세요.");
+  }, []);
+
+  return { reading, status, error, reload: load, applyServerState: setReading, giveUp };
 }
 
 export interface UnlockResult {

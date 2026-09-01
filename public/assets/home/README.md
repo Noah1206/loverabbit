@@ -1,7 +1,12 @@
 # 홈 배너 (2026-09-01)
 
-login-banner.webp — 헤더 밑에 고정되는 로그인 유도 배너. 1200x420, 14KB.
-Higgsfield nano_banana_pro, 3D 렌더, 2크레딧.
+login-banner.webp — 비로그인에게 보이는 로그인 유도 배너. 1200x420, 14KB.
+member-banner.webp — 로그인한 사람에게 보이는 배너. 1200x420, 11KB.
+같은 토끼가 손을 흔드는 대신 두루마리를 펼쳐 보인다 — 이미 들어온 사람에게
+필요한 것은 인사가 아니라 다음 걸음이다.
+
+둘 다 Higgsfield nano_banana_pro, 3D 렌더, 2크레딧. member 쪽은 login 쪽을
+레퍼런스로 넣어 같은 얼굴·같은 옷·같은 렌더링을 유지했다.
 
 ## 글자가 없다
 

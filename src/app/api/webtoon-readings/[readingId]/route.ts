@@ -10,7 +10,7 @@ import {
   webtoonUnlockRef,
   WEBTOON_FORTUNE_CONFIG,
 } from "@/lib/webtoon-saju";
-import { webtoonContentFor } from "@/lib/webtoon-generate";
+import { webtoonChartFor, webtoonContentFor } from "@/lib/webtoon-generate";
 
 // 웹툰 사주 상태 조회 — 운세 하나의 패널·텍스트·해금 상태·잔액을 돌려준다.
 //
@@ -68,6 +68,8 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ readin
   const nickname = nicknameFromEmail(user.email);
   // 명식으로 쓴 문장. 프로필이 없거나 가드에 걸리면 고정 카피가 온다.
   const { content } = await webtoonContentFor(reading.id, user.userId, fortuneType, nickname);
+  // 폼에 넣은 값으로 세운 명식. 문장은 이미 이걸로 쓰는데 화면에는 안 보였다.
+  const saju = await webtoonChartFor(user.userId);
   const config = WEBTOON_FORTUNE_CONFIG[fortuneType];
 
   return NextResponse.json(
@@ -80,6 +82,8 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ readin
       luvitCost: config.unlockCost,
       luvitBalance: balance,
       coverImageUrl: content.coverImageUrl,
+      chart: saju?.chart ?? null,
+      birthLine: saju?.birthLine ?? null,
       previewText: content.previewText,
       previewPoints: content.previewPoints,
       panels: panelsForState(content.panels, unlocked),

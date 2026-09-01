@@ -24,10 +24,13 @@ function BubbleShape({ tail }: { tail?: TextOverlay["tail"] }) {
       </svg>
     );
   }
+  // 꼬리는 화자가 있는 쪽으로 내려간다 — 가운데면 가운데로.
   const d =
     tail === "bottom-left"
       ? "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L74,116 L54,148 L58,114 C22,107 4,94 4,60 C4,26 45,4 100,4 Z"
-      : "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L126,116 L146,148 L142,114 C110,110 4,94 4,60 C4,26 45,4 100,4 Z";
+      : tail === "bottom-right"
+        ? "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L126,116 L146,148 L142,114 C110,110 4,94 4,60 C4,26 45,4 100,4 Z"
+        : "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L112,116 L100,148 L88,116 C45,116 4,94 4,60 C4,26 45,4 100,4 Z";
   return (
     <svg viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden="true">
       <path d={d} fill="#fff" stroke="#3a3a3a" strokeWidth="2.5" strokeLinejoin="round" />
@@ -101,11 +104,16 @@ export function WebtoonPanel({
       aria-label={`${index + 1}번째 웹툰 패널`}
     >
       {/* 사주 그림은 외부 최적화 대상이 아니라 정적 자산 — next/image 대신 img (기존 리딩 화면과 같은 방식) */}
+      {/* 그림이 못 와도 칸은 남는다 — 깨진 아이콘 대신 밑색만 두고 말풍선은 그대로 읽힌다.
+          결제하고 연 사람에게 깨진 그림을 보이는 것이 이 화면에서 가장 나쁜 일이다. */}
       <img
         className="webtoon-panel-image"
         src={panel.imageUrl}
         alt={panel.alt}
         loading={index < 2 ? "eager" : "lazy"}
+        onError={(event) => {
+          event.currentTarget.style.visibility = "hidden";
+        }}
       />
       <div className="webtoon-panel-overlay" aria-live={index === 0 ? "polite" : undefined}>
         {panel.overlays.map((overlay) => (

@@ -17,6 +17,7 @@ import {
   questionsLeft,
   type CreditLedgerEntry,
   type CreditPack,
+  REFERRAL_SIGNUP_CREDITS,
 } from "@/lib/credits";
 import { peekCreditsReturn, rememberCreditsReturn } from "@/lib/credits-return";
 import { PAYMENT_METHOD_OPEN } from "@/lib/pay-method";
@@ -116,7 +117,7 @@ export default function CreditsPage() {
     try {
       if (navigator.share) await navigator.share({ title: "러브레빗 무료 사주", text, url });
       else await navigator.clipboard.writeText(`${text}\n${url}`);
-      setShareNotice("초대 링크를 보냈어요. 친구가 가입하면 50러빗이 들어와요.");
+      setShareNotice(`초대 링크를 보냈어요. 친구가 가입하면 ${REFERRAL_SIGNUP_CREDITS}러빗이 들어와요.`);
     } catch {
       setShareNotice("");
     }
@@ -282,7 +283,7 @@ export default function CreditsPage() {
       {user && (
         <>
           <section className="cc-card">
-            <p className="cc-head">친구가 가입하면 50러빗 🎁</p>
+            <p className="cc-head">친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗 🎁</p>
             <p style={{ fontSize: "0.84rem", marginBottom: 12 }}>러빗은 리딩에도 질문에도 쓸 수 있어요.</p>
             <button className="cc-btn cc-btn-soft cc-btn-block" onClick={share} disabled={!user.referralCode}>
               초대 링크 보내기

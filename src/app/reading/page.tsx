@@ -380,6 +380,8 @@ export default function ReadingPage() {
   const [user, setUser] = useState<User | null>(null);
   // 로그인하고 나면 그대로 이어 보낼 입력. 누른 순간의 값을 들고 간다.
   const [pendingDraft, setPendingDraft] = useState<ReadingDraft | null>(null);
+  // 이 브라우저가 초안 저장을 막았는가 — 로그인하고 돌아오면 폼이 비어 있다
+  const [draftLost, setDraftLost] = useState(false);
   const [pendingReferral, setPendingReferral] = useState<PendingReferral | null>(null);
 
   // 첫 설문 입력 — 생년월일 칸에 처음 값이 들어간 순간 한 번만 보낸다.
@@ -575,7 +577,8 @@ export default function ReadingPage() {
       // 소셜 로그인은 페이지를 통째로 떠났다가 돌아온다. 상태에만 둔 초안은 그때
       // 사라져서, 다 채운 사람이 성별 칸부터 다시 봤다. 여기서 저장해 두면 위의
       // 복귀 복원이 값을 찾고, 로그인이 돼 있으니 그대로 생성으로 넘어간다.
-      saveReadingDraft(draft);
+      // 저장이 막힌 브라우저면 돌아왔을 때 폼이 비어 있다 — 미리 말해 준다
+      setDraftLost(!saveReadingDraft(draft));
       setPendingDraft(draft);
       trackFunnel("signup_required", { product: draft.category });
       return;
@@ -1095,7 +1098,11 @@ export default function ReadingPage() {
       {pendingDraft && (
         <SignupModal
           onClose={() => setPendingDraft(null)}
-          reason="내 사주를 세우려면 로그인이 필요해요"
+          reason={
+            draftLost
+              ? "내 사주를 세우려면 로그인이 필요해요. 이 브라우저는 입력을 임시 보관하지 않아서, 로그인 후 한 번 더 입력해야 할 수 있어요."
+              : "내 사주를 세우려면 로그인이 필요해요"
+          }
         />
       )}
 

@@ -52,6 +52,24 @@ describe("초안 파싱", () => {
       assert.equal(parseDraft(JSON.stringify(goodDraft(patch))), null, JSON.stringify(patch));
     }
   });
+
+  it("말풍선·캡션이 너무 길면 버린다 — 타원 밖으로 흐르지 않게", () => {
+    const long = "가".repeat(51);
+    assert.equal(parseDraft(JSON.stringify(goodDraft({ captions: [long, "둘", "셋"] }))), null);
+    assert.equal(
+      parseDraft(
+        JSON.stringify(
+          goodDraft({
+            panelLines: [{ rabbit: long }, { rabbit: "둘" }, { rabbit: "셋" }, { rabbit: "넷" }, { rabbit: "다섯" }],
+          })
+        )
+      ),
+      null
+    );
+    // 줄바꿈은 사람이 정한 자리라 길이에서 뺀다 — 50자 안쪽이면 통과한다.
+    const wrapped = `${"가".repeat(25)}\n${"나".repeat(25)}`;
+    assert.ok(parseDraft(JSON.stringify(goodDraft({ captions: [wrapped, "둘", "셋"] }))));
+  });
 });
 
 describe("문장 가드", () => {

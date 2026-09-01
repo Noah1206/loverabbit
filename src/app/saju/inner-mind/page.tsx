@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import InnerMindFlow, { LandingTracker } from "./InnerMindLandingClient";
 
-// 속마음 광고 전용 랜딩 — 실제 판매 상품인 썸 해부 사주의 내용으로 연결한다.
-// 연결 상품: 썸 해부 사주(sseom). 리딩 폼은 /reading?c=sseom 로 이어진다.
+// 속마음 광고 전용 랜딩 — 실제 판매 상품인 썸 사주의 내용으로 연결한다.
+// 연결 상품: 썸 사주(sseom). 리딩 폼은 /reading?c=sseom 로 이어진다.
 
 export const metadata: Metadata = {
-  title: "이 썸, 왜 진도가 안 나갈까? — 썸 해부 사주 | 러브레빗",
+  title: "이 썸, 왜 진도가 안 나갈까? — 썸 사주 | 러브레빗",
   description:
     "정체된 썸의 브레이크와 상대의 신호, 관계가 움직일 타이밍을 첫 리딩 1,900원에 확인해 보세요.",
   robots: { index: true, follow: true },
@@ -28,7 +28,7 @@ export default async function InnerMindLanding({
       <LandingTracker />
 
       <section className="lp-hero">
-        <span className="badge">속마음 · 썸 해부 사주</span>
+        <span className="badge">속마음 · 썸 사주</span>
         {/* 몰입형 화면이지만 스크린리더가 읽을 제목은 반드시 남긴다. */}
         <h1 className="lp-h1">이 썸, 왜 진도가 안 나갈까?</h1>
         <InnerMindFlow offerActive={offerActive} />

@@ -73,11 +73,19 @@ export function parsePerson(p: PersonForm) {
   };
 }
 
-export function saveReadingDraft(draft: ReadingDraft): void {
+/**
+ * 초안을 탭에 남긴다. 실패하면 false — 던지지 않는다.
+ *
+ * 저장이 막힌 브라우저에서도 로그인 창 자체는 열려야 한다. 다만 조용히
+ * 삼키면 로그인하고 돌아온 사람이 **다 채운 폼이 빈 것을** 보게 된다 —
+ * 부르는 쪽이 미리 알릴 수 있게 결과를 돌려준다.
+ */
+export function saveReadingDraft(draft: ReadingDraft): boolean {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(draft));
+    return true;
   } catch {
-    // 저장이 막힌 브라우저에서도 로그인 창 자체는 정상적으로 열리게 둔다.
+    return false;
   }
 }
 

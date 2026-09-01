@@ -198,6 +198,113 @@ body {
 }
 
 /* 고정 CTA를 감싸지 않는 독립 레이어로 페이지 전환을 보여 모바일 합성 지연을 피한다. */
+/* 페이지가 오른쪽에서 미끄러져 들어온다 (2026-09-01 운영자).
+   template.tsx 가 화면마다 새로 마운트되므로 여기 한 번만 적으면 전부 적용된다.
+   translate 만 움직인다 — 레이아웃을 건드리면 긴 페이지에서 끊긴다. */
+.route-slide-in {
+  animation: route-slide-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* 들어오는 동안 가로 스크롤바가 잠깐 생기는 것을 막는다 */
+  overflow-x: clip;
+}
+
+@keyframes route-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-slide-in {
+    animation: none;
+  }
+}
+
+/* 로그인은 됐는데 이 기기에 남기지 못했을 때. 실패가 아니라 주의사항이라
+   에러 색을 쓰지 않는다. */
+.auth-storage-warning {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* "전문 준비 중" 안내 안의 다시 확인 버튼 — 말만 하고 누를 자리가 없으면
+   사용자는 결제한 글을 어떻게 받는지 모른 채 기다린다. */
+.rv-notice-retry {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── 기다림의 화면 ─────────────────────────────────────────────────
+   연결점마다 다른 스피너를 두지 않는다. 토끼가 도는 이 한 화면을 함께 쓴다. */
+.rabbit-loader {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 56px 24px;
+  text-align: center;
+}
+.rabbit-loader-art {
+  width: min(180px, 46vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  overflow: hidden;
+  /* 영상이 못 와도 자리와 색은 남는다 */
+  background: #efe6f3;
+}
+.rabbit-loader-art video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.rabbit-loader-text {
+  margin-top: 6px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.rabbit-loader-sub {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.5;
+  max-width: 22rem;
+}
+.rabbit-loader-actions {
+  display: grid;
+  gap: 8px;
+  width: min(280px, 100%);
+  margin-top: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* 움직임을 줄여 달라고 한 사람에게는 정지 화면(poster)만 남긴다 */
+  .rabbit-loader-art video {
+    display: none;
+  }
+  .rabbit-loader-art {
+    background:
+      #efe6f3 url("/assets/loader/rabbit-loading-poster.webp") center / cover no-repeat;
+  }
+}
+
 .route-transition-veil {
   position: fixed;
   inset-block: 0;
@@ -803,33 +910,28 @@ label {
   margin-inline: -8px;
 }
 
-/* ── 헤더 카운터·아이콘 ─────────────────────────────────────────────
-   참고 화면처럼 브랜드 오른쪽에 값과 아이콘을 세운다. */
-.app-header-count,
+/* ── 헤더 아이콘 ───────────────────────────────────────────────────
+   로고 오른쪽에 아이콘만 선다 (질문권 카운터는 2026-09-01 에 걷었다). */
 .app-header-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 5px;
   /* 로그인 버튼과 같은 키 — 오른쪽 줄의 눈높이를 맞춘다 */
-  height: 38px;
-  width: 38px;
+  height: 44px;
+  width: 44px;
   padding: 0;
   border: 0;
   background: none;
-  /* 브랜드 분홍 — 러브레빗 카드의 그 색 (#ff347f) */
-  color: #ff347f;
-  font-size: 0.72rem;
+  /* 로그인 버튼도 이 클래스를 쓴다 — button 기본값을 지운다 */
+  font: inherit;
+  cursor: pointer;
+  /* 분홍을 걷고 본문 색으로 통일한다 (2026-09-01 운영자) */
+  color: var(--text);
+  font-size: 0.8rem;
   font-weight: 800;
   white-space: nowrap;
   transition: transform 200ms ease;
-}
-
-.app-header-count:hover,
-.app-header-count:focus-visible {
-  border-color: var(--accent);
-  background: var(--canvas-lavender);
-  outline: none;
 }
 
 .app-header-icon:hover,
@@ -838,82 +940,56 @@ label {
   outline: none;
 }
 
-.app-header-count:active,
 .app-header-icon:active {
   transform: scale(0.95);
 }
 
 .app-header-icon {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
-/* 값이 바뀌면 key 가 바뀌어 다시 그려진다 — 그때 숫자가 한 번 튄다.
-   바뀐 것을 눈이 놓치지 않게 하는 것이 목적이라 짧게 끝낸다. */
-.app-header-count b {
-  display: inline-block;
-  color: var(--accent);
-  font-size: 0.82rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  animation: header-count-pop 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes header-count-pop {
-  0% { transform: translateY(-4px) scale(0.7); opacity: 0; }
-  60% { transform: translateY(0) scale(1.18); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-
-/* ── 히어로 배너 ───────────────────────────────────────────────────
-   그림은 오른쪽 3분의 1에만 토끼가 있고 나머지는 라벤더 단색이다. 그래서
-   배경색을 그림과 같은 값으로 깔아 두면, 그림이 늦게 오거나 못 와도 칸이
-   무너지지 않고 글자도 그대로 읽힌다. 글자는 왼쪽 빈 자리에만 앉는다. */
-.home-hero {
-  position: relative;
-  display: block;
-  margin: 0 20px 12px;
-  padding: 18px;
-  min-height: 132px;
-  border-radius: 16px;
-  overflow: hidden;
+/* ── 웹툰 사주 줄 ──────────────────────────────────────────────────
+   히어로 배너 밑, 그리드 위. 그림 없이 한 줄로 둔다 — 위의 배너가 이미
+   그림을 쓰고 있어서, 여기까지 그림이면 둘이 서로를 가린다. */
+.home-webtoon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 20px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
   text-decoration: none;
-  background-color: #ececec;
-  background-image: url("/assets/home/hero-banner.webp");
-  background-size: cover;
-  background-position: right center;
 }
-.home-hero-copy {
-  /* 토끼가 앉은 오른쪽 3분의 1을 비워 둔다 */
-  width: min(62%, 300px);
+.home-webtoon-emoji {
+  flex: 0 0 auto;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.home-webtoon-copy {
+  min-width: 0;
   display: grid;
-  gap: 8px;
-  justify-items: start;
+  gap: 2px;
 }
-.home-hero-badge {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #1d1d1d;
-  font-size: 0.72rem;
+.home-webtoon-copy strong {
+  font-size: 0.94rem;
   font-weight: 800;
 }
-.home-hero-title {
-  color: #111111;
-  font-size: 1.12rem;
-  line-height: 1.34;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.home-webtoon-copy small {
+  color: var(--text-dim);
+  font-size: 0.78rem;
 }
-.home-hero-cta {
-  color: #1d1d1d;
-  font-size: 0.82rem;
-  font-weight: 700;
+.home-webtoon-go {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--text);
+  font-size: 1.15rem;
+  transition: transform 180ms ease;
 }
-@media (max-width: 380px) {
-  /* 폭이 좁아지면 토끼를 더 밀어내고 글자 자리를 지킨다 */
-  .home-hero { background-position: 78% center; min-height: 122px; }
-  .home-hero-copy { width: 66%; }
-  .home-hero-title { font-size: 1.02rem; }
+.home-webtoon:hover .home-webtoon-go,
+.home-webtoon:focus-visible .home-webtoon-go {
+  transform: translateX(2px);
 }
 
 /* ── 공지 배너 ─────────────────────────────────────────────────────
@@ -1034,100 +1110,12 @@ label {
 
 @media (prefers-reduced-motion: reduce) {
   .home-notice-bar,
-  .home-notice-copy,
-  .app-header-count b {
+  .home-notice-copy {
     animation: none;
   }
   .home-notice-tab {
     transition: none;
   }
-}
-
-/* ── 홈 상단 내 상태 줄 ─────────────────────────────────────────────
-   헤더 바로 밑. 로그인한 사람에게 "지금 내 것"을 먼저 보여주는 자리다.
-   상품 그리드가 파는 화면이라면 여기는 이미 산 것과 쓸 수 있는 것을 짚는다.
-   각진 시스템을 그대로 따른다 — 굴리지 않고 얇은 선으로만 가른다. */
-.home-status {
-  display: grid;
-  gap: 8px;
-  padding: 0 20px 12px;
-}
-
-.home-status-card {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 13px 14px;
-  border: 1px solid var(--line);
-  background: var(--bg-card);
-  color: var(--text);
-  text-align: left;
-  transition: border-color 220ms ease, background-color 220ms ease;
-}
-
-.home-status-card:hover,
-.home-status-card:focus-visible {
-  border-color: var(--accent);
-  background: var(--canvas-lavender);
-  outline: none;
-}
-
-/* 질문권 — 남은 수가 이 줄의 주인공이라 오른쪽에 크게 세운다. */
-
-
-
-
-/* 최근 리딩 — 안 연 것은 점 하나로 표시한다. */
-.home-status-avatar {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--line);
-  background: var(--canvas-cream);
-  font-size: 1.15rem;
-}
-
-.home-status-body {
-  display: grid;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
-.home-status-body strong {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
-
-.home-status-body > span {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--text-dim);
-  font-size: 0.78rem;
-  line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.home-status-dot {
-  flex: 0 0 auto;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.home-status-go {
-  flex: 0 0 auto;
-  color: var(--text-dim);
-  font-size: 1.2rem;
-  font-weight: 700;
 }
 
 /* 그림 위·본문 아래 두 켜 (2026-08-31, 참고 화면 문법). 글이 그림을 덮지
@@ -1309,24 +1297,26 @@ label {
    눌리는 곳을 좁히면 반은 빗나간다. */
 /* 화살표만 — 글자 CTA 는 뺐다 (2026-08-31 운영자). 카드 전체가 링크라
    이 원은 방향 표시일 뿐이다. */
+/* 원판을 걷고 화살표만 남긴다 (2026-09-01 운영자) — 얇은 검은 선 하나. */
 .fortune-grid-go {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 0.95rem;
-  font-weight: 800;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 400;
   line-height: 1;
   padding-bottom: 2px;
+  transition: transform 180ms ease;
 }
 
 .fortune-grid-card:hover .fortune-grid-go,
 .fortune-grid-card:focus-visible .fortune-grid-go {
-  filter: brightness(1.12);
+  transform: translateX(2px);
 }
 
 
@@ -2490,8 +2480,8 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
-  /* 상단바가 화면 맨 위(0)에 붙어 48px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
-  padding-top: calc(64px + env(safe-area-inset-top));
+  /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
+  padding-top: calc(76px + env(safe-area-inset-top));
 }
 
 /* 떠 있는 카드가 아니라 화면 맨 위에 붙은 면이다. 테두리도 그림자도 두지
@@ -2503,9 +2493,10 @@ label {
   left: 50%;
   z-index: 40;
   width: min(100vw, var(--app-max-width));
-  min-height: 48px;
+  /* 헤더를 키운다 (2026-09-01 운영자) — 브랜드와 아이콘이 눌리지 않게 */
+  min-height: 60px;
   margin: 0;
-  padding: calc(5px + env(safe-area-inset-top)) 14px 5px 14px;
+  padding: calc(9px + env(safe-area-inset-top)) 16px 9px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2531,16 +2522,16 @@ label {
   /* 흰 글자가 박혀 있었다. 헤더가 진한 보라였을 때의 값이라, 헤더가 흰
      카드가 된 뒤로는 "LOVE" 가 바탕에 묻혀 안 보였다. */
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: 1.08rem;
   line-height: 1;
-  letter-spacing: 0.035em;
+  letter-spacing: 0.01em;
   white-space: nowrap;
 }
 
 .app-header-logo {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   box-shadow: none;
@@ -2555,14 +2546,16 @@ label {
 }
 
 .app-header-action {
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--tint-line);
+  height: 44px;
+  padding: 0 10px;
+  /* 상자를 걷는다 (2026-09-01) — 헤더가 커지자 회색 판만 떠 보였다.
+     옆의 동전 아이콘과 같은 결로, 글자만 검게 선다. */
+  border: 0;
   border-radius: 0;
-  background: var(--tint-1);
-  color: var(--text-dim);
+  background: none;
+  color: var(--text);
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
@@ -2580,7 +2573,7 @@ label {
 }
 
 .app-header-login {
-  max-width: 96px;
+  max-width: 108px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -2588,20 +2581,20 @@ label {
 @media (max-width: 360px) {
   .app-header-brand {
     gap: 5px;
-    font-size: 0.88rem;
+    font-size: 0.98rem;
   }
 
   .app-header-logo {
-    width: 29px;
-    height: 29px;
+    width: 32px;
+    height: 32px;
   }
 
   .app-header-action {
-    padding-inline: 9px;
+    padding-inline: 12px;
   }
 
   .app-header-login {
-    max-width: 82px;
+    max-width: 92px;
   }
 }
 
@@ -4679,6 +4672,14 @@ label {
   text-align: center;
 }
 
+/* 준비 중인 로그인 수단을 눌렀을 때. 팝업과 마이 화면이 같이 쓴다. */
+.social-login-error {
+  margin: 8px 4px 0;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .auth-shell {
   min-height: 100dvh;
   display: grid;
@@ -4879,54 +4880,6 @@ label {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
-}
-
-/* 문의 버튼 — 하단 탭바(높이 66px, bottom 6px) 바로 위에 같은 폭으로 정렬한다 */
-.inquiry-fab-slot {
-  position: fixed;
-  /* 탭바 바로 위. 탭바가 올라간 만큼 같이 올린다 */
-  bottom: calc(98px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
-  z-index: 61;
-  display: flex;
-  justify-content: flex-end;
-  pointer-events: none;
-}
-
-/* 첫 화면에서는 접어 둔다 — 그 자리에 태그 필터가 온다 */
-.inquiry-fab-slot-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-50%) translateY(8px);
-}
-
-.inquiry-fab-slot {
-  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
-}
-
-.inquiry-fab {
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
-  color: var(--text);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: var(--chrome-shadow);
-  transition: transform 160ms ease;
-}
-
-.inquiry-fab:active {
-  transform: scale(0.97);
 }
 
 .inquiry-overlay {
@@ -9459,46 +9412,6 @@ body[data-guin-intro="1"] .tabbar {
   }
 }
 
-/* 리딩 마지막 장 → 웹툰 사주로 가는 자리 */
-.report-webtoon-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  margin: 18px 0;
-  border: 1px solid var(--accent-soft);
-  border-radius: var(--r-lg);
-  background: var(--canvas-lavender);
-  color: inherit;
-  text-decoration: none;
-}
-.report-webtoon-link:hover {
-  border-color: var(--accent);
-}
-.report-webtoon-emoji {
-  font-size: 22px;
-  flex: none;
-}
-.report-webtoon-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-.report-webtoon-copy strong {
-  font-size: 15px;
-}
-.report-webtoon-copy small {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.report-webtoon-go {
-  color: var(--accent);
-  font-weight: 700;
-  flex: none;
-}
-
 /* ============================================================
    웹툰 사주 (/webtoon-saju/[readingId])
    그림과 글이 별도 레이어 — 오버레이는 % 좌표라 390px 에서도 유지된다.
@@ -9603,6 +9516,10 @@ body[data-guin-intro="1"] .tabbar {
   border-radius: 16px;
   border: 1px solid var(--line);
   display: block;
+  /* 표지가 못 와도 자리는 남는다 (숨겨도 높이가 0 이 되지 않게) */
+  background: #efe6f3;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
 }
 
 .webtoon-narration {
@@ -9642,6 +9559,10 @@ body[data-guin-intro="1"] .tabbar {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--line);
+  /* 그림이 못 와도 칸이 무너지지 않게 — 밑색과 최소 높이를 둔다.
+     이미지는 3:4 로 잘려 있어서 그 비율만큼 자리를 잡아 둔다. */
+  background: #efe6f3;
+  aspect-ratio: 3 / 4;
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 0.45s ease, transform 0.45s ease;
@@ -9715,6 +9636,9 @@ body[data-guin-intro="1"] .tabbar {
   /* 대사의 줄바꿈은 데이터가 정한다 — 타원 안에서 어디서 끊을지는
      자동 줄바꿈보다 사람이 정한 자리가 낫다. */
   white-space: pre-line;
+  /* 명식으로 쓴 문장이 예상보다 길게 와도 타원 밖으로 흐르지는 않게 한다.
+     길이는 webtoon-draft.ts 가 먼저 막지만, 화면에도 마지막 빗장을 둔다. */
+  overflow: hidden;
 }
 
 /* 효과음 — 손글씨 느낌. 흰 외곽선으로 어떤 배경에서도 읽힌다. */
@@ -9917,6 +9841,9 @@ body[data-guin-intro="1"] .tabbar {
   cursor: pointer;
   text-align: left;
   position: relative;
+  /* 로그인한 사람에게는 같은 배너가 <a> 로 온다 — 밑줄과 링크색을 걷는다. */
+  text-decoration: none;
+  color: inherit;
   /* 배너 세로 = 가로의 35%. 이미지도 같은 비율로 잘라 두었다. */
   aspect-ratio: 1200 / 420;
   background-color: #ececec; /* 이미지가 뜨기 전에도 비슷한 명도가 깔린다 */
@@ -9924,6 +9851,13 @@ body[data-guin-intro="1"] .tabbar {
   background-size: cover;
   background-position: center;
   overflow: hidden;
+}
+
+/* 로그인한 사람에게는 다른 그림 — 손 흔들어 부르는 대신 두루마리를 펼쳐
+   보인다. 이미 들어온 사람에게 필요한 것은 인사가 아니라 다음 걸음이다.
+   규격(1200x420 · 왼쪽 3분의 2 비움 · 같은 라벤더)이 같아서 그림만 바꾼다. */
+.home-member-banner {
+  background-image: url("/assets/home/member-banner.webp");
 }
 
 .home-login-banner-copy {
@@ -9970,16 +9904,41 @@ body[data-guin-intro="1"] .tabbar {
   }
 }
 
-/* ── 각진 모서리 ── 둥근 모서리를 쓰지 않는다. 209곳을 각각 고치는 대신
-   여기서 한 번에 눌러 둔다. 새로 쓰는 border-radius 도 자동으로 여기에 걸린다.
-   원형이어야 뜻이 사는 둘만 예외 — 라디오/체크박스와 아바타. */
+/* ── 각진 모서리 ── 둥근 모서리를 쓰지 않는다. 200곳 넘는 자리를 각각
+   고치는 대신 여기서 한 번에 눌러 둔다. 새로 쓰는 border-radius 도 자동으로
+   여기에 걸린다.
+
+   아래 목록만 예외 — 위에서 이미 50%(정원)로 선언한 자리들이다. 아바타·점
+   인디케이터·로더처럼 동그라미가 모양이 아니라 뜻인 곳이라, 각지면 각진 게
+   아니라 깨진 것으로 보인다. */
 *,
 *::before,
 *::after {
   border-radius: 0 !important;
 }
-input[type="radio"],
-.avatar,
-.avatar img {
+.admin-empty-orders > span,
+.app-header-logo,
+.archive-icon,
+.auth-loader,
+.auth-success-check,
+.credits-cute .cc-oval,
+.inquiry-sent-mark,
+.payment-polling-dot,
+.payment-result-icon,
+.payment-status-orb,
+.preview-funnel-steps strong,
+.product-lore-seal,
+.product-score-card::after,
+.product-score-orb,
+.profile-label-toggle button span,
+.rabbit-coin,
+.rabbit-loader-art,
+.reading-generating-dots i,
+.reading-generating-stage-mark,
+.report-summary li::before,
+.review-card-avatar,
+.rv-timeline li::before,
+.set-item-index,
+input[type="radio"] {
   border-radius: 50% !important;
 }

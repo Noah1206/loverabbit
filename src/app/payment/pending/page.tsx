@@ -22,6 +22,9 @@ type StatusResponse = {
   note?: string | null;
 };
 
+// 3초 × 400 = 20분. 그 뒤로는 사람이 눌러 확인한다.
+const MAX_POLLS = 400;
+
 export default function PaymentPendingPage() {
   const router = useRouter();
   const finishingRef = useRef(false);
@@ -115,6 +118,7 @@ export default function PaymentPendingPage() {
       router.replace(`/reading/${encodeURIComponent(status.readingId)}?payment=approved`);
     };
 
+    let polls = 0;
     const checkStatus = async () => {
       try {
         setChecking(true);
@@ -137,6 +141,14 @@ export default function PaymentPendingPage() {
         }
         if (next.status === "cancelled" || next.status === "failed" || next.status === "refunded") {
           if (next.readingId) updateArchive(next.readingId, { pendingOrderId: undefined });
+          setChecking(false);
+          return;
+        }
+        /* 사람이 입금을 확인해 줄 때까지 기다리는 화면이라 상한이 길다. 다만
+           무한은 아니다 — 자리를 뜬 탭이 몇 시간씩 3초마다 서버를 두들기게
+           두지 않는다. 멈춘 뒤에는 아래 "지금 다시 확인하기"가 이어받는다. */
+        polls += 1;
+        if (polls >= MAX_POLLS) {
           setChecking(false);
           return;
         }

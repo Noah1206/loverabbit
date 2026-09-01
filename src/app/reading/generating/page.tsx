@@ -166,7 +166,7 @@ export default function ReadingGeneratingPage() {
           <p className="reading-generating-kicker">{label}</p>
           <h1 style={{ fontSize: "1.15rem", marginBottom: 26 }}>사주를 푸는 중이에요</h1>
 
-          <div className="reading-generating-dots" role="status" aria-label="사주를 푸는 중" style={{ display: "inline-flex", marginTop: 4 }}>
+          <div className="reading-generating-dots" role="status" aria-live="polite" aria-label="사주를 푸는 중" style={{ display: "inline-flex", marginTop: 4 }}>
             <i /><i /><i />
           </div>
 
