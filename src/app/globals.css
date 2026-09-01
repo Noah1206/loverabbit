@@ -224,6 +224,34 @@ body {
   }
 }
 
+/* 로그인은 됐는데 이 기기에 남기지 못했을 때. 실패가 아니라 주의사항이라
+   에러 색을 쓰지 않는다. */
+.auth-storage-warning {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--bg-card2);
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+/* "전문 준비 중" 안내 안의 다시 확인 버튼 — 말만 하고 누를 자리가 없으면
+   사용자는 결제한 글을 어떻게 받는지 모른 채 기다린다. */
+.rv-notice-retry {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ── 기다림의 화면 ─────────────────────────────────────────────────
    연결점마다 다른 스피너를 두지 않는다. 토끼가 도는 이 한 화면을 함께 쓴다. */
 .rabbit-loader {

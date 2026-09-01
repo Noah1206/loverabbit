@@ -25,6 +25,8 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(true);
   const [error, setError] = useState("");
+  // 로그인은 됐는데 이 기기에 남기지 못한 경우 — 실패가 아니라 주의사항이다
+  const [storageWarning, setStorageWarning] = useState(false);
   /**
    * 몇 번 실패했는지.
    *
@@ -43,7 +45,11 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       referralCode: data.referralCode,
       referralClaimed: data.referralClaimed === true,
     };
-    saveUser(user);
+    /* 저장이 막힌 브라우저(프라이빗 모드 등)여도 로그인 자체는 성공했다.
+       실패를 예외로 올리면 성공한 로그인이 "실패"로 표시된다 — 알리기만 하고
+       가던 길은 그대로 간다. */
+    const stored = saveUser(user);
+    if (!stored) setStorageWarning(true);
     // 가입/로그인 완료 — 로그인 수단 이름만 보낸다. 이메일 원문은 전송하지 않는다.
     trackCompleteRegistration(data.authProvider ?? "unknown");
     if (getPendingReferral()) clearPendingReferral();
@@ -63,10 +69,11 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       : back;
     setNeedsProfile(false);
     setCompleted(true);
+    // 저장에 실패한 사람에게는 그 안내를 읽을 시간을 준다 — 800ms 는 너무 짧다
     redirectTimer.current = window.setTimeout(() => {
       takeAuthReturn();
       window.location.replace(destination);
-    }, 800);
+    }, stored ? 800 : 3200);
   };
 
   const connectSession = async (profile?: { termsAccepted: boolean; marketingOk: boolean }) => {
@@ -115,6 +122,13 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             <span className="auth-success-check" aria-hidden="true">✓</span>
             <h1>준비 완료!</h1>
             <p>선택한 운명을 보러 이동하고 있어요.</p>
+            {storageWarning && (
+              // 로그인은 됐다. 다만 이 브라우저가 저장을 막아 다음에 다시 물어본다.
+              <p className="auth-storage-warning">
+                이 브라우저는 로그인 정보를 저장하지 않아요(시크릿 모드 등). 지금은 그대로
+                이어지지만, 창을 닫으면 다시 로그인해야 해요.
+              </p>
+            )}
           </div>
         ) : !needsProfile ? (
           <>
@@ -141,7 +155,12 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
             <p>{email} 계정으로 로그인됐어요. 사주 정보는 다음 입력 화면에서 받습니다.</p>
             <label className="auth-check-row">
               <input type="checkbox" checked={agree} onChange={(event) => setAgree(event.target.checked)} />
-              <span>(필수) 이용약관 및 개인정보 수집에 동의합니다.</span>
+              {/* 동의를 받으면서 읽을 길을 함께 준다 — 문서는 이제 실제로 있다 */}
+              <span>
+                (필수){" "}
+                <a href="/terms" target="_blank" rel="noreferrer">이용약관</a> 및{" "}
+                <a href="/privacy" target="_blank" rel="noreferrer">개인정보 수집</a>에 동의합니다.
+              </span>
             </label>
             <label className="auth-check-row auth-check-optional">
               <input type="checkbox" checked={marketingOk} onChange={(event) => setMarketingOk(event.target.checked)} />

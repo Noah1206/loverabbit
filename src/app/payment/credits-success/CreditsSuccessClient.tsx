@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import RabbitLoader from "@/components/RabbitLoader";
 import { peekCreditsReturn } from "@/lib/credits-return";
 import { getUser } from "@/lib/user";
 
@@ -39,6 +40,11 @@ export default function CreditsSuccessClient({
       try {
         const res = await fetch("/api/credits/confirm", {
           method: "POST",
+          // 돈이 나간 직후의 침묵이 가장 불안하다 — 60초에서 끊고 안내로 넘긴다
+          signal:
+            typeof AbortSignal !== "undefined" && "timeout" in AbortSignal
+              ? AbortSignal.timeout(60_000)
+              : undefined,
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userToken: user.token, paymentId }),
         });
@@ -80,9 +86,16 @@ export default function CreditsSuccessClient({
           </>
         ) : (
           <>
-            <div className="auth-loader" aria-label="결제 승인 처리 중" />
-            <h1>러빗을 충전하고 있어요</h1>
-            <p>창을 닫지 말고 잠시만 기다려주세요.</p>
+            <RabbitLoader
+              message="러빗을 충전하고 있어요"
+              sub="창을 닫지 말고 잠시만 기다려주세요."
+              timeoutMs={62_000}
+              onTimeout={() =>
+                setError(
+                  "충전 확인이 늦어지고 있어요. 결제는 접수됐을 수 있으니 러빗함에서 잔액을 확인해 주세요."
+                )
+              }
+            />
           </>
         )}
       </section>

@@ -711,7 +711,16 @@ export default function ReadingReportPage() {
       />
 
       <div className="rv-scroll">
-        {notice && <p className="rv-notice">{notice}</p>}
+        {notice && (
+          /* "잠시 후 다시 열어주세요" 라고만 하고 열 자리를 안 주면, 사용자는
+             무엇을 해야 하는지 모른 채 결제한 글을 기다린다. 누를 자리를 준다. */
+          <p className="rv-notice">
+            {notice}
+            <button type="button" className="rv-notice-retry" onClick={() => window.location.reload()}>
+              지금 다시 확인하기
+            </button>
+          </p>
+        )}
 
         {page === 0 ? (
           <>
