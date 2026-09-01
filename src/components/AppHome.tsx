@@ -139,12 +139,26 @@ export default function AppHome() {
           </div>
         </header>
 
-        {/* ── 로그인 배너 ── 헤더 바로 밑에 고정. 아직 로그인하지 않은 사람에게만
-             보인다 — 이미 들어온 사람에게는 "로그인하세요"가 소음이다.
+        {/* ── 배너 ── 헤더 바로 밑에 고정. 그림은 하나지만 문구는 사람에 따라
+             갈린다 — 아직 로그인하지 않았으면 로그인을, 이미 들어온 사람에게는
+             사주를 권한다. "로그인하세요"를 로그인한 사람에게 다시 보이면 소음이다.
 
              그림에는 글자가 없다. 문구는 왼쪽 빈 자리에 얹는 텍스트라서
              카피를 바꿔도 이미지를 다시 만들 필요가 없다. */}
-        {checked && !user && (
+        {checked && (user ? (
+          <Link href="/reading" className="home-login-banner">
+            <span className="home-login-banner-copy">
+              <strong>
+                오늘의 인연,
+                <br />
+                사주로 먼저 봐요
+              </strong>
+              <span className="home-login-banner-cta">
+                내 사주 보러 가기 <i aria-hidden>›</i>
+              </span>
+            </span>
+          </Link>
+        ) : (
           <button type="button" className="home-login-banner" onClick={() => setShowSignup(true)}>
             <span className="home-login-banner-copy">
               <strong>
@@ -157,7 +171,7 @@ export default function AppHome() {
               </span>
             </span>
           </button>
-        )}
+        ))}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>

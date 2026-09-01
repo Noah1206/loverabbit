@@ -9778,6 +9778,9 @@ body[data-guin-intro="1"] .tabbar {
   cursor: pointer;
   text-align: left;
   position: relative;
+  /* 로그인한 사람에게는 같은 배너가 <a> 로 온다 — 밑줄과 링크색을 걷는다. */
+  text-decoration: none;
+  color: inherit;
   /* 배너 세로 = 가로의 35%. 이미지도 같은 비율로 잘라 두었다. */
   aspect-ratio: 1200 / 420;
   background-color: #d9bdde; /* 이미지가 뜨기 전에도 같은 색이 깔린다 */
