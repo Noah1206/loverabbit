@@ -279,7 +279,7 @@ export const PRODUCT_PREVIEWS: Record<string, ProductPreview> = {
     hiddenVariable:
       "얼마나 버느냐가 아니라, 내 재성이 어떤 결인가 — 모으는 그릇인지 굴리는 그릇인지, 그리고 어디로 새는가",
     unlockReveals: [
-      "내 돈 그릇의 모양 — 모으는 결인지 굴리는 결인지",
+      "내 재물의 결 — 모으는 쪽인지 굴리는 쪽인지",
       "돈이 새는 자리와 그 장면",
       "그릇이 감당하는 무게 — 어디까지 실어도 되는지",
       "지금 시기가 들어오는 구간인지 지키는 구간인지",

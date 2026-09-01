@@ -91,17 +91,18 @@ export default function AppHome() {
       <div className="app-home-shell" style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── 상단바 ── */}
         <header className="app-header">
+          {/* 글자를 걷고 로고만 남긴다 (2026-09-01 운영자). 이름은 alt 가 진다 —
+              눈으로는 안 보여도 낭독기와 검색에는 남아야 한다. */}
           <strong className="app-header-brand">
             <Image
               className="app-header-logo"
               src={loveRabbitLogo}
-              alt="러브레빗 토끼 로고"
+              alt="러브레빗"
               width={36}
               height={36}
               priority
               sizes="36px"
             />
-            LOVE<span>RABBIT</span>
           </strong>
           <div className="app-header-actions">
             {/* 질문권 — 참고 화면의 카운터 자리. 값이 바뀌면 숫자가 한 번 튄다. */}
@@ -132,9 +133,26 @@ export default function AppHome() {
                   setShowSignup(true);
                 }
               }}
-              className="app-header-action app-header-login"
+              className="app-header-icon"
+              aria-label={user ? `${user.email.split("@")[0]} · 로그아웃` : "로그인"}
+              title={user ? `${user.email.split("@")[0]} · 로그아웃` : "로그인"}
             >
-              {user ? user.email.split("@")[0] : "로그인"}
+              {/* 사람 아이콘. 로그인하면 안을 채워 "들어와 있음"을 색으로 말한다 —
+                  글자를 걷었으니 상태는 모양이 대신 진다. 동전 아이콘과 같은 24 격자. */}
+              <svg
+                aria-hidden
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="8" r="3.6" fill={user ? "currentColor" : "none"} />
+                <path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8" />
+              </svg>
             </button>
           </div>
         </header>

@@ -817,6 +817,9 @@ label {
   padding: 0;
   border: 0;
   background: none;
+  /* 로그인 버튼도 이 클래스를 쓴다 — button 기본값을 지운다 */
+  font: inherit;
+  cursor: pointer;
   /* 분홍을 걷고 본문 색으로 통일한다 (2026-09-01 운영자) */
   color: var(--text);
   font-size: 0.8rem;
