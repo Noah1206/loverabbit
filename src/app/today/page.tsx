@@ -1,17 +1,32 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 
 import SocialLoginButtons from "@/components/SocialLoginButtons";
-import { DOMAIN_LABEL, type DailySajuAction, type FortuneDomain } from "@/lib/daily-action";
+import {
+  DOMAIN_LABEL,
+  DOMAINS,
+  GREETING_RABBIT_ART,
+  type DailySajuAction,
+  type FortuneDomain,
+} from "@/lib/daily-action";
 import { getUser, type User } from "@/lib/user";
 
-// 오늘의 사주 액션.
+// 오늘의 사주 액션 — 토끼가 데리고 가는 세 걸음.
 //
-// 화면이 3초 안에 답해야 하는 것 세 가지 — 어느 영역인가, 무엇을 하는가,
-// 어디를 누르는가. 그래서 그 셋이 첫 화면 위쪽에 순서대로 서고, 근거와
-// 다른 영역은 그 아래로 내린다. 사주 용어는 근거 줄 하나에만 나온다.
+//   인사  →  고르기  →  들려주기
+//
+// 왜 세 걸음인가. 결과를 한 번에 펼치면 정보가 먼저 오고 사람이 나중에 온다.
+// 토끼가 먼저 인사하고, 사용자가 무엇을 물을지 고르고, 그 다음에 답을 듣는
+// 순서로 두면 같은 내용이 대화가 된다. 고르는 걸음이 하는 일이 하나 더
+// 있다 — 답을 듣기 전에 잠깐 뜸을 들이게 해서, 뒤에 나오는 한 줄이 더
+// 무겁게 읽힌다.
+//
+// 하루에 한 번만 인사한다. 세 번째 열 때도 손을 흔들면 그건 인사가 아니라
+// 관문이다. sessionStorage 에 오늘 날짜를 남겨 그 다음부터는 결과로 바로
+// 간다 — 탭을 닫으면 초기화되는 편이 "오늘 처음"의 감각에 가깝다.
 
 interface DailyActionResponse {
   today: string;
@@ -30,10 +45,34 @@ type Screen =
   | { kind: "error"; message: string }
   | { kind: "ready"; data: DailyActionResponse };
 
+/** 지금 어느 걸음에 있는가 */
+type Step = "hello" | "pick" | "reveal";
+
+const GREETED_KEY = "lr_today_greeted";
+
+function alreadyGreetedToday(today: string): boolean {
+  try {
+    return sessionStorage.getItem(GREETED_KEY) === today;
+  } catch {
+    // 저장이 막힌 브라우저에서는 매번 인사한다. 인사가 한 번 더 나오는 것은
+    // 사고가 아니다 — 여기서 막으면 화면 자체가 안 뜬다.
+    return false;
+  }
+}
+
+function rememberGreeted(today: string): void {
+  try {
+    sessionStorage.setItem(GREETED_KEY, today);
+  } catch {
+    /* 기억 못 해도 흐름은 그대로 간다 */
+  }
+}
+
 export default function TodayPage() {
   const [screen, setScreen] = useState<Screen>({ kind: "loading" });
+  const [step, setStep] = useState<Step>("hello");
   const [account, setAccount] = useState<User | null>(null);
-  const [openDomain, setOpenDomain] = useState<FortuneDomain | null>(null);
+  const [picked, setPicked] = useState<FortuneDomain | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
@@ -54,7 +93,10 @@ export default function TodayPage() {
         setScreen({ kind: "needsProfile" });
         return;
       }
-      setScreen({ kind: "ready", data: body as DailyActionResponse });
+      const data = body as DailyActionResponse;
+      setScreen({ kind: "ready", data });
+      // 오늘 이미 인사를 봤으면 결과로 바로 간다.
+      setStep(alreadyGreetedToday(data.today) ? "reveal" : "hello");
     } catch {
       setScreen({ kind: "error", message: "연결이 불안정해요. 다시 시도해주세요." });
     }
@@ -87,8 +129,6 @@ export default function TodayPage() {
         setSaveError(body?.error ?? "완료를 저장하지 못했어요. 다시 눌러주세요.");
         return;
       }
-      // 서버를 다시 부르지 않고 화면에서만 완료로 표시한다. 응답이 이미
-      // 성공이라 다시 물어도 같은 값이 온다.
       setScreen((prev) =>
         prev.kind === "ready"
           ? { ...prev, data: { ...prev.data, completedToday: [...prev.data.completedToday, domain] } }
@@ -101,221 +141,229 @@ export default function TodayPage() {
     }
   };
 
-  return (
-    <main className="container" style={{ paddingTop: 40, paddingBottom: 96 }}>
-      <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 6, fontSize: "0.82rem", letterSpacing: "0.4px" }}>
-        오늘의 사주 액션
-      </p>
-      <h1 style={{ marginBottom: 6, fontSize: "1.6rem", lineHeight: 1.3 }}>
-        오늘의 흐름을 가장 잘 쓰는 방법
-      </h1>
+  // ── 걸음 밖의 화면들 ──────────────────────────────────────
 
-      {screen.kind === "loading" && (
-        <p style={{ color: "var(--text-dim)", marginTop: 28 }}>오늘의 흐름을 읽고 있어요…</p>
-      )}
+  if (screen.kind === "loading") {
+    return (
+      <main className="today">
+        <p className="today-waiting">오늘의 흐름을 읽고 있어요…</p>
+      </main>
+    );
+  }
 
-      {screen.kind === "guest" && (
-        <div className="card" style={{ marginTop: 24 }}>
-          <p style={{ marginBottom: 8, fontWeight: 700 }}>로그인하면 오늘의 액션이 만들어져요.</p>
-          <p style={{ color: "var(--text-dim)", marginBottom: 20, fontSize: "0.94rem", lineHeight: 1.6 }}>
-            오늘의 일진과 내 사주를 맞대어 봐야 하니, 저장해 둔 사주 정보가 필요해요.
-          </p>
-          <SocialLoginButtons nextPath="/today" />
+  if (screen.kind === "guest" || screen.kind === "needsProfile" || screen.kind === "error") {
+    return (
+      <main className="today">
+        <div className="today-stage">
+          <RabbitArt src={GREETING_RABBIT_ART} alt="" />
+          {screen.kind === "guest" && (
+            <>
+              <h1 className="today-title">안녕! 오늘 뭐 하면 좋을지 같이 볼까?</h1>
+              <p className="today-sub">
+                오늘의 일진과 네 사주를 맞대어 봐야 해서, 먼저 로그인이 필요해.
+              </p>
+              <div className="today-gate">
+                <SocialLoginButtons nextPath="/today" />
+              </div>
+            </>
+          )}
+          {screen.kind === "needsProfile" && (
+            <>
+              <h1 className="today-title">아직 네 사주를 몰라.</h1>
+              <p className="today-sub">
+                생년월일만 알려주면 매일 오늘의 흐름을 읽어줄게. 한 번만 입력하면 돼.
+              </p>
+              <Link href="/reading" className="btn today-cta">
+                사주 정보 입력하기
+              </Link>
+            </>
+          )}
+          {screen.kind === "error" && (
+            <>
+              <h1 className="today-title">잠깐, 뭔가 어긋났어.</h1>
+              <p className="today-sub">{screen.message}</p>
+              <button
+                type="button"
+                className="btn today-cta"
+                onClick={() => account && void load(account.token)}
+              >
+                다시 시도
+              </button>
+            </>
+          )}
         </div>
-      )}
+      </main>
+    );
+  }
 
-      {screen.kind === "needsProfile" && (
-        <div className="card" style={{ marginTop: 24 }}>
-          <p style={{ marginBottom: 8, fontWeight: 700 }}>사주 정보를 먼저 입력해주세요.</p>
-          <p style={{ color: "var(--text-dim)", marginBottom: 20, fontSize: "0.94rem", lineHeight: 1.6 }}>
-            생년월일이 있어야 오늘의 일진과 맞대어 볼 수 있어요. 한 번만 입력하면 매일 이어집니다.
+  const { data } = screen;
+  const shown = picked
+    ? [data.action, ...data.others].find((a) => a.domain === picked) ?? data.action
+    : data.action;
+
+  // ── 첫 걸음: 인사 ────────────────────────────────────────
+
+  if (step === "hello") {
+    return (
+      <main className="today">
+        <div className="today-stage">
+          <RabbitArt src={GREETING_RABBIT_ART} alt="" bob />
+          <p className="today-eyebrow">오늘의 사주 액션</p>
+          <h1 className="today-title">안녕! 오늘도 왔구나.</h1>
+          <p className="today-sub">
+            {data.yesterdayDomain
+              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 오늘은 어떤 걸 볼까?`
+              : "오늘의 흐름을 가장 잘 쓰는 방법, 하나만 알려줄게."}
           </p>
-          <Link href="/reading" className="btn">
-            사주 정보 입력하기
-          </Link>
-        </div>
-      )}
-
-      {screen.kind === "error" && (
-        <div className="card" style={{ marginTop: 24 }}>
-          <p style={{ marginBottom: 20 }}>{screen.message}</p>
           <button
             type="button"
-            className="btn"
-            onClick={() => account && void load(account.token)}
+            className="btn today-cta"
+            onClick={() => {
+              rememberGreeted(data.today);
+              setStep("pick");
+            }}
           >
-            다시 시도
+            오늘의 사주 보기
           </button>
         </div>
-      )}
+      </main>
+    );
+  }
 
-      {screen.kind === "ready" && (
-        <ReadyView
-          data={screen.data}
-          saving={saving}
-          saveError={saveError}
-          openDomain={openDomain}
-          onToggleDomain={(d) => setOpenDomain((prev) => (prev === d ? null : d))}
-          onComplete={complete}
-        />
-      )}
-    </main>
-  );
-}
+  // ── 둘째 걸음: 고르기 ────────────────────────────────────
 
-function ReadyView({
-  data,
-  saving,
-  saveError,
-  openDomain,
-  onToggleDomain,
-  onComplete,
-}: {
-  data: DailyActionResponse;
-  saving: boolean;
-  saveError: string;
-  openDomain: FortuneDomain | null;
-  onToggleDomain: (d: FortuneDomain) => void;
-  onComplete: (d: FortuneDomain) => void;
-}) {
-  const { action } = data;
-  const done = data.completedToday.includes(action.domain);
+  if (step === "pick") {
+    return (
+      <main className="today">
+        <div className="today-stage">
+          <RabbitArt src={GREETING_RABBIT_ART} alt="" small />
+          <h1 className="today-title today-title-sm">어떤 게 궁금해?</h1>
+          <p className="today-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
+        </div>
 
-  return (
-    <>
-      {data.yesterdayDomain && (
-        <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginTop: 14 }}>
-          어제는 {DOMAIN_LABEL[data.yesterdayDomain]} 액션을 완료했어요.
-        </p>
-      )}
-
-      <ActionCard
-        action={action}
-        done={done}
-        saving={saving}
-        saveError={saveError}
-        onComplete={onComplete}
-        primary
-      />
-
-      {/* 사주 근거 — 용어가 나오는 유일한 자리다. 대표 액션 아래에 둔다. */}
-      <section className="card" style={{ marginTop: 14 }}>
-        <p style={{ fontWeight: 800, marginBottom: 8, fontSize: "0.95rem" }}>오늘의 사주 근거</p>
-        <p style={{ color: "var(--text-dim)", fontSize: "0.9rem", marginBottom: 6 }}>
-          {action.sajuBasis.label}
-        </p>
-        <p style={{ fontSize: "0.94rem", lineHeight: 1.65 }}>{action.sajuBasis.description}</p>
-        {data.birthTimeUnknown && (
-          <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginTop: 10 }}>
-            태어난 시각을 모르는 것으로 두고 계산했어요. 오늘의 흐름은 태어난 날로 정해지니 결과는 달라지지 않아요.
-          </p>
-        )}
-        <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginTop: 10, lineHeight: 1.6 }}>
-          이 결과는 미래를 확정하는 예언이 아니라, 오늘을 돌아보는 사주 기반 참고 가이드입니다.
-        </p>
-      </section>
-
-      {/* 다른 운세 보기 — 접어 둔다. 첫 화면은 행동 하나여야 한다. */}
-      <section style={{ marginTop: 28 }}>
-        <p style={{ fontWeight: 800, marginBottom: 12, fontSize: "0.95rem" }}>다른 운세 보기</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-          {data.others.map((other) => (
+        <div className="today-domains">
+          {DOMAINS.map((domain) => (
             <button
-              key={other.domain}
+              key={domain}
               type="button"
-              className={openDomain === other.domain ? "chip on" : "chip"}
-              onClick={() => onToggleDomain(other.domain)}
-              aria-expanded={openDomain === other.domain}
+              className="today-domain"
+              onClick={() => {
+                setPicked(domain);
+                setStep("reveal");
+              }}
             >
-              {DOMAIN_LABEL[other.domain]}
-              {data.completedToday.includes(other.domain) ? " ✓" : ""}
+              <span>{DOMAIN_LABEL[domain]}</span>
+              {data.completedToday.includes(domain) && <span className="today-domain-done">완료</span>}
             </button>
           ))}
         </div>
 
-        {openDomain && (
-          <ActionCard
-            action={data.others.find((o) => o.domain === openDomain)!}
-            done={data.completedToday.includes(openDomain)}
-            saving={saving}
-            saveError={saveError}
-            onComplete={onComplete}
-          />
-        )}
+        <button
+          type="button"
+          className="today-skip"
+          onClick={() => {
+            setPicked(null);
+            setStep("reveal");
+          }}
+        >
+          오늘 흐름에 맞는 걸로 골라줘
+        </button>
+      </main>
+    );
+  }
+
+  // ── 셋째 걸음: 들려주기 ──────────────────────────────────
+
+  const done = data.completedToday.includes(shown.domain);
+
+  return (
+    <main className="today">
+      {/* 토끼가 오늘의 흐름에 맞는 얼굴로 나와 한마디 건넨다 */}
+      <div className="today-stage">
+        <RabbitArt src={shown.rabbit.art} alt="" bob />
+        <p className="today-speech">{shown.rabbit.line}</p>
+      </div>
+
+      <section className="card today-card">
+        <span className="badge">{DOMAIN_LABEL[shown.domain]}</span>
+
+        <p className="today-action">{shown.action}</p>
+
+        {shown.durationMinutes && <p className="today-minutes">약 {shown.durationMinutes}분</p>}
+
+        <p className="today-label">왜 이 행동인가</p>
+        <p className="today-body">{shown.reason}</p>
+
+        <p className="today-label">오늘 피할 행동</p>
+        <p className="today-body">{shown.avoidAction}</p>
+
+        {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
+
+        <div className="today-do">
+          {done ? (
+            <p className="today-done">오늘의 흐름을 잘 사용했어요.</p>
+          ) : (
+            <button
+              type="button"
+              className="btn today-cta"
+              disabled={saving}
+              onClick={() => complete(shown.domain)}
+            >
+              {saving ? "저장하는 중…" : "지금 실행하기"}
+            </button>
+          )}
+          {saveError && <p className="today-error">{saveError}</p>}
+        </div>
       </section>
-    </>
+
+      <section className="card today-basis">
+        <p className="today-label today-label-first">오늘의 사주 근거</p>
+        <p className="today-basis-label">{shown.sajuBasis.label}</p>
+        <p className="today-body">{shown.sajuBasis.description}</p>
+        {data.birthTimeUnknown && (
+          <p className="today-fine">
+            태어난 시각을 모르는 것으로 두고 계산했어요. 오늘의 흐름은 태어난 날로 정해지니 결과는 달라지지 않아요.
+          </p>
+        )}
+        <p className="today-fine">
+          이 결과는 미래를 확정하는 예언이 아니라, 오늘을 돌아보는 사주 기반 참고 가이드입니다.
+        </p>
+      </section>
+
+      <button type="button" className="today-skip" onClick={() => setStep("pick")}>
+        다른 운세 보기
+      </button>
+    </main>
   );
 }
 
-function ActionCard({
-  action,
-  done,
-  saving,
-  saveError,
-  onComplete,
-  primary = false,
+/**
+ * 토끼 그림 한 장.
+ *
+ * bob 은 위아래로 아주 조금 뜨는 움직임이다 — 살아 있다는 느낌만 주고 시선을
+ * 뺏지는 않는다. prefers-reduced-motion 에서는 CSS 가 멈춘다.
+ */
+function RabbitArt({
+  src,
+  alt,
+  bob = false,
+  small = false,
 }: {
-  action: DailySajuAction;
-  done: boolean;
-  saving: boolean;
-  saveError: string;
-  onComplete: (d: FortuneDomain) => void;
-  primary?: boolean;
+  src: string;
+  alt: string;
+  bob?: boolean;
+  small?: boolean;
 }) {
   return (
-    <section className="card" style={{ marginTop: primary ? 18 : 14 }}>
-      <span className="badge">{DOMAIN_LABEL[action.domain]}</span>
-
-      {/* 오늘의 핵심 행동 — 화면에서 가장 큰 글자. */}
-      <p
-        style={{
-          marginTop: 14,
-          fontSize: primary ? "1.32rem" : "1.1rem",
-          fontWeight: 800,
-          lineHeight: 1.45,
-        }}
-      >
-        {action.action}
-      </p>
-
-      {action.durationMinutes && (
-        <p style={{ color: "var(--text-dim)", fontSize: "0.85rem", marginTop: 8 }}>
-          약 {action.durationMinutes}분
-        </p>
-      )}
-
-      <p style={{ fontWeight: 800, marginTop: 22, marginBottom: 6, fontSize: "0.92rem" }}>왜 이 행동인가</p>
-      <p style={{ color: "var(--text-dim)", fontSize: "0.94rem", lineHeight: 1.65 }}>{action.reason}</p>
-
-      <p style={{ fontWeight: 800, marginTop: 20, marginBottom: 6, fontSize: "0.92rem" }}>오늘 피할 행동</p>
-      <p style={{ color: "var(--text-dim)", fontSize: "0.94rem", lineHeight: 1.65 }}>{action.avoidAction}</p>
-
-      {action.disclaimer && (
-        <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginTop: 14, lineHeight: 1.6 }}>
-          {action.disclaimer}
-        </p>
-      )}
-
-      <div style={{ marginTop: 24 }}>
-        {done ? (
-          <p style={{ fontWeight: 800, color: "var(--semantic-success)" }}>
-            오늘의 흐름을 잘 사용했어요.
-          </p>
-        ) : (
-          <button
-            type="button"
-            className="btn"
-            style={{ width: "100%" }}
-            disabled={saving}
-            onClick={() => onComplete(action.domain)}
-          >
-            {saving ? "저장하는 중…" : "지금 실행하기"}
-          </button>
-        )}
-        {saveError && (
-          <p style={{ color: "var(--semantic-error)", fontSize: "0.88rem", marginTop: 10 }}>{saveError}</p>
-        )}
-      </div>
-    </section>
+    <div className={`today-rabbit${bob ? " is-bob" : ""}${small ? " is-small" : ""}`}>
+      <Image
+        src={src}
+        alt={alt}
+        width={512}
+        height={512}
+        priority
+        sizes="(max-width: 480px) 60vw, 280px"
+      />
+    </div>
   );
 }

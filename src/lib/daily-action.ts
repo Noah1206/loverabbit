@@ -61,6 +61,11 @@ export interface DailySajuAction {
     label: string;
     description: string;
   };
+  /** 오늘의 흐름에 반응하는 토끼 — 그림과 첫 마디 */
+  rabbit: {
+    art: string;
+    line: string;
+  };
   disclaimer?: string;
   completedAt?: string | null;
 }
@@ -92,6 +97,39 @@ const FLOW_MEANING: Record<Flow, string> = {
   재성: "오늘은 손에 잡히는 것으로 눈이 가는 흐름입니다. 벌이기보다 이미 가진 것을 헤아리기 좋습니다.",
   관성: "오늘은 형태와 책임이 또렷해지는 흐름입니다. 새로 벌이기보다 맡은 것의 경계를 정하기 좋습니다.",
   인성: "오늘은 밖으로 벌이기보다 안으로 정리하는 흐름입니다. 확장보다 점검과 채움에 맞습니다.",
+};
+
+/**
+ * 토끼의 얼굴과 첫 마디.
+ *
+ * 화면에서 토끼가 "반응한다"고 느껴지려면 흐름마다 다른 모습이어야 한다.
+ * 오늘이 어떤 날이든 같은 그림이 나오면, 움직이는 장식이지 반응이 아니다.
+ *
+ * line 은 결과 카드 위에서 토끼가 건네는 말이다. 근거 문장(FLOW_MEANING)은
+ * 설명이고 이쪽은 말이라 더 짧고 사람 말투에 가깝다. 둘이 같은 것을 두 번
+ * 말하지 않도록, line 은 "그래서 오늘 뭘 하자"는 쪽으로만 간다.
+ */
+const FLOW_RABBIT: Record<Flow, { art: string; line: string }> = {
+  비겁: {
+    art: "/assets/today/rabbit-bigyeop.webp",
+    line: "오늘은 혼자 다 안고 가지 말자. 몫을 나눠두면 편해져.",
+  },
+  식상: {
+    art: "/assets/today/rabbit-siksang.webp",
+    line: "오늘은 말이 잘 닿는 날이야. 담아뒀던 한마디, 지금 꺼내보자.",
+  },
+  재성: {
+    art: "/assets/today/rabbit-jaeseong.webp",
+    line: "오늘은 늘리는 날이 아니라 세어보는 날이야. 같이 한번 확인해볼까?",
+  },
+  관성: {
+    art: "/assets/today/rabbit-gwanseong.webp",
+    line: "오늘은 하나만 분명히 정해두자. 그거면 충분해.",
+  },
+  인성: {
+    art: "/assets/today/rabbit-inseong.webp",
+    line: "오늘은 좀 천천히 가도 돼. 채우는 것도 하는 일이야.",
+  },
 };
 
 /**
@@ -531,6 +569,7 @@ export function buildDailyAction(input: DailyActionInput): { action: DailySajuAc
         label: `오늘의 일진 ${flow.dayGanji} · 내 일간 ${flow.dayMaster} 기준 ${flow.tenGod}`,
         description: FLOW_MEANING[flow.flow],
       },
+      rabbit: FLOW_RABBIT[flow.flow],
       disclaimer: DISCLAIMER[domain],
       completedAt: null,
     },
@@ -552,6 +591,9 @@ export function seoulToday(now = new Date()): string {
   }).format(now);
 }
 
+/** 첫 화면에서 인사하는 토끼 — 흐름과 무관하게 늘 같다 */
+export const GREETING_RABBIT_ART = "/assets/today/rabbit-hello.webp";
+
 /** 테스트가 표 전체를 훑는 데 쓴다 */
 export const FLOWS: Flow[] = ["비겁", "식상", "재성", "관성", "인성"];
-export { ACTIONS as DAILY_ACTION_TABLE };
+export { ACTIONS as DAILY_ACTION_TABLE, FLOW_RABBIT };

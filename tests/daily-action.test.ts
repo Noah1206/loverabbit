@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 
 import {
   DAILY_ACTION_TABLE,
+  FLOW_RABBIT,
+  GREETING_RABBIT_ART,
   DOMAINS,
   DOMAIN_LABEL,
   FLOWS,
@@ -197,4 +200,44 @@ test("seoulToday 는 서버 지역과 무관하게 한국 날짜를 준다", () 
   // UTC 자정 직후는 한국에서 이미 같은 날 아침이다.
   assert.equal(seoulToday(new Date("2026-09-01T00:30:00Z")), "2026-09-01");
   assert.match(seoulToday(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+// ── 토끼 ───────────────────────────────────────────────────
+//
+// 그림 경로는 문자열이라 오타가 나도 타입이 안 잡아준다. 화면에서는 깨진
+// 이미지 자리로만 보여서 늦게 발견된다 — 여기서 파일 존재를 직접 본다.
+
+test("토끼 그림이 흐름마다 실제로 있다", () => {
+  for (const flow of FLOWS) {
+    const { art, line } = FLOW_RABBIT[flow];
+    assert.ok(art.startsWith("/assets/today/"), `${flow}: 경로가 예상 밖 — ${art}`);
+    assert.ok(existsSync(`public${art}`), `${flow}: 파일이 없다 — public${art}`);
+    assert.ok(line.length > 5, `${flow}: 토끼가 할 말이 없다`);
+  }
+  assert.ok(existsSync(`public${GREETING_RABBIT_ART}`), "인사 그림이 없다");
+});
+
+test("흐름마다 다른 얼굴이고 다른 말을 한다", () => {
+  // 같은 그림을 돌려 쓰면 "반응한다"가 거짓말이 된다.
+  const arts = FLOWS.map((f) => FLOW_RABBIT[f].art);
+  const lines = FLOWS.map((f) => FLOW_RABBIT[f].line);
+  assert.equal(new Set(arts).size, FLOWS.length, "토끼 그림이 겹친다");
+  assert.equal(new Set(lines).size, FLOWS.length, "토끼 대사가 겹친다");
+});
+
+test("토끼 대사에도 단정이 없다", () => {
+  for (const flow of FLOWS) {
+    for (const word of FORBIDDEN) {
+      assert.ok(
+        !FLOW_RABBIT[flow].line.includes(word),
+        `${flow} 대사에 "${word}" 가 있다`
+      );
+    }
+  }
+});
+
+test("액션에 토끼가 함께 실려 나간다", () => {
+  const { action } = buildDailyAction({ ...BIRTH, today: "2026-09-01" });
+  assert.ok(action.rabbit.art.startsWith("/assets/today/"));
+  assert.ok(action.rabbit.line.length > 5);
 });

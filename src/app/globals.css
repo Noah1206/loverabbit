@@ -9992,3 +9992,197 @@ body[data-guin-intro="1"] .tabbar {
 input[type="radio"] {
   border-radius: 50% !important;
 }
+
+/* ── 오늘의 사주 액션 ─────────────────────────────────────
+   토끼가 데리고 가는 세 걸음(인사·고르기·들려주기)이 같은 무대를 쓴다.
+   .today-stage 가 그 무대다 — 걸음이 바뀌어도 토끼의 자리가 안 움직여야
+   같은 토끼가 이야기를 이어가는 것으로 읽힌다. */
+.today {
+  padding: 32px 20px calc(96px + env(safe-area-inset-bottom));
+  max-width: 480px;
+  margin: 0 auto;
+}
+.today-waiting {
+  color: var(--text-dim);
+  text-align: center;
+  padding: 80px 0;
+}
+.today-stage {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+}
+.today-rabbit {
+  width: min(260px, 62vw);
+  aspect-ratio: 1;
+}
+.today-rabbit.is-small {
+  width: min(132px, 34vw);
+}
+.today-rabbit img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* 살아 있다는 표시만 — 3px 뜬다. 시선을 뺏을 만큼 크면 글을 못 읽는다. */
+.today-rabbit.is-bob img {
+  animation: today-bob 3.2s ease-in-out infinite;
+}
+@keyframes today-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.today-eyebrow {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+}
+.today-title {
+  font-size: 1.5rem;
+  line-height: 1.34;
+  margin: 0;
+}
+.today-title-sm {
+  font-size: 1.3rem;
+}
+.today-sub {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  line-height: 1.62;
+  max-width: 20rem;
+}
+.today-cta {
+  margin-top: 12px;
+  width: min(300px, 100%);
+  text-align: center;
+}
+.today-gate {
+  margin-top: 12px;
+  width: min(300px, 100%);
+}
+
+/* 토끼의 말 — 카드 위에 얹히는 한마디. 따옴표 없이 크기와 자리로만 말임을
+   드러낸다. 근거 문장과 다른 목소리라 굵기를 한 단 올린다. */
+.today-speech {
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.6;
+  max-width: 21rem;
+  margin-top: 2px;
+}
+
+/* 영역 고르기 — 2열 격자. 8개가 한 화면에 들어간다. */
+.today-domains {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 22px;
+}
+.today-domain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 10px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+.today-domain:hover {
+  border-color: var(--accent);
+}
+.today-domain:active {
+  transform: scale(0.98);
+}
+.today-domain-done {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--semantic-success);
+}
+.today-skip {
+  display: block;
+  margin: 18px auto 0;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* 결과 카드 — 행동 문장이 화면에서 가장 크다 */
+.today-card {
+  margin-top: 18px;
+}
+.today-action {
+  margin-top: 14px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.46;
+}
+.today-minutes {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+.today-label {
+  font-weight: 800;
+  font-size: 0.92rem;
+  margin-top: 22px;
+  margin-bottom: 6px;
+}
+.today-label-first {
+  margin-top: 0;
+}
+.today-body {
+  color: var(--text-dim);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+.today-fine {
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.today-do {
+  margin-top: 24px;
+}
+.today-do .today-cta {
+  margin-top: 0;
+  width: 100%;
+}
+.today-done {
+  font-weight: 800;
+  color: var(--semantic-success);
+}
+.today-error {
+  color: var(--semantic-error);
+  font-size: 0.88rem;
+  margin-top: 10px;
+}
+.today-basis {
+  margin-top: 14px;
+}
+.today-basis-label {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-rabbit.is-bob img {
+    animation: none;
+  }
+}
