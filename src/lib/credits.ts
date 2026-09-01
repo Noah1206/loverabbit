@@ -136,8 +136,14 @@ export function questionsLeft(balance: number): number {
   return Math.max(0, Math.floor(balance / QUESTION_COST));
 }
 
-/** 친구가 가입하면 초대인이 받는 러빗 (리딩 두 장 반 값 — 5,000원) */
-export const REFERRAL_SIGNUP_CREDITS = 5;
+/**
+ * 친구가 가입하면 초대인이 받는 러빗 (3,000원 — 2026-09-01 운영자, 5에서 내림).
+ *
+ * 이 숫자는 화면 문구용이다. 실제로 넣는 쪽은 DB 트리거
+ * (lr_issue_referral_coupon) 이고, 둘이 어긋나면 화면이 약속한 값과
+ * 통장에 꽂히는 값이 달라진다 — 바꿀 때는 마이그레이션도 같이 간다.
+ */
+export const REFERRAL_SIGNUP_CREDITS = 3;
 
 export type CreditReason =
   | "signup"
