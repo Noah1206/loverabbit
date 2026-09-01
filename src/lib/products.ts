@@ -5,8 +5,30 @@ export type CardTone =
   | "ember" | "rose" | "velvet" | "warning" | "promise" | "rain" | "midnight"
   | "blush" | "secret" | "candle" | "peach" | "timing" | "starlight";
 
+/**
+ * 주제 묶음 (2026-09-01 운영자). 20종이 한 줄로 늘어서면 무엇을 파는지가
+ * 안 보인다 — 연애를 보러 온 사람과 재물을 보러 온 사람이 같은 목록을
+ * 훑어야 했다.
+ *
+ * tags(popular/new)와 다른 축이다. tags 는 "지금 미는 것"이고 topic 은
+ * "무엇에 대한 것"이라, 인기 딱지가 붙고 떨어져도 주제는 그대로다.
+ */
+export type ProductTopic = "love" | "relationship" | "money" | "work" | "life";
+
+export const TOPIC_LABEL: Record<ProductTopic, { title: string; desc: string; emoji: string }> = {
+  love: { title: "연애·마음", emoji: "💗", desc: "지금 그 사람과 나 사이" },
+  relationship: { title: "관계의 끝과 다시", emoji: "🕯️", desc: "헤어짐·재회·흔들림" },
+  money: { title: "재물", emoji: "🪙", desc: "돈이 들어오고 나가는 결" },
+  work: { title: "일·공부", emoji: "🧭", desc: "직업·적성·시험·직장" },
+  life: { title: "삶의 자리", emoji: "🌳", desc: "건강·가족·이사" },
+};
+
+/** 목록 페이지에 이 순서로 선다 */
+export const TOPIC_ORDER: ProductTopic[] = ["love", "relationship", "work", "money", "life"];
+
 export interface Product {
   id: string;
+  topic: ProductTopic;
   badge: string;
   title: string;
   emoji: string;
@@ -61,7 +83,7 @@ export const PRODUCTS: Product[] = [
   // 이 셋이 그 착지가 된다 — 목차는 10절로 짧게 둔다: 전 상품 공통 규칙
   // 30개 풀 위에 서므로, 12절 이상이 요구하는 커버리지 문턱을 넘보지 않는다.
   {
-    id: "jikeop", price: 9900, badge: "직업적성", title: "직업·적성 사주", emoji: "🧭",
+    id: "jikeop", topic: "work", price: 9900, badge: "직업적성", title: "직업·적성 사주", emoji: "🧭",
     shortLabel: "직업·적성 🧭", needsPartner: false, tone: "midnight",
     promptLabel: "직업·적성 리딩 (일간 기질과 십성 분포로 읽는 일의 방식, 조직 적합, 직장 인간관계, 지금 시기의 일 흐름)",
     cardCopy: "내 일간이 일을 대하는 기질부터 조직이 맞는지, 직장에서 부딪히는 지점까지 — 타고난 일 그릇을 십성으로 폅니다.",
@@ -105,7 +127,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jaemul", price: 9900, badge: "재물운", title: "재물운 사주", emoji: "🪙",
+    id: "jaemul", topic: "money", price: 9900, badge: "재물운", title: "재물운 사주", emoji: "🪙",
     shortLabel: "재물운 🪙", needsPartner: false, tone: "candle",
     promptLabel: "재물운 리딩 (일간과 재성으로 읽는 돈을 대하는 결, 모으는 힘과 굴리는 힘, 새는 자리, 지금 시기의 재물 흐름)",
     cardCopy: "돈이 들어오는 결과 새는 자리, 모으는 힘과 굴리는 힘 — 내 명식의 재성이 말하는 돈 그릇을 폅니다.",
@@ -149,7 +171,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gongbu", price: 9900, badge: "시험공부운", title: "시험·공부운 사주", emoji: "📚",
+    id: "gongbu", topic: "work", price: 9900, badge: "시험공부운", title: "시험·공부운 사주", emoji: "📚",
     shortLabel: "시험·공부운 📚", needsPartner: false, tone: "rain",
     promptLabel: "시험·공부운 리딩 (인성의 자리로 읽는 공부의 결, 집중이 걸리는 방식, 시험장의 뒷심, 지금 시기의 공부 흐름)",
     cardCopy: "쌓는 공부인지 훑는 공부인지, 몰아서인지 길게인지 — 인성의 자리로 내 공부의 결을 읽고 시험까지의 흐름을 폅니다.",
@@ -195,7 +217,7 @@ export const PRODUCTS: Product[] = [
   // ── 비연애 2라운드 (2026-08-31) — 건강·가족·이사. 띠별 총운은 운영자
   // 결정으로 뺐다. 방위 추천은 계산기에 없으므로 이사 상품이 팔지 않는다.
   {
-    id: "geongang", price: 9900, badge: "건강운", title: "건강운 사주", emoji: "🌿",
+    id: "geongang", topic: "life", price: 9900, badge: "건강운", title: "건강운 사주", emoji: "🌿",
     shortLabel: "건강운 🌿", needsPartner: false, tone: "peach",
     promptLabel: "몸의 리듬 리딩 (일간 기질과 십성으로 읽는 기운 쓰는 방식, 지치는 패턴, 계절 신호, 지금 시기의 리듬 — 의료 판정이 아닌 생활 리듬 해석)",
     cardCopy: "아끼는 몸인지 몰아붙이는 몸인지, 어느 철에 오르고 어느 철에 꺾이는지 — 내 명식이 기운을 쓰는 리듬을 폅니다.",
@@ -239,7 +261,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gajok", price: 9900, badge: "가족운", title: "가족운 사주", emoji: "🌳",
+    id: "gajok", topic: "life", price: 9900, badge: "가족운", title: "가족운 사주", emoji: "🌳",
     shortLabel: "가족운 🌳", needsPartner: false, tone: "promise",
     promptLabel: "가족 인연 리딩 (인성=어머니 자리, 재성=아버지 자리, 비겁=형제 자리로 읽는 가족 안의 나, 부딪히는 결과 소모되는 장면, 지금 시기의 가족 흐름)",
     cardCopy: "어머니에게서 받은 것, 아버지와의 결, 형제와 나 — 명리의 육친이 말하는 가족 안의 내 자리를 폅니다.",
@@ -283,7 +305,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "isa", price: 9900, badge: "이사운", title: "이사운 사주", emoji: "🏡",
+    id: "isa", topic: "life", price: 9900, badge: "이사운", title: "이사운 사주", emoji: "🏡",
     shortLabel: "이사운 🏡", needsPartner: false, tone: "timing",
     promptLabel: "이사·터 리딩 (역마와 충으로 읽는 이동수, 머무는 결과 옮기는 결, 지금 시기의 이동 흐름 — 방위 추천은 하지 않는다)",
     cardCopy: "머무는 결인지 옮기는 결인지, 지금이 움직일 때인지 눌러앉을 때인지 — 역마와 충이 말하는 이동의 흐름을 폅니다.",
@@ -327,7 +349,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jikjang", price: 9900, badge: "직장관계", title: "직장 인간관계 사주", emoji: "🤝",
+    id: "jikjang", topic: "work", price: 9900, badge: "직장관계", title: "직장 인간관계 사주", emoji: "🤝",
     shortLabel: "직장 관계 🤝", needsPartner: false, tone: "midnight",
     promptLabel: "직장 인간관계 리딩 (일간 기질과 십성으로 읽는 일터에서 사람을 대하는 결, 상사·동료와 부딪히는 지점, 소모를 줄이는 법, 지금 시기의 관계 흐름)",
     cardCopy: "왜 그 사람과 일만 하면 힘들까 — 내 명식이 일터에서 사람을 만나는 결과 부딪히는 지점, 소모를 줄이는 법을 폅니다.",
@@ -371,7 +393,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "sokgunghap", price: 9900, badge: "속궁합", title: "속궁합 사주", emoji: "🔥",
+    id: "sokgunghap", topic: "love", price: 9900, badge: "속궁합", title: "속궁합 사주", emoji: "🔥",
     shortLabel: "속궁합 🔥", needsPartner: true, tone: "ember",
     promptLabel: "속궁합",
     cardCopy: "말보다 먼저 닿는 둘의 온도, 가까워질수록 달라지는 주도권과 오래 마음이 머무는 지점까지 섬세하게 펼쳐봅니다.",
@@ -416,7 +438,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jaehoe", price: 12000, badge: "재회운", title: "재회 사주", emoji: "🥀",
+    id: "jaehoe", topic: "relationship", price: 12000, badge: "재회운", title: "재회 사주", emoji: "🥀",
     shortLabel: "재회 🥀", needsPartner: true, tone: "rose",
     promptLabel: "재회운",
     cardCopy: "끝난 대화 뒤에도 남아 있는 감정의 잔향, 다시 연락이 닿을 가능성과 먼저 움직여야 할 단 한 번의 때를 읽습니다.",
@@ -465,7 +487,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "ibyeol", price: 12000, badge: "이별운", title: "이별운 사주", emoji: "🕯️",
+    id: "ibyeol", topic: "relationship", price: 12000, badge: "이별운", title: "이별운 사주", emoji: "🕯️",
     shortLabel: "이별운 🕯️", needsPartner: true, tone: "candle",
     promptLabel: "이별 부검 (연애가 어디서부터 무너졌는지 사후 분석)",
     cardCopy: "그 연애가 처음 금이 간 순간부터 끝내 말하지 못한 진짜 사인까지, 다음 사랑에서 반복하지 않을 흔적을 남깁니다.",
@@ -508,7 +530,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "bamgijil", price: 9900, badge: "연애기질", title: "연애 기질 사주", emoji: "🐰",
+    id: "bamgijil", topic: "love", price: 9900, badge: "연애기질", title: "연애 기질 사주", emoji: "🐰",
     shortLabel: "연애 기질 🐰", needsPartner: false, tone: "velvet",
     promptLabel: "연애 기질 (감정 습관과 반복되는 끌림의 패턴)",
     cardCopy: "연애할 때 드러나는 감정의 결부터 사랑받고 싶을 때 반복되는 습관까지, 당신만의 관계 기질을 섬세하게 해석합니다.",
@@ -552,7 +574,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "baramgi", price: 12000, badge: "바람기", title: "바람기 사주", emoji: "🚨",
+    id: "baramgi", topic: "relationship", price: 12000, badge: "바람기", title: "바람기 사주", emoji: "🚨",
     shortLabel: "바람기 🚨", needsPartner: true, tone: "warning",
     promptLabel: "바람기 분석 (상대 사주의 도화 기운과 바람 조심 시기)",
     cardCopy: "설렘을 좇는 기질인지 관계에서 도망치는 습관인지, 흔들리는 순간과 반드시 확인해야 할 위험 신호를 추적합니다.",
@@ -596,7 +618,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gyeolhon", price: 12000, badge: "결혼점", title: "결혼 사주", emoji: "💍",
+    id: "gyeolhon", topic: "love", price: 12000, badge: "결혼점", title: "결혼 사주", emoji: "💍",
     shortLabel: "결혼 💍", needsPartner: true, tone: "promise",
     promptLabel: "결혼운 (이 상대와 결혼했을 때의 궁합과 결혼 첫 해의 흐름)",
     // 2026-08-25: "3년 흐름"을 "첫 해"로 줄였다. 계산이 감당하는 앞날은 여섯 달과 다음
@@ -644,7 +666,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "gwontaegi", price: 9900, badge: "권태기", title: "권태기 사주", emoji: "🌧️",
+    id: "gwontaegi", topic: "relationship", price: 9900, badge: "권태기", title: "권태기 사주", emoji: "🌧️",
     shortLabel: "권태기 🌧️", needsPartner: true, tone: "rain",
     promptLabel: "권태기 진단 (단순 권태기인지 끝나가는 관계인지 판별)",
     cardCopy: "익숙함에 가려진 애정과 이미 멀어진 마음을 구분하고, 다시 가까워질 수 있는 대화의 순서와 시기를 짚어드립니다.",
@@ -688,7 +710,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "hwanseung", price: 12000, badge: "환승연애", title: "환승연애 사주", emoji: "🚇",
+    id: "hwanseung", topic: "relationship", price: 12000, badge: "환승연애", title: "환승연애 사주", emoji: "🚇",
     shortLabel: "환승연애 🚇", needsPartner: true, tone: "midnight",
     promptLabel: "환승운",
     cardCopy: "지금 사랑에 남을지 새로운 떨림을 따라갈지, 두 갈래 인연이 데려갈 다음 계절과 후회의 크기를 비교합니다.",
@@ -730,7 +752,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "sseom", price: 12000, badge: "썸", title: "썸 사주", emoji: "💘",
+    id: "sseom", topic: "love", price: 12000, badge: "썸", title: "썸 사주", emoji: "💘",
     shortLabel: "썸 💘", needsPartner: true, tone: "blush",
     promptLabel: "썸 해부 (진도가 안 나가는 이유와 주도권 분석)",
     cardCopy: "다정함인지 호감인지 애매했던 신호를 하나씩 해부해, 이 썸을 연애로 바꿀 수 있는 가장 자연스러운 순간을 찾습니다.",
@@ -773,7 +795,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "jjak", price: 9900, badge: "짝사랑", title: "짝사랑 사주", emoji: "🤫",
+    id: "jjak", topic: "love", price: 9900, badge: "짝사랑", title: "짝사랑 사주", emoji: "🤫",
     shortLabel: "짝사랑 🤫", needsPartner: true, tone: "secret",
     promptLabel: "짝사랑 (고백 타이밍과 성공 가능성)",
     cardCopy: "혼자만 간직한 마음이 상대에게 닿아 있는지, 고백 전 만들어야 할 분위기와 관계를 지키는 다정한 퇴로까지 설계합니다.",
@@ -816,7 +838,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "bimil", price: 12000, badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
+    id: "bimil", topic: "love", price: 12000, badge: "비밀연애", title: "비밀연애 사주", emoji: "🤐",
     shortLabel: "비밀연애 🤐", needsPartner: true, tone: "midnight",
     promptLabel: "비밀연애 (들킬 위험 시기와 관계의 지속 가능성)",
     cardCopy: "아무에게도 말하지 못한 관계의 수명과 새어 나가는 틈, 사랑을 지키거나 놓아야 할 마지막 경계선을 조용히 비춥니다.",
@@ -858,7 +880,7 @@ export const PRODUCTS: Product[] = [
     ],
   },
   {
-    id: "dohwasal", price: 9900, badge: "도화살", title: "도화살 사주", emoji: "🌸",
+    id: "dohwasal", topic: "love", price: 9900, badge: "도화살", title: "도화살 사주", emoji: "🌸",
     shortLabel: "도화살 🌸", needsPartner: false, tone: "peach",
     promptLabel: "도화살 진단 (본인의 매력 기질과 이성운)",
     cardCopy: "사람의 시선이 머무는 이유와 당신의 매력이 가장 선명해지는 순간, 원치 않는 인연은 거르고 좋은 인연을 당기는 법을 봅니다.",
@@ -907,7 +929,7 @@ export const PRODUCTS: Product[] = [
     //
     // 규칙 표에서 `insun` 도메인으로 켜지던 해석은 전부 `yeonae` 로 옮겼다
     // (reading-rules.ts). 그게 없으면 새로 붙은 절들이 근거 없이 남는다.
-    id: "yeonae", price: 12000, badge: "연애운", title: "올해의 연애운", emoji: "✨",
+    id: "yeonae", topic: "love", price: 12000, badge: "연애운", title: "올해의 연애운", emoji: "✨",
     shortLabel: "올해 연애운 ✨", needsPartner: false, tone: "starlight",
     promptLabel: "올해의 연애운 (남은 해의 흐름, 고비의 달과 기회의 달, 다음 인연이 들어오는 시기와 만나게 되는 경로)",
     cardCopy: "올해 남은 달의 설렘과 고비를 달력처럼 펼치고, 다음 인연이 들어오는 달과 만나게 될 경로까지 함께 표시합니다.",

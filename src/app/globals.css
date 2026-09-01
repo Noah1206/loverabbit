@@ -9915,6 +9915,104 @@ body[data-guin-intro="1"] .tabbar {
   }
 }
 
+/* ── 사주 목록 (/saju/list) ── 주제로 묶은 상세 페이지 링크.
+   홈 그리드가 카드 그림으로 파는 자리라면, 여기는 글자로 훑는 자리다 —
+   20종을 빠르게 지나가며 찾는 것이 목적이라 그림을 넣지 않는다. */
+.saju-list-page {
+  padding: 24px 20px calc(96px + env(safe-area-inset-bottom));
+}
+.saju-list-head h1 {
+  font-size: 1.34rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.saju-list-head p {
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 0.88rem;
+}
+.saju-list-group {
+  margin-top: 28px;
+}
+.saju-list-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.saju-list-group-head small {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.saju-list-items {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.saju-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
+  text-decoration: none;
+}
+.saju-list-item-emoji {
+  flex: 0 0 auto;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.saju-list-item-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.saju-list-item-copy strong {
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+/* 후킹 문장은 길다 — 두 줄에서 자른다. 목록은 훑는 자리라 여기서 다
+   읽히면 다음 줄로 못 넘어간다. */
+.saju-list-item-copy small {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.saju-list-item-copy em {
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+}
+.saju-list-item-go {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--text);
+  font-size: 1.15rem;
+  transition: transform 180ms ease;
+}
+.saju-list-item:hover .saju-list-item-go,
+.saju-list-item:focus-visible .saju-list-item-go {
+  transform: translateX(3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .saju-list-item-go {
+    transition: none;
+  }
+}
+
 /* ── 각진 모서리 ── 둥근 모서리를 쓰지 않는다. 200곳 넘는 자리를 각각
    고치는 대신 여기서 한 번에 눌러 둔다. 새로 쓰는 border-radius 도 자동으로
    여기에 걸린다.

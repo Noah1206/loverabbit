@@ -269,6 +269,17 @@ export default function AppHome() {
               );
             })}
           </div>
+
+          {/* 그리드는 인기·신규로 줄을 세운다. 주제로 찾고 싶은 사람은
+              여기서 목록으로 간다 — 홈에서 내린 사주도 거기에는 있다. */}
+          <Link href="/saju/list" className="home-webtoon" style={{ marginTop: 14 }}>
+            <span className="home-webtoon-emoji" aria-hidden>📜</span>
+            <span className="home-webtoon-copy">
+              <strong>사주 전체 목록</strong>
+              <small>연애 · 재물 · 일 · 삶 — 주제별로 모아 봤어요</small>
+            </span>
+            <span className="home-webtoon-go" aria-hidden>›</span>
+          </Link>
         </section>
 
         {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지
