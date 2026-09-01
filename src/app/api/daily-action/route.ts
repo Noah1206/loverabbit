@@ -14,6 +14,7 @@ import {
   type FortuneDomain,
 } from "@/lib/daily-action";
 import { adminKeyFromAuthorization, verifyAdminApprovalKey } from "@/lib/admin-auth";
+import { sajuProfileOf } from "@/lib/saju-profile";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 오늘의 사주 액션.
@@ -167,6 +168,11 @@ export async function POST(request: NextRequest) {
       yesterdayDomain: isDomain(yesterdayDomain) ? yesterdayDomain : null,
       birthTimeUnknown: profile.birthTimeUnknown,
       flow: { dayGanji: flow.dayGanji, dayMaster: flow.dayMaster, tenGod: flow.tenGod },
+      // 내 명식의 수치 — 오늘과 달리 이건 안 바뀐다. 화면에서 접어 둔다.
+      // 성별이 없으면 십성의 배우자성 해석이 갈리므로 여자로 두지 않고 뺀다.
+      me: profile.gender
+        ? sajuProfileOf(profile.birthdate, profile.birthHour, profile.gender)
+        : null,
     },
     { headers: noStore }
   );

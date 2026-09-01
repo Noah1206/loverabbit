@@ -13,6 +13,7 @@ import {
   type DailySajuAction,
   type FortuneDomain,
 } from "@/lib/daily-action";
+import type { SajuProfileView } from "@/lib/saju-profile";
 import { getUser, type User } from "@/lib/user";
 
 // 오늘의 사주 액션 — 토끼가 데리고 가는 세 걸음.
@@ -46,6 +47,8 @@ interface DailyActionResponse {
   yesterdayDomain: FortuneDomain | null;
   birthTimeUnknown: boolean;
   flow: { dayGanji: string; dayMaster: string; tenGod: string };
+  /** 내 명식의 수치. 성별이 없으면 null — 십성 해석이 갈려서 추측하지 않는다. */
+  me: SajuProfileView | null;
 }
 
 type Screen =
@@ -404,10 +407,162 @@ export default function TodayPage() {
         </p>
       </section>
 
+      {data.me && <MyChart me={data.me} />}
+
       <button type="button" className="today-skip" onClick={() => setStep("pick")}>
         다른 운세 보기
       </button>
     </main>
+  );
+}
+
+/**
+ * 내 사주를 수치로.
+ *
+ * 오늘의 흐름과 성격이 다르다 — 저건 날마다 바뀌고 이건 안 바뀐다. 그래서
+ * 접어 두고, 궁금한 사람만 편다. 첫 화면은 오늘 할 행동 하나여야 한다.
+ *
+ * 여기 나오는 숫자는 전부 명리 엔진이 이미 낸 값이다. 화면에서 새로 만들지
+ * 않는다 — 산식 없는 숫자는 그럴듯할수록 위험하다.
+ */
+function MyChart({ me }: { me: SajuProfileView }) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <button type="button" className="today-skip" onClick={() => setOpen(true)}>
+        내 사주 수치로 보기
+      </button>
+    );
+  }
+
+  return (
+    <section className="card today-me">
+      <div className="today-me-head">
+        <p className="today-label today-label-first">내 사주</p>
+        <button type="button" className="today-me-close" onClick={() => setOpen(false)}>
+          접기
+        </button>
+      </div>
+      <p className="today-basis-label">일간 {me.dayMaster}</p>
+
+      {/* 오행 — 레이더와 막대를 같이 둔다. 레이더는 치우친 모양이 한눈에
+          들어오고, 막대는 어느 쪽이 몇인지 정확히 읽힌다. */}
+      <p className="today-label">오행의 균형</p>
+      <div className="today-me-elements">
+        <ElementRadar elements={me.elements} />
+        <div className="today-me-bars">
+          {me.elements.map((e) => (
+            <div key={e.ohaeng} className={`today-bar ${e.className}`}>
+              <span className="today-bar-name">{e.ohaeng}</span>
+              <span className="today-bar-track">
+                <i style={{ width: `${Math.max(e.ratio, 2)}%` }} />
+              </span>
+              <span className="today-bar-val">{e.count}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="today-fine">
+        여덟 글자에서 센 개수입니다. 다섯이 고르면 하나에 20% 안팎이 됩니다.
+        {me.absent.length > 0 && ` 지장간까지 열어도 없는 것: ${me.absent.join("·")}.`}
+        {me.hidden.length > 0 && ` 겉에 없지만 지장간에 든 것: ${me.hidden.join("·")}.`}
+      </p>
+
+      {/* 강약 — 0~100 한 줄 */}
+      <p className="today-label">강약</p>
+      <div className="today-strength">
+        <div className="today-strength-track">
+          <i style={{ left: `${me.strength.score}%` }} />
+        </div>
+        <div className="today-strength-scale">
+          <span>신약</span>
+          <span>중화</span>
+          <span>신강</span>
+        </div>
+        <p className="today-strength-val">
+          {me.strength.label} <b>{me.strength.score}</b>
+        </p>
+      </div>
+      <p className="today-body">{me.strength.meaning}</p>
+
+      {/* 십성 — 자리마다의 십성을 센 것 */}
+      <p className="today-label">십성 분포</p>
+      <div className="today-me-bars">
+        {me.tenGods.map((t) => (
+          <div key={t.tenGod} className="today-bar is-tengod">
+            <span className="today-bar-name is-wide">{t.tenGod}</span>
+            <span className="today-bar-track">
+              <i style={{ width: `${Math.max(t.ratio, 3)}%` }} />
+            </span>
+            <span className="today-bar-val">{t.count}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* 행동강령 — 위 수치에서 나온 것. 어디서 나왔는지 같이 적는다. */}
+      <p className="today-label">나의 행동강령</p>
+      <ol className="today-rules">
+        {me.guidelines.map((g) => (
+          <li key={g.title}>
+            <p className="today-rule-title">{g.title}</p>
+            <p className="today-rule-body">{g.body}</p>
+            <span className="today-rule-basis">{g.basis}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="today-fine">
+        타고난 결을 읽은 것이라 매일 바뀌지 않습니다. 오늘의 행동은 여기에 오늘의
+        흐름을 더해 정해집니다.
+      </p>
+    </section>
+  );
+}
+
+/**
+ * 오행 오각형.
+ *
+ * SVG 로 직접 그린다 — 라이브러리를 넣을 만큼 복잡하지 않고, 축이 다섯으로
+ * 고정이라 일반화할 이유도 없다. 반지름은 비율이 아니라 개수로 잡는다:
+ * 비율은 전체가 바뀌면 같은 개수도 달라 보인다.
+ */
+function ElementRadar({ elements }: { elements: SajuProfileView["elements"] }) {
+  const size = 132;
+  const c = size / 2;
+  const rMax = c - 16;
+  const max = Math.max(...elements.map((e) => e.count), 3);
+
+  const pt = (i: number, r: number) => {
+    const angle = (Math.PI * 2 * i) / elements.length - Math.PI / 2;
+    return [c + Math.cos(angle) * r, c + Math.sin(angle) * r] as const;
+  };
+
+  const web = [0.33, 0.66, 1].map((f) =>
+    elements.map((_, i) => pt(i, rMax * f).join(",")).join(" ")
+  );
+  const shape = elements
+    .map((e, i) => pt(i, (e.count / max) * rMax).join(","))
+    .join(" ");
+
+  return (
+    <svg className="today-radar" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="오행 분포">
+      {web.map((points, i) => (
+        <polygon key={i} points={points} className="today-radar-web" />
+      ))}
+      {elements.map((_, i) => {
+        const [x, y] = pt(i, rMax);
+        return <line key={i} x1={c} y1={c} x2={x} y2={y} className="today-radar-web" />;
+      })}
+      <polygon points={shape} className="today-radar-shape" />
+      {elements.map((e, i) => {
+        const [x, y] = pt(i, rMax + 9);
+        return (
+          <text key={e.ohaeng} x={x} y={y} className="today-radar-label" dominantBaseline="middle">
+            {e.ohaeng}
+          </text>
+        );
+      })}
+    </svg>
   );
 }
 

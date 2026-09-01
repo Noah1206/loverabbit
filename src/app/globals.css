@@ -10191,6 +10191,205 @@ input[type="radio"] {
   }
 }
 
+/* ── 내 사주 수치 (2026-09-02) ──────────────────────────
+   접혀 있다가 펴진다. 첫 화면은 오늘 할 행동 하나여야 하므로 여기는
+   궁금한 사람만 연다. */
+.today-me {
+  margin-top: 14px;
+}
+.today-me-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.today-me-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* 레이더와 막대를 나란히. 좁아지면 위아래로 쌓는다 — 둘 다 작아지면
+   레이더의 라벨이 먼저 뭉갠다. */
+.today-me-elements {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+@media (max-width: 400px) {
+  .today-me-elements {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .today-me-elements .today-me-bars {
+    width: 100%;
+  }
+}
+
+.today-radar {
+  width: 132px;
+  height: 132px;
+  overflow: visible;
+}
+.today-radar-web {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.today-radar-shape {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.today-radar-label {
+  fill: var(--text-dim);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.today-me-bars {
+  display: grid;
+  gap: 7px;
+}
+.today-bar {
+  display: grid;
+  grid-template-columns: 18px 1fr 16px;
+  align-items: center;
+  gap: 9px;
+}
+.today-bar.is-tengod {
+  grid-template-columns: 36px 1fr 16px;
+}
+.today-bar-name {
+  color: var(--sj-c, var(--text));
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.today-bar-name.is-wide {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+.today-bar-track {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--canvas-lavender);
+  overflow: hidden;
+}
+.today-bar-track i {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--sj-c, var(--accent));
+}
+.today-bar-val {
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 강약 — 0~100 위의 점 하나. 막대를 채우지 않는 이유는 이 값이 "얼마나
+   많은가"가 아니라 "어느 쪽에 서 있는가"라서다. */
+.today-strength {
+  margin-top: 4px;
+}
+.today-strength-track {
+  position: relative;
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, #5b8fd6 55%, var(--canvas-lavender)),
+    var(--canvas-lavender) 50%,
+    color-mix(in srgb, #e2564f 55%, var(--canvas-lavender))
+  );
+}
+.today-strength-track i {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-card);
+  transform: translateY(-50%);
+}
+.today-strength-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+.today-strength-val {
+  margin-top: 8px;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.today-strength-val b {
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+/* 행동강령 — 번호를 매긴다. 셋뿐이고 위에서부터 크게 갈리는 순서다. */
+.today-rules {
+  list-style: none;
+  counter-reset: rule;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 14px;
+}
+.today-rules li {
+  counter-increment: rule;
+  padding-left: 26px;
+  position: relative;
+}
+.today-rules li::before {
+  content: counter(rule);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+.today-rule-title {
+  font-weight: 800;
+  font-size: 0.96rem;
+  line-height: 1.45;
+}
+.today-rule-body {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  line-height: 1.62;
+  margin-top: 4px;
+}
+.today-rule-basis {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--canvas-lavender);
+  border-radius: var(--r-pill);
+  padding: 2px 9px;
+}
+
 /* 검수 중 잠금 — 열쇠 구멍만 둔다 (2026-09-01).
    기능을 열 때 이 블록도 같이 지운다. */
 .today-unlock {
