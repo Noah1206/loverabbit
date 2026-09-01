@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useEscape } from "@/lib/use-escape";
 import PortOneTransferForm, {
   PORTONE_TRANSFER_CONFIGURED,
 } from "@/components/PortOneTransferForm";
@@ -54,6 +55,7 @@ export default function PaymentModal({
   onClose: () => void;
 }) {
   const [widgets, setWidgets] = useState<TossPaymentsWidgets | null>(null);
+  useEscape(onClose);
   const [ready, setReady] = useState(false);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");

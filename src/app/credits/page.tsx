@@ -18,6 +18,7 @@ import {
   type CreditLedgerEntry,
   type CreditPack,
 } from "@/lib/credits";
+import { peekCreditsReturn, rememberCreditsReturn } from "@/lib/credits-return";
 import { PAYMENT_METHOD_OPEN } from "@/lib/pay-method";
 import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { getUser, type User } from "@/lib/user";
@@ -82,7 +83,10 @@ export default function CreditsPage() {
     setWelcome(params.get("welcome") === "1");
     // 바깥 주소로 튀지 않게 우리 경로만 받는다.
     const next = params.get("next");
-    setNextPath(next && next.startsWith("/") && !next.startsWith("//") ? next : null);
+    const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+    // 포트원 결제창을 다녀오면 쿼리가 사라진다 — 탭에 남겨 두고, 없으면 남긴 것을 꺼낸다.
+    if (safeNext) rememberCreditsReturn(safeNext);
+    setNextPath(safeNext ?? peekCreditsReturn());
     if (stored) void load(stored);
   }, [load]);
 
@@ -155,6 +159,13 @@ export default function CreditsPage() {
         <p className="cc-card" style={{ background: "#eefaf3", borderColor: "#bfe6d2", color: "#1f7a4d", fontWeight: 700, fontSize: "0.88rem" }}>
           입금이 확인됐어요. 러빗이 들어왔어요 🐰
         </p>
+      )}
+
+      {/* 결제 도중에 충전하러 온 사람 — 돌아갈 길을 눈앞에 둔다 */}
+      {nextPath && !welcome && (
+        <Link className="cc-btn cc-btn-soft cc-btn-block" href={nextPath} style={{ marginBottom: 14 }}>
+          하던 결제로 돌아가기 →
+        </Link>
       )}
 
       {welcome && firstBuy && (

@@ -64,9 +64,12 @@ function positionOf(node: GuinBgNode, indexInRole: number): { x: number; y: numb
 export default function GuinMapBackground({
   ownerLabel,
   nodes,
+  selectedId = null,
 }: {
   ownerLabel: string;
   nodes: GuinBgNode[];
+  /** 카드 목록에서 고른 사람 — 지도의 그 선·점만 밝힌다. */
+  selectedId?: string | null;
 }) {
   const perRole: Record<string, number> = {};
   const placed = nodes.map((node) => {
@@ -101,18 +104,34 @@ export default function GuinMapBackground({
           <circle key={r} cx={CX} cy={CY} r={r} className="guin-bg-ring" />
         ))}
 
-        {placed.map(({ node, x, y }, i) => (
-          <g key={node.id} className="guin-bg-node" style={{ animationDelay: `${(i % 7) * 0.9}s` }}>
-            <line x1={CX} y1={CY} x2={x} y2={y} stroke={ROLE_DOT[node.role]} strokeOpacity="0.22" strokeWidth="0.3" />
-            <circle cx={x} cy={y} r={1.9} fill={ROLE_DOT[node.role]} fillOpacity="0.9" />
-            <circle cx={x} cy={y} r={3.4} fill="none" stroke={ROLE_DOT[node.role]} strokeOpacity="0.35" strokeWidth="0.3" />
-            {showLabels && (
-              <text x={x} y={y + 6.4} textAnchor="middle" className="guin-bg-name">
-                {node.nickname.slice(0, 6)}
-              </text>
-            )}
-          </g>
-        ))}
+        {placed.map(({ node, x, y }, i) => {
+          const sel = selectedId === node.id;
+          // 케미가 강할수록 굵은 선 — 거리와 같은 값을 한 번 더 말한다.
+          const width = node.score === null ? 0.3 : 0.2 + (node.score / 100) * 0.4;
+          return (
+            <g key={node.id} className="guin-bg-node" style={{ animationDelay: `${(i % 7) * 0.9}s` }}>
+              <line
+                x1={CX}
+                y1={CY}
+                x2={x}
+                y2={y}
+                stroke={ROLE_DOT[node.role]}
+                strokeOpacity={sel ? 0.75 : 0.22}
+                strokeWidth={sel ? width + 0.25 : width}
+                pathLength={1}
+                className="guin-bg-line"
+                style={{ animationDelay: `${i * 0.12}s` }}
+              />
+              <circle cx={x} cy={y} r={sel ? 2.6 : 1.9} fill={ROLE_DOT[node.role]} fillOpacity="0.9" />
+              <circle cx={x} cy={y} r={3.4} fill="none" stroke={ROLE_DOT[node.role]} strokeOpacity={sel ? 0.7 : 0.35} strokeWidth="0.3" />
+              {showLabels && (
+                <text x={x} y={y + 6.4} textAnchor="middle" className="guin-bg-name">
+                  {node.nickname.slice(0, 6)}
+                </text>
+              )}
+            </g>
+          );
+        })}
 
         {emptySlots.map((slot, i) => (
           <g key={`empty-${i}`} className="guin-bg-node" style={{ animationDelay: `${i * 1.3}s` }}>

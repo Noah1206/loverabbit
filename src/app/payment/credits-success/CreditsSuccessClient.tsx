@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { peekCreditsReturn } from "@/lib/credits-return";
 import { getUser } from "@/lib/user";
 
 // 포트원 결제창에서 돌아온 자리. 서버가 결제를 다시 조회해 지급한다.
@@ -18,6 +19,9 @@ export default function CreditsSuccessClient({
   const started = useRef(false);
   const [credits, setCredits] = useState<number | null>(null);
   const [error, setError] = useState("");
+  // 결제 도중에 충전하러 왔던 사람의 복귀 경로. SSR 에는 없으니 effect 에서 읽는다.
+  const [next, setNext] = useState<string | null>(null);
+  useEffect(() => setNext(peekCreditsReturn()), []);
 
   useEffect(() => {
     if (started.current) return;
@@ -68,7 +72,11 @@ export default function CreditsSuccessClient({
             <span className="badge">결제 완료</span>
             <h1>러빗이 충전됐어요</h1>
             <p>현재 <strong>{credits}러빗</strong></p>
-            <Link className="btn" href="/ask">질문하러 가기 →</Link>
+            {next ? (
+              <Link className="btn" href={next}>하던 결제로 돌아가기 →</Link>
+            ) : (
+              <Link className="btn" href="/ask">질문하러 가기 →</Link>
+            )}
           </>
         ) : (
           <>

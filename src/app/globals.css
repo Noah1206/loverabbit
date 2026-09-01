@@ -864,6 +864,58 @@ label {
   100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
+/* ── 히어로 배너 ───────────────────────────────────────────────────
+   그림은 오른쪽 3분의 1에만 토끼가 있고 나머지는 라벤더 단색이다. 그래서
+   배경색을 그림과 같은 값으로 깔아 두면, 그림이 늦게 오거나 못 와도 칸이
+   무너지지 않고 글자도 그대로 읽힌다. 글자는 왼쪽 빈 자리에만 앉는다. */
+.home-hero {
+  position: relative;
+  display: block;
+  margin: 0 20px 12px;
+  padding: 18px;
+  min-height: 132px;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  background-color: #d9bdde;
+  background-image: url("/assets/home/hero-banner.webp");
+  background-size: cover;
+  background-position: right center;
+}
+.home-hero-copy {
+  /* 토끼가 앉은 오른쪽 3분의 1을 비워 둔다 */
+  width: min(62%, 300px);
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+.home-hero-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #4a2d55;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.home-hero-title {
+  color: #2f1b3a;
+  font-size: 1.12rem;
+  line-height: 1.34;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.home-hero-cta {
+  color: #4a2d55;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+@media (max-width: 380px) {
+  /* 폭이 좁아지면 토끼를 더 밀어내고 글자 자리를 지킨다 */
+  .home-hero { background-position: 78% center; min-height: 122px; }
+  .home-hero-copy { width: 66%; }
+  .home-hero-title { font-size: 1.02rem; }
+}
+
 /* ── 공지 배너 ─────────────────────────────────────────────────────
    제목줄이 달린 창 모양. 위쪽 띠가 무슨 알림인지 먼저 말하고, 본문이
    바뀔 때 아래에서 올라온다. */
@@ -9204,8 +9256,18 @@ body[data-guin-intro="1"] .tabbar {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.1px); }
 }
+/* 관계선이 중앙에서 스르륵 그려진다 — pathLength=1 이라 dash 값이 항상 1이면 된다 */
+.guin-bg-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: guin-line-draw 0.9s ease-out forwards;
+}
+@keyframes guin-line-draw {
+  to { stroke-dashoffset: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   .guin-bg-node { animation: none; }
+  .guin-bg-line { animation: none; stroke-dashoffset: 0; }
 }
 
 /* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */

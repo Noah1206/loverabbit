@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import BrandMark from "@/components/BrandMark";
 import { FIRST_READING_PRICE } from "@/lib/coupons";
+import { useEscape } from "@/lib/use-escape";
 
 /*
   처음 온 사람에게 한 번 뜨는 팝업 — "첫 사주는 무조건 1,900원".
@@ -22,6 +23,9 @@ const SHOW_ON = [/^\/$/, /^\/product\//, /^\/saju\//];
 export default function WelcomePopup() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  useEscape(() => {
+    if (open) close();
+  });
 
   useEffect(() => {
     if (!SHOW_ON.some((re) => re.test(pathname ?? ""))) return;

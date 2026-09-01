@@ -483,6 +483,7 @@ export default function GuinMapPage() {
       <GuinMapBackground
         ownerLabel={view.ownerNickname}
         nodes={view.nodes.map((node) => ({ id: node.id, nickname: node.nickname, role: node.role, score: node.score }))}
+        selectedId={selected}
       />
     <main className="container guin-scene" style={{ paddingTop: 48, paddingBottom: 120 }}>
       <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
@@ -855,6 +856,26 @@ function NodeDetail({ node }: { node: GuinNodeView }) {
       <p style={{ color: "var(--text-dim)" }}>
         <span style={{ fontWeight: 700, color: "var(--text)" }}>대화 질문</span> · “{node.conversationPrompt}”
       </p>
+      {/* 왜 이런 결과인가 — 이미 클라이언트에 와 있는 5축 값을 접어서 보여준다 */}
+      {keys.length > 0 && (
+        <details>
+          <summary style={{ cursor: "pointer", color: "var(--text-dim)", fontSize: "0.84rem" }}>계산 근거 보기</summary>
+          <div style={{ display: "grid", gap: 6, marginTop: 8 }}>
+            {keys.map((key) => (
+              <div key={key} style={{ display: "grid", gridTemplateColumns: "96px 1fr 34px", gap: 8, alignItems: "center" }}>
+                <span style={{ fontSize: "0.82rem", color: "var(--text-dim)" }}>{AXIS_LABEL[key]}</span>
+                <span aria-hidden style={{ height: 8, borderRadius: 4, background: "var(--line)", overflow: "hidden", display: "block" }}>
+                  <span style={{ display: "block", width: `${node.axes![key]}%`, height: "100%", background: "var(--accent)", opacity: key === top ? 1 : 0.55 }} />
+                </span>
+                <b style={{ fontSize: "0.8rem", textAlign: "right" }}>{node.axes![key]}</b>
+              </div>
+            ))}
+            <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", marginTop: 2 }}>
+              두 사람의 오행 관계({node.elementLabel})와 위 다섯 축으로 역할과 케미를 계산했어요.
+            </p>
+          </div>
+        </details>
+      )}
     </div>
   );
 }
