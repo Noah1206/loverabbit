@@ -1,30 +1,54 @@
 # 오늘의 사주 액션 — 토끼 (2026-09-01)
 
-여섯 장. 전부 512x512 webp, 장당 5~7KB.
+흐름마다 **투명 배경 영상(webm) + 정지 그림(webp)** 한 쌍씩.
 
-rabbit-hello.webp      손 흔들며 인사. 첫 걸음과 빈 상태(로그인·프로필 안내)가 쓴다.
-rabbit-bigyeop.webp    두 손 펼침 — 몫을 나누는 날
-rabbit-siksang.webp    입 벌리고 말하는 중 — 표현하는 날
-rabbit-jaeseong.webp   수첩 들고 확인 — 세어보는 날
-rabbit-gwanseong.webp  손가락 하나 세움 — 하나만 정하는 날
-rabbit-inseong.webp    컵 들고 쉬는 중, 귀가 처짐 — 채우는 날
+```
+rabbit-hello       손 흔들며 인사       첫 걸음 · 빈 상태
+rabbit-bigyeop     두 손 펼침           비겁 — 몫을 나누는 날
+rabbit-siksang     입 벌리고 말하는 중   식상 — 표현하는 날
+rabbit-jaeseong    턱에 손, 세어보는 중  재성 — 헤아리는 날
+rabbit-gwanseong   손가락 하나 세움      관성 — 하나만 정하는 날
+rabbit-inseong     귀 처지고 졸린 눈     인성 — 쉬고 채우는 날
+```
 
-## 흐름마다 다른 얼굴인 이유
+## 왜 흐름마다 다른가
 
 토끼가 "반응한다"고 느껴지려면 오늘이 어떤 날인지에 따라 모습이 달라져야
-한다. 한 장으로 돌려 쓰면 움직이는 장식이지 반응이 아니다. 어느 그림이
-어느 흐름에 붙는지는 `src/lib/daily-action.ts` 의 `FLOW_RABBIT` 이 정한다 —
+한다. 한 장으로 돌려 쓰면 움직이는 장식이지 반응이 아니다. 어느 것이 어느
+흐름에 붙는지는 `src/lib/daily-action.ts` 의 `FLOW_RABBIT` 이 정한다 —
 파일명을 바꾸면 그쪽도 같이 고쳐야 한다.
 
-## 같은 토끼여야 한다
+## 만드는 길
 
-Higgsfield nano_banana_pro, 2크레딧/장. 여섯 장 전부
-`public/assets/home/welcome-rabbit.webp` 를 image_references 로 넣어
-같은 얼굴·같은 귀·같은 볼터치·같은 렌더링을 유지했다. **새로 만들 때도
-그 레퍼런스를 넣어라** — 빼면 얼굴이 미묘하게 달라져서, 걸음을 넘길 때
-다른 토끼로 바뀐 것처럼 보인다.
+```
+1. nano_banana_pro 로 정지 그림           2크레딧
+   → welcome-rabbit.webp 를 image_references 로 넣어 같은 얼굴 유지
+2. seedance_2_5 로 4초 영상               10크레딧
+   → 그 정지 그림을 start_image 로. 카메라 고정·배경 정지를 프롬프트에 못박는다
+3. remove_background (media_type: video)  → 배경이 순수 검정인 mp4
+4. ffmpeg 로 검정을 알파로:
 
-## 배경
+   ffmpeg -i in.mp4 \
+     -vf "colorkey=0x000000:0.01:0.0,scale=320:320,fps=16,format=yuva420p" \
+     -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 50 -an out.webm
+```
 
-연보라 단색(#c9b6e8 언저리)이고 여백이 넉넉하다. 화면에서 object-fit:
-contain 으로 얹으므로 캐릭터가 프레임에 꽉 차면 안 된다 — 위아래가 잘린다.
+**tolerance 는 0.01 로 좁게 잡는다.** 넓히면 토끼의 검은 눈까지 뚫린다.
+배경은 정확히 #000000 이고 눈은 그보다 밝아서 이 값으로 갈린다.
+
+`ffprobe` 가 `pix_fmt=yuv420p` 로 보고해도 정상이다 — WebM 은 알파를 별도
+채널로 담아서 `alpha_mode=1` 태그로 확인해야 한다.
+
+## 소품을 들리지 마라
+
+배경제거기는 토끼가 **들고 있는 물건을 배경으로 오인해 지운다.** 처음에
+재성은 수첩을, 인성은 컵을 들고 있었는데 둘 다 그 자리에 구멍이 뚫렸다.
+지금 여섯 자세 전부 빈손인 이유가 이것이다. 새 자세를 만들 때 프롬프트에
+"holds nothing, no props" 를 넣어라.
+
+## 화면에서
+
+정지 그림을 깔고 그 위에 영상을 덮는다 (`.today-rabbit`). 영상이 오면 그림은
+가려지고, VP9 알파가 안 되는 브라우저나 자동재생이 막힌 곳에서는 그림이 그대로
+남는다. `poster` 를 쓰지 않는 이유는 poster 가 "재생 가능한데 아직 안 튼"
+경우만 그려서, 코덱 자체가 없으면 빈칸이 되기 때문이다.

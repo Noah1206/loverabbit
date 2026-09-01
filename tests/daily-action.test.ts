@@ -6,6 +6,7 @@ import {
   DAILY_ACTION_TABLE,
   FLOW_RABBIT,
   GREETING_RABBIT_ART,
+  GREETING_RABBIT_VIDEO,
   DOMAINS,
   DOMAIN_LABEL,
   FLOWS,
@@ -207,21 +208,44 @@ test("seoulToday 는 서버 지역과 무관하게 한국 날짜를 준다", () 
 // 그림 경로는 문자열이라 오타가 나도 타입이 안 잡아준다. 화면에서는 깨진
 // 이미지 자리로만 보여서 늦게 발견된다 — 여기서 파일 존재를 직접 본다.
 
-test("토끼 그림이 흐름마다 실제로 있다", () => {
+test("토끼 영상과 그림이 흐름마다 실제로 있다", () => {
   for (const flow of FLOWS) {
-    const { art, line } = FLOW_RABBIT[flow];
-    assert.ok(art.startsWith("/assets/today/"), `${flow}: 경로가 예상 밖 — ${art}`);
-    assert.ok(existsSync(`public${art}`), `${flow}: 파일이 없다 — public${art}`);
+    const { video, art, line } = FLOW_RABBIT[flow];
+    for (const path of [video, art]) {
+      assert.ok(path.startsWith("/assets/today/"), `${flow}: 경로가 예상 밖 — ${path}`);
+      assert.ok(existsSync(`public${path}`), `${flow}: 파일이 없다 — public${path}`);
+    }
     assert.ok(line.length > 5, `${flow}: 토끼가 할 말이 없다`);
   }
   assert.ok(existsSync(`public${GREETING_RABBIT_ART}`), "인사 그림이 없다");
+  assert.ok(existsSync(`public${GREETING_RABBIT_VIDEO}`), "인사 영상이 없다");
+});
+
+test("영상이 없으면 정지 그림이 대신할 수 있게 짝이 맞는다", () => {
+  // 영상은 VP9 알파라 못 트는 브라우저가 있다. 그때 같은 자세의 그림이
+  // 그 자리에 남아야 빈칸이 안 생긴다 — 짝이 어긋나면 자세가 튄다.
+  for (const flow of FLOWS) {
+    const { video, art } = FLOW_RABBIT[flow];
+    assert.equal(
+      video.replace(/\.webm$/, ""),
+      art.replace(/\.webp$/, ""),
+      `${flow}: 영상과 그림이 다른 토끼를 가리킨다`
+    );
+  }
+  assert.equal(
+    GREETING_RABBIT_VIDEO.replace(/\.webm$/, ""),
+    GREETING_RABBIT_ART.replace(/\.webp$/, ""),
+    "인사 토끼의 영상과 그림이 어긋난다"
+  );
 });
 
 test("흐름마다 다른 얼굴이고 다른 말을 한다", () => {
   // 같은 그림을 돌려 쓰면 "반응한다"가 거짓말이 된다.
   const arts = FLOWS.map((f) => FLOW_RABBIT[f].art);
+  const videos = FLOWS.map((f) => FLOW_RABBIT[f].video);
   const lines = FLOWS.map((f) => FLOW_RABBIT[f].line);
   assert.equal(new Set(arts).size, FLOWS.length, "토끼 그림이 겹친다");
+  assert.equal(new Set(videos).size, FLOWS.length, "토끼 영상이 겹친다");
   assert.equal(new Set(lines).size, FLOWS.length, "토끼 대사가 겹친다");
 });
 
@@ -238,6 +262,7 @@ test("토끼 대사에도 단정이 없다", () => {
 
 test("액션에 토끼가 함께 실려 나간다", () => {
   const { action } = buildDailyAction({ ...BIRTH, today: "2026-09-01" });
-  assert.ok(action.rabbit.art.startsWith("/assets/today/"));
+  assert.ok(action.rabbit.video.endsWith(".webm"));
+  assert.ok(action.rabbit.art.endsWith(".webp"));
   assert.ok(action.rabbit.line.length > 5);
 });

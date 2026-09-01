@@ -10013,18 +10013,34 @@ input[type="radio"] {
   text-align: center;
   gap: 10px;
 }
+/* 토끼 자리 — 정지 그림 위에 투명 배경 영상을 덮는다.
+   영상이 오면 그림은 가려지고, 코덱이 안 되거나 자동재생이 막히면 그림이
+   그대로 남는다. poster 를 안 쓰는 이유는 poster 가 "재생 가능한데 아직
+   안 튼" 경우만 그려서, 코덱 자체가 없는 브라우저에서는 빈칸이 되기 때문이다. */
 .today-rabbit {
+  position: relative;
   width: min(260px, 62vw);
   aspect-ratio: 1;
 }
 .today-rabbit.is-small {
   width: min(132px, 34vw);
 }
-.today-rabbit img {
+.today-rabbit img,
+.today-rabbit video {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
+}
+.today-rabbit video {
+  position: absolute;
+  inset: 0;
+  /* 영상 배경이 투명하므로 아래 그림이 비쳐 보이면 안 된다 — 겹쳐 보이는
+     것을 막으려고 영상이 뜨는 즉시 그림을 가린다. */
+  background: transparent;
+}
+.today-rabbit:has(video) img {
+  visibility: hidden;
 }
 /* 살아 있다는 표시만 — 3px 뜬다. 시선을 뺏을 만큼 크면 글을 못 읽는다. */
 .today-rabbit.is-bob img {

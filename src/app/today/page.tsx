@@ -9,6 +9,7 @@ import {
   DOMAIN_LABEL,
   DOMAINS,
   GREETING_RABBIT_ART,
+  GREETING_RABBIT_VIDEO,
   type DailySajuAction,
   type FortuneDomain,
 } from "@/lib/daily-action";
@@ -155,7 +156,7 @@ export default function TodayPage() {
     return (
       <main className="today">
         <div className="today-stage">
-          <RabbitArt src={GREETING_RABBIT_ART} alt="" />
+          <RabbitArt art={GREETING_RABBIT_ART} alt="" />
           {screen.kind === "guest" && (
             <>
               <h1 className="today-title">안녕! 오늘 뭐 하면 좋을지 같이 볼까?</h1>
@@ -207,7 +208,7 @@ export default function TodayPage() {
     return (
       <main className="today">
         <div className="today-stage">
-          <RabbitArt src={GREETING_RABBIT_ART} alt="" bob />
+          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" />
           <p className="today-eyebrow">오늘의 사주 액션</p>
           <h1 className="today-title">안녕! 오늘도 왔구나.</h1>
           <p className="today-sub">
@@ -236,7 +237,7 @@ export default function TodayPage() {
     return (
       <main className="today">
         <div className="today-stage">
-          <RabbitArt src={GREETING_RABBIT_ART} alt="" small />
+          <RabbitArt art={GREETING_RABBIT_ART} alt="" small />
           <h1 className="today-title today-title-sm">어떤 게 궁금해?</h1>
           <p className="today-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
         </div>
@@ -280,7 +281,7 @@ export default function TodayPage() {
     <main className="today">
       {/* 토끼가 오늘의 흐름에 맞는 얼굴로 나와 한마디 건넨다 */}
       <div className="today-stage">
-        <RabbitArt src={shown.rabbit.art} alt="" bob />
+        <RabbitArt video={shown.rabbit.video} art={shown.rabbit.art} alt="" />
         <p className="today-speech">{shown.rabbit.line}</p>
       </div>
 
@@ -338,32 +339,55 @@ export default function TodayPage() {
 }
 
 /**
- * 토끼 그림 한 장.
+ * 토끼 한 마리.
  *
- * bob 은 위아래로 아주 조금 뜨는 움직임이다 — 살아 있다는 느낌만 주고 시선을
- * 뺏지는 않는다. prefers-reduced-motion 에서는 CSS 가 멈춘다.
+ * 배경이 투명한 webm 을 페이지 위에 그대로 얹는다 — 카드도 액자도 없이
+ * 토끼만 떠 있어야 화면 안에 사는 것처럼 보인다.
+ *
+ * 영상이 못 오는 경우가 실제로 있다. VP9 알파는 사파리 계열에서 재생이
+ * 막히고, 데이터 절약 모드에서는 자동재생 자체가 꺼진다. 그래서 같은 자리에
+ * 정지 그림을 깔아 두고 영상을 그 위에 덮는다 — 영상이 나오면 그림은 안
+ * 보이고, 안 나오면 그림이 그대로 남는다. 어느 쪽이든 빈 자리는 없다.
+ *
+ * poster 를 쓰지 않는 이유: poster 는 영상이 재생 가능할 때만 그려지므로,
+ * 코덱이 아예 안 되는 브라우저에서는 아무것도 안 남는다.
  */
 function RabbitArt({
-  src,
+  video,
+  art,
   alt,
-  bob = false,
   small = false,
 }: {
-  src: string;
+  /** 없으면 정지 그림만 (bob 으로 대신 움직인다) */
+  video?: string;
+  art: string;
   alt: string;
-  bob?: boolean;
   small?: boolean;
 }) {
+  const [videoFailed, setVideoFailed] = useState(false);
+  const showVideo = Boolean(video) && !videoFailed;
+
   return (
-    <div className={`today-rabbit${bob ? " is-bob" : ""}${small ? " is-small" : ""}`}>
+    <div className={`today-rabbit${small ? " is-small" : ""}${showVideo ? "" : " is-bob"}`}>
       <Image
-        src={src}
+        src={art}
         alt={alt}
         width={512}
         height={512}
         priority
-        sizes="(max-width: 480px) 60vw, 280px"
+        sizes="(max-width: 480px) 62vw, 280px"
       />
+      {showVideo && (
+        <video
+          src={video}
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden
+          onError={() => setVideoFailed(true)}
+        />
+      )}
     </div>
   );
 }
