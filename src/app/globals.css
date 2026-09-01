@@ -10010,11 +10010,14 @@ input[type="radio"] {
 .today-rabbit video {
   position: absolute;
   inset: 0;
-  /* 영상 배경이 투명하므로 아래 그림이 비쳐 보이면 안 된다 — 겹쳐 보이는
-     것을 막으려고 영상이 뜨는 즉시 그림을 가린다. */
   background: transparent;
 }
-.today-rabbit:has(video) img {
+/* 영상이 뜨면 그림은 자리만 지키고 안 보인다.
+   둘 다 배경이 투명해서, 겹쳐 두면 반투명한 가장자리끼리 포개져 윤곽이
+   두 겹으로 진해진다 — 실제로 그게 "테두리가 지저분하다" 로 보였다.
+   :has() 로 판단하지 않는다. 영상을 넣을지는 React 가 이미 알고 있고,
+   :has() 를 모르는 브라우저에서는 그림이 그대로 남아 같은 겹침이 난다. */
+.today-rabbit.has-video img {
   visibility: hidden;
 }
 /* 살아 있다는 표시만 — 3px 뜬다. 시선을 뺏을 만큼 크면 글을 못 읽는다. */

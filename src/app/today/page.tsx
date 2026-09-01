@@ -446,7 +446,11 @@ function RabbitArt({
   const showVideo = Boolean(video) && !videoFailed;
 
   return (
-    <div className={`today-rabbit${small ? " is-small" : ""}${showVideo ? "" : " is-bob"}`}>
+    <div
+      className={`today-rabbit${small ? " is-small" : ""}${
+        showVideo ? " has-video" : " is-bob"
+      }`}
+    >
       <Image
         src={art}
         alt={alt}
