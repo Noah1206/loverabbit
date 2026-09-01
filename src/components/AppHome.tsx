@@ -10,6 +10,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
+import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import { questionsLeft } from "@/lib/credits";
@@ -146,6 +147,21 @@ export default function AppHome() {
             </button>
           </div>
         </header>
+
+        {/* ── 히어로 배너 ── 토끼는 그림의 오른쪽 3분의 1에만 있다. 왼쪽 3분의 2는
+             비워 둔 라벤더 단색이고, 글자는 거기에 웹앱이 얹는다 — 그림 안에 글자를
+             굽지 않아야 문구를 언제든 고칠 수 있다. */}
+        <Link href="/reading" className="home-hero" aria-label="첫 사주 보러 가기">
+          <div className="home-hero-copy">
+            <span className="home-hero-badge">첫 사주 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원</span>
+            <strong className="home-hero-title">
+              오늘의 인연,
+              <br />
+              사주로 먼저 봐요
+            </strong>
+            <span className="home-hero-cta">사주 보러 가기 →</span>
+          </div>
+        </Link>
 
         {/* ── 내 상태 줄 — 로그인한 사람에게만. 질문권과 최근 리딩을 헤더 밑에
              먼저 보여, 홈에 들어오자마자 "내 것"이 눈에 걸리게 한다. ── */}
