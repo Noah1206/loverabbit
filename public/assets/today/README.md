@@ -26,15 +26,31 @@ rabbit-inseong     귀 처지고 졸린 눈     인성 — 쉬고 채우는 날
 2. seedance_2_5 로 4초 영상               10크레딧
    → 그 정지 그림을 start_image 로. 카메라 고정·배경 정지를 프롬프트에 못박는다
 3. remove_background (media_type: video)  → 배경이 순수 검정인 mp4
-4. ffmpeg 로 검정을 알파로:
+4. ffmpeg 로 밝기를 알파로:
 
-   ffmpeg -i in.mp4 \
-     -vf "colorkey=0x000000:0.01:0.0,scale=320:320,fps=16,format=yuva420p" \
-     -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 -b:v 0 -crf 50 -an out.webm
+   ffmpeg -i in.mp4 -filter_complex \
+   "[0:v]format=gbrp,split[c][m];\
+    [m]colorchannelmixer=rr=.30:rg=.59:rb=.11:gr=.30:gg=.59:gb=.11:br=.30:bg=.59:bb=.11,\
+    curves=all='0/0 0.06/0 0.16/1 1/1'[a];\
+    [c][a]alphamerge,format=yuva420p,scale=448:448,fps=12" \
+   -c:v libvpx-vp9 -pix_fmt yuva420p -auto-alt-ref 0 \
+   -b:v 120k -maxrate 200k -bufsize 500k -an out.webm
 ```
 
-**tolerance 는 0.01 로 좁게 잡는다.** 넓히면 토끼의 검은 눈까지 뚫린다.
-배경은 정확히 #000000 이고 눈은 그보다 밝아서 이 값으로 갈린다.
+**colorkey 를 쓰지 마라.** 처음에 그렇게 했다가 테두리에 검은 실밥이
+남았다 — colorkey 는 "이 색이면 투명"이라는 이분법이라, 경계의 반투명
+픽셀(안티에일리어싱된 털 끝)이 검정과 섞인 채 그대로 남는다.
+
+대신 밝기를 알파로 쓴다. 검정 매트 위의 그림이니 밝을수록 불투명하다.
+`curves` 로 0.06 아래는 완전 투명, 0.16 위는 완전 불투명으로 밀고 그
+사이만 부드럽게 남기면 경계가 살아난다.
+
+## 크기
+
+448px, 12fps, 120k. 화면에서는 240px 폭(`.today-rabbit`)으로 그린다 —
+캐릭터가 프레임 가운데 70% 정도만 차지해서 실제로 그려지는 건 180px
+남짓이라 이 해상도로 충분하다. **320px 로 뽑았다가 뭉개진 적이 있다**,
+화면 크기보다 작게 만들지 마라.
 
 `ffprobe` 가 `pix_fmt=yuv420p` 로 보고해도 정상이다 — WebM 은 알파를 별도
 채널로 담아서 `alpha_mode=1` 태그로 확인해야 한다.
