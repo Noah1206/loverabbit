@@ -9846,11 +9846,22 @@ body[data-guin-intro="1"] .tabbar {
   color: inherit;
   /* 배너 세로 = 가로의 35%. 이미지도 같은 비율로 잘라 두었다. */
   aspect-ratio: 1200 / 420;
-  background-color: #ececec; /* 이미지가 뜨기 전에도 비슷한 명도가 깔린다 */
+  background-color: #d9bdde;
   background-image: url("/assets/home/login-banner.webp");
   background-size: cover;
   background-position: center;
   overflow: hidden;
+}
+
+/* .app-viewport 가 480px 이상에서 좌우에 1px 테두리를 긋는다. 배너는 그
+   안쪽으로 들어가 앉으므로 양옆에 흰 실이 보인다 — 1px 씩 밀어 테두리를
+   덮는다. 테두리가 없는 모바일에서는 밀 것도 없다.
+   배너 정의보다 뒤에 와야 위의 width:100% 를 이긴다. */
+@media (min-width: 480px) {
+  .home-login-banner {
+    margin-inline: -1px;
+    width: calc(100% + 2px);
+  }
 }
 
 /* 로그인한 사람에게는 다른 그림 — 손 흔들어 부르는 대신 두루마리를 펼쳐
