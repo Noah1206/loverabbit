@@ -9464,6 +9464,10 @@ body[data-guin-intro="1"] .tabbar {
   border-radius: 16px;
   border: 1px solid var(--line);
   display: block;
+  /* 표지가 못 와도 자리는 남는다 (숨겨도 높이가 0 이 되지 않게) */
+  background: #efe6f3;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
 }
 
 .webtoon-narration {
@@ -9503,6 +9507,10 @@ body[data-guin-intro="1"] .tabbar {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--line);
+  /* 그림이 못 와도 칸이 무너지지 않게 — 밑색과 최소 높이를 둔다.
+     이미지는 3:4 로 잘려 있어서 그 비율만큼 자리를 잡아 둔다. */
+  background: #efe6f3;
+  aspect-ratio: 3 / 4;
   opacity: 0;
   transform: translateY(18px);
   transition: opacity 0.45s ease, transform 0.45s ease;
@@ -9576,6 +9584,9 @@ body[data-guin-intro="1"] .tabbar {
   /* 대사의 줄바꿈은 데이터가 정한다 — 타원 안에서 어디서 끊을지는
      자동 줄바꿈보다 사람이 정한 자리가 낫다. */
   white-space: pre-line;
+  /* 명식으로 쓴 문장이 예상보다 길게 와도 타원 밖으로 흐르지는 않게 한다.
+     길이는 webtoon-draft.ts 가 먼저 막지만, 화면에도 마지막 빗장을 둔다. */
+  overflow: hidden;
 }
 
 /* 효과음 — 손글씨 느낌. 흰 외곽선으로 어떤 배경에서도 읽힌다. */

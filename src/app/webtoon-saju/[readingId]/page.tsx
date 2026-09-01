@@ -153,6 +153,9 @@ export default function WebtoonSajuPage() {
             className="webtoon-cover"
             src={reading.coverImageUrl}
             alt={`${reading.subjectNickname}님의 ${label} 웹툰 표지`}
+            onError={(event) => {
+              event.currentTarget.style.visibility = "hidden";
+            }}
           />
         </section>
 

@@ -16,6 +16,18 @@ export interface WebtoonDraft {
   factsUsed?: string[];
 }
 
+/**
+ * 말풍선·캡션 한 줄의 길이 한계.
+ *
+ * 오버레이는 타원 안에 앉는다 — 길면 밖으로 흐른다. 고정 카피가 25자 안쪽이라
+ * 그 두 배를 한계로 둔다. 줄바꿈은 사람이 정한 자리라 길이에서 뺀다.
+ */
+const OVERLAY_MAX_CHARS = 50;
+
+function overlayTooLong(text: string): boolean {
+  return text.replace(/\n/g, "").trim().length > OVERLAY_MAX_CHARS;
+}
+
 export function parseDraft(text: string): WebtoonDraft | null {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -35,10 +47,14 @@ export function parseDraft(text: string): WebtoonDraft | null {
   if (!strings(d.fullParagraphs, 4)) return null;
   // 8컷 = 말하는 컷 5 + 배경·소품 컷 3. 모자라면 화면에 빈 말풍선이 선다.
   if (!strings(d.captions, 3)) return null;
+  if ((d.captions as string[]).some(overlayTooLong)) return null;
   if (!Array.isArray(d.panelLines) || d.panelLines.length < 5) return null;
   for (const line of d.panelLines.slice(0, 5)) {
     const text = line?.rabbit ?? line?.subject;
     if (typeof text !== "string" || text.trim().length === 0) return null;
+    // 너무 길면 말풍선 밖으로 흐른다. 고정 카피가 25자 안쪽이라 그 두 배를
+    // 한계로 둔다 — 넘으면 이 초안을 버리고 고정 카피로 간다.
+    if (overlayTooLong(text)) return null;
   }
   return d as WebtoonDraft;
 }
