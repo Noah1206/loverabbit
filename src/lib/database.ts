@@ -324,6 +324,72 @@ export async function getUserSajuProfile(userId: number): Promise<SajuProfile | 
   };
 }
 
+// ── 오늘의 사주 액션 ───────────────────────────────────────
+
+export interface DailyActionRecord {
+  /** "2026-09-01" */
+  date: string;
+  domain: string;
+  actionId: string;
+  completedAt: string;
+}
+
+/**
+ * 최근 며칠의 완료 기록.
+ *
+ * 두 곳이 쓴다 — 오늘 것을 이미 완료했는지, 그리고 최근에 어느 영역이
+ * 나갔는지(같은 영역이 사흘 내리 나오지 않게).
+ */
+export async function listRecentDailyActions(
+  userId: number,
+  sinceDate: string
+): Promise<DailyActionRecord[]> {
+  const db = getSupabaseAdmin();
+  if (!db) return [];
+
+  const { data, error } = await db
+    .from("lr_daily_actions")
+    .select("action_date,domain,action_id,completed_at")
+    .eq("user_id", userId)
+    .gte("action_date", sinceDate)
+    .order("action_date", { ascending: false });
+
+  if (error) throw databaseError("오늘의 액션 기록 조회", error);
+  return (data ?? []).map((row) => ({
+    date: String(row.action_date),
+    domain: String(row.domain),
+    actionId: String(row.action_id),
+    completedAt: String(row.completed_at),
+  }));
+}
+
+/**
+ * 완료 기록.
+ *
+ * (user, 날짜, 영역) 이 유일 키다. 같은 것을 두 번 눌러도 한 줄이고, 두 번째
+ * 호출은 조용히 성공한다 — 사용자에게는 이미 완료된 상태가 맞는 답이라
+ * 충돌을 오류로 올릴 이유가 없다.
+ */
+export async function completeDailyAction(
+  userId: number,
+  input: { date: string; domain: string; actionId: string; note?: string }
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) throw new Error("회원 DB가 연결되지 않았어요.");
+
+  const { error } = await db.from("lr_daily_actions").upsert(
+    {
+      user_id: userId,
+      action_date: input.date,
+      domain: input.domain,
+      action_id: input.actionId,
+      note: input.note ?? null,
+    },
+    { onConflict: "user_id,action_date,domain", ignoreDuplicates: true }
+  );
+  if (error) throw databaseError("오늘의 액션 완료 저장", error);
+}
+
 export async function getReferralStatus(
   userId: number,
   readingId?: string
