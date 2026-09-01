@@ -202,7 +202,14 @@ body {
    template.tsx 가 화면마다 새로 마운트되므로 여기 한 번만 적으면 전부 적용된다.
    translate 만 움직인다 — 레이아웃을 건드리면 긴 페이지에서 끊긴다. */
 .route-slide-in {
-  animation: route-slide-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* fill-mode 는 backwards 다 — both 가 아니다.
+     both 로 두면 애니메이션이 끝난 뒤에도 마지막 키프레임(transform: none)을
+     계속 물고 있는데, "none" 이라도 transform 을 가진 요소는 그 안의
+     position: fixed 자식에게 뷰포트 대신 자기 자신을 기준으로 준다.
+     그래서 로그인 팝업이 화면이 아니라 문서 한가운데(y≈1500)에 앉아,
+     사용자에게는 어두워지기만 하고 아무것도 안 뜨는 것으로 보였다.
+     backwards 는 시작 프레임만 미리 당겨 쓰고 끝나면 손을 뗀다. */
+  animation: route-slide-in 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   /* 들어오는 동안 가로 스크롤바가 잠깐 생기는 것을 막는다 */
   overflow-x: clip;
 }
