@@ -62,17 +62,19 @@ export default function ProfilePage() {
       </p>
       <div className="card" style={{ padding: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-          {/* 게스트는 빈 사람. 토끼는 브랜드의 얼굴이지 내 얼굴이 아니다 — 로그인하면
-              내 자리가 채워진다는 것을 아이콘이 먼저 말한다. */}
-          <span
-            aria-hidden
-            style={{ width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--bg-card2)", color: "var(--text-dim)" }}
-          >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="8.1" r="3.4" fill={user ? "currentColor" : "none"} />
-              <path d="M5.4 19.8a6.9 6.9 0 0 1 13.2 0" />
-            </svg>
-          </span>
+          {/* 로그인한 사람에게만 얼굴 자리를 준다 (2026-09-01 운영자). 게스트의
+              빈 동그라미는 "내 자리"가 아니라 비어 있는 칸으로만 읽혔다. */}
+          {user && (
+            <span
+              aria-hidden
+              style={{ width: 52, height: 52, borderRadius: "50%", display: "grid", placeItems: "center", background: "var(--bg-card2)", color: "var(--text-dim)" }}
+            >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8.1" r="3.4" fill="currentColor" />
+                <path d="M5.4 19.8a6.9 6.9 0 0 1 13.2 0" />
+              </svg>
+            </span>
+          )}
           <div>
             <strong>{user ? "러브레빗 회원" : "게스트"}</strong>
             <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>{user?.email ?? "로그인하고 상담 기록을 연결해보세요."}</p>
