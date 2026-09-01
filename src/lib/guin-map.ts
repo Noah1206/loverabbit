@@ -170,6 +170,11 @@ export function birthProblem(birth: GuinBirthInput): string | null {
   if (d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) return "없는 날짜예요.";
   if (hour !== null && (!Number.isInteger(hour) || hour < 0 || hour > 23))
     return "태어난 시간을 확인해 주세요.";
+  // 동의 문구가 "만 14세 이상만"이라고 약속한다 — 문구만 있고 검사가 없으면
+  // 그 약속은 거짓말이다. 이 함수는 폼과 서버 라우트가 같이 쓰므로 여기 한 번이면 된다.
+  const now = new Date();
+  const cutoff = new Date(Date.UTC(now.getFullYear() - 14, now.getMonth(), now.getDate()));
+  if (d.getTime() > cutoff.getTime()) return "만 14세 이상만 이용할 수 있어요.";
   return null;
 }
 

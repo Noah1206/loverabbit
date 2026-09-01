@@ -1,6 +1,7 @@
 "use client";
 
 import { previewFor } from "@/lib/reading-preview";
+import { useEscape } from "@/lib/use-escape";
 import { READING_SALE_CREDITS } from "@/lib/credits";
 
 /**
@@ -38,6 +39,7 @@ export default function ContinueSheet({
   onClose: () => void;
 }) {
   const preview = previewFor(productId);
+  useEscape(onClose);
   const question = openLoop?.trim() || preview?.hiddenVariable || null;
   const reveals = preview?.unlockReveals ?? lockedTitles.slice(0, 4).map(stripNumber);
   const seen = [

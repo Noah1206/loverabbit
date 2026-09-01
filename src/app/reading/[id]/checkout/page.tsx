@@ -256,7 +256,9 @@ export default function ReadingCheckoutPage() {
           <div className="checkout-actions">
             <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에</button>
             {user && balance !== null && !enough ? (
-              <Link className="btn" href="/credits">러빗 사러가기</Link>
+              <Link className="btn" href={`/credits?next=${encodeURIComponent(`/reading/${entry.readingId}/checkout`)}`}>
+                러빗 사러가기
+              </Link>
             ) : (
               <button className="btn" onClick={() => void unlock()} disabled={paying || (user !== null && balance === null)}>
                 {paying ? "여는 중…" : user ? "열기" : "로그인하고 열기"}

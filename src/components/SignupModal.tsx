@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import { rememberAuthReturn } from "@/lib/auth-return";
 import BrandMark from "@/components/BrandMark";
+import { useEscape } from "@/lib/use-escape";
 
 type SocialLoginProvider = "google" | "kakao" | "x";
 type ProviderStatus = Record<SocialLoginProvider, boolean>;
@@ -29,6 +30,7 @@ export default function SignupModal({
   nextPath?: string;
 }) {
   const { showMatureLabels } = useTheme();
+  useEscape(onClose);
   const [error, setError] = useState("");
   const [providers, setProviders] = useState<ProviderStatus | null>(null);
 

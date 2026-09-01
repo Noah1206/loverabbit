@@ -54,6 +54,14 @@ describe("생년월일 검사", () => {
     assert.ok(birthProblem({ year: 1993, month: 8, day: 21, hour: 24 }));
     assert.ok(birthProblem({ year: 1888, month: 1, day: 1, hour: null }));
   });
+
+  it("만 14세 미만은 막는다 — 동의 문구의 약속", () => {
+    const now = new Date();
+    const young = { year: now.getFullYear() - 10, month: 1, day: 1, hour: null };
+    assert.equal(birthProblem(young), "만 14세 이상만 이용할 수 있어요.");
+    const adult = { year: now.getFullYear() - 20, month: 1, day: 1, hour: null };
+    assert.equal(birthProblem(adult), null);
+  });
 });
 
 describe("지도 화면용 정리", () => {

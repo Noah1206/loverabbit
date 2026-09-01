@@ -9202,8 +9202,18 @@ body[data-guin-intro="1"] .tabbar {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1.1px); }
 }
+/* 관계선이 중앙에서 스르륵 그려진다 — pathLength=1 이라 dash 값이 항상 1이면 된다 */
+.guin-bg-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: guin-line-draw 0.9s ease-out forwards;
+}
+@keyframes guin-line-draw {
+  to { stroke-dashoffset: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   .guin-bg-node { animation: none; }
+  .guin-bg-line { animation: none; stroke-dashoffset: 0; }
 }
 
 /* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */
