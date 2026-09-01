@@ -93,9 +93,13 @@ describe("개인정보", () => {
     }
   });
 
-  it("별명은 이메일 앞부분만 12자까지 쓴다", () => {
+  it("이름 같은 아이디만 부른다 — 계정 문자열은 화면에 띄우지 않는다", () => {
     assert.equal(nicknameFromEmail("rabbit@example.com"), "rabbit");
-    assert.equal(nicknameFromEmail("verylongnickname123@example.com").length, 12);
+    assert.equal(nicknameFromEmail("달토끼@example.com"), "달토끼");
+    // 숫자가 섞였거나 너무 길면 아이디로 본다 — "ab40905045님" 은 이름이 아니다
+    assert.equal(nicknameFromEmail("ab40905045@example.com"), "여행자");
+    assert.equal(nicknameFromEmail("user123@example.com"), "여행자");
+    assert.equal(nicknameFromEmail("verylongnickname@example.com"), "여행자");
     assert.equal(nicknameFromEmail(""), "여행자");
     assert.equal(nicknameFromEmail(undefined), "여행자");
   });

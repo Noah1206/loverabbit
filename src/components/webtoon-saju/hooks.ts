@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import type { SajuChart } from "@/lib/saju";
 
 import { getUser } from "@/lib/user";
 import type { FortuneType, WebtoonPanelData } from "@/lib/webtoon-saju";
@@ -16,6 +17,9 @@ export interface WebtoonReadingState {
   luvitCost: number;
   luvitBalance: number;
   coverImageUrl: string;
+  /** 폼에 넣은 값으로 세운 명식. 생년월일이 없으면 null. */
+  chart: SajuChart | null;
+  birthLine: string | null;
   previewText: string;
   previewPoints: string[];
   panels: WebtoonPanelData[];

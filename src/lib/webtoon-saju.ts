@@ -158,7 +158,16 @@ const cut = (name: string) => `/assets/webtoon-saju/${name}.webp`;
 export function nicknameFromEmail(email?: string | null): string {
   const local = (email ?? "").split("@")[0]?.trim() ?? "";
   if (!local) return "여행자";
-  return local.length > 12 ? local.slice(0, 12) : local;
+  /*
+    이메일 아이디가 사람 이름 같지 않으면 부르지 않는다.
+
+    "ab40905045님" 은 이름이 아니라 계정 문자열이고, 화면에 그대로 띄우면
+    남에게 보여 줄 수도 없다(공유 카드에도 실린다). 숫자가 섞였거나 지나치게
+    긴 것은 아이디로 보고 기본 호칭으로 물러난다.
+  */
+  const looksLikeName = /^[가-힣a-zA-Z][가-힣a-zA-Z._-]*$/.test(local) && local.length <= 12;
+  if (!looksLikeName) return "여행자";
+  return local;
 }
 
 /**

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
+import SajuChart from "@/components/SajuChart";
 import SignupModal from "@/components/SignupModal";
 import {
   FortuneTabBar,
@@ -158,6 +159,16 @@ export default function WebtoonSajuPage() {
             }}
           />
         </section>
+
+        {/* 내 명식 — 이 글이 무엇을 보고 쓰였는지 먼저 보인다. 폼에 넣은 값이
+            실제로 쓰였다는 것을 표로 확인시킨다 (없으면 그리지 않는다). */}
+        {reading.chart && (
+          <SajuChart
+            chart={reading.chart}
+            name={`${reading.subjectNickname}님의 명식`}
+            birthLine={reading.birthLine ?? undefined}
+          />
+        )}
 
         <RabbitNarrationCard text={reading.previewText} />
         <WebtoonPanelViewer panels={reading.panels} unlocked={isUnlocked} />
