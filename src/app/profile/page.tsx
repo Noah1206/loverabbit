@@ -11,6 +11,8 @@ import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
   const [shareNotice, setShareNotice] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
 
   useEffect(() => {
@@ -35,6 +37,31 @@ export default function ProfilePage() {
       .catch(() => undefined);
   }, []);
 
+
+  /* 되돌릴 수 없는 일이라 두 번 묻는다 — 한 번은 무엇이 사라지는지, 한 번은
+     정말인지. 지우고 나면 이 기기의 로그인도 함께 걷고 홈으로 보낸다. */
+  const withdraw = async () => {
+    if (!user || deleting) return;
+    if (!window.confirm("탈퇴하면 계정 정보와 리딩 내용이 지워져요. 되돌릴 수 없어요. 계속할까요?")) return;
+    if (!window.confirm("정말 탈퇴할까요? 남은 러빗도 함께 사라져요.")) return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: user.token }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "탈퇴를 처리하지 못했어요.");
+      // 서버에서 지웠으니 이 기기에 남은 것도 함께 걷는다.
+      await logoutUser();
+      window.location.replace("/");
+    } catch (reason) {
+      setDeleteError(reason instanceof Error ? reason.message : "탈퇴를 처리하지 못했어요.");
+      setDeleting(false);
+    }
+  };
 
   const shareForCredits = async () => {
     if (!user?.referralCode) return;
@@ -97,21 +124,27 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* 탈퇴 — 개인정보처리방침이 "문의하기로 받아 10일 안에 처리한다"고 약속한
-          그 경로를 눈에 보이게 둔다. 약속만 있고 누를 자리가 없으면 없는 것과 같다. */}
+      {/* 탈퇴 — 사람을 기다리지 않는다. 파기는 권리라, 누르면 그 자리에서 지운다.
+          되돌릴 수 없으므로 한 번 더 묻고, 무엇이 남는지도 미리 밝힌다. */}
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
           <h2 style={{ fontSize: "1.05rem", marginBottom: 6 }}>회원 탈퇴</h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 14 }}>
-            탈퇴하면 계정 정보와 리딩 결과를 지체 없이 파기해요. 남은 러빗은 돌려드릴 수 없으니
-            먼저 써 주세요. 문의로 접수하면 10일 안에 처리해 드려요.
+            계정 정보와 리딩 내용, 사주 정보를 그 자리에서 지워요. 결제 기록은 법에 따라 5년간
+            보관해요. 남은 러빗은 돌려드릴 수 없으니 먼저 써 주세요.
           </p>
+          {deleteError && (
+            <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginBottom: 10 }} role="alert">
+              {deleteError}
+            </p>
+          )}
           <button
             className="btn btn-ghost"
             style={{ width: "100%" }}
-            onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))}
+            disabled={deleting}
+            onClick={() => void withdraw()}
           >
-            탈퇴 문의하기
+            {deleting ? "지우는 중…" : "탈퇴하기"}
           </button>
         </div>
       )}

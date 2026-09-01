@@ -190,6 +190,24 @@ export async function completeCreditOrder(
   return { orderId: Number(row.order_id), creditsRemaining: Number(row.credits_remaining) };
 }
 
+/**
+ * 회원 탈퇴 — 개인정보를 지우고 거래 기록은 남긴다.
+ *
+ * 무엇을 지우고 무엇을 남기는지는 DB 함수가 정한다(lr_delete_account).
+ * 규칙을 여기 옮겨 적으면 두 벌이 되고, 컬럼이 늘 때 한쪽만 고쳐진다.
+ *
+ * 같은 요청이 두 번 와도 안전하다 — 두 번째는 alreadyDeleted 로 돌아온다.
+ */
+export async function deleteAccount(
+  userId: number
+): Promise<{ deleted?: boolean; alreadyDeleted?: boolean; readingsCleared?: number }> {
+  const db = getSupabaseAdmin();
+  if (!db) throw new Error("탈퇴 DB 연결이 없습니다.");
+  const { data, error } = await db.rpc("lr_delete_account", { p_user_id: userId });
+  if (error) throw databaseError("회원 탈퇴", error);
+  return (data ?? {}) as { deleted?: boolean; alreadyDeleted?: boolean; readingsCleared?: number };
+}
+
 // ── 질문 ─────────────────────────────────────────────────────────────────────
 
 export interface QuestionRecord {
