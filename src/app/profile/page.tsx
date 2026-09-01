@@ -127,8 +127,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* 문의창 본체. 위 "탈퇴 문의하기"가 쏘는 이벤트를 이것이 받는다. */}
-      <InquiryButton />
+      {/* 문의창 본체만 단다(fab={false}) — 이 화면에는 이미 "탈퇴 문의하기"가
+          있어서 떠 있는 버튼까지 그리면 같은 것이 둘이 된다. */}
+      <InquiryButton fab={false} />
     </main>
   );
 }

@@ -312,8 +312,9 @@ export default function AppHome() {
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>지원</strong>
               {/* 문의 기능은 이미 있다(InquiryButton) — 가짜 alert 대신 그것을 연다. */}
-              <p style={{ marginTop: 6 }}><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>고객센터</button></p>
-              <p><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>문의하기</button></p>
+              {/* 문의는 한 곳이다 — "고객센터"와 "자주 묻는 질문"을 따로 두면
+                  같은 창을 여는 버튼이 셋이 된다. 이름 하나로 합친다. */}
+              <p style={{ marginTop: 6 }}><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>문의하기</button></p>
             </div>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>법적 고지</strong>

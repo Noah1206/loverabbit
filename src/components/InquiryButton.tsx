@@ -20,7 +20,14 @@ const CATEGORIES = [
 
 const MAX_LEN = 2000;
 
-export default function InquiryButton() {
+/*
+  떠 있는 문의 버튼과 문의창.
+
+  fab={false} 로 부르면 창만 달고 버튼은 그리지 않는다 — 마이 화면처럼 화면
+  안에 이미 "탈퇴 문의하기" 같은 자기 버튼이 있는 자리에서, 떠 있는 버튼까지
+  겹쳐 뜨는 것을 막는다. 창은 어느 쪽이든 loverabbit:inquiry 로 열린다.
+*/
+export default function InquiryButton({ fab = true }: { fab?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [category, setCategory] = useState<string>("etc");
@@ -105,17 +112,19 @@ export default function InquiryButton() {
 
   return (
     <>
-      <div className={`inquiry-fab-slot${lifted ? "" : " inquiry-fab-slot-hidden"}`}>
-        <button
-          type="button"
-          className="inquiry-fab"
-          onClick={() => setOpen(true)}
-          aria-haspopup="dialog"
-        >
-          <span aria-hidden>✉</span>
-          문의하기
-        </button>
-      </div>
+      {fab && (
+        <div className={`inquiry-fab-slot${lifted ? "" : " inquiry-fab-slot-hidden"}`}>
+          <button
+            type="button"
+            className="inquiry-fab"
+            onClick={() => setOpen(true)}
+            aria-haspopup="dialog"
+          >
+            <span aria-hidden>✉</span>
+            문의하기
+          </button>
+        </div>
+      )}
 
       {open && (
         <div
