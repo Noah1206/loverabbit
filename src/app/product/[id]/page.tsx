@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { READING_SALE_CREDITS } from "@/lib/credits";
+import { READING_PRICE_TIERS } from "@/lib/credits";
 import { notFound } from "next/navigation";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductSalesPage from "@/components/ProductSalesPage";
@@ -62,7 +62,12 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
                   (2026-08-31) — 원화 오퍼 병기는 단위 혼란만 만든다. */}
               {activeOffer ? (
                 <>
-                  <strong><span className="product-sticky-price">{READING_SALE_CREDITS}러빗</span>으로 확인하기</strong>
+                  {/* 값은 사람마다 다르다 (2·4·10러빗 — 열어본 장수를 탄다). 여기는
+                      서버 컴포넌트라 그 사람이 몇 장 열었는지 모른다. 조건을 밝혀
+                      적는다 — 그냥 "2러빗" 이라고 쓰면 둘째 장부터 거짓말이 된다. */}
+                  <strong>
+                    <span className="product-sticky-price">첫 장 {READING_PRICE_TIERS[0]}러빗</span>으로 확인하기
+                  </strong>
                   <small>{p.ctaHook}</small>
                 </>
               ) : (

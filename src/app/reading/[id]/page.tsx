@@ -9,7 +9,7 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { READING_SALE_CREDITS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
+import { READING_PRICE_TIERS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
 import RabbitLoader from "@/components/RabbitLoader";
 import {
@@ -74,6 +74,9 @@ export default function ReadingReportPage() {
   const [entry, setEntry] = useState<ArchiveEntry | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing">("loading");
   const [user, setUser] = useState<User | null>(null);
+  /* 다음 한 장에 낼 값. 사람마다 다르다 (2·4·10러빗 — 열어본 장수를 탄다).
+     이 화면을 보는 사람은 이미 한 장을 읽었으므로 첫 장 값이 아니다. */
+  const [nextCost, setNextCost] = useState<number | null>(null);
   const [showPay, setShowPay] = useState(false);
   // "이어서 보기" 창. 값보다 무엇을 못 보는지를 먼저 보여 준다(ContinueSheet).
   const [showContinue, setShowContinue] = useState(false);
@@ -541,6 +544,26 @@ export default function ReadingReportPage() {
     }
   };
 
+  // 다음 장 값은 서버가 센다. 못 가져오면 숫자를 아예 안 적는다 — 틀린 값을
+  // 적느니 없는 편이 낫다(결제창이 정본이고, 거기서 처음 보면 놀란다).
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    fetch("/api/credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d: { readingCost?: number } | null) => {
+        if (alive && typeof d?.readingCost === "number") setNextCost(d.readingCost);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
   const refreshReferralStatus = useCallback(async (): Promise<ReferralStatus | null> => {
     if (!user || !entry) return null;
     const res = await fetch("/api/referral/status", {
@@ -911,9 +934,9 @@ export default function ReadingReportPage() {
                             <strong>{p.headline}</strong>
                             <small>{p.title} · {p.needsPartner ? "상대 생년월일 한 칸" : "바로 생성"}</small>
                           </span>
-                          <span className="report-crosssell-price">
-                            {READING_SALE_CREDITS}러빗
-                          </span>
+                          {nextCost !== null && (
+                            <span className="report-crosssell-price">{nextCost}러빗</span>
+                          )}
                         </Link>
                       ))}
                     </div>
@@ -987,6 +1010,7 @@ export default function ReadingReportPage() {
           seenTitles={(entry.previewSections ?? []).map((section) => section.title)}
           lockedTitles={entry.lockedSectionTitles ?? []}
           scoreLabel={entry.scoreLabel}
+          cost={nextCost ?? READING_PRICE_TIERS[0]}
           onContinue={() => {
             setShowContinue(false);
             startUnlock();

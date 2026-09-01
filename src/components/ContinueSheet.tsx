@@ -2,7 +2,6 @@
 
 import { previewFor } from "@/lib/reading-preview";
 import { useEscape } from "@/lib/use-escape";
-import { READING_SALE_CREDITS } from "@/lib/credits";
 
 /**
  * "이어서 보기"를 누르면 뜨는 창.
@@ -27,6 +26,7 @@ export default function ContinueSheet({
   scoreLabel,
   onContinue,
   onClose,
+  cost,
 }: {
   productId: string;
   label: string;
@@ -37,6 +37,8 @@ export default function ContinueSheet({
   scoreLabel: string | null | undefined;
   onContinue: () => void;
   onClose: () => void;
+  /** 이 사람이 낼 값. 열어본 장수를 타므로 부르는 쪽이 서버에서 받아 넘긴다. */
+  cost: number;
 }) {
   const preview = previewFor(productId);
   useEscape(onClose);
@@ -89,7 +91,7 @@ export default function ContinueSheet({
         </div>
 
         <button className="btn continue-sheet-cta" type="button" onClick={onContinue}>
-          {READING_SALE_CREDITS}러빗으로 전체 풀이 열기
+          {cost}러빗으로 전체 풀이 열기
         </button>
         <button className="btn btn-ghost continue-sheet-later" type="button" onClick={onClose}>
           조금 더 읽어 볼게요

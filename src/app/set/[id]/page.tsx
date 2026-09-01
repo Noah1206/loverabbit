@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import { BUNDLE_SALE_CREDITS, READING_SALE_CREDITS } from "@/lib/credits";
+import { BUNDLE_SALE_CREDITS, READING_PRICE_TIERS } from "@/lib/credits";
+
+/** 세 장을 따로 사면 계단을 탄다 — 2 + 4 + 10. */
+const SEPARATE_TOTAL = READING_PRICE_TIERS[0] + READING_PRICE_TIERS[1] + READING_PRICE_TIERS[2];
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -49,7 +52,9 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
         <h1>{bundle.title}</h1>
         <p>{bundle.copy}</p>
         <p className="set-price">
-          <s>{READING_SALE_CREDITS * 3}러빗</s>
+          {/* 따로 사면 값이 계단을 탄다 (2 → 4 → 10). 첫 장 값을 세 번
+              곱하면 실제보다 훨씬 싸 보여서 세트의 이득이 가려진다. */}
+          <s>{SEPARATE_TOTAL}러빗</s>
           <b>{BUNDLE_SALE_CREDITS}러빗</b>
         </p>
       </section>
@@ -62,7 +67,7 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
             <div className="set-item-copy">
               <strong>{p.title}</strong>
               <small>{p.headline}</small>
-              <em>{p.needsPartner ? "상대 생년월일 필요" : "내 생년월일만"} · 단품 {READING_SALE_CREDITS}러빗</em>
+              <em>{p.needsPartner ? "상대 생년월일 필요" : "내 생년월일만"}</em>
             </div>
           </article>
         ))}
@@ -81,7 +86,7 @@ export default async function BundlePage({ params }: { params: Promise<{ id: str
       <div className="product-sticky-shell set-sticky">
         <Link href={`/reading?c=${bundle.first}&bundle=${bundle.id}`} className="btn product-sticky-cta">
           <span className="product-sticky-copy">
-            <strong><s>{READING_SALE_CREDITS * 3}러빗</s> {BUNDLE_SALE_CREDITS}러빗에 세 장 열기</strong>
+            <strong><s>{SEPARATE_TOTAL}러빗</s> {BUNDLE_SALE_CREDITS}러빗에 세 장 열기</strong>
             <small>{first.title}부터 · 나머지는 쿠폰으로</small>
           </span>
         </Link>

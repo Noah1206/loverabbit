@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
-import { KRW_PER_CREDIT, READING_SALE_CREDITS } from "@/lib/credits";
+import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
 import type { Product } from "@/lib/products";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
@@ -81,10 +81,12 @@ export default function ProductSalesPage({
              러빗으로 접어 긋고, 원화는 환율 안내로만 한 번 적는다. */
           <p className="product-hero-offer">
             <s>{Math.round(product.price / KRW_PER_CREDIT)}러빗</s>
-            <strong>{READING_SALE_CREDITS}러빗</strong>
+            {/* 값은 열어본 장수를 탄다 (2·4·10러빗). 여기는 서버 컴포넌트라
+                그 사람이 몇 장 열었는지 모르므로 "첫 장" 이라고 밝혀 적는다. */}
+            <strong>첫 장 {READING_PRICE_TIERS[0]}러빗</strong>
             <span>
-              {KRW_PER_CREDIT}원이 1러빗 · 첫 사주 {activeOffer.price.toLocaleString("ko-KR")}원 ·
-              명식은 결제 전에 확인
+              {KRW_PER_CREDIT.toLocaleString("ko-KR")}원이 1러빗 · 두 번째 장부터는{" "}
+              {READING_PRICE_TIERS[1]}러빗 · 명식은 결제 전에 확인
             </span>
           </p>
         )}
