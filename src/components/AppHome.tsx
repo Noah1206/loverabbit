@@ -53,10 +53,6 @@ export default function AppHome() {
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  /* 웹툰으로 열 수 있는 리딩 하나. 웹툰은 이미 산 리딩을 다시 읽는 화면이라
-     readingId 가 있어야 열린다 — 해금된 것 중 가장 최근 것을 집는다.
-     없으면 배너는 폼으로 보낸다(먼저 한 장을 만들어야 웹툰이 생긴다). */
-  const [webtoonId, setWebtoonId] = useState<string | null>(null);
   /* 그리드에 적는 사주 한 장 값. 사람마다 다르다 (2·4·10러빗 — 지금까지
      열어본 장수를 탄다). 로그인 전에는 첫 장 값을 적는다: 아직 아무것도
      열지 않은 사람이 실제로 낼 값이다. */
@@ -71,7 +67,6 @@ export default function AppHome() {
   // 못 가져와도 그냥 지나간다 — 배너는 폼으로 보내면 되고, 홈이 막히면 안 된다.
   useEffect(() => {
     if (!user) {
-      setWebtoonId(null);
       setReadingCost(READING_SALE_CREDITS);
       return;
     }
@@ -88,17 +83,8 @@ export default function AppHome() {
         if (alive && typeof d?.readingCost === "number") setReadingCost(d.readingCost);
       })
       .catch(() => {});
-    fetch("/api/my-readings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userToken: user.token }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((d: { readings?: { readingId: string; unlocked: boolean }[] } | null) => {
-        if (!alive) return;
-        setWebtoonId(d?.readings?.find((r) => r.unlocked)?.readingId ?? null);
-      })
-      .catch(() => {});
+    // 웹툰 배너가 쓰던 /api/my-readings 조회는 걷었다 (2026-09-02) — 배너를
+    // 숨긴 뒤로는 읽는 곳이 없어, 홈이 열릴 때마다 헛도는 요청이었다.
     return () => {
       alive = false;
     };
@@ -204,9 +190,12 @@ export default function AppHome() {
           </button>
         ))}
 
-        {/* ── 웹툰 사주 ── 리딩 끝에서만 열리던 길을 홈으로 옮긴다 (2026-09-01
-             운영자). 이미 산 리딩이 있으면 그 리딩의 웹툰으로, 없으면 폼으로 —
-             웹툰은 명식이 있어야 그려지므로 한 장을 먼저 만들어야 한다. */}
+        {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
+             페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
+             홈에서 들어가는 줄만 걷었다. 되돌리려면 아래 주석을 풀고,
+             webtoonId 상태와 /api/my-readings 조회도 같이 되살려야 한다
+             (해금된 리딩 하나를 찾아 그 웹툰으로 보내던 값이다).
+
         <Link
           href={webtoonId ? `/webtoon-saju/${webtoonId}` : "/reading"}
           className="home-webtoon"
@@ -218,6 +207,7 @@ export default function AppHome() {
           </span>
           <span className="home-webtoon-go" aria-hidden>›</span>
         </Link>
+        */}
 
         {/* 세트 줄은 홈에서 뺐다 (2026-09-01 운영자). /set/[id] 판매 페이지와
              쿠폰 정산은 그대로 살아 있어 직접 링크는 여전히 열린다. */}
