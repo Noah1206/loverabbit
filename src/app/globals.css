@@ -4882,54 +4882,6 @@ label {
   border: 0;
 }
 
-/* 문의 버튼 — 하단 탭바(높이 66px, bottom 6px) 바로 위에 같은 폭으로 정렬한다 */
-.inquiry-fab-slot {
-  position: fixed;
-  /* 탭바 바로 위. 탭바가 올라간 만큼 같이 올린다 */
-  bottom: calc(98px + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(calc(100vw - 48px), calc(var(--app-max-width) - 40px));
-  z-index: 61;
-  display: flex;
-  justify-content: flex-end;
-  pointer-events: none;
-}
-
-/* 첫 화면에서는 접어 둔다 — 그 자리에 태그 필터가 온다 */
-.inquiry-fab-slot-hidden {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-50%) translateY(8px);
-}
-
-.inquiry-fab-slot {
-  transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
-}
-
-.inquiry-fab {
-  pointer-events: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
-  border-radius: var(--r-pill);
-  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
-  color: var(--text);
-  font: inherit;
-  font-size: 0.86rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: var(--chrome-shadow);
-  transition: transform 160ms ease;
-}
-
-.inquiry-fab:active {
-  transform: scale(0.97);
-}
-
 .inquiry-overlay {
   position: fixed;
   inset: 0;
