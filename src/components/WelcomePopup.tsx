@@ -52,20 +52,32 @@ export default function WelcomePopup() {
   return (
     <div className="app-modal-layer welcome-popup-layer" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title" onClick={close}>
       <div className="card welcome-popup" onClick={(event) => event.stopPropagation()}>
-        <BrandMark size={72} className="welcome-popup-icon" />
-        <span className="badge">처음 오셨나요?</span>
+        {/* 닫기는 진짜 버튼이어야 한다 — 그림에 그려진 X 는 눌리지 않는다.
+            그래서 일러스트에서 그 모서리는 잘라 냈다. */}
+        <button type="button" className="welcome-popup-close" onClick={close} aria-label="닫기">
+          ✕
+        </button>
+
+        {/* 그림에는 글자가 없다. 값(1,900원)이 구워져 있으면 가격이 바뀌는 날
+            그림을 다시 만들어야 한다 — 문구는 아래에서 코드가 그린다. */}
+        <img className="welcome-popup-art" src="/assets/home/welcome-rabbit.webp" alt="" aria-hidden />
+
+        <span className="welcome-popup-badge">
+          <BrandMark size={20} />
+          오픈 이벤트
+        </span>
+
         <h3 id="welcome-popup-title">
-          첫 사주는 무조건
+          궁금해?
           <br />
-          <em>{FIRST_READING_PRICE.toLocaleString("ko-KR")}원</em>에 봐드립니다
+          러브레빗한테
+          <br />
+          <em>물어봐</em>
         </h3>
-        <p>
-          어떤 사주든 첫 한 장은 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원이에요.
-          <br />
-          명식은 결제 전에 먼저 확인할 수 있어요.
-        </p>
+        <p>어떤 사주든 첫 한 장은 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원</p>
+
         <button type="button" className="btn welcome-popup-cta" onClick={close}>
-          네, 사주 볼게요
+          내 사주 보러가기
         </button>
       </div>
     </div>
