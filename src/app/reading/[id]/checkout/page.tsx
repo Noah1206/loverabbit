@@ -188,7 +188,7 @@ export default function ReadingCheckoutPage() {
   if (!ready) {
     return (
       <main className="container reading-flow-page">
-        <p className="reading-checkout-note" aria-live="polite">불러오는 중…</p>
+        <p className="reading-checkout-note" role="status" aria-live="polite">불러오는 중이에요…</p>
       </main>
     );
   }

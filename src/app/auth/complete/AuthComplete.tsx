@@ -6,6 +6,7 @@ import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 import { trackCompleteRegistration } from "@/lib/meta-events";
 import BrandMark from "@/components/BrandMark";
+import RabbitLoader from "@/components/RabbitLoader";
 import BackOnError from "@/components/BackOnError";
 
 interface SessionResult extends Partial<User> {
@@ -132,9 +133,17 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
           </div>
         ) : !needsProfile ? (
           <>
-            <h1>로그인 연결 중</h1>
-            <p>계정과 러브레빗 기록을 안전하게 연결하고 있어요.</p>
-            {submitting && <div className="auth-loader" aria-label="로그인 처리 중" />}
+            {submitting ? (
+              <RabbitLoader
+                message="로그인을 연결하고 있어요"
+                sub="계정과 러브레빗 기록을 안전하게 잇는 중이에요."
+              />
+            ) : (
+              <>
+                <h1>로그인 연결 중</h1>
+                <p>계정과 러브레빗 기록을 안전하게 연결하고 있어요.</p>
+              </>
+            )}
             {error && (
               <>
                 <p className="auth-error" role="alert">{error}</p>

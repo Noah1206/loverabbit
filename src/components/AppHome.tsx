@@ -87,7 +87,6 @@ export default function AppHome() {
     };
   }, [user]);
 
-  const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
   const list = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id) && (filter === "all" || p.tags.includes(filter)));
 
   return (
@@ -209,7 +208,6 @@ export default function AppHome() {
             {([["all", "전체"], ["popular", "인기"], ["new", "신규"]] as const).map(([k, label]) => (
               <button key={k} className={`chip${filter === k ? " on" : ""}`} onClick={() => setFilter(k)}>{label}</button>
             ))}
-            <button className="chip" style={{ marginLeft: "auto", color: "var(--accent-soft)" }} onClick={() => soon("태그 검색")}>태그 &gt;</button>
           </div>
 
           <div className="fortune-grid">
@@ -294,17 +292,12 @@ export default function AppHome() {
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
-          <div style={{ display: "flex", gap: 12, marginBottom: 20 }}>
-            {["𝕏", "📷", "🎵"].map((s, i) => (
-              <button key={i} onClick={() => soon("공식 SNS")} aria-label="SNS" style={{ width: 40, height: 40, borderRadius: "50%", border: "1px solid var(--line)", background: "var(--bg-card)", color: "var(--text)", fontSize: "1rem", cursor: "pointer" }}>{s}</button>
-            ))}
-          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, fontSize: "0.82rem" }}>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>지원</strong>
               {/* 문의 기능은 이미 있다(InquiryButton) — 가짜 alert 대신 그것을 연다. */}
               <p style={{ marginTop: 6 }}><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>고객센터</button></p>
-              <p><button onClick={() => soon("자주 묻는 질문")} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>자주 묻는 질문</button></p>
+              <p><button onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))} style={{ background: "none", border: "none", color: "var(--text)", cursor: "pointer", padding: 0, font: "inherit" }}>문의하기</button></p>
             </div>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>법적 고지</strong>
