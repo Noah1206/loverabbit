@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
@@ -265,4 +266,32 @@ test("액션에 토끼가 함께 실려 나간다", () => {
   assert.ok(action.rabbit.video.endsWith(".webm"));
   assert.ok(action.rabbit.art.endsWith(".webp"));
   assert.ok(action.rabbit.line.length > 5);
+});
+
+// ── 검수 중 잠금 (2026-09-01) ──────────────────────────────
+//
+// 기능을 열 때 이 테스트도 같이 지운다. 그전까지는 관문이 실수로 열리는
+// 것을 막는다 — 화면만 가리고 라우트를 안 막으면 아무나 부를 수 있다.
+
+test("라우트가 운영 키를 검사한다", async () => {
+  const source = await readFile("src/app/api/daily-action/route.ts", "utf8");
+  assert.match(
+    source,
+    /verifyAdminApprovalKey/,
+    "라우트에서 운영 키 검사가 사라졌다 — 검수 중에는 관문이 있어야 한다"
+  );
+  assert.match(source, /status: 404/, "잠긴 기능은 404 로 답해야 한다 (있다는 것도 알리지 않는다)");
+});
+
+test("탭바에 오늘이 노출되지 않는다", async () => {
+  const source = await readFile("src/components/BottomNav.tsx", "utf8");
+  assert.ok(
+    !source.includes('href: "/today"'),
+    "검수가 끝나기 전에는 탭에 내놓지 않는다"
+  );
+});
+
+test("오늘 화면은 색인에서 빠진다", async () => {
+  const source = await readFile("src/app/today/layout.tsx", "utf8");
+  assert.match(source, /index: false/, "검수 중 화면이 검색에 걸리면 안 된다");
 });
