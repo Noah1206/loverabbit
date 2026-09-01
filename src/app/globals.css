@@ -10213,3 +10213,15 @@ input[type="radio"] {
   padding: 13px 20px;
   font-size: 0.95rem;
 }
+
+/* 결제 전 고지 (PurchaseNotice). 눈에 띄되 결제를 가리지 않는 크기 —
+   법이 요구하는 건 "알렸는가" 이지 "크게 썼는가" 가 아니다. */
+.purchase-notice {
+  margin-top: 12px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #6b6472;
+  text-align: center;
+}
+.purchase-notice strong { color: #2b2430; }
+.purchase-notice a { color: #6b6472; text-decoration: underline; }

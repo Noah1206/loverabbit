@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
+import PurchaseNotice from "@/components/PurchaseNotice";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { saleCreditCost, KRW_PER_CREDIT, READING_SALE_CREDITS } from "@/lib/credits";
@@ -280,6 +281,7 @@ export default function ReadingCheckoutPage() {
         )}
       </div>
       <p className="reading-checkout-note">{KRW_PER_CREDIT.toLocaleString("ko-KR")}원이 1러빗이에요. 열리는 순간 전문이 만들어져요.</p>
+      <PurchaseNotice kind="reading" />
 
       {showSignup && (
         <SignupModal

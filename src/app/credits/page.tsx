@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import PortOneTransferForm, { PORTONE_TRANSFER_CONFIGURED } from "@/components/PortOneTransferForm";
+import PurchaseNotice from "@/components/PurchaseNotice";
 import SignupModal from "@/components/SignupModal";
 import TransferSteps from "@/components/TransferSteps";
 import { TRANSFER_ACCOUNTS } from "@/components/TransferAccounts";
@@ -278,6 +279,7 @@ export default function CreditsPage() {
             )}
           </>
         )}
+        <PurchaseNotice kind="credits" />
       </section>
 
       {user && (
