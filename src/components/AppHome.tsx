@@ -12,7 +12,6 @@ import { useTheme } from "@/components/ThemeProvider";
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
-import { questionsLeft } from "@/lib/credits";
 import InquiryButton from "@/components/InquiryButton";
 
 
@@ -54,34 +53,12 @@ export default function AppHome() {
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
-  // 헤더의 질문권 카운터가 쓰는 잔액. 서버가 답한다.
-  const [balance, setBalance] = useState<number | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
     setChecked(true);
     return () => clearInterval(t);
   }, []);
-
-  // 못 가져와도 그냥 지나간다 — 이 줄은 덤이고, 없다고 홈이 막히면 안 된다.
-  useEffect(() => {
-    if (!user) {
-      setBalance(null);
-      return;
-    }
-    let alive = true;
-    const post = (path: string) =>
-      fetch(path, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userToken: user.token }),
-      }).then((res) => (res.ok ? res.json() : null));
-
-    post("/api/credits")
-      .then((d: { balance?: number } | null) => { if (alive && typeof d?.balance === "number") setBalance(d.balance); })
-      .catch(() => {});
-    return () => { alive = false; };
-  }, [user]);
 
   const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
   const list = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id) && (filter === "all" || p.tags.includes(filter)));
@@ -105,13 +82,6 @@ export default function AppHome() {
             />
           </strong>
           <div className="app-header-actions">
-            {/* 질문권 — 참고 화면의 카운터 자리. 값이 바뀌면 숫자가 한 번 튄다. */}
-            {balance !== null && (
-              <Link href="/credits" className="app-header-count" aria-label={`질문권 ${questionsLeft(balance)}번 남음`}>
-                <span aria-hidden>🎫</span>
-                <b key={questionsLeft(balance)}>{questionsLeft(balance)}</b>
-              </Link>
-            )}
             <Link href="/credits" className="app-header-icon" aria-label="크레딧 충전 · 내 러빗">
               {/* 쌓인 동전 — 눌러서 가는 곳이 충전 페이지다. BottomNav 처럼 24 격자 stroke 로만 */}
               <svg aria-hidden width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

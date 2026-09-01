@@ -803,9 +803,8 @@ label {
   margin-inline: -8px;
 }
 
-/* ── 헤더 카운터·아이콘 ─────────────────────────────────────────────
-   참고 화면처럼 브랜드 오른쪽에 값과 아이콘을 세운다. */
-.app-header-count,
+/* ── 헤더 아이콘 ───────────────────────────────────────────────────
+   로고 오른쪽에 아이콘만 선다 (질문권 카운터는 2026-09-01 에 걷었다). */
 .app-header-icon {
   display: inline-flex;
   align-items: center;
@@ -828,43 +827,18 @@ label {
   transition: transform 200ms ease;
 }
 
-.app-header-count:hover,
-.app-header-count:focus-visible {
-  border-color: var(--accent);
-  background: var(--canvas-lavender);
-  outline: none;
-}
-
 .app-header-icon:hover,
 .app-header-icon:focus-visible {
   transform: scale(1.08);
   outline: none;
 }
 
-.app-header-count:active,
 .app-header-icon:active {
   transform: scale(0.95);
 }
 
 .app-header-icon {
   font-size: 0.95rem;
-}
-
-/* 값이 바뀌면 key 가 바뀌어 다시 그려진다 — 그때 숫자가 한 번 튄다.
-   바뀐 것을 눈이 놓치지 않게 하는 것이 목적이라 짧게 끝낸다. */
-.app-header-count b {
-  display: inline-block;
-  color: var(--text);
-  font-size: 0.92rem;
-  font-weight: 900;
-  font-variant-numeric: tabular-nums;
-  animation: header-count-pop 420ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-@keyframes header-count-pop {
-  0% { transform: translateY(-4px) scale(0.7); opacity: 0; }
-  60% { transform: translateY(0) scale(1.18); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* ── 공지 배너 ─────────────────────────────────────────────────────
@@ -985,8 +959,7 @@ label {
 
 @media (prefers-reduced-motion: reduce) {
   .home-notice-bar,
-  .home-notice-copy,
-  .app-header-count b {
+  .home-notice-copy {
     animation: none;
   }
   .home-notice-tab {
@@ -1173,24 +1146,26 @@ label {
    눌리는 곳을 좁히면 반은 빗나간다. */
 /* 화살표만 — 글자 CTA 는 뺐다 (2026-08-31 운영자). 카드 전체가 링크라
    이 원은 방향 표시일 뿐이다. */
+/* 원판을 걷고 화살표만 남긴다 (2026-09-01 운영자) — 얇은 검은 선 하나. */
 .fortune-grid-go {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   width: 26px;
   height: 26px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-size: 0.95rem;
-  font-weight: 800;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 400;
   line-height: 1;
   padding-bottom: 2px;
+  transition: transform 180ms ease;
 }
 
 .fortune-grid-card:hover .fortune-grid-go,
 .fortune-grid-card:focus-visible .fortune-grid-go {
-  filter: brightness(1.12);
+  transform: translateX(2px);
 }
 
 
