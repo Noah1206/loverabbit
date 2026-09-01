@@ -39,7 +39,7 @@ export default function WebtoonSajuPage() {
   const [unlockOpen, setUnlockOpen] = useState(false);
   const [signupOpen, setSignupOpen] = useState(false);
 
-  const { reading, status, error, reload, applyServerState } = useWebtoonReading(readingId, fortuneType);
+  const { reading, status, error, reload, applyServerState, giveUp } = useWebtoonReading(readingId, fortuneType);
   const { unlock, pending, error: unlockError } = useWebtoonUnlock(readingId);
 
   // 주소의 탭·복귀 상태. useSearchParams 는 Suspense 경계를 요구해서
@@ -120,7 +120,7 @@ export default function WebtoonSajuPage() {
       </main>
     );
   }
-  if (status === "loading") return <WebtoonLoadingState />;
+  if (status === "loading") return <WebtoonLoadingState onTimeout={giveUp} />;
   if (status === "error" || !reading) return <WebtoonErrorState error={error} onRetry={reload} />;
 
   const isUnlocked = reading.unlocked;

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import RabbitLoader from "@/components/RabbitLoader";
+
 import type { FortuneType } from "@/lib/webtoon-saju";
 import { buildShareText, FORTUNE_TYPES, WEBTOON_FORTUNE_CONFIG } from "@/lib/webtoon-saju";
 import type { WebtoonReadingState } from "./hooks";
@@ -166,13 +168,17 @@ export function WebtoonDisclaimer() {
   );
 }
 
-export function WebtoonLoadingState() {
+export function WebtoonLoadingState({ onTimeout }: { onTimeout?: () => void }) {
+  /* 예전에는 여기 갇혔다 — 응답이 안 오면 스피너만 돌고 나갈 버튼이 없었다.
+     20초가 지나면 부르는 쪽이 에러 화면으로 넘긴다(거기엔 재시도·홈이 있다). */
   return (
     <main className="webtoon-saju-page">
-      <div className="webtoon-state" role="status">
-        <img src="/logo.png" alt="" aria-hidden="true" />
-        <p>토끼가 이야기를 펼치는 중이에요…</p>
-      </div>
+      <RabbitLoader
+        message="토끼가 이야기를 펼치는 중이에요"
+        sub="잠시만 기다려 주세요."
+        timeoutMs={onTimeout ? 20_000 : 0}
+        onTimeout={onTimeout}
+      />
     </main>
   );
 }

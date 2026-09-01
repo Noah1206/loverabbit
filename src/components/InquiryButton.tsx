@@ -37,6 +37,14 @@ export default function InquiryButton() {
     if (stored?.email) setEmail(stored.email);
   }, [open]);
 
+  /* 푸터의 "고객센터"처럼 멀리 있는 자리에서도 이 창을 연다. 문의는 여기
+     하나뿐이라 화면마다 새로 만들 이유가 없다 — 부르는 쪽은 이벤트만 쏜다. */
+  useEffect(() => {
+    const openInquiry = () => setOpen(true);
+    window.addEventListener("loverabbit:inquiry", openInquiry);
+    return () => window.removeEventListener("loverabbit:inquiry", openInquiry);
+  }, []);
+
   // 열려 있는 동안에는 뒤 배경이 스크롤되지 않게 한다.
   useEffect(() => {
     if (!open) return;

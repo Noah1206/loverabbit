@@ -11,6 +11,7 @@ import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
+import RabbitLoader from "@/components/RabbitLoader";
 import {
   landingTypeForProduct,
   trackInitiateCheckout,
@@ -597,9 +598,16 @@ export default function ReadingReportPage() {
   };
 
   if (status === "loading") {
+    /* 기다림에는 끝을 둔다 — 서버가 응답하지 않으면 catch 도 안 돌아 예전에는
+       스피너가 영원히 돌았다. 20초가 지나면 나갈 길이 있는 화면으로 보낸다. */
     return (
       <main className="container report-page">
-        <div className="auth-loader" aria-label="리딩 불러오는 중" />
+        <RabbitLoader
+          message="사주를 불러오는 중이에요"
+          sub="잠시만 기다려 주세요."
+          timeoutMs={20_000}
+          onTimeout={() => setStatus("missing")}
+        />
       </main>
     );
   }

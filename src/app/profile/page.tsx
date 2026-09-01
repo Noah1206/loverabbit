@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import InquiryButton from "@/components/InquiryButton";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
 import { getUser, logoutUser, saveUser, type User } from "@/lib/user";
 import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
@@ -92,6 +93,25 @@ export default function ProfilePage() {
           <SocialLoginButtons />
         )}
       </div>
+
+      {/* 탈퇴 — 개인정보처리방침이 "문의하기로 받아 10일 안에 처리한다"고 약속한
+          그 경로를 눈에 보이게 둔다. 약속만 있고 누를 자리가 없으면 없는 것과 같다. */}
+      {user && (
+        <div className="card" style={{ padding: 24, marginTop: 14 }}>
+          <h2 style={{ fontSize: "1.05rem", marginBottom: 6 }}>회원 탈퇴</h2>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 14 }}>
+            탈퇴하면 계정 정보와 리딩 결과를 지체 없이 파기해요. 남은 러빗은 돌려드릴 수 없으니
+            먼저 써 주세요. 문의로 접수하면 10일 안에 처리해 드려요.
+          </p>
+          <button
+            className="btn btn-ghost"
+            style={{ width: "100%" }}
+            onClick={() => window.dispatchEvent(new Event("loverabbit:inquiry"))}
+          >
+            탈퇴 문의하기
+          </button>
+        </div>
+      )}
       {user && (
         <div className="card" style={{ padding: 24, marginTop: 14 }}>
           <span className="badge">친구 초대 보상</span>
@@ -105,6 +125,9 @@ export default function ProfilePage() {
           {shareNotice && <p style={{ color: "var(--gold)", fontSize: "0.82rem", marginTop: 10 }}>{shareNotice}</p>}
         </div>
       )}
+
+      {/* 문의창 본체. 위 "탈퇴 문의하기"가 쏘는 이벤트를 이것이 받는다. */}
+      <InquiryButton />
     </main>
   );
 }
