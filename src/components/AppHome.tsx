@@ -10,7 +10,8 @@ import { useTheme } from "@/components/ThemeProvider";
 
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { READING_SALE_CREDITS } from "@/lib/credits";
+import { BUNDLES } from "@/lib/bundles";
+import { BUNDLE_SALE_CREDITS, READING_SALE_CREDITS } from "@/lib/credits";
 import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
@@ -201,6 +202,21 @@ export default function AppHome() {
           </span>
           <span className="home-webtoon-go" aria-hidden>›</span>
         </Link>
+
+        {/* ── 세트 ── 그리드에서는 뺐지만(2026-08-31) 판매 페이지와 쿠폰 정산은
+             그대로 살아 있었다. 들어갈 문만 막혀 있던 셈이라 한 줄로 다시 낸다. */}
+        {BUNDLES.map((bundle) => (
+          <Link key={bundle.id} href={`/set/${bundle.id}`} className="home-webtoon">
+            <span className="home-webtoon-emoji" aria-hidden>{bundle.emoji}</span>
+            <span className="home-webtoon-copy">
+              <strong>{bundle.title}</strong>
+              {/* 실제로 깎는 값을 적는다 — 정가를 환산해 적으면 결제창에서
+                  다른 숫자를 보게 된다 (세트는 saleCreditCost 가 정본). */}
+              <small>세 장을 한 번에 · {BUNDLE_SALE_CREDITS}러빗</small>
+            </span>
+            <span className="home-webtoon-go" aria-hidden>›</span>
+          </Link>
+        ))}
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>
