@@ -9620,66 +9620,48 @@ body[data-guin-intro="1"] .tabbar {
   background: rgba(20, 16, 40, 0.55);
   border-radius: 10px;
   padding: 6px 10px;
+  white-space: pre-line;
 }
-.webtoon-speech-bubble {
-  background: rgba(255, 255, 255, 0.94);
-  color: #1d1d1d;
-  border-radius: 14px;
-  padding: 8px 12px;
-  box-shadow: 0 3px 12px rgba(20, 16, 40, 0.25);
+/* 말풍선 — SVG 타원이 모양을 그리고, 글자는 그 위에 얹는다.
+   폭만 주면 SVG 가 제 비율로 높이를 정한다(preserveAspectRatio=none). */
+.webtoon-bubble {
+  position: absolute;
 }
-.tone-rabbit .webtoon-speech-bubble {
-  border: 1.5px solid var(--accent-soft);
+.webtoon-bubble svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.webtoon-bubble-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #1a1a1a;
+  font-weight: 600;
+  line-height: 1.5;
+  font-size: clamp(11px, 3.3vw, 13.5px);
+  padding: 0 14%;
+  box-sizing: border-box;
+  /* 대사의 줄바꿈은 데이터가 정한다 — 타원 안에서 어디서 끊을지는
+     자동 줄바꿈보다 사람이 정한 자리가 낫다. */
+  white-space: pre-line;
 }
 
-/* 말풍선 꼬리 — 화자를 가리킨다. 웹툰에서 누가 말하는지는 꼬리가 정한다.
-   화자가 말풍선 바로 아래가 아니라 한참 아래에 있으므로(하늘에 뜬 말풍선,
-   바닥에 앉은 토끼) 짧은 삼각형만으로는 둘이 이어지지 않는다. 얇고 긴
-   지시선을 함께 내려 시선이 화자까지 따라가게 한다. */
-.webtoon-speech-bubble[class*="tail-"]::after {
-  content: "";
-  position: absolute;
-  bottom: -9px;
-  width: 0;
-  height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 11px solid rgba(255, 255, 255, 0.94);
-  filter: drop-shadow(0 2px 2px rgba(20, 16, 40, 0.18));
-}
-.webtoon-speech-bubble[class*="tail-"]::before {
-  content: "";
-  position: absolute;
-  bottom: -30px;
-  width: 2px;
-  height: 22px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 0.15)
-  );
-  border-radius: 2px;
-}
-.webtoon-speech-bubble {
-  position: relative;
-}
-.tail-bottom-left::after,
-.tail-bottom-left::before {
-  left: 18%;
-}
-.tail-bottom-right::after,
-.tail-bottom-right::before {
-  right: 18%;
-}
-.tail-bottom-center::after {
-  left: 50%;
-  transform: translateX(-50%);
-}
-.tone-subject .webtoon-speech-bubble[class*="tail-"]::after {
-  border-top-color: rgba(244, 237, 228, 0.95);
-}
-.tone-subject .webtoon-speech-bubble {
-  background: rgba(244, 237, 228, 0.95);
+/* 효과음 — 손글씨 느낌. 흰 외곽선으로 어떤 배경에서도 읽힌다. */
+.overlay-sfx {
+  font-weight: 900;
+  font-size: clamp(15px, 4.8vw, 20px);
+  color: #2a2a2a;
+  -webkit-text-stroke: 3px #fff;
+  paint-order: stroke fill;
+  letter-spacing: 0.02em;
+  transform: rotate(-8deg);
 }
 
 .webtoon-panel.is-locked .webtoon-panel-image {

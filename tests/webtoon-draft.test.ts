@@ -10,12 +10,13 @@ function goodDraft(patch: Partial<WebtoonDraft> = {}): WebtoonDraft {
     previewText: "테스터, 이번 흐름은 방향을 먼저 잡는 장이에요. 서두르지 않아도 괜찮아요.",
     previewPoints: ["방향이 먼저예요", "새는 곳을 봐요", "반복이 쌓여요"],
     panelLines: [
-      { rabbit: "지금은 방향을 먼저 보는 때야." },
-      { subject: "내가 진짜 원하는 게 뭘까?" },
-      { rabbit: "하나를 정하면 흐름이 모여." },
-      { rabbit: "작은 반복이 결국 남아." },
+      { rabbit: "테스터님, 반가워요. 흐름을 풀어드릴게요." },
+      { rabbit: "먼저 꼭 짚어야 할 게 있어요." },
+      { rabbit: "여기, 이 부분만 조심하면 돼요." },
+      { rabbit: "미루던 자리에서 하나를 정해보세요." },
+      { rabbit: "나머지도 이어서 볼까요?" },
     ],
-    captions: ["방향이 속도를 이겨요.", "쌓이는 건 반복이에요."],
+    captions: ["방향이 속도를 이겨요.", "쌓이는 건 반복이에요.", "비는 언젠가 그쳐요."],
     fullParagraphs: [
       "이번 흐름에서 먼저 볼 것은 들어오는 쪽이 아니라 나가는 쪽의 결이에요. 어디서 새는지 알면 손에 남는 양이 달라져요.",
       "판단 기준을 미리 정해두면 좋아요. 지금 아니면 안 될 것 같은 감각은 대개 속도의 착시예요.",
@@ -43,9 +44,9 @@ describe("초안 파싱", () => {
       { previewText: "짧음" },
       { previewPoints: ["하나", "둘"] },
       { fullParagraphs: ["하나", "둘", "셋"] },
-      { captions: ["하나"] },
+      { captions: ["하나", "둘"] },
       { panelLines: [{ rabbit: "하나" }, { rabbit: "둘" }] },
-      { panelLines: [{ rabbit: "하나" }, { rabbit: "둘" }, { rabbit: "셋" }, {}] },
+      { panelLines: [{ rabbit: "하나" }, { rabbit: "둘" }, { rabbit: "셋" }, { rabbit: "넷" }, {}] },
     ];
     for (const patch of cases) {
       assert.equal(parseDraft(JSON.stringify(goodDraft(patch))), null, JSON.stringify(patch));
@@ -82,7 +83,7 @@ describe("문장 가드", () => {
   });
 
   it("패널 말풍선도 검사한다 — 문단만 보면 말풍선으로 샌다", () => {
-    const lines = [{ rabbit: "반드시 이렇게 될 거야." }, { subject: "둘" }, { rabbit: "셋" }, { rabbit: "넷" }];
+    const lines = [{ rabbit: "반드시 이렇게 될 거야." }, { rabbit: "둘" }, { rabbit: "셋" }, { rabbit: "넷" }, { rabbit: "다섯" }];
     assert.equal(guardDraft(goodDraft({ panelLines: lines })), false);
   });
 });
@@ -113,15 +114,42 @@ describe("초안 덮어쓰기", () => {
     const draft = goodDraft();
     const out = applyDraft(base, draft);
 
-    const speech = out.panels.flatMap((p) => p.overlays.filter((o) => o.type === "speech").map((o) => o.text));
-    assert.ok(speech.includes(draft.panelLines[0].rabbit!), "1번 말풍선이 안 바뀌었다");
-    assert.ok(speech.includes(draft.panelLines[1].subject!), "2번 말풍선이 안 바뀌었다");
-
-    const captions = out.panels.flatMap((p) => p.overlays.filter((o) => o.type === "caption").map((o) => o.text));
-    assert.deepEqual(captions, draft.captions);
+    const captions = out.panels.flatMap((p) =>
+      p.overlays.filter((o) => o.type === "caption").map((o) => o.text)
+    );
+    assert.deepEqual(captions, draft.captions, "캡션이 순서대로 들어가지 않았다");
 
     assert.equal(out.previewText, draft.previewText);
     assert.deepEqual(out.fullParagraphs, draft.fullParagraphs);
+  });
+
+  it("대사는 말풍선이 있는 컷에만 순서대로 들어간다", () => {
+    // 패널 순번으로 매칭하면 안 된다 — 8컷 중 말하는 컷은 1·3·5·7·8 이다.
+    const base = buildWebtoonContent("money", "테스터");
+    const draft = goodDraft();
+    const out = applyDraft(base, draft);
+
+    const speakingPanels = out.panels.filter((p) => p.overlays.some((o) => o.type === "speech"));
+    assert.equal(speakingPanels.length, 5);
+
+    // 두 번째로 말하는 컷(03 짚어줌)에 초안의 두 번째 대사가 있어야 한다
+    const second = speakingPanels[1].overlays.find((o) => o.type === "speech");
+    assert.equal(second?.text, draft.panelLines[1].rabbit);
+
+    // 연결 컷에는 대사가 새지 않는다
+    for (const p of out.panels) {
+      const hasCap = p.overlays.some((o) => o.type === "caption");
+      if (hasCap) assert.ok(!p.overlays.some((o) => o.type === "speech"), `${p.id} 로 대사가 샜다`);
+    }
+  });
+
+  it("말풍선이 둘인 컷은 한 대사를 나눠 담는다", () => {
+    const base = buildWebtoonContent("money", "테스터");
+    const out = applyDraft(base, goodDraft());
+    const first = out.panels[0].overlays.filter((o) => o.type === "speech");
+    assert.equal(first.length, 2, "01 컷은 말풍선이 둘이다");
+    assert.ok(first[0].text.length > 0 && first[1].text.length > 0, "빈 말풍선이 생겼다");
+    assert.notEqual(first[0].text, first[1].text, "같은 문장이 두 번 들어갔다");
   });
 
   it("세 운세 모두 같은 규칙으로 덮인다", () => {

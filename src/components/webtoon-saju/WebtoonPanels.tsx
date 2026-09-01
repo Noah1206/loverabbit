@@ -9,6 +9,32 @@ import { FREE_PANEL_COUNT } from "@/lib/webtoon-saju";
 // 그림에는 캐릭터·배경만 있고, 문장은 전부 여기 오버레이가 % 좌표로 그린다.
 // 그래서 카피를 바꿔도 이미지 재생성이 없고, 390px 모바일에서도 위치가 유지된다.
 
+/**
+ * 말풍선 모양. CSS 라운드 사각형이 아니라 SVG 타원이다.
+ *
+ * 꼬리가 몸통에서 이어져 나온 하나의 도형이어야 웹툰처럼 보인다 — 사각형에
+ * 삼각형을 붙이면 붙인 티가 난다. 연속 대사의 앞 풍선은 꼬리 없는 순수 타원을
+ * 쓴다(앞 풍선 꼬리가 뒤 풍선을 뚫는다).
+ */
+function BubbleShape({ tail }: { tail?: TextOverlay["tail"] }) {
+  if (!tail) {
+    return (
+      <svg viewBox="0 0 200 120" preserveAspectRatio="none" aria-hidden="true">
+        <ellipse cx="100" cy="60" rx="96" ry="56" fill="#fff" stroke="#3a3a3a" strokeWidth="2.5" />
+      </svg>
+    );
+  }
+  const d =
+    tail === "bottom-left"
+      ? "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L74,116 L54,148 L58,114 C22,107 4,94 4,60 C4,26 45,4 100,4 Z"
+      : "M100,4 C155,4 196,26 196,60 C196,94 155,116 100,116 L126,116 L146,148 L142,114 C110,110 4,94 4,60 C4,26 45,4 100,4 Z";
+  return (
+    <svg viewBox="0 0 200 150" preserveAspectRatio="none" aria-hidden="true">
+      <path d={d} fill="#fff" stroke="#3a3a3a" strokeWidth="2.5" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function WebtoonTextOverlay({ overlay }: { overlay: TextOverlay }) {
   const style: React.CSSProperties = {
     left: `${overlay.x}%`,
@@ -16,14 +42,23 @@ export function WebtoonTextOverlay({ overlay }: { overlay: TextOverlay }) {
     width: `${overlay.width}%`,
     textAlign: overlay.align ?? "left",
   };
+
+  if (overlay.type === "speech") {
+    // 글자는 몸통 안에만 앉힌다. 꼬리가 있으면 그 높이만큼 빼야 글이 꼬리로 흘러내리지 않는다.
+    const textHeight = overlay.tail ? `${(130 / 150) * 100}%` : "100%";
+    return (
+      <div className="webtoon-bubble" style={style}>
+        <BubbleShape tail={overlay.tail} />
+        <div className="webtoon-bubble-text" style={{ height: textHeight }}>
+          {overlay.text}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`webtoon-text-overlay overlay-${overlay.type} tone-${overlay.tone ?? "system"}`} style={style}>
-      {overlay.type === "speech" ? (
-        // 꼬리가 화자를 가리킨다 — 말풍선은 화자 위에 뜨고 꼬리가 아래로 내려간다
-        <div className={`webtoon-speech-bubble${overlay.tail ? ` tail-${overlay.tail}` : ""}`}>{overlay.text}</div>
-      ) : (
-        overlay.text
-      )}
+      {overlay.text}
     </div>
   );
 }

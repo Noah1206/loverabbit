@@ -1,14 +1,20 @@
 // 웹툰 사주 — 순수 데이터와 계산만. 서버 검증은 /api/webtoon-readings, 화면은 /webtoon-saju.
 //
-// 그림은 love-rabbit 씬 일러스트(Moonlit Rabbit Oracle 30장)를 그대로 쓴다.
-// 운세마다 겹치지 않는 감정 키를 배정해 재물·연애·이별 데이터가 섞이지 않는다.
-//   재물: hesitation · wavering · resolve · thrill
-//   연애: attraction · waiting
-//   이별: crack · longing · separation · recovery
-// 텍스트는 이미지에 굽지 않는다 — WebtoonTextOverlay 가 별도 DOM 레이어로 그린다.
-// 그래서 카피·이름·화법을 바꿔도 이미지 재생성이 없다.
+// **주인공은 없다. 토끼가 혼자 이야기한다.**
 //
-// 주인공은 리딩을 만든 사용자, 화자는 러브레빗 로고 토끼다.
+// 처음에는 사용자를 뒷모습으로 그렸다. 그러면 성별·나이·체형을 매번 가정하게 되고,
+// 어느 쪽으로 그려도 절반은 "내가 아니다". 사람을 아예 빼니 그 문제가 사라졌고,
+// 누구에게나 자기 이야기가 된다. 사용자는 이름으로만 불린다.
+//
+// 한 편은 8컷이다. 말하는 얼굴만 이어지면 대화록이지 웹툰이 아니라서,
+// 화자 컷 사이에 배경·소품 컷을 끼워 흐름을 만든다.
+//
+//   01 맞이함(화자) 02 전환(배경) 03 짚어줌(화자)   ← 무료
+//   04 소품(정물)   05 걱정함(화자) 06 경과(배경)
+//   07 풀어줌(화자) 08 배웅함(화자)                  ← 유료
+//
+// 텍스트는 이미지에 굽지 않는다 — 오버레이가 별도 DOM 층으로 그린다.
+// 그래서 카피·이름·화법을 바꿔도 이미지 재생성이 없다.
 
 export type FortuneType = "money" | "love" | "breakup";
 
@@ -39,8 +45,13 @@ export const WEBTOON_FORTUNE_CONFIG: Record<
   },
 };
 
-/** 무료로 보여주는 앞 패널 수 */
-export const FREE_PANEL_COUNT = 2;
+/**
+ * 무료로 보여주는 앞 컷 수.
+ *
+ * 3 인 이유: 01 맞이함 → 02 전환 → 03 짚어줌 까지가 "이야기가 시작됐다"로 읽힌다.
+ * 2 에서 끊으면 인사만 하고 끝나서 살 이유가 안 생긴다.
+ */
+export const FREE_PANEL_COUNT = 3;
 
 /**
  * 원장 ref. (reason='reading', ref) unique 인덱스가 해금 상태의 정본이자
@@ -52,7 +63,7 @@ export function webtoonUnlockRef(readingId: string, fortuneType: FortuneType): s
 
 export interface TextOverlay {
   id: string;
-  type: "speech" | "caption" | "title" | "label";
+  type: "speech" | "caption" | "title" | "label" | "sfx";
   text: string;
   /** % 좌표 — 390px 모바일에서도 위치가 유지된다 */
   x: number;
@@ -68,37 +79,46 @@ export interface TextOverlay {
 }
 
 /**
- * 화자가 그림 어디에 서 있는가. 말풍선 좌표는 여기서 파생된다 —
- * 패널마다 좌표를 손으로 찍으면 그림이 바뀔 때마다 겹친다.
- *
- * 이미지 프롬프트가 이 자리를 못박고(왼쪽 아래에 토끼, 오른쪽에 인물),
- * 여기가 그 약속을 코드 쪽에서 받는다. 둘이 같은 규약을 보고 있어야
- * 말풍선이 화자 위에 앉고 얼굴을 가리지 않는다.
+ * 말풍선의 폭 (패널 가로 대비 %).
  */
-export type SpeakerAnchor = "left-low" | "right-low" | "left-high" | "right-high";
+export const BUBBLE_WIDTH = 52;
 
 /**
- * 화자 위치에서 말풍선 자리를 낸다.
+ * 말풍선 몸통의 높이 (패널 세로 대비 %).
  *
- * 규칙(레퍼런스 웹툰의 문법):
- *   · 말풍선은 화자의 머리 위 또는 대각 위에 뜬다
- *   · 화자의 몸·얼굴을 덮지 않는다
- *   · 꼬리는 화자 쪽을 향한다
- *   · 한 컷에 둘이면 위아래 계단식으로 앉는다 (index 로 내린다)
+ * 손으로 정하지 않고 폭에서 유도한다. SVG 몸통이 200x130 이고 패널이 1024x1365 이므로
+ * 세로 비율은 폭 × (130/200) × (1024/1365) 이다. 이 값을 눈대중으로 17% 라고 뒀다가
+ * 두 말풍선이 8% 겹쳤다 — 화면에서 테두리가 서로 물려 보였다.
  */
-export function bubbleAt(anchor: SpeakerAnchor, index = 0): Pick<TextOverlay, "x" | "y" | "width" | "align" | "tail"> {
-  const step = index * 18; // 두 번째 말풍선은 아래로 한 칸
-  switch (anchor) {
-    case "left-low":
-      return { x: 6, y: 9 + step, width: 56, align: "left", tail: "bottom-left" };
-    case "right-low":
-      return { x: 38, y: 9 + step, width: 56, align: "left", tail: "bottom-right" };
-    case "left-high":
-      // 화자가 위에 있으면 말풍선은 아래 빈 바닥으로 내려온다
-      return { x: 6, y: 66 - step, width: 56, align: "left", tail: "bottom-left" };
-    case "right-high":
-      return { x: 38, y: 66 - step, width: 56, align: "left", tail: "bottom-right" };
-  }
+export const BUBBLE_BODY_HEIGHT = BUBBLE_WIDTH * (130 / 200) * (1024 / 1365);
+
+/** 말풍선 사이 간격. 몸통 높이에 여유 2%. */
+export const BUBBLE_GAP = BUBBLE_BODY_HEIGHT + 2;
+
+/**
+ * n 번째 말풍선의 자리.
+ *
+ * 그림의 위쪽 45% 가 비어 있다는 것이 이미지 쪽 계약이다(assets README).
+ * 그래서 좌표를 그림마다 계산할 필요가 없다 — 위에서부터 순서대로 쌓으면 된다.
+ *
+ * **꼬리는 마지막 말풍선에만 단다.** 연속 대사에 전부 꼬리를 달면 앞 풍선의
+ * 꼬리가 뒤 풍선을 뚫는다. 웹툰의 관행이기도 하다 — 누가 말하는지는 마지막
+ * 꼬리 하나면 충분하다.
+ */
+export function bubbleAt(
+  side: "left" | "right",
+  index = 0,
+  total = 1
+): Pick<TextOverlay, "x" | "y" | "width" | "align" | "tail"> {
+  const last = index === total - 1;
+  const x = side === "left" ? 4 + index * 6 : 44 - index * 6;
+  return {
+    x,
+    y: 3 + index * BUBBLE_GAP,
+    width: BUBBLE_WIDTH,
+    align: "center",
+    tail: last ? (side === "left" ? "bottom-left" : "bottom-right") : undefined,
+  };
 }
 
 export interface WebtoonPanelData {
@@ -142,184 +162,204 @@ export function nicknameFromEmail(email?: string | null): string {
 }
 
 /**
- * 운세별 패널·텍스트. v1 은 흐름 안내형 고정 카피다 — 점수·날짜·간지 같은
- * 명리 값을 지어내지 않는다. 명식 기반 문장은 reading 파이프라인과 붙일 때 온다.
+ * 한 컷의 재료. buildWebtoonContent 가 이걸 오버레이로 편다.
+ *
+ *   lines  화자의 말. 여러 줄이면 위에서부터 쌓이고 마지막에만 꼬리가 붙는다.
+ *   side   말풍선이 앉을 쪽. 화자가 오른쪽에 있으면 "left" 로 피한다.
+ *   cap    화자 없는 컷의 한 줄. 말풍선 대신 상단 띠로 나간다.
+ *   sfx    효과음. 이미지에 굽지 않고 오버레이로 얹는다.
  */
-export function buildWebtoonContent(fortuneType: FortuneType, nickname: string): WebtoonContent {
-  if (fortuneType === "money") {
-    return {
-      coverImageUrl: cut("money-cover"),
-      previewText: `${nickname}, 이번 재물운은 큰 한 방보다 방향을 잡는 장이야. 새는 곳을 먼저 찾으면 흐름이 한 줄로 모여.`,
-      previewPoints: [
-        "기회는 속도보다 방향에서 시작돼요",
-        "소비 습관의 결을 먼저 읽어요",
-        "축적은 큰 결심이 아니라 반복에서 와요",
-      ],
-      fullParagraphs: [
-        `${nickname}의 이번 흐름에서 먼저 볼 것은 들어오는 돈이 아니라 나가는 돈의 결이에요. 어디서 새는지 아는 순간, 같은 수입으로도 손에 남는 양이 달라져요.`,
-        "기회가 왔을 때의 판단 기준을 미리 정해두면 좋아요. '지금 아니면 안 될 것 같은' 감각은 대부분 속도의 착시예요. 하루를 두고 다시 봐도 좋아 보이는 것만 잡아요.",
-        "축적은 반복에서 와요. 작게 정한 규칙 하나를 이번 흐름 동안 끊기지 않게 지키는 것이, 큰 결심 여러 번보다 멀리 가요.",
-        "마지막으로, 돈 이야기를 꺼내기 어려운 자리에서 미루던 정리가 있다면 이번이 매듭짓기 좋은 때예요. 현실적인 선택이 이 장의 열쇠예요.",
-      ],
-      panels: [
-        {
-          id: "money-01",
-          imageUrl: cut("money-01"),
-          alt: "달빛 아래 토끼가 갈림길 앞에서 돈의 흐름을 살피는 장면",
-          isPreview: true,
-          overlays: [
-            { id: "m01-title", type: "title", text: "이번 재물운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-            { id: "m01-rabbit", type: "speech", text: "지금은 크게 벌 기회보다, 새는 곳을 먼저 발견하는 흐름이야.", tone: "rabbit", ...bubbleAt("left-low") },
-          ],
-        },
-        {
-          id: "money-02",
-          imageUrl: cut("money-02"),
-          alt: "선택지 앞에서 소비와 축적 사이를 고민하는 장면",
-          isPreview: true,
-          overlays: [
-            { id: "m02-caption", type: "caption", text: "기회는 속도보다 방향에서 시작돼요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "m02-subject", type: "speech", text: "이번엔 내가 진짜 필요한 것부터 골라볼까?", tone: "subject", ...bubbleAt("right-low", 1) },
-          ],
-        },
-        {
-          id: "money-03",
-          imageUrl: cut("money-03"),
-          alt: "결심한 토끼가 한 방향으로 나아가는 장면",
-          isPreview: false,
-          overlays: [
-            { id: "m03-rabbit", type: "speech", text: "미루던 자리에서 하나를 정하면, 돈의 흐름도 한 줄로 모여.", tone: "rabbit", ...bubbleAt("left-low") },
-          ],
-        },
-        {
-          id: "money-04",
-          imageUrl: cut("money-04"),
-          alt: "작은 반복이 쌓여 밝아진 결말 장면",
-          isPreview: false,
-          overlays: [
-            { id: "m04-caption", type: "caption", text: "쌓이는 건 큰 한 방이 아니라 반복이에요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "m04-rabbit", type: "speech", text: "네 소비 습관의 결은 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("right-low", 1) },
-          ],
-        },
-      ],
-    };
+interface CutSpec {
+  id: string;
+  alt: string;
+  free: boolean;
+  side?: "left" | "right";
+  lines?: string[];
+  cap?: string;
+  sfx?: string;
+}
+
+/**
+ * 컷 하나를 오버레이가 얹힌 패널로 편다.
+ *
+ * 좌표는 여기서 한 번만 계산된다 — 컷 데이터에는 % 가 없다. 그림의 위쪽이
+ * 비어 있다는 계약(assets README) 위에서 bubbleAt 이 자리를 정한다.
+ */
+function toPanel(spec: CutSpec): WebtoonPanelData {
+  const overlays: TextOverlay[] = [];
+  const lines = spec.lines ?? [];
+
+  if (spec.cap) {
+    overlays.push({
+      id: `${spec.id}-cap`,
+      type: "caption",
+      text: spec.cap,
+      x: 8,
+      y: 6,
+      width: 84,
+      align: "center",
+      tone: "system",
+    });
   }
 
-  if (fortuneType === "love") {
-    return {
-      coverImageUrl: cut("love-cover"),
-      previewText: `${nickname}, 이번 연애운은 마음이 먼저 도착해 있는 계절이야. 속도는 네가 정해도 돼.`,
-      previewPoints: [
-        "표현은 크기보다 타이밍이에요",
-        "짧은 안부가 대화의 문을 열어요",
-        "감정의 균형은 주고받는 리듬에서 와요",
-      ],
-      fullParagraphs: [
-        `${nickname}의 이번 흐름은 표현의 타이밍이 관계의 온도를 정해요. 준비된 큰 고백보다, 지금 떠오른 짧은 안부가 문을 열어요.`,
-        "관계의 속도는 상대와 맞추는 것이 아니라 함께 정하는 거예요. 빨라서 불안하면 늦추자고 말해도 돼요. 그 말을 꺼낼 수 있는 사이가 오래가요.",
-        "대화가 열리는 순간을 놓치지 마세요. 상대가 자기 이야기를 꺼낸 날, 조언보다 한 번 더 물어봐 주는 쪽이 마음을 움직여요.",
-        "마지막으로, 주는 만큼 받으려는 계산이 서운함을 만들어요. 리듬이 어긋난 날은 총량이 아니라 박자를 다시 맞춰요.",
-      ],
-      panels: [
-        {
-          id: "love-01",
-          imageUrl: cut("love-01"),
-          alt: "달빛 아래 두 마음이 가까워지는 첫 장면",
-          isPreview: true,
-          overlays: [
-            { id: "l01-title", type: "title", text: "이번 연애운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-            { id: "l01-rabbit", type: "speech", text: "마음이 먼저 도착해 있는 계절이야. 속도는 네가 정해도 돼.", tone: "rabbit", ...bubbleAt("left-low") },
-          ],
-        },
-        {
-          id: "love-02",
-          imageUrl: cut("love-02"),
-          alt: "연락을 기다리며 마음을 고르는 장면",
-          isPreview: true,
-          overlays: [
-            { id: "l02-caption", type: "caption", text: "표현은 크기보다 타이밍이에요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "l02-subject", type: "speech", text: "먼저 안부를 물어봐도 괜찮을까?", tone: "subject", ...bubbleAt("left-low", 1) },
-          ],
-        },
-        {
-          id: "love-03",
-          imageUrl: cut("love-03"),
-          alt: "대화가 열려 온기가 도는 장면",
-          isPreview: false,
-          overlays: [
-            { id: "l03-rabbit", type: "speech", text: "대화가 열리는 순간을 놓치지 마. 짧은 안부가 문을 열어.", tone: "rabbit", ...bubbleAt("right-low") },
-          ],
-        },
-        {
-          id: "love-04",
-          imageUrl: cut("love-04"),
-          alt: "주고받는 리듬이 맞아 편안해진 결말 장면",
-          isPreview: false,
-          overlays: [
-            { id: "l04-caption", type: "caption", text: "감정의 균형은 주고받는 리듬에서 와요.", x: 12, y: 8, width: 76, align: "center", tone: "system" },
-            { id: "l04-rabbit", type: "speech", text: "관계의 속도 이야기는 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("left-low", 1) },
-          ],
-        },
-      ],
-    };
+  lines.forEach((text, i) => {
+    overlays.push({
+      id: `${spec.id}-say-${i}`,
+      type: "speech",
+      text,
+      tone: "rabbit",
+      ...bubbleAt(spec.side ?? "left", i, lines.length),
+    });
+  });
+
+  if (spec.sfx) {
+    // 말풍선 반대편, 마지막 풍선 아래. 겹칠 자리가 없다.
+    const opposite = (spec.side ?? "left") === "left" ? 70 : 6;
+    overlays.push({
+      id: `${spec.id}-sfx`,
+      type: "sfx",
+      text: spec.sfx,
+      x: opposite,
+      y: 3 + lines.length * BUBBLE_GAP + 3,
+      width: 24,
+      align: "left",
+      tone: "system",
+    });
   }
 
-  // breakup — 이별을 확정적으로 예언하지 않는다. 지금을 돌보는 선택으로만 말한다.
   return {
-    coverImageUrl: cut("breakup-cover"),
-    previewText: `${nickname}, 이 장은 끝을 점치는 장이 아니야. 지금 마음의 거리를 재고, 나를 돌보는 순서를 찾는 장이야.`,
-    previewPoints: [
-      "미련은 지워야 할 게 아니라 읽어야 할 신호예요",
-      "거리를 두는 건 관계를 버리는 게 아니에요",
-      "회복은 나를 돌보는 선택에서 시작돼요",
+    id: spec.id,
+    imageUrl: cut(spec.id),
+    alt: spec.alt,
+    overlays,
+    isPreview: spec.free,
+  };
+}
+
+/** 무료로 보여주는 앞 컷 수 — 맞이함·전환·짚어줌까지 */
+const EPISODES: Record<FortuneType, { cover: string; cuts: CutSpec[] }> = {
+  money: {
+    cover: "money-01",
+    cuts: [
+      { id: "money-01", free: true, side: "left", alt: "토끼가 손을 들어 인사하는 장면",
+        lines: ["{nick}님,\n만나서 반가워요", "지금부터 재물의\n흐름을 풀어드릴게요"], sfx: "방긋" },
+      { id: "money-02", free: true, alt: "등불이 늘어선 밤거리",
+        cap: "기회는 속도보다 방향에서\n시작돼요" },
+      { id: "money-03", free: true, side: "right", alt: "진지한 표정으로 바라보는 토끼",
+        lines: ["먼저 꼭\n짚어야 할 게 있어요"] },
+      { id: "money-04", free: false, alt: "탁자 위의 동전주머니와 붓",
+        cap: "새는 곳을 먼저 찾으면\n흐름이 한 줄로 모여요" },
+      { id: "money-05", free: false, side: "left", alt: "조심스러운 표정으로 짚어 주는 토끼",
+        lines: ["여기, 이 부분만\n조심하면 돼요"], sfx: "톡톡" },
+      { id: "money-06", free: false, alt: "새벽빛이 드는 창가",
+        cap: "쌓이는 건 큰 한 방이 아니라\n반복이에요" },
+      { id: "money-07", free: false, side: "left", alt: "부드럽게 웃으며 권하는 토끼",
+        lines: ["미루던 자리에서\n하나를 정해보세요"] },
+      { id: "money-08", free: false, side: "left", alt: "윙크하며 배웅하는 토끼",
+        lines: ["나머지도\n이어서 볼까요?"], sfx: "찡긋" },
     ],
-    fullParagraphs: [
-      `${nickname}이(가) 지금 붙잡고 있는 것이 사람인지, 그 시절의 나인지 먼저 구분해 보세요. 미련은 지워야 할 얼룩이 아니라, 내가 무엇을 원했는지 알려주는 신호예요.`,
+  },
+  love: {
+    cover: "love-01",
+    cuts: [
+      { id: "love-01", free: true, side: "right", alt: "벚꽃 아래에서 반기는 토끼",
+        lines: ["{nick}님,\n기다리고 있었어요", "마음이 먼저 도착해\n있는 계절이에요"], sfx: "방긋" },
+      { id: "love-02", free: true, alt: "벚꽃이 흩날리는 밤길",
+        cap: "표현은 크기보다\n타이밍이에요" },
+      { id: "love-03", free: true, side: "right", alt: "놀란 듯 눈을 크게 뜬 토끼",
+        lines: ["어머, 이 흐름은\n좀 특별한데요?"], sfx: "두근" },
+      { id: "love-04", free: false, alt: "김이 오르는 찻잔 두 개",
+        cap: "짧은 안부 하나가\n문을 열어요" },
+      { id: "love-05", free: false, side: "left", alt: "차분히 마음을 짚어 주는 토끼",
+        lines: ["속도는 {nick}님이\n정해도 괜찮아요"] },
+      { id: "love-06", free: false, alt: "보름달이 뜬 밤하늘",
+        cap: "감정의 균형은 주고받는\n리듬에서 와요" },
+      { id: "love-07", free: false, side: "right", alt: "따뜻하게 웃으며 권하는 토끼",
+        lines: ["대화가 열리는 순간을\n놓치지 마세요"] },
+      { id: "love-08", free: false, side: "right", alt: "윙크하며 배웅하는 토끼",
+        lines: ["나머지 이야기도\n들어보실래요?"], sfx: "찡긋" },
+    ],
+  },
+  breakup: {
+    cover: "breakup-01",
+    cuts: [
+      { id: "breakup-01", free: true, side: "right", alt: "조심스러운 표정으로 말을 꺼내는 토끼",
+        lines: ["{nick}님,\n조심스레 꺼내볼게요", "끝을 점치는 자리는\n아니에요"] },
+      { id: "breakup-02", free: true, alt: "비가 흐르는 밤 창문",
+        cap: "미련은 지워야 할 게 아니라\n읽어야 할 신호예요" },
+      { id: "breakup-03", free: true, side: "right", alt: "생각에 잠긴 토끼",
+        lines: ["지금 무엇을\n붙잡고 계신가요"] },
+      { id: "breakup-04", free: false, alt: "탁자 위의 촛대와 나무 상자",
+        cap: "거리를 두는 건\n버리는 게 아니에요" },
+      { id: "breakup-05", free: false, side: "right", alt: "말없이 이해하는 표정의 토끼",
+        lines: ["그 마음, 저는\n알 것 같아요"] },
+      { id: "breakup-06", free: false, alt: "비가 갠 새벽 하늘",
+        cap: "비는 언젠가\n그치더라고요" },
+      { id: "breakup-07", free: false, side: "left", alt: "찻잔을 건네는 토끼의 앞발",
+        lines: ["잠깐 쉬어가도\n괜찮아요"], sfx: "호록" },
+      { id: "breakup-08", free: false, side: "right", alt: "아침 빛 속에서 배웅하는 토끼",
+        lines: ["회복의 순서를\n알려드릴게요"], sfx: "방긋" },
+    ],
+  },
+};
+
+/** 운세별 미리보기 문장과 상세 분석 */
+const TEXTS: Record<FortuneType, { preview: string; points: string[]; full: string[] }> = {
+  money: {
+    preview: "{nick}님, 이번 재물운은 큰 한 방보다 방향을 잡는 장이에요. 새는 곳을 먼저 찾으면 흐름이 한 줄로 모여요.",
+    points: ["방향이 먼저예요", "새는 곳을 봐요", "반복이 쌓여요"],
+    full: [
+      "{nick}님의 이번 흐름에서 먼저 볼 것은 들어오는 돈이 아니라 나가는 돈의 결이에요. 어디서 새는지 아는 순간, 같은 수입으로도 손에 남는 양이 달라져요.",
+      "기회가 왔을 때의 판단 기준을 미리 정해두면 좋아요. 지금 아니면 안 될 것 같은 감각은 대부분 속도의 착시예요. 하루를 두고 다시 봐도 좋아 보이는 것만 잡아요.",
+      "축적은 반복에서 와요. 작게 정한 규칙 하나를 이번 흐름 동안 끊기지 않게 지키는 것이, 큰 결심 여러 번보다 멀리 가요.",
+      "마지막으로, 돈 이야기를 꺼내기 어려운 자리에서 미루던 정리가 있다면 이번이 매듭짓기 좋은 때예요. 현실적인 선택이 이 장의 열쇠예요.",
+    ],
+  },
+  love: {
+    preview: "{nick}님, 이번 연애운은 마음이 먼저 도착해 있는 계절이에요. 속도는 {nick}님이 정해도 괜찮아요.",
+    points: ["표현은 타이밍이에요", "짧은 안부가 문을 열어요", "리듬을 맞춰요"],
+    full: [
+      "{nick}님의 이번 흐름은 표현의 타이밍이 관계의 온도를 정해요. 준비된 큰 고백보다, 지금 떠오른 짧은 안부가 문을 열어요.",
+      "관계의 속도는 상대와 맞추는 것이 아니라 함께 정하는 거예요. 빨라서 불안하면 늦추자고 말해도 돼요. 그 말을 꺼낼 수 있는 사이가 오래가요.",
+      "대화가 열리는 순간을 놓치지 마세요. 상대가 자기 이야기를 꺼낸 날, 조언보다 한 번 더 물어봐 주는 쪽이 마음을 움직여요.",
+      "마지막으로, 주는 만큼 받으려는 계산이 서운함을 만들어요. 리듬이 어긋난 날은 총량이 아니라 박자를 다시 맞춰요.",
+    ],
+  },
+  breakup: {
+    preview: "{nick}님, 이 장은 끝을 점치는 자리가 아니에요. 지금 마음의 거리를 재고, 나를 돌보는 순서를 찾는 장이에요.",
+    points: ["미련은 신호예요", "거리는 돌봄이에요", "회복엔 순서가 있어요"],
+    full: [
+      "{nick}님이 지금 붙잡고 있는 것이 사람인지, 그 시절의 나인지 먼저 구분해 보세요. 미련은 지워야 할 얼룩이 아니라, 내가 무엇을 원했는지 알려주는 신호예요.",
       "거리 조절은 관계를 끝내는 기술이 아니라 나를 지키는 기술이에요. 답장 속도, 만나는 빈도 같은 작은 다이얼부터 내 손에 돌려놓아요.",
       "관계를 이어갈지 매듭지을지는 이 글이 정해주지 않아요. 다만 어느 쪽을 고르든, 그 선택이 두려움이 아니라 돌봄에서 나오게 하는 것이 이번 흐름의 숙제예요.",
       "회복의 순서는 단순해요. 잘 자고, 잘 먹고, 나를 웃게 하는 사람을 가까이 두는 것. 마음의 근육이 돌아오면 판단은 훨씬 쉬워져요.",
     ],
-    panels: [
-      {
-        id: "breakup-01",
-        imageUrl: cut("breakup-01"),
-        alt: "금이 간 마음의 거리를 가늠하는 첫 장면",
-        isPreview: true,
-        overlays: [
-          { id: "b01-title", type: "title", text: "이번 이별운의 첫 장면", x: 8, y: 6, width: 84, align: "center", tone: "system" },
-          { id: "b01-rabbit", type: "speech", text: "끝을 점치는 장이 아니야. 지금 마음의 거리를 재는 장이야.", tone: "rabbit", ...bubbleAt("left-low") },
-        ],
-      },
-      {
-        id: "breakup-02",
-        imageUrl: cut("breakup-02"),
-        alt: "지난 마음을 돌아보며 그리움을 읽는 장면",
-        isPreview: true,
-        overlays: [
-          { id: "b02-caption", type: "caption", text: "미련은 지워야 할 게 아니라 읽어야 할 신호예요.", x: 10, y: 8, width: 80, align: "center", tone: "system" },
-          { id: "b02-subject", type: "speech", text: "나는 지금 무엇을 붙잡고 있을까?", tone: "subject", ...bubbleAt("right-low", 1) },
-        ],
-      },
-      {
-        id: "breakup-03",
-        imageUrl: cut("breakup-03"),
-        alt: "거리를 두고 자신을 돌보기 시작하는 장면",
-        isPreview: false,
-        overlays: [
-          { id: "b03-rabbit", type: "speech", text: "거리를 두는 건 버리는 게 아니라, 나를 돌보는 방법일 수 있어.", tone: "rabbit", ...bubbleAt("left-low") },
-        ],
-      },
-      {
-        id: "breakup-04",
-        imageUrl: cut("breakup-04"),
-        alt: "밝아진 빛 속에서 회복을 시작하는 결말 장면",
-        isPreview: false,
-        overlays: [
-          { id: "b04-caption", type: "caption", text: "회복은 언제나 나를 돌보는 선택에서 시작돼요.", x: 10, y: 8, width: 80, align: "center", tone: "system" },
-          { id: "b04-rabbit", type: "speech", text: "회복의 순서는 아래 상세 분석에서 이어서 볼게.", tone: "rabbit", ...bubbleAt("right-low", 1) },
-        ],
-      },
-    ],
+  },
+};
+
+/** {nick} 자리에 별명을 넣는다. 사용자는 그림에 없고 이름으로만 불린다. */
+const fill = (text: string, nickname: string) => text.replaceAll("{nick}", nickname);
+
+/**
+ * 운세 한 편. 토끼가 8컷 동안 혼자 이야기한다.
+ *
+ * v1 은 흐름 안내형 고정 카피다 — 점수·날짜·간지 같은 명리 값을 지어내지 않는다.
+ * 명식 기반 문장은 webtoon-generate.ts 가 이 위에 덮어쓴다.
+ */
+export function buildWebtoonContent(fortuneType: FortuneType, nickname: string): WebtoonContent {
+  const ep = EPISODES[fortuneType];
+  const t = TEXTS[fortuneType];
+  return {
+    coverImageUrl: cut(ep.cover),
+    previewText: fill(t.preview, nickname),
+    previewPoints: t.points,
+    fullParagraphs: t.full.map((x) => fill(x, nickname)),
+    panels: ep.cuts.map((spec) =>
+      toPanel({
+        ...spec,
+        lines: spec.lines?.map((l) => fill(l, nickname)),
+      })
+    ),
   };
 }
 

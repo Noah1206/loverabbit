@@ -33,9 +33,10 @@ export function parseDraft(text: string): WebtoonDraft | null {
   if (typeof d.previewText !== "string" || d.previewText.trim().length < 10) return null;
   if (!strings(d.previewPoints, 3)) return null;
   if (!strings(d.fullParagraphs, 4)) return null;
-  if (!strings(d.captions, 2)) return null;
-  if (!Array.isArray(d.panelLines) || d.panelLines.length < 4) return null;
-  for (const line of d.panelLines.slice(0, 4)) {
+  // 8컷 = 말하는 컷 5 + 배경·소품 컷 3. 모자라면 화면에 빈 말풍선이 선다.
+  if (!strings(d.captions, 3)) return null;
+  if (!Array.isArray(d.panelLines) || d.panelLines.length < 5) return null;
+  for (const line of d.panelLines.slice(0, 5)) {
     const text = line?.rabbit ?? line?.subject;
     if (typeof text !== "string" || text.trim().length === 0) return null;
   }
@@ -70,12 +71,26 @@ export function guardDraft(draft: WebtoonDraft): boolean {
  * 오버레이가 별도 층이라 이게 가능하다.
  */
 export function applyDraft(base: WebtoonContent, draft: WebtoonDraft): WebtoonContent {
+  // 패널 순번으로 매칭하면 안 된다 — 8컷 중 말하는 컷은 1·3·5·7·8 이고 나머지는
+  // 배경·소품이다. 초안의 대사 5개는 "말풍선이 있는 컷"에만 순서대로 들어간다.
+  let lineIndex = 0;
   let captionIndex = 0;
-  const panels = base.panels.map((panel, i) => {
-    const line = draft.panelLines[i];
+
+  const panels = base.panels.map((panel) => {
+    const hasSpeech = panel.overlays.some((o) => o.type === "speech");
+    const line = hasSpeech ? draft.panelLines[lineIndex++] : undefined;
     const spoken = line?.rabbit ?? line?.subject ?? null;
+
+    // 한 컷에 말풍선이 둘이면(인사+본론) 초안 한 줄을 문장 단위로 나눠 담는다.
+    const speechCount = panel.overlays.filter((o) => o.type === "speech").length;
+    const parts = spoken && speechCount > 1 ? splitForBubbles(spoken, speechCount) : null;
+    let seen = 0;
+
     const overlays = panel.overlays.map((overlay) => {
-      if (overlay.type === "speech" && spoken) return { ...overlay, text: spoken };
+      if (overlay.type === "speech") {
+        const text = parts ? parts[seen++] : spoken;
+        return text ? { ...overlay, text } : overlay;
+      }
       if (overlay.type === "caption") {
         const caption = draft.captions[captionIndex++];
         return caption ? { ...overlay, text: caption } : overlay;
@@ -94,3 +109,26 @@ export function applyDraft(base: WebtoonContent, draft: WebtoonDraft): WebtoonCo
   };
 }
 
+
+/**
+ * 한 컷에 말풍선이 여럿일 때 초안 한 줄을 나눠 담는다.
+ *
+ * 모델에게 "이 컷은 풍선이 둘"이라고 알려주는 대신 여기서 쪼갠다 — 출력 계약을
+ * 단순하게 두는 편이 실패가 적다. 문장 부호를 우선으로 자르고, 없으면 길이로 자른다.
+ */
+function splitForBubbles(text: string, count: number): string[] {
+  if (count <= 1) return [text];
+  const marks = [...text.matchAll(/[.!?…]\s*|,\s+/g)].map((m) => (m.index ?? 0) + m[0].length);
+  const target = text.length / count;
+  const out: string[] = [];
+  let from = 0;
+  for (let i = 1; i < count; i += 1) {
+    const want = target * i;
+    const near = marks.filter((m) => m > from).sort((a, b) => Math.abs(a - want) - Math.abs(b - want))[0];
+    const at = near ?? Math.round(want);
+    out.push(text.slice(from, at).trim());
+    from = at;
+  }
+  out.push(text.slice(from).trim());
+  return out.map((x) => x || text);
+}

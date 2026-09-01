@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 
 import {
   bubbleAt,
+  BUBBLE_GAP,
+  BUBBLE_WIDTH,
   buildShareText,
   buildWebtoonContent,
   FORTUNE_TYPES,
@@ -108,44 +110,94 @@ describe("개인정보", () => {
   });
 });
 
-describe("말풍선 앵커", () => {
-  it("화자 위치에서 말풍선 자리가 나온다", () => {
-    const low = bubbleAt("left-low");
-    assert.ok(low.y < 40, "화자가 아래면 말풍선은 위에 떠야 한다");
-    assert.equal(low.tail, "bottom-left", "꼬리가 화자 쪽을 향해야 한다");
-
-    const high = bubbleAt("left-high");
-    assert.ok(high.y > 50, "화자가 위면 말풍선은 아래로 내려와야 한다");
+describe("말풍선 기하", () => {
+  it("말풍선이 위에서부터 순서대로 쌓인다", () => {
+    const first = bubbleAt("left", 0, 2);
+    const second = bubbleAt("left", 1, 2);
+    assert.ok(first.y < second.y, "두 번째가 아래로 와야 한다");
   });
 
-  it("두 번째 말풍선은 겹치지 않게 내려앉는다", () => {
-    const first = bubbleAt("left-low", 0);
-    const second = bubbleAt("left-low", 1);
-    assert.ok(second.y > first.y, "계단식으로 앉아야 한다");
-    assert.ok(second.y - first.y >= 12, "간격이 말풍선 높이만큼은 돼야 한다");
+  it("간격이 말풍선 몸통 높이보다 넓다 — 겹치면 테두리가 물린다", () => {
+    const first = bubbleAt("left", 0, 2);
+    const second = bubbleAt("left", 1, 2);
+    // 몸통 높이: 폭 × (130/200) × (1024/1365). 이 값을 눈대중으로 정했다가 8% 겹쳤다.
+    const bodyHeight = BUBBLE_WIDTH * (130 / 200) * (1024 / 1365);
+    assert.ok(second.y - first.y >= bodyHeight, `간격 ${second.y - first.y} < 몸통 ${bodyHeight}`);
+    assert.equal(BUBBLE_GAP, bodyHeight + 2);
+  });
+
+  it("꼬리는 마지막 말풍선에만 붙는다", () => {
+    // 앞 풍선에도 달면 그 꼬리가 뒤 풍선을 뚫는다. 웹툰의 관행이기도 하다.
+    assert.equal(bubbleAt("left", 0, 2).tail, undefined, "앞 풍선에 꼬리가 있다");
+    assert.equal(bubbleAt("left", 1, 2).tail, "bottom-left");
+    assert.equal(bubbleAt("right", 0, 1).tail, "bottom-right", "단독이면 꼬리가 있어야 한다");
   });
 
   it("모든 말풍선이 패널 안에 들어온다", () => {
-    for (const anchor of ["left-low", "right-low", "left-high", "right-high"] as const) {
-      for (const i of [0, 1]) {
-        const b = bubbleAt(anchor, i);
-        assert.ok(b.y >= 0 && b.y <= 80, `${anchor}:${i} y가 화면을 벗어난다`);
-        assert.ok(b.x + b.width <= 100, `${anchor}:${i} 가로가 넘친다`);
+    for (const side of ["left", "right"] as const) {
+      for (let i = 0; i < 2; i += 1) {
+        const b = bubbleAt(side, i, 2);
+        assert.ok(b.y >= 0 && b.y + BUBBLE_GAP <= 100, `${side}:${i} 세로가 넘친다`);
+        assert.ok(b.x >= 0 && b.x + b.width <= 100, `${side}:${i} 가로가 넘친다`);
       }
     }
   });
 
-  it("말풍선이 실제 패널에서 화자를 가리지 않는다", () => {
-    // 앵커 규약: 화자는 아래(y>55%), 말풍선은 위(y<40%). 겹치면 화자가 가려진다.
+  it("실제 패널의 말풍선이 그림 위쪽 빈 자리에 앉는다", () => {
+    // 이미지 계약: 위쪽 45% 가 비어 있다 (public/assets/webtoon-saju/README.md).
     for (const type of FORTUNE_TYPES) {
       const { panels } = buildWebtoonContent(type, "테스터");
       for (const panel of panels) {
-        for (const speech of panel.overlays.filter((o) => o.type === "speech")) {
-          assert.ok(speech.y < 45, `${speech.id} 말풍선이 화자 영역까지 내려왔다`);
-          assert.ok(speech.tail, `${speech.id} 에 꼬리가 없다 — 누가 말하는지 알 수 없다`);
-        }
+        const speech = panel.overlays.filter((o) => o.type === "speech");
+        speech.forEach((o, i) => {
+          assert.ok(o.y < 45, `${o.id} 가 빈 자리를 벗어났다 (y=${o.y})`);
+          const last = i === speech.length - 1;
+          assert.equal(Boolean(o.tail), last, `${o.id} 꼬리 규칙 위반`);
+        });
       }
     }
+  });
+});
+
+describe("8컷 구성", () => {
+  it("운세마다 8컷이고 앞 3컷이 무료다", () => {
+    for (const type of FORTUNE_TYPES) {
+      const { panels } = buildWebtoonContent(type, "테스터");
+      assert.equal(panels.length, 8, `${type} 컷 수`);
+      panels.forEach((p, i) => assert.equal(p.isPreview, i < 3, `${p.id} 무료 여부`));
+    }
+  });
+
+  it("화자 컷과 연결 컷이 번갈아 나온다", () => {
+    // 말하는 얼굴만 이어지면 대화록이지 웹툰이 아니다.
+    for (const type of FORTUNE_TYPES) {
+      const { panels } = buildWebtoonContent(type, "테스터");
+      const speaking = panels.filter((p) => p.overlays.some((o) => o.type === "speech"));
+      const bridging = panels.filter((p) => p.overlays.some((o) => o.type === "caption"));
+      assert.equal(speaking.length, 5, `${type} 화자 컷`);
+      assert.equal(bridging.length, 3, `${type} 연결 컷`);
+    }
+  });
+
+  it("연결 컷에는 말풍선이 없다 — 화자가 그림에 없으므로", () => {
+    for (const type of FORTUNE_TYPES) {
+      const { panels } = buildWebtoonContent(type, "테스터");
+      for (const p of panels) {
+        const hasCap = p.overlays.some((o) => o.type === "caption");
+        const hasSay = p.overlays.some((o) => o.type === "speech");
+        assert.ok(!(hasCap && hasSay), `${p.id} 에 캡션과 말풍선이 함께 있다`);
+      }
+    }
+  });
+
+  it("별명이 문장에 실제로 들어간다", () => {
+    const { previewText, panels, fullParagraphs } = buildWebtoonContent("money", "토깽");
+    assert.ok(previewText.includes("토깽"));
+    assert.ok(fullParagraphs.some((x) => x.includes("토깽")));
+    const all = panels.flatMap((p) => p.overlays.map((o) => o.text)).join(" ");
+    assert.ok(all.includes("토깽"), "말풍선에 별명이 없다");
+    // 치환 자리가 남아 있으면 화면에 {nick} 이 그대로 나간다
+    assert.ok(!all.includes("{nick}"), "치환되지 않은 자리가 있다");
   });
 });
 
@@ -160,5 +212,31 @@ describe("웹툰 컷 자산", () => {
         assert.ok(fs.existsSync(path), `${path} 가 없다 — 화면에 깨진 그림이 나간다`);
       }
     }
+  });
+});
+
+describe("화면에 나가는 문자", () => {
+  it("HTML 태그가 문장에 섞이지 않는다", () => {
+    // React 는 문자열을 이스케이프하므로 <br> 이 글자 그대로 화면에 나온다.
+    // HTML 프로토타입에서 옮겨 적을 때 실제로 그랬다 — 27군데였다.
+    for (const type of FORTUNE_TYPES) {
+      const c = buildWebtoonContent(type, "테스터");
+      const all = [
+        c.previewText,
+        ...c.previewPoints,
+        ...c.fullParagraphs,
+        ...c.panels.flatMap((p) => p.overlays.map((o) => o.text)),
+      ];
+      for (const text of all) {
+        assert.ok(!/<[a-z/][^>]*>/i.test(text), `HTML 태그가 남아 있다: ${text}`);
+      }
+    }
+  });
+
+  it("줄바꿈은 개행 문자로 들어간다", () => {
+    // 말풍선은 타원이라 어디서 끊을지가 중요하다. 자동 줄바꿈에 맡기지 않는다.
+    const { panels } = buildWebtoonContent("money", "테스터");
+    const speech = panels.flatMap((p) => p.overlays.filter((o) => o.type === "speech"));
+    assert.ok(speech.some((o) => o.text.includes("\n")), "의도한 줄바꿈이 하나도 없다");
   });
 });
