@@ -863,18 +863,6 @@ export default function ReadingReportPage() {
                 {/* 마지막 장 끝 — 다 읽은 사람만 받는다 */}
                 <Talisman image={imageOf(TALISMAN_SLOT)} label={entry.label} />
 
-                {/* 같은 명식을 웹툰으로도 — 다 읽은 직후에만 권한다. 새 폼도
-                    새 결제도 없이 이미 만든 이 리딩이 그대로 세 편의 이야기가
-                    된다. 앞 두 패널은 무료라 눌러 보는 값이 0 이다. */}
-                <Link href={`/webtoon-saju/${entry.readingId}`} className="report-webtoon-link">
-                  <span className="report-webtoon-emoji" aria-hidden>🐰</span>
-                  <span className="report-webtoon-copy">
-                    <strong>이 명식을 웹툰으로도 볼래요?</strong>
-                    <small>재물운·연애운·이별운 · 앞 장면은 무료</small>
-                  </span>
-                  <span className="report-webtoon-go" aria-hidden>→</span>
-                </Link>
-
                 {/* 후기는 다음 상품을 권하기 전에 묻는다. 다 읽은 직후가 할 말이
                     남아 있는 유일한 순간이고, 홈에 걸리는 후기는 전부 여기서 온다. */}
                 <ReviewPrompt

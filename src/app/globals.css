@@ -841,6 +841,50 @@ label {
   font-size: 0.95rem;
 }
 
+/* ── 웹툰 사주 줄 ──────────────────────────────────────────────────
+   히어로 배너 밑, 그리드 위. 그림 없이 한 줄로 둔다 — 위의 배너가 이미
+   그림을 쓰고 있어서, 여기까지 그림이면 둘이 서로를 가린다. */
+.home-webtoon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 20px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
+  text-decoration: none;
+}
+.home-webtoon-emoji {
+  flex: 0 0 auto;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+.home-webtoon-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.home-webtoon-copy strong {
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+.home-webtoon-copy small {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+.home-webtoon-go {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--text);
+  font-size: 1.15rem;
+  transition: transform 180ms ease;
+}
+.home-webtoon:hover .home-webtoon-go,
+.home-webtoon:focus-visible .home-webtoon-go {
+  transform: translateX(2px);
+}
+
 /* ── 공지 배너 ─────────────────────────────────────────────────────
    제목줄이 달린 창 모양. 위쪽 띠가 무슨 알림인지 먼저 말하고, 본문이
    바뀔 때 아래에서 올라온다. */
@@ -9299,46 +9343,6 @@ body[data-guin-intro="1"] .tabbar {
   .guin-run-sprite img:first-child {
     opacity: 1;
   }
-}
-
-/* 리딩 마지막 장 → 웹툰 사주로 가는 자리 */
-.report-webtoon-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  margin: 18px 0;
-  border: 1px solid var(--accent-soft);
-  border-radius: var(--r-lg);
-  background: var(--canvas-lavender);
-  color: inherit;
-  text-decoration: none;
-}
-.report-webtoon-link:hover {
-  border-color: var(--accent);
-}
-.report-webtoon-emoji {
-  font-size: 22px;
-  flex: none;
-}
-.report-webtoon-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-  min-width: 0;
-}
-.report-webtoon-copy strong {
-  font-size: 15px;
-}
-.report-webtoon-copy small {
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.report-webtoon-go {
-  color: var(--accent);
-  font-weight: 700;
-  flex: none;
 }
 
 /* ============================================================

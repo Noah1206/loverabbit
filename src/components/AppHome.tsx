@@ -53,12 +53,39 @@ export default function AppHome() {
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
+  /* 웹툰으로 열 수 있는 리딩 하나. 웹툰은 이미 산 리딩을 다시 읽는 화면이라
+     readingId 가 있어야 열린다 — 해금된 것 중 가장 최근 것을 집는다.
+     없으면 배너는 폼으로 보낸다(먼저 한 장을 만들어야 웹툰이 생긴다). */
+  const [webtoonId, setWebtoonId] = useState<string | null>(null);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
     setChecked(true);
     return () => clearInterval(t);
   }, []);
+
+  // 못 가져와도 그냥 지나간다 — 배너는 폼으로 보내면 되고, 홈이 막히면 안 된다.
+  useEffect(() => {
+    if (!user) {
+      setWebtoonId(null);
+      return;
+    }
+    let alive = true;
+    fetch("/api/my-readings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userToken: user.token }),
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((d: { readings?: { readingId: string; unlocked: boolean }[] } | null) => {
+        if (!alive) return;
+        setWebtoonId(d?.readings?.find((r) => r.unlocked)?.readingId ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [user]);
 
   const soon = (name: string) => alert(`${name}은(는) 오픈 준비 중이에요 🐰`);
   const list = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id) && (filter === "all" || p.tags.includes(filter)));
@@ -160,6 +187,21 @@ export default function AppHome() {
             </span>
           </button>
         ))}
+
+        {/* ── 웹툰 사주 ── 리딩 끝에서만 열리던 길을 홈으로 옮긴다 (2026-09-01
+             운영자). 이미 산 리딩이 있으면 그 리딩의 웹툰으로, 없으면 폼으로 —
+             웹툰은 명식이 있어야 그려지므로 한 장을 먼저 만들어야 한다. */}
+        <Link
+          href={webtoonId ? `/webtoon-saju/${webtoonId}` : "/reading"}
+          className="home-webtoon"
+        >
+          <span className="home-webtoon-emoji" aria-hidden>🐰</span>
+          <span className="home-webtoon-copy">
+            <strong>내 사주를 웹툰으로 읽어요</strong>
+            <small>재물운 · 연애운 · 이별운 · 앞 장면은 무료</small>
+          </span>
+          <span className="home-webtoon-go" aria-hidden>›</span>
+        </Link>
 
         {/* ── 필터 탭 + 상품 그리드 ── */}
         <section style={{ padding: "40px 8px 0" }}>
