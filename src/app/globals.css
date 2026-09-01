@@ -381,10 +381,9 @@ body {
   position: relative;
   overflow: hidden;
   width: min(100%, 330px);
-  /* 그림이 위쪽을 가득 채운다 — 안쪽 여백은 글자 쪽에만 준다 */
-  padding: 0 24px 24px;
+  /* 포스터가 위를 가득 채운다 — 여백은 아래 글자·버튼 쪽에만 */
+  padding: 0 20px 20px;
   text-align: center;
-  /* 그리드와 같은 결 — 각지게 (2026-08-31 운영자 결정) */
   border-radius: 0;
   animation: welcome-pop-in 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -400,7 +399,7 @@ body {
   }
 }
 
-/* 닫기 — 그림 위에 뜨므로 흰 알약을 깔아 어디서든 읽히게 한다 */
+/* 닫기 — 포스터 위에 뜨므로 흰 알약을 깔아 어디서든 읽히게 한다 */
 .welcome-popup-close {
   position: absolute;
   top: 10px;
@@ -419,49 +418,22 @@ body {
   cursor: pointer;
 }
 
-.welcome-popup-art {
+/* 문구까지 담긴 포스터 한 장 */
+.welcome-popup-poster {
   display: block;
-  width: calc(100% + 48px);
-  margin: 0 -24px 4px;
+  width: calc(100% + 40px);
+  margin: 0 -20px 12px;
   /* 그림이 못 와도 칸은 남는다 */
-  background: #f0e9f6;
-  aspect-ratio: 880 / 670;
+  background: #efe6f3;
+  aspect-ratio: 1792 / 2400;
   object-fit: cover;
 }
 
-.welcome-popup-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px 6px 8px;
-  border-radius: 999px;
-  background: #8fe04e;
-  color: #14320a;
-  font-size: 0.84rem;
-  font-weight: 800;
-}
-
-.welcome-popup h3 {
-  margin: 14px 0 10px;
-  font-size: 1.5rem;
-  line-height: 1.32;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-  word-break: keep-all;
-}
-
-/* "물어봐" — 보라 글자에 밑줄 한 획 */
-.welcome-popup h3 em {
-  font-style: normal;
-  color: var(--accent);
-  box-shadow: inset 0 -0.18em 0 color-mix(in srgb, var(--accent) 32%, transparent);
-}
-
-.welcome-popup p {
-  margin: 0 0 18px;
+/* 값만 코드가 그린다 — 바뀌는 것은 그림에 굽지 않는다 */
+.welcome-popup-price {
+  margin: 0 0 14px;
   color: var(--text-dim);
   font-size: 0.9rem;
-  line-height: 1.6;
 }
 
 .welcome-popup-cta {

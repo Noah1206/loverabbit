@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import BrandMark from "@/components/BrandMark";
 import { FIRST_READING_PRICE } from "@/lib/coupons";
 import { useEscape } from "@/lib/use-escape";
 
@@ -53,28 +52,27 @@ export default function WelcomePopup() {
     <div className="app-modal-layer welcome-popup-layer" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title" onClick={close}>
       <div className="card welcome-popup" onClick={(event) => event.stopPropagation()}>
         {/* 닫기는 진짜 버튼이어야 한다 — 그림에 그려진 X 는 눌리지 않는다.
-            그래서 일러스트에서 그 모서리는 잘라 냈다. */}
+            그래서 포스터에는 X 를 그리지 않았다. */}
         <button type="button" className="welcome-popup-close" onClick={close} aria-label="닫기">
           ✕
         </button>
 
-        {/* 그림에는 글자가 없다. 값(1,900원)이 구워져 있으면 가격이 바뀌는 날
-            그림을 다시 만들어야 한다 — 문구는 아래에서 코드가 그린다. */}
-        <img className="welcome-popup-art" src="/assets/home/welcome-rabbit.webp" alt="" aria-hidden />
+        {/* 포스터 한 장. 문구("궁금해? 러브레빗한테 물어봐")까지 그림에 들어 있다
+            (2026-09-02 운영자 결정) — 그래서 화면에는 h3 을 두지 않고, 대신
+            낭독기와 검색을 위해 alt 로 같은 말을 남긴다.
 
-        <span className="welcome-popup-badge">
-          <BrandMark size={20} />
-          오픈 이벤트
-        </span>
+            값은 그림에 넣지 않았다. 오늘 환율이 바뀌었듯 가격은 또 바뀌고,
+            구워 두면 그때마다 그림을 다시 만들어야 한다. */}
+        <img
+          className="welcome-popup-poster"
+          src="/assets/home/welcome-poster.webp"
+          alt="궁금해? 러브레빗한테 물어봐"
+          id="welcome-popup-title"
+        />
 
-        <h3 id="welcome-popup-title">
-          궁금해?
-          <br />
-          러브레빗한테
-          <br />
-          <em>물어봐</em>
-        </h3>
-        <p>어떤 사주든 첫 한 장은 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원</p>
+        <p className="welcome-popup-price">
+          어떤 사주든 첫 한 장은 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원
+        </p>
 
         <button type="button" className="btn welcome-popup-cta" onClick={close}>
           내 사주 보러가기
