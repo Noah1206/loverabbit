@@ -9835,3 +9835,73 @@ body[data-guin-intro="1"] .tabbar {
 @media (prefers-reduced-motion: reduce) {
   .webtoon-state img { animation: none; }
 }
+
+/* ============================================================
+   홈 로그인 배너 — 헤더 바로 밑 고정
+   ============================================================
+   그림에는 글자가 없다. 배경 이미지로 깔고 문구는 왼쪽 빈 자리에 얹는다 —
+   카피를 바꿔도 이미지를 다시 만들 필요가 없고, 번역도 여기서 끝난다.
+
+   이미지의 오른쪽 3분의 1에 토끼가 있고 왼쪽은 단색이라, 글이 캐릭터를
+   덮지 않는다. 그 약속이 깨지면(새 그림을 넣을 때) 글이 얼굴 위에 앉는다. */
+.home-login-banner {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0 0 4px;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+  /* 배너 세로 = 가로의 35%. 이미지도 같은 비율로 잘라 두었다. */
+  aspect-ratio: 1200 / 420;
+  background-color: #d9bdde; /* 이미지가 뜨기 전에도 같은 색이 깔린다 */
+  background-image: url("/assets/home/login-banner.webp");
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.home-login-banner-copy {
+  position: absolute;
+  left: 6%;
+  top: 50%;
+  transform: translateY(-50%);
+  /* 오른쪽은 캐릭터 자리다. 글이 거기까지 가면 얼굴을 덮는다. */
+  width: 56%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-login-banner-copy strong {
+  font-size: clamp(15px, 4.6vw, 20px);
+  font-weight: 800;
+  line-height: 1.4;
+  color: #2b1330;
+  letter-spacing: -0.02em;
+}
+
+.home-login-banner-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: clamp(11px, 3.2vw, 13px);
+  font-weight: 600;
+  color: #6b4a72;
+}
+
+.home-login-banner-cta i {
+  font-style: normal;
+  font-weight: 700;
+}
+
+.home-login-banner:active {
+  filter: brightness(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-login-banner:active {
+    filter: none;
+  }
+}
