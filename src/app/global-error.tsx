@@ -28,7 +28,7 @@ export default function GlobalError({
         {/* BackOnError 가 .btn 을 입는다. 스타일시트가 없어도 같은 버튼으로 보이게 한다. */}
         <style>{`
           .btn { display: inline-block; padding: 14px 28px; border: 0; border-radius: 0;
-                 background: #4a154b; color: #fff;
+                 background: #111111; color: #fff;
                  font: inherit; font-weight: 700; cursor: pointer;
                  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1); }
         `}</style>
