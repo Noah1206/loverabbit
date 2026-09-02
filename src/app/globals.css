@@ -10194,8 +10194,12 @@ input[type="radio"] {
 /* ── 내 사주 수치 (2026-09-02) ──────────────────────────
    접혀 있다가 펴진다. 첫 화면은 오늘 할 행동 하나여야 하므로 여기는
    궁금한 사람만 연다. */
+/* 수치 카드는 결과 카드보다 한 단 물러선다 — 첫 화면의 주인공은 행동이고
+   이건 궁금한 사람이 여는 곳이다. 배경을 살짝 내려 층을 만든다. */
 .today-me {
   margin-top: 14px;
+  background: var(--canvas-cream);
+  border-color: transparent;
 }
 .today-me-head {
   display: flex;
@@ -10240,8 +10244,16 @@ input[type="radio"] {
   overflow: visible;
 }
 .today-cycle-generate {
-  stroke: color-mix(in srgb, var(--accent) 30%, transparent);
-  stroke-width: 1.6;
+  stroke: color-mix(in srgb, var(--accent) 26%, transparent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+/* 상생 고리를 한 바퀴 그리는 원 — 직선 오각형만 있으면 "낳는 순환"이
+   아니라 그냥 도형으로 읽힌다. 아주 옅게 깔아 방향을 암시한다. */
+.today-cycle-orbit {
+  fill: none;
+  stroke: color-mix(in srgb, var(--accent) 9%, transparent);
+  stroke-width: 12;
 }
 .today-cycle-control {
   stroke: var(--line);
@@ -10285,7 +10297,12 @@ input[type="radio"] {
   gap: 9px;
 }
 .today-bar.is-tengod {
-  grid-template-columns: 36px 1fr 16px;
+  grid-template-columns: 38px 1fr 16px;
+}
+/* 십성 막대는 한 색으로 두되 많은 것만 진하게 — 순위가 길이만이 아니라
+   농도로도 읽힌다. 색을 다섯 개 더 쓰면 오행 색과 싸운다. */
+.today-bar.is-tengod .today-bar-track i {
+  background: color-mix(in srgb, var(--accent) var(--w, 60%), var(--canvas-lavender));
 }
 .today-bar-name {
   color: var(--sj-c, var(--text));
@@ -10350,9 +10367,12 @@ input[type="radio"] {
   color: var(--text-dim);
 }
 .today-strength-val {
-  margin-top: 8px;
+  margin-top: 10px;
   font-size: 0.92rem;
   font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
 }
 .today-strength-val b {
   font-variant-numeric: tabular-nums;
@@ -10419,75 +10439,52 @@ input[type="radio"] {
 .today-flag-row {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin-top: 16px;
+  gap: 6px;
+  margin-top: 18px;
 }
 .today-flag {
-  position: relative;
-  width: 46px;
-  height: 66px;
+  width: 62px;
+  height: 62px;
   background: none;
   border: 0;
   padding: 0;
   cursor: pointer;
-  transition: transform 0.14s ease;
+  transition: transform 0.16s ease;
 }
 .today-flag:hover {
-  transform: translateY(-4px);
+  transform: translateY(-6px) scale(1.06);
 }
 .today-flag:active {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.02);
 }
 .today-flag:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 4px;
 }
-/* 깃대 — 아래로 뻗은 가는 선 */
-.today-flag-pole {
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 2px;
+/* 깃발은 그림이다 — 오방기 다섯 장, 같은 깃발에 색만 다르다.
+   CSS 삼각형으로 흉내내던 것을 걷었다. */
+.today-flag img {
+  width: 100%;
   height: 100%;
-  border-radius: 2px;
-  background: var(--text-dim);
-  opacity: 0.55;
+  object-fit: contain;
+  display: block;
 }
-/* 천 — 오른쪽으로 펄럭이는 삼각. 오행 색을 그대로 쓴다. */
-.today-flag-cloth {
-  position: absolute;
-  left: 8px;
-  top: 2px;
-  width: 34px;
-  height: 26px;
-  background: var(--sj-c, var(--accent));
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 22% 50%);
-  display: grid;
-  place-items: center;
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 800;
-  padding-left: 8px;
+/* 뽑기 전에는 살짝 흔들린다 — 다섯이 같은 박자로 흔들리면 깃발이 아니라
+   무늬가 되므로 --i 로 시작 시각을 어긋낸다. */
+.today-flag::after {
+  content: none;
 }
-.today-flag.sj-metal .today-flag-cloth {
-  color: #3a3a3a;
+@keyframes today-flag-sway {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50% { transform: rotate(1.4deg); }
 }
-/* 뽑기 전에는 글자가 안 보인다 — 뒤집혀 있다는 뜻 */
-.today-flag:not(.is-open) .today-flag-cloth {
-  font-size: 0;
+.today-flag img {
+  transform-origin: 18% 90%;
+  animation: today-flag-sway 3.4s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * -0.55s);
 }
-.today-flag.is-open {
-  cursor: default;
-  width: 52px;
-  height: 74px;
-  flex: 0 0 auto;
-}
-.today-flag.is-open .today-flag-cloth {
-  width: 40px;
-  height: 30px;
-  font-size: 0.86rem;
-}
+
 .today-flag-open {
   display: flex;
   align-items: flex-start;
@@ -10509,6 +10506,10 @@ input[type="radio"] {
   .today-flag:hover,
   .today-flag:active {
     transform: none;
+  }
+  .today-flag img,
+  .today-flag-won img {
+    animation: none;
   }
 }
 

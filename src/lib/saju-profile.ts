@@ -343,16 +343,39 @@ export interface DailyFlag {
   /** 깃발 자리 — 오행 다섯 */
   ohaeng: Ohaeng;
   className: string;
-  /** 뒤집기 전 깃대에 적힌 글자 */
-  face: string;
+  /** 오방기 그림. 다섯 장 전부 같은 깃발을 색만 바꾼 것이다. */
+  art: string;
+  /** 전통 오방색 이름 — 청적황백흑 */
+  color: string;
 }
 
-/** 다섯 깃발은 늘 같은 자리에 선다 — 매번 섞으면 고르는 행위가 의미를 잃는다 */
+/**
+ * 오방기(五方旗) 다섯.
+ *
+ * 무속·의례에서 다섯 방향을 부르는 깃발이고 오행과 그대로 맞물린다.
+ * 색은 전통 오방색을 따른다 — 화면의 오행 막대가 쓰는 현대적 색(목=초록)과
+ * 다르다: 목은 청(靑)이고 청은 초록과 파랑을 아우르는 옛 범주다.
+ *
+ * 자리는 늘 같다. 매번 섞으면 고르는 행위가 의미를 잃는다.
+ */
+const FLAG_ART: Record<Ohaeng, { art: string; color: string }> = {
+  목: { art: "/assets/flags/mok.webp", color: "청" },
+  화: { art: "/assets/flags/hwa.webp", color: "적" },
+  토: { art: "/assets/flags/to.webp", color: "황" },
+  금: { art: "/assets/flags/geum.webp", color: "백" },
+  수: { art: "/assets/flags/su.webp", color: "흑" },
+};
+
 export const FLAGS: DailyFlag[] = ELEMENTS.map((ohaeng) => ({
   ohaeng,
   className: ELEMENT_CLASS[ohaeng],
-  face: ohaeng,
+  ...FLAG_ART[ohaeng],
 }));
+
+/** 오늘 나온 깃발 한 장을 찾는다 */
+export function flagOf(ohaeng: Ohaeng): DailyFlag {
+  return FLAGS.find((f) => f.ohaeng === ohaeng) ?? FLAGS[0];
+}
 
 export interface FlagResult {
   /** 오늘 내 일간이 받는 오행 관계 */

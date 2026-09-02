@@ -16,6 +16,7 @@ import {
 import {
   CYCLE,
   FLAGS,
+  flagOf,
   flipFlag,
   type FlagResult,
   type SajuProfileView,
@@ -672,16 +673,16 @@ function TodayFlags({
         <p className="today-label today-label-first">오늘의 깃발</p>
         <p className="today-body">하나를 뽑아보세요.</p>
         <div className="today-flag-row">
-          {FLAGS.map((flag) => (
+          {FLAGS.map((flag, i) => (
             <button
               key={flag.ohaeng}
               type="button"
-              className={`today-flag ${flag.className}`}
+              className="today-flag"
+              style={{ ["--i" as string]: i }}
               onClick={() => pick(flag.ohaeng)}
-              aria-label={`깃발 ${flag.ohaeng}`}
+              aria-label={`${flag.color}색 깃발`}
             >
-              <span className="today-flag-cloth" aria-hidden />
-              <span className="today-flag-pole" aria-hidden />
+              <Image src={flag.art} alt="" width={200} height={200} />
             </button>
           ))}
         </div>
@@ -693,15 +694,15 @@ function TodayFlags({
     <section className="card today-flags">
       <p className="today-label today-label-first">오늘의 깃발</p>
       <div className="today-flag-open">
-        <span
-          className={`today-flag is-open ${
-            FLAGS.find((f) => f.ohaeng === result.todayElement)?.className ?? ""
-          }`}
-          aria-hidden
-        >
-          <span className="today-flag-cloth">{result.todayElement}</span>
-          <span className="today-flag-pole" />
-        </span>
+        <div className="today-flag-won">
+          <Image
+            src={flagOf(result.todayElement).art}
+            alt={`${flagOf(result.todayElement).color}색 깃발`}
+            width={280}
+            height={280}
+            priority
+          />
+        </div>
         <div className="today-flag-say">
           <p className="today-flag-title">{result.title}</p>
           <p className="today-body">{result.body}</p>

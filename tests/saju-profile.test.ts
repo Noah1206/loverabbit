@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import test from "node:test";
 
 import { buildSajuFacts } from "../src/lib/saju-facts";
@@ -163,8 +164,23 @@ test("같은 명식은 같은 결과 — 무작위가 없다", () => {
 test("깃발은 다섯이고 오행 자리가 고정이다", () => {
   assert.equal(FLAGS.length, 5);
   assert.deepEqual(FLAGS.map((f) => f.ohaeng), ELEMENTS);
-  // 매번 섞이면 고르는 행위가 의미를 잃는다
-  assert.deepEqual(FLAGS.map((f) => f.ohaeng), FLAGS.map((f) => f.ohaeng));
+});
+
+test("오방기 그림 다섯 장이 실제로 있다", () => {
+  for (const flag of FLAGS) {
+    assert.ok(flag.art.startsWith("/assets/flags/"), `${flag.ohaeng}: 경로가 예상 밖`);
+    assert.ok(existsSync(`public${flag.art}`), `${flag.ohaeng}: 파일이 없다 — public${flag.art}`);
+  }
+  // 다섯이 서로 다른 그림이어야 한다 — 같으면 고를 이유가 없다
+  assert.equal(new Set(FLAGS.map((f) => f.art)).size, 5, "깃발 그림이 겹친다");
+});
+
+test("전통 오방색 이름이 오행과 맞는다", () => {
+  // 청목·적화·황토·백금·흑수. 화면의 오행 막대 색(목=초록)과 다른 축이다.
+  const expected: Record<string, string> = { 목: "청", 화: "적", 토: "황", 금: "백", 수: "흑" };
+  for (const flag of FLAGS) {
+    assert.equal(flag.color, expected[flag.ohaeng], `${flag.ohaeng} 의 오방색이 틀렸다`);
+  }
 });
 
 test("어느 깃발을 골라도 답은 하나다", () => {
