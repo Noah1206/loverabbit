@@ -467,9 +467,9 @@ const ACTIONS: Record<Flow, Record<FortuneDomain, ActionCopy>> = {
 
 /** 영역별 안내 문구 — 예언이 아니라 참고 자료임을 화면에서 못박는다 */
 const DISCLAIMER: Partial<Record<FortuneDomain, string>> = {
-  money: "재물 관련 내용은 예언이 아니라 소비 습관을 돌아보는 참고 자료입니다. 투자 판단은 본인의 몫입니다.",
-  health: "건강 관련 내용은 생활 습관 제안일 뿐, 진단이나 치료를 대신하지 않습니다.",
-  business: "사업 관련 내용은 의사결정을 대신하지 않는 참고 자료입니다.",
+  money: "재물 얘기는 예언이 아니라 소비 습관을 돌아보는 참고다. 투자 판단은 네 몫이다.",
+  health: "건강 얘기는 생활 습관 제안까지다. 진단도 처방도 아니다.",
+  business: "사업 얘기는 참고까지다. 결정은 네 몫이다.",
 };
 
 export interface DailyActionInput {

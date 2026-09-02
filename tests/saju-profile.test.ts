@@ -7,6 +7,7 @@ import {
   ABSENT_GUIDELINE,
   CYCLE,
   ELEMENT_ART,
+  ELEMENT_VIDEO,
   FLAGS,
   flipFlag,
   ELEMENTS,
@@ -174,12 +175,23 @@ test("오행 엠블럼 다섯 장이 실제로 있다", () => {
     assert.ok(existsSync(`public${art}`), `${ohaeng}: 파일이 없다 — public${art}`);
   }
   assert.equal(new Set(Object.values(ELEMENT_ART)).size, 5, "엠블럼이 겹친다");
+  // 움직이는 판 — 그림과 짝이 맞아야 폴백이 안 튄다
+  for (const ohaeng of ELEMENTS) {
+    const v = ELEMENT_VIDEO[ohaeng];
+    assert.ok(existsSync(`public${v}`), `${ohaeng}: 영상이 없다 — public${v}`);
+    assert.equal(
+      v.replace(/\.webm$/, ""),
+      ELEMENT_ART[ohaeng].replace(/\.webp$/, ""),
+      `${ohaeng}: 영상과 그림이 다른 것을 가리킨다`
+    );
+  }
 });
 
 test("오방기 그림 다섯 장이 실제로 있다", () => {
   for (const flag of FLAGS) {
     assert.ok(flag.art.startsWith("/assets/flags/"), `${flag.ohaeng}: 경로가 예상 밖`);
     assert.ok(existsSync(`public${flag.art}`), `${flag.ohaeng}: 파일이 없다 — public${flag.art}`);
+    assert.ok(existsSync(`public${flag.video}`), `${flag.ohaeng}: 영상이 없다 — public${flag.video}`);
   }
   // 다섯이 서로 다른 그림이어야 한다 — 같으면 고를 이유가 없다
   assert.equal(new Set(FLAGS.map((f) => f.art)).size, 5, "깃발 그림이 겹친다");

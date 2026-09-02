@@ -10382,7 +10382,8 @@ input[type="radio"] {
 .today-element.is-zero {
   opacity: 0.42;
 }
-.today-element.is-zero .today-element-art img {
+.today-element.is-zero .today-element-art img,
+.today-element.is-zero .today-element-art video {
   filter: grayscale(0.55);
 }
 
@@ -10571,6 +10572,31 @@ input[type="radio"] {
   outline-offset: 3px;
   border-radius: 4px;
 }
+/* 투명 배경 영상 공용 — 그림 깔고 영상 덮기. 부모가 크기를 쥔다. */
+.alpha-motion {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.alpha-motion img,
+.alpha-motion video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.alpha-motion video {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+/* 영상이 뜨면 그림은 숨는다 — 반투명 가장자리가 겹치면 윤곽이 두 겹 된다.
+   :has() 대신 클래스: React 가 이미 알고, :has() 미지원에서도 같은 결과다. */
+.alpha-motion.has-video img {
+  visibility: hidden;
+}
+
 /* 깃발은 그림이다 — 오방기 다섯 장, 같은 깃발에 색만 다르다.
    CSS 삼각형으로 흉내내던 것을 걷었다. */
 .today-flag img {
@@ -10588,7 +10614,7 @@ input[type="radio"] {
   0%, 100% { transform: rotate(-1.4deg); }
   50% { transform: rotate(1.4deg); }
 }
-.today-flag img {
+.today-flag .alpha-motion {
   transform-origin: 18% 90%;
   animation: today-flag-sway 3.4s ease-in-out infinite;
   animation-delay: calc(var(--i, 0) * -0.55s);
@@ -10596,7 +10622,7 @@ input[type="radio"] {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .today-flag img {
+  .today-flag .alpha-motion {
     animation: none;
   }
   .today-flag-row.is-step .today-flag {

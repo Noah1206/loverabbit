@@ -55,11 +55,11 @@ export async function POST(request: NextRequest) {
     user = await resolveUserToken(body.userToken);
   } catch (error) {
     console.error("오늘의 액션 회원 확인 실패:", error);
-    return NextResponse.json({ error: "회원 정보를 확인하지 못했어요." }, { status: 503 });
+    return NextResponse.json({ error: "회원 정보를 확인 못 했어. 다시 해보자." }, { status: 503 });
   }
   if (!user?.userId) {
     return NextResponse.json(
-      { error: "로그인하면 오늘의 사주 액션을 볼 수 있어요." },
+      { error: "로그인하면 오늘의 사주 액션을 볼 수 있어." },
       { status: 401 }
     );
   }
@@ -72,14 +72,14 @@ export async function POST(request: NextRequest) {
     profile = await getUserSajuProfile(user.userId);
   } catch (error) {
     console.error("오늘의 액션 프로필 조회 실패:", error);
-    return NextResponse.json({ error: "사주 정보를 불러오지 못했어요." }, { status: 503, headers: noStore });
+    return NextResponse.json({ error: "사주 정보를 못 불러왔어. 다시 해보자." }, { status: 503, headers: noStore });
   }
 
   // 생년월일이 없으면 일진과의 관계를 잴 수 없다. 일반 운세로 둘러대지 않고
   // 무엇이 없는지 그대로 말한다 (지시문 11절).
   if (!profile?.birthdate) {
     return NextResponse.json(
-      { needsProfile: true, error: "사주 정보를 입력하면 오늘의 액션을 만들 수 있어요." },
+      { needsProfile: true, error: "사주 정보를 입력하면 오늘의 액션을 만들 수 있어." },
       { status: 200, headers: noStore }
     );
   }
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
   // ── 완료 저장 ────────────────────────────────────────────
   if (body.intent === "complete") {
     if (!isDomain(body.domain)) {
-      return NextResponse.json({ error: "영역이 올바르지 않아요." }, { status: 400, headers: noStore });
+      return NextResponse.json({ error: "그런 영역은 없어." }, { status: 400, headers: noStore });
     }
     // 행동 id 는 서버가 다시 만든다. 클라이언트가 준 것을 그대로 쓰면 아무
     // 문자열이나 기록에 들어간다.
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error("오늘의 액션 완료 저장 실패:", error);
       return NextResponse.json(
-        { error: "완료를 저장하지 못했어요. 잠시 후 다시 눌러주세요." },
+        { error: "저장이 안 됐어. 잠시 후 다시 눌러줘." },
         { status: 503, headers: noStore }
       );
     }

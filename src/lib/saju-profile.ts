@@ -26,13 +26,22 @@ export const ELEMENT_CLASS: Record<Ohaeng, string> = {
   수: "sj-water",
 };
 
-/** 오행 상징 그림 — 힉스필드 소프트 3D. 토끼·오방기와 같은 세계관이다. */
+/** 오행 상징 — 힉스필드 소프트 3D. 토끼·오방기와 같은 세계관이다.
+    art 는 폴백 정지 그림, video 는 투명 배경 웹엠(살랑거리는 미세 동작). */
 export const ELEMENT_ART: Record<Ohaeng, string> = {
   목: "/assets/elements/mok.webp",
   화: "/assets/elements/hwa.webp",
   토: "/assets/elements/to.webp",
   금: "/assets/elements/geum.webp",
   수: "/assets/elements/su.webp",
+};
+
+export const ELEMENT_VIDEO: Record<Ohaeng, string> = {
+  목: "/assets/elements/mok.webm",
+  화: "/assets/elements/hwa.webm",
+  토: "/assets/elements/to.webm",
+  금: "/assets/elements/geum.webm",
+  수: "/assets/elements/su.webm",
 };
 
 /** 오행이 사람에게서 드러나는 결 — 막대 옆에 한 단어로 붙는다 */
@@ -272,8 +281,10 @@ export interface DailyFlag {
   /** 깃발 자리 — 오행 다섯 */
   ohaeng: Ohaeng;
   className: string;
-  /** 오방기 그림. 다섯 장 전부 같은 깃발을 색만 바꾼 것이다. */
+  /** 오방기 그림(폴백). 다섯 장 전부 같은 깃발을 색만 바꾼 것이다. */
   art: string;
+  /** 천이 바람에 물결치는 투명 배경 영상 */
+  video: string;
   /** 전통 오방색 이름 — 청적황백흑 */
   color: string;
 }
@@ -287,12 +298,12 @@ export interface DailyFlag {
  *
  * 자리는 늘 같다. 매번 섞으면 고르는 행위가 의미를 잃는다.
  */
-const FLAG_ART: Record<Ohaeng, { art: string; color: string }> = {
-  목: { art: "/assets/flags/mok.webp", color: "청" },
-  화: { art: "/assets/flags/hwa.webp", color: "적" },
-  토: { art: "/assets/flags/to.webp", color: "황" },
-  금: { art: "/assets/flags/geum.webp", color: "백" },
-  수: { art: "/assets/flags/su.webp", color: "흑" },
+const FLAG_ART: Record<Ohaeng, { art: string; video: string; color: string }> = {
+  목: { art: "/assets/flags/mok.webp", video: "/assets/flags/mok.webm", color: "청" },
+  화: { art: "/assets/flags/hwa.webp", video: "/assets/flags/hwa.webm", color: "적" },
+  토: { art: "/assets/flags/to.webp", video: "/assets/flags/to.webm", color: "황" },
+  금: { art: "/assets/flags/geum.webp", video: "/assets/flags/geum.webm", color: "백" },
+  수: { art: "/assets/flags/su.webp", video: "/assets/flags/su.webm", color: "흑" },
 };
 
 export const FLAGS: DailyFlag[] = ELEMENTS.map((ohaeng) => ({

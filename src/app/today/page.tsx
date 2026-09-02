@@ -15,6 +15,7 @@ import {
 } from "@/lib/daily-action";
 import {
   ELEMENT_ART,
+  ELEMENT_VIDEO,
   FLAGS,
   flagOf,
   flipFlag,
@@ -122,7 +123,7 @@ export default function TodayPage() {
       });
       const body = await res.json().catch(() => null);
       if (!res.ok) {
-        setScreen({ kind: "error", message: body?.error ?? "오늘의 액션을 불러오지 못했어요." });
+        setScreen({ kind: "error", message: body?.error ?? "오늘의 액션을 못 불러왔어. 다시 해보자." });
         return;
       }
       if (body?.needsProfile) {
@@ -134,7 +135,7 @@ export default function TodayPage() {
       // 오늘 이미 인사를 봤으면 결과로 바로 간다.
       setStep(alreadyGreetedToday(data.today) ? "reveal" : "hello");
     } catch {
-      setScreen({ kind: "error", message: "연결이 불안정해요. 다시 시도해주세요." });
+      setScreen({ kind: "error", message: "연결이 불안정해. 다시 해보자." });
     }
   }, []);
 
@@ -162,7 +163,7 @@ export default function TodayPage() {
       if (!res.ok) {
         // 저장 실패는 조용히 넘기지 않는다 — 눌렀는데 아무 일도 안 일어난
         // 것처럼 보이면 사용자는 같은 자리를 계속 누른다.
-        setSaveError(body?.error ?? "완료를 저장하지 못했어요. 다시 눌러주세요.");
+        setSaveError(body?.error ?? "저장이 안 됐어. 다시 눌러줘.");
         return;
       }
       setScreen((prev) =>
@@ -171,7 +172,7 @@ export default function TodayPage() {
           : prev
       );
     } catch {
-      setSaveError("연결이 불안정해요. 다시 눌러주세요.");
+      setSaveError("연결이 불안정해. 다시 눌러줘.");
     } finally {
       setSaving(false);
     }
@@ -182,7 +183,7 @@ export default function TodayPage() {
   if (screen.kind === "loading") {
     return (
       <main className="today">
-        <p className="today-waiting">오늘의 흐름을 읽고 있어요…</p>
+        <p className="today-waiting">오늘의 흐름을 읽는 중이야…</p>
       </main>
     );
   }
@@ -335,7 +336,7 @@ export default function TodayPage() {
               }}
               aria-label={`${flag.color}색 깃발`}
             >
-              <Image src={flag.art} alt="" width={200} height={200} />
+              <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
             </button>
           ))}
         </div>
@@ -370,13 +371,13 @@ export default function TodayPage() {
         </div>
         <p className="today-hero-premise">
           <span className={`today-hero-flag ${wonFlag.className}`}>
-            <Image src={wonFlag.art} alt="" width={80} height={80} />
+            <AlphaMotion video={wonFlag.video} art={wonFlag.art} alt="" width={80} height={80} />
           </span>
           {flagResult.premise}
         </p>
         <h1 className="today-hero-action">{shown.action}</h1>
         {shown.durationMinutes && (
-          <p className="today-minutes">약 {shown.durationMinutes}분이면 돼요</p>
+          <p className="today-minutes">약 {shown.durationMinutes}분이면 돼</p>
         )}
 
       </header>
@@ -392,7 +393,7 @@ export default function TodayPage() {
 
         <div className="today-do">
           {done ? (
-            <p className="today-done">오늘의 흐름을 잘 사용했어요.</p>
+            <p className="today-done">오늘 몫은 했다. 잘했어.</p>
           ) : (
             <button
               type="button"
@@ -409,9 +410,9 @@ export default function TodayPage() {
 
       <p className="today-fine today-footnote">
         오늘의 일진 {data.flow.dayGanji} · {flagResult.relation}의 자리 — 어느 깃발을
-        골라도 오늘의 답은 하나예요.
-        {data.birthTimeUnknown && " 태어난 시각은 몰라도 오늘의 흐름은 달라지지 않아요."}
-        {" "}예언이 아니라 오늘을 돌아보는 참고 가이드입니다.
+        골라도 오늘의 답은 하나야.
+        {data.birthTimeUnknown && " 태어난 시각은 몰라도 오늘의 흐름은 안 달라져."}
+        {" "}예언이 아니라 오늘을 돌아보는 참고 가이드다.
       </p>
 
       <button type="button" className="today-skip" onClick={() => setStep("pick")}>
@@ -451,7 +452,13 @@ function MyChart({ me }: { me: SajuProfileView }) {
             }`}
           >
             <span className="today-element-art">
-              <Image src={ELEMENT_ART[e.ohaeng]} alt="" width={120} height={120} />
+              <AlphaMotion
+                video={ELEMENT_VIDEO[e.ohaeng]}
+                art={ELEMENT_ART[e.ohaeng]}
+                alt=""
+                width={120}
+                height={120}
+              />
             </span>
             <span className="today-element-name">
               {e.ohaeng} <small>{e.trait}</small>
@@ -523,6 +530,45 @@ function MyChart({ me }: { me: SajuProfileView }) {
   );
 }
 
+
+/**
+ * 투명 배경 영상 한 점 — 그림 위에 영상을 덮는다.
+ *
+ * 토끼(RabbitArt)와 같은 원리다: 영상이 오면 그림이 가려지고, VP9 알파를
+ * 못 트는 브라우저·자동재생이 막힌 환경에서는 그림이 그대로 남는다.
+ * 깃발과 오행 엠블럼이 쓴다.
+ */
+function AlphaMotion({
+  video,
+  art,
+  alt,
+  width,
+  height,
+}: {
+  video: string;
+  art: string;
+  alt: string;
+  width: number;
+  height: number;
+}) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className={`alpha-motion${failed ? "" : " has-video"}`}>
+      <Image src={art} alt={alt} width={width} height={height} />
+      {!failed && (
+        <video
+          src={video}
+          autoPlay
+          loop
+          muted
+          playsInline
+          aria-hidden
+          onError={() => setFailed(true)}
+        />
+      )}
+    </span>
+  );
+}
 
 /**
  * 토끼 한 마리.
