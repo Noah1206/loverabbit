@@ -4,6 +4,9 @@ import test from "node:test";
 import { buildSajuFacts } from "../src/lib/saju-facts";
 import {
   ABSENT_GUIDELINE,
+  CYCLE,
+  FLAGS,
+  flipFlag,
   ELEMENTS,
   EXCESS_GUIDELINE,
   STRENGTH_GUIDELINE,
@@ -149,4 +152,77 @@ test("같은 명식은 같은 결과 — 무작위가 없다", () => {
   const a = sajuProfileOf(BIRTH.birthdate, BIRTH.birthHour, BIRTH.gender);
   const b = sajuProfileOf(BIRTH.birthdate, BIRTH.birthHour, BIRTH.gender);
   assert.deepEqual(a, b);
+});
+
+
+// ── 오늘의 깃발 ────────────────────────────────────────────
+//
+// 여기서 지켜야 할 것은 하나다: **무작위가 아니다.** 난수로 운세를 정하면
+// 사주가 아니라 뽑기가 되고, 그 순간 CLAUDE.md 의 첫 규칙을 어긴다.
+
+test("깃발은 다섯이고 오행 자리가 고정이다", () => {
+  assert.equal(FLAGS.length, 5);
+  assert.deepEqual(FLAGS.map((f) => f.ohaeng), ELEMENTS);
+  // 매번 섞이면 고르는 행위가 의미를 잃는다
+  assert.deepEqual(FLAGS.map((f) => f.ohaeng), FLAGS.map((f) => f.ohaeng));
+});
+
+test("어느 깃발을 골라도 답은 하나다", () => {
+  // 고르는 것은 사용자 자유지만 결과는 오늘의 일진이 정한다.
+  const first = flipFlag("목", "화");
+  for (let i = 0; i < 20; i += 1) {
+    assert.deepEqual(flipFlag("목", "화"), first, "같은 입력에 다른 답이 나왔다");
+  }
+});
+
+test("오행 생극이 명리와 맞는다", () => {
+  // 목생화 — 내가 화를 낳으니 내보내는 자리
+  assert.equal(flipFlag("목", "화").relation, "생해줌");
+  // 수생목 — 수가 나를 낳으니 받는 자리
+  assert.equal(flipFlag("목", "수").relation, "생받음");
+  // 목극토 — 내가 토를 누른다
+  assert.equal(flipFlag("목", "토").relation, "내가 이김");
+  // 금극목 — 금이 나를 누른다
+  assert.equal(flipFlag("목", "금").relation, "나를 누름");
+  // 같은 오행
+  assert.equal(flipFlag("목", "목").relation, "같은 편");
+});
+
+test("다섯 관계가 모두 나올 수 있다", () => {
+  const seen = new Set(ELEMENTS.map((today) => flipFlag("목", today).relation));
+  assert.equal(seen.size, 5, "관계가 겹친다 — 생극 표가 틀렸다");
+});
+
+test("모든 오행 짝에 문구가 있다", () => {
+  for (const mine of ELEMENTS) {
+    for (const today of ELEMENTS) {
+      const r = flipFlag(mine, today);
+      assert.ok(r.title.length > 4, `${mine}/${today}: 제목이 비었다`);
+      assert.ok(r.body.length > 20, `${mine}/${today}: 설명이 짧다`);
+    }
+  }
+});
+
+test("깃발 문구에도 단정이 없다", () => {
+  for (const mine of ELEMENTS) {
+    for (const today of ELEMENTS) {
+      const r = flipFlag(mine, today);
+      for (const word of FORBIDDEN) {
+        assert.ok(!`${r.title} ${r.body}`.includes(word), `${mine}/${today}: "${word}"`);
+      }
+    }
+  }
+});
+
+test("상생 고리는 목→화→토→금→수 순서다", () => {
+  // 원형 그래프가 이 순서로 자리를 잡는다. 어긋나면 상생이 이웃이 아니게 된다.
+  assert.deepEqual(CYCLE, ["목", "화", "토", "금", "수"]);
+  for (let i = 0; i < CYCLE.length; i += 1) {
+    const next = CYCLE[(i + 1) % CYCLE.length];
+    assert.equal(
+      flipFlag(CYCLE[i], next).relation,
+      "생해줌",
+      `${CYCLE[i]} 다음이 ${next} 인데 상생이 아니다`
+    );
+  }
 });

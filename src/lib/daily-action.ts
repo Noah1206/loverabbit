@@ -16,7 +16,7 @@
 // 오늘의 일진을, tenGodOf 로 그 둘의 관계를 잰다. manseryeok.ts:303 이
 // 이미 같은 세 줄을 쓰고 있다.
 
-import { CHEONGAN, computeSaju, dayPillarOf, pillarLabel } from "@/lib/saju";
+import { CHEONGAN, computeSaju, dayPillarOf, pillarLabel, type Ohaeng } from "@/lib/saju";
 import { stemElement, tenGodOf } from "@/lib/saju-facts";
 
 /** 십성 열 가지 — 규칙 표와 같은 표기 */
@@ -492,6 +492,10 @@ export interface DailyFlow {
   dayMaster: string;
   tenGod: TenGod;
   flow: Flow;
+  /** 내 일간의 오행 — 깃발이 오행 생극을 재는 데 쓴다 */
+  myElement: Ohaeng;
+  /** 오늘 일진 천간의 오행 */
+  todayElement: Ohaeng;
 }
 
 function isYang(ganIdx: number): boolean {
@@ -533,6 +537,8 @@ export function dailyFlowOf(birthdate: string, birthHour: number | null, todayIS
     dayMaster: CHEONGAN[chart.day.ganIdx],
     tenGod,
     flow: FLOW_OF[tenGod],
+    myElement: stemElement(chart.day.ganIdx),
+    todayElement: stemElement(todayPillar.ganIdx),
   };
 }
 

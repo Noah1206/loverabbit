@@ -10217,11 +10217,11 @@ input[type="radio"] {
    레이더의 라벨이 먼저 뭉갠다. */
 .today-me-elements {
   display: grid;
-  grid-template-columns: 132px 1fr;
+  grid-template-columns: 168px 1fr;
   gap: 16px;
   align-items: center;
 }
-@media (max-width: 400px) {
+@media (max-width: 430px) {
   .today-me-elements {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -10231,27 +10231,47 @@ input[type="radio"] {
   }
 }
 
-.today-radar {
-  width: 132px;
-  height: 132px;
+/* 오행 상생상극 고리.
+   바깥 고리가 상생(목→화→토→금→수), 안쪽 별이 상극(하나 건너).
+   원의 크기는 그 오행이 명식에 몇 개인지다. */
+.today-cycle {
+  width: 168px;
+  height: 168px;
   overflow: visible;
 }
-.today-radar-web {
-  fill: none;
+.today-cycle-generate {
+  stroke: color-mix(in srgb, var(--accent) 30%, transparent);
+  stroke-width: 1.6;
+}
+.today-cycle-control {
   stroke: var(--line);
   stroke-width: 1;
+  stroke-dasharray: 3 4;
 }
-.today-radar-shape {
-  fill: color-mix(in srgb, var(--accent) 22%, transparent);
-  stroke: var(--accent);
-  stroke-width: 1.6;
-  stroke-linejoin: round;
+.today-cycle-node circle {
+  fill: color-mix(in srgb, var(--sj-c, var(--accent)) 82%, var(--bg-card));
+  stroke: var(--bg-card);
+  stroke-width: 2;
 }
-.today-radar-label {
-  fill: var(--text-dim);
-  font-size: 10px;
-  font-weight: 700;
+.today-cycle-node circle.is-empty {
+  fill: transparent;
+  stroke: var(--line);
+  stroke-width: 1.4;
+  stroke-dasharray: 2 3;
+}
+.today-cycle-node text {
+  fill: #fff;
+  font-size: 11px;
+  font-weight: 800;
   text-anchor: middle;
+  pointer-events: none;
+}
+.today-cycle-node circle.is-empty + text {
+  fill: var(--text-dim);
+}
+/* 금은 밝아서 흰 글자가 안 보인다 */
+.today-cycle-node.sj-metal text {
+  fill: #3a3a3a;
 }
 
 .today-me-bars {
@@ -10388,6 +10408,108 @@ input[type="radio"] {
   background: var(--canvas-lavender);
   border-radius: var(--r-pill);
   padding: 2px 9px;
+}
+
+/* ── 오늘의 깃발 ────────────────────────────────────────
+   다섯 중 하나를 고르면 뒤집힌다. 어느 것을 골라도 답은 같다 —
+   무작위가 아니라 오늘의 일진이 정해 둔 값이라서다. */
+.today-flags {
+  margin-top: 14px;
+}
+.today-flag-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+.today-flag {
+  position: relative;
+  width: 46px;
+  height: 66px;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.14s ease;
+}
+.today-flag:hover {
+  transform: translateY(-4px);
+}
+.today-flag:active {
+  transform: translateY(-1px);
+}
+.today-flag:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+/* 깃대 — 아래로 뻗은 가는 선 */
+.today-flag-pole {
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 2px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--text-dim);
+  opacity: 0.55;
+}
+/* 천 — 오른쪽으로 펄럭이는 삼각. 오행 색을 그대로 쓴다. */
+.today-flag-cloth {
+  position: absolute;
+  left: 8px;
+  top: 2px;
+  width: 34px;
+  height: 26px;
+  background: var(--sj-c, var(--accent));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 22% 50%);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding-left: 8px;
+}
+.today-flag.sj-metal .today-flag-cloth {
+  color: #3a3a3a;
+}
+/* 뽑기 전에는 글자가 안 보인다 — 뒤집혀 있다는 뜻 */
+.today-flag:not(.is-open) .today-flag-cloth {
+  font-size: 0;
+}
+.today-flag.is-open {
+  cursor: default;
+  width: 52px;
+  height: 74px;
+  flex: 0 0 auto;
+}
+.today-flag.is-open .today-flag-cloth {
+  width: 40px;
+  height: 30px;
+  font-size: 0.86rem;
+}
+.today-flag-open {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 14px;
+}
+.today-flag-say {
+  flex: 1;
+  min-width: 0;
+}
+.today-flag-title {
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .today-flag:hover,
+  .today-flag:active {
+    transform: none;
+  }
 }
 
 /* 검수 중 잠금 — 열쇠 구멍만 둔다 (2026-09-01).

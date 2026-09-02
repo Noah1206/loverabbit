@@ -167,7 +167,13 @@ export async function POST(request: NextRequest) {
       // "어제는 학업 액션을 완료했어요" 한 줄에 쓴다.
       yesterdayDomain: isDomain(yesterdayDomain) ? yesterdayDomain : null,
       birthTimeUnknown: profile.birthTimeUnknown,
-      flow: { dayGanji: flow.dayGanji, dayMaster: flow.dayMaster, tenGod: flow.tenGod },
+      flow: {
+        dayGanji: flow.dayGanji,
+        dayMaster: flow.dayMaster,
+        tenGod: flow.tenGod,
+        myElement: flow.myElement,
+        todayElement: flow.todayElement,
+      },
       // 내 명식의 수치 — 오늘과 달리 이건 안 바뀐다. 화면에서 접어 둔다.
       // 성별이 없으면 십성의 배우자성 해석이 갈리므로 여자로 두지 않고 뺀다.
       me: profile.gender

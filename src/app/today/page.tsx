@@ -13,7 +13,14 @@ import {
   type DailySajuAction,
   type FortuneDomain,
 } from "@/lib/daily-action";
-import type { SajuProfileView } from "@/lib/saju-profile";
+import {
+  CYCLE,
+  FLAGS,
+  flipFlag,
+  type FlagResult,
+  type SajuProfileView,
+} from "@/lib/saju-profile";
+import type { Ohaeng } from "@/lib/saju";
 import { getUser, type User } from "@/lib/user";
 
 // 오늘의 사주 액션 — 토끼가 데리고 가는 세 걸음.
@@ -46,7 +53,13 @@ interface DailyActionResponse {
   completedToday: string[];
   yesterdayDomain: FortuneDomain | null;
   birthTimeUnknown: boolean;
-  flow: { dayGanji: string; dayMaster: string; tenGod: string };
+  flow: {
+    dayGanji: string;
+    dayMaster: string;
+    tenGod: string;
+    myElement: Ohaeng;
+    todayElement: Ohaeng;
+  };
   /** 내 명식의 수치. 성별이 없으면 null — 십성 해석이 갈려서 추측하지 않는다. */
   me: SajuProfileView | null;
 }
@@ -63,6 +76,9 @@ type Screen =
 type Step = "hello" | "pick" | "reveal";
 
 const GREETED_KEY = "lr_today_greeted";
+
+/** 오늘 뽑은 깃발 — 같은 날 다시 뽑는 화면을 주지 않으려고 남긴다 */
+const FLAG_KEY = "lr_today_flag";
 
 /** 다른 관리자 화면과 같은 자리 — 한쪽에서 열어두면 여기도 열린다 */
 const ADMIN_KEY = "loverabbit_admin_approval_key";
@@ -407,6 +423,12 @@ export default function TodayPage() {
         </p>
       </section>
 
+      <TodayFlags
+        myElement={data.flow.myElement}
+        todayElement={data.flow.todayElement}
+        today={data.today}
+      />
+
       {data.me && <MyChart me={data.me} />}
 
       <button type="button" className="today-skip" onClick={() => setStep("pick")}>
@@ -520,49 +542,176 @@ function MyChart({ me }: { me: SajuProfileView }) {
 }
 
 /**
- * 오행 오각형.
+ * 오행 상생상극 고리.
  *
- * SVG 로 직접 그린다 — 라이브러리를 넣을 만큼 복잡하지 않고, 축이 다섯으로
- * 고정이라 일반화할 이유도 없다. 반지름은 비율이 아니라 개수로 잡는다:
- * 비율은 전체가 바뀌면 같은 개수도 달라 보인다.
+ * 오각형 레이더는 값 다섯 개를 비교하는 그림이지 오행의 그림이 아니다.
+ * 명리에서 오행은 목→화→토→금→수로 서로를 낳고(상생), 하나 건너 서로를
+ * 누른다(상극) — 그 구조가 보여야 "오행을 봤다"가 된다.
+ *
+ * 바깥 고리의 화살표가 상생이고, 안쪽 별 모양 선이 상극이다. 원의 크기는
+ * 그 오행이 명식에 몇 개인지다 — 비율이 아니라 개수로 잡는다. 비율은
+ * 전체가 바뀌면 같은 개수도 달라 보인다.
  */
 function ElementRadar({ elements }: { elements: SajuProfileView["elements"] }) {
-  const size = 132;
+  const size = 168;
   const c = size / 2;
-  const rMax = c - 16;
+  const ring = c - 26;
   const max = Math.max(...elements.map((e) => e.count), 3);
+  const byName = new Map(elements.map((e) => [e.ohaeng, e]));
 
-  const pt = (i: number, r: number) => {
-    const angle = (Math.PI * 2 * i) / elements.length - Math.PI / 2;
-    return [c + Math.cos(angle) * r, c + Math.sin(angle) * r] as const;
-  };
-
-  const web = [0.33, 0.66, 1].map((f) =>
-    elements.map((_, i) => pt(i, rMax * f).join(",")).join(" ")
-  );
-  const shape = elements
-    .map((e, i) => pt(i, (e.count / max) * rMax).join(","))
-    .join(" ");
+  // 상생 순서대로 원 위에 놓는다 — 목이 위, 시계방향으로 화·토·금·수
+  const seat = CYCLE.map((ohaeng, i) => {
+    const angle = (Math.PI * 2 * i) / CYCLE.length - Math.PI / 2;
+    return {
+      ohaeng,
+      bar: byName.get(ohaeng)!,
+      x: c + Math.cos(angle) * ring,
+      y: c + Math.sin(angle) * ring,
+    };
+  });
 
   return (
-    <svg className="today-radar" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="오행 분포">
-      {web.map((points, i) => (
-        <polygon key={i} points={points} className="today-radar-web" />
-      ))}
-      {elements.map((_, i) => {
-        const [x, y] = pt(i, rMax);
-        return <line key={i} x1={c} y1={c} x2={x} y2={y} className="today-radar-web" />;
-      })}
-      <polygon points={shape} className="today-radar-shape" />
-      {elements.map((e, i) => {
-        const [x, y] = pt(i, rMax + 9);
+    <svg
+      className="today-cycle"
+      viewBox={`0 0 ${size} ${size}`}
+      role="img"
+      aria-label="오행 상생상극"
+    >
+      {/* 상극 — 하나 건너 잇는 별 모양. 뒤에 깔아 상생보다 약하게 보인다 */}
+      {seat.map((from, i) => {
+        const to = seat[(i + 2) % seat.length];
         return (
-          <text key={e.ohaeng} x={x} y={y} className="today-radar-label" dominantBaseline="middle">
-            {e.ohaeng}
-          </text>
+          <line
+            key={`k${from.ohaeng}`}
+            x1={from.x}
+            y1={from.y}
+            x2={to.x}
+            y2={to.y}
+            className="today-cycle-control"
+          />
+        );
+      })}
+
+      {/* 상생 — 이웃끼리 잇는 고리 */}
+      {seat.map((from, i) => {
+        const to = seat[(i + 1) % seat.length];
+        return (
+          <line
+            key={`g${from.ohaeng}`}
+            x1={from.x}
+            y1={from.y}
+            x2={to.x}
+            y2={to.y}
+            className="today-cycle-generate"
+          />
+        );
+      })}
+
+      {/* 오행 — 개수만큼 커진다. 0 이면 테두리만 남는다 */}
+      {seat.map(({ ohaeng, bar, x, y }) => {
+        const r = 9 + (bar.count / max) * 12;
+        return (
+          <g key={ohaeng} className={`today-cycle-node ${bar.className}`}>
+            <circle cx={x} cy={y} r={r} className={bar.count === 0 ? "is-empty" : ""} />
+            <text x={x} y={y} dominantBaseline="central">
+              {ohaeng}
+            </text>
+          </g>
         );
       })}
     </svg>
+  );
+}
+
+/**
+ * 오늘의 깃발.
+ *
+ * 다섯 깃발 중 하나를 고르면 뒤집힌다. **어느 것을 골라도 같은 답이 나온다** —
+ * 오늘의 일진과 내 일간이 이미 정해 둔 값이라 무작위가 없다.
+ *
+ * 무작위로 뽑으면 사주가 아니라 뽑기가 된다. 그래서 고르는 재미는 남기고
+ * 답은 계산에서 가져온다. 주역도 같은 자리에 선다 — 날마다 뽑는 것은
+ * 일진이 날마다 바뀌므로 맞고, 같은 날 다시 뽑는 것은 아니다.
+ */
+function TodayFlags({
+  myElement,
+  todayElement,
+  today,
+}: {
+  myElement: Ohaeng;
+  todayElement: Ohaeng;
+  today: string;
+}) {
+  const [picked, setPicked] = useState<Ohaeng | null>(null);
+  const result: FlagResult = flipFlag(myElement, todayElement);
+
+  // 오늘 이미 뽑았으면 그대로 보여준다 — 다시 뽑는 화면을 주지 않는다.
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(FLAG_KEY);
+      if (saved?.startsWith(`${today}:`)) {
+        setPicked(saved.slice(today.length + 1) as Ohaeng);
+      }
+    } catch {
+      /* 저장이 막혀도 뽑기는 된다 */
+    }
+  }, [today]);
+
+  const pick = (ohaeng: Ohaeng) => {
+    setPicked(ohaeng);
+    try {
+      sessionStorage.setItem(FLAG_KEY, `${today}:${ohaeng}`);
+    } catch {
+      /* 기억 못 해도 이번 화면은 그대로 간다 */
+    }
+  };
+
+  if (!picked) {
+    return (
+      <section className="card today-flags">
+        <p className="today-label today-label-first">오늘의 깃발</p>
+        <p className="today-body">하나를 뽑아보세요.</p>
+        <div className="today-flag-row">
+          {FLAGS.map((flag) => (
+            <button
+              key={flag.ohaeng}
+              type="button"
+              className={`today-flag ${flag.className}`}
+              onClick={() => pick(flag.ohaeng)}
+              aria-label={`깃발 ${flag.ohaeng}`}
+            >
+              <span className="today-flag-cloth" aria-hidden />
+              <span className="today-flag-pole" aria-hidden />
+            </button>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="card today-flags">
+      <p className="today-label today-label-first">오늘의 깃발</p>
+      <div className="today-flag-open">
+        <span
+          className={`today-flag is-open ${
+            FLAGS.find((f) => f.ohaeng === result.todayElement)?.className ?? ""
+          }`}
+          aria-hidden
+        >
+          <span className="today-flag-cloth">{result.todayElement}</span>
+          <span className="today-flag-pole" />
+        </span>
+        <div className="today-flag-say">
+          <p className="today-flag-title">{result.title}</p>
+          <p className="today-body">{result.body}</p>
+        </div>
+      </div>
+      <p className="today-fine">
+        오늘의 일진은 {result.todayElement}, 내 일간은 {result.myElement} —
+        {" "}{result.relation}의 자리입니다. 어느 깃발을 골라도 오늘의 답은 하나입니다.
+      </p>
+    </section>
   );
 }
 
