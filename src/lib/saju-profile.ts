@@ -389,6 +389,8 @@ export function flagOf(ohaeng: Ohaeng): DailyFlag {
 export interface FlagResult {
   /** 오늘 내 일간이 받는 오행 관계 */
   relation: "생받음" | "생해줌" | "내가 이김" | "나를 누름" | "같은 편";
+  /** 결과 화면 맨 위에 서는 전제 — 반드시 한 문장이다 */
+  premise: string;
   /** 오늘의 일진 오행 */
   todayElement: Ohaeng;
   /** 내 일간 오행 */
@@ -403,6 +405,14 @@ export interface FlagResult {
  * 십성(FLOW)과 다른 축이다. 십성은 음양까지 따져 열 가지로 갈리지만 이쪽은
  * 오행의 생극만 본다 — 다섯 갈래라 깃발 다섯과 맞아떨어지고, 설명이 짧다.
  */
+const RELATION_PREMISE: Record<FlagResult["relation"], string> = {
+  생받음: "오늘의 기운이 너를 밀어주는 자리에 있어.",
+  생해줌: "오늘은 네 기운이 밖으로 나가는 자리야.",
+  "내가 이김": "오늘의 기운은 네가 다루는 자리에 있어.",
+  "나를 누름": "오늘은 밖의 힘이 너보다 센 자리야.",
+  "같은 편": "오늘의 기운은 너와 같은 결이야.",
+};
+
 const RELATION_TEXT: Record<FlagResult["relation"], { title: string; body: string }> = {
   생받음: {
     title: "오늘은 받는 날입니다",
@@ -442,7 +452,13 @@ function relationOf(mine: Ohaeng, today: Ohaeng): FlagResult["relation"] {
  */
 export function flipFlag(myElement: Ohaeng, todayElement: Ohaeng): FlagResult {
   const relation = relationOf(myElement, todayElement);
-  return { relation, todayElement, myElement, ...RELATION_TEXT[relation] };
+  return {
+    relation,
+    todayElement,
+    myElement,
+    premise: RELATION_PREMISE[relation],
+    ...RELATION_TEXT[relation],
+  };
 }
 
 /** 오행 원형 그래프가 쓴다 — 목→화→토→금→수 상생 순서 */

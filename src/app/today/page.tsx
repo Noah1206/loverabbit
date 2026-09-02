@@ -370,7 +370,7 @@ export default function TodayPage() {
           <span className={`today-hero-flag ${wonFlag.className}`}>
             <Image src={wonFlag.art} alt="" width={80} height={80} />
           </span>
-          {flagResult.title.replace("입니다", "")} — {shown.rabbit.line}
+          {flagResult.premise}
         </p>
         <h1 className="today-hero-action">{shown.action}</h1>
         {shown.durationMinutes && (
