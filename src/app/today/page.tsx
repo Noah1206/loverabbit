@@ -503,12 +503,6 @@ function MyChart({ me }: { me: SajuProfileView }) {
           </div>
         ))}
       </div>
-      <p className="today-fine">
-        점 하나가 사주 여덟 글자 중 한 글자입니다. 다섯이 고르면 한 오행에 한두 개씩 돌아갑니다.
-        {me.absent.length > 0 && ` 지장간까지 열어도 없는 것: ${me.absent.join("·")}.`}
-        {me.hidden.length > 0 && ` 겉에 없지만 지장간에 든 것: ${me.hidden.join("·")}.`}
-      </p>
-
       {/* 강약 — 0~100 한 줄 */}
       <p className="today-label">강약</p>
       <div className="today-strength">
@@ -556,10 +550,6 @@ function MyChart({ me }: { me: SajuProfileView }) {
           </li>
         ))}
       </ol>
-      <p className="today-fine">
-        타고난 결을 읽은 것이라 매일 바뀌지 않습니다. 오늘의 행동은 여기에 오늘의
-        흐름을 더해 정해집니다.
-      </p>
     </section>
   );
 }
