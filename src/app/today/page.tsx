@@ -358,6 +358,8 @@ export default function TodayPage() {
         <RabbitArt video={shown.rabbit.video} art={shown.rabbit.art} alt="" small />
       </div>
 
+      {data.me && <MyChart me={data.me} />}
+
       {/* 전제 → 선언. "너가 이러니까(칩) → 오늘은 이런 날이니(전제) →
           이걸 해(선언)" 이 한 호흡이 화면의 축이다. */}
       <header className="today-hero">
@@ -377,27 +379,6 @@ export default function TodayPage() {
           <p className="today-minutes">약 {shown.durationMinutes}분이면 돼요</p>
         )}
 
-        {/* 내 수치 한 줄 — 자세한 것은 아래 "수치로 보기"가 연다 */}
-        {data.me && (
-          <div className="today-stats">
-            {data.me.elements.map((e) => (
-              <span
-                key={e.ohaeng}
-                className={`today-stat ${e.className}${e.count === 0 ? " is-zero" : ""}`}
-              >
-                <Image src={ELEMENT_ART[e.ohaeng]} alt={e.ohaeng} width={44} height={44} />
-                <span className="today-stat-dots" aria-label={`${e.ohaeng} ${e.count}`}>
-                  {Array.from({ length: e.count }, (_, i) => (
-                    <i key={i} />
-                  ))}
-                </span>
-              </span>
-            ))}
-            <span className="today-stat-str">
-              {data.me.strength.label} <b>{data.me.strength.score}</b>
-            </span>
-          </div>
-        )}
       </header>
 
       <section className="card today-card">
@@ -433,8 +414,6 @@ export default function TodayPage() {
         {" "}예언이 아니라 오늘을 돌아보는 참고 가이드입니다.
       </p>
 
-      {data.me && <MyChart me={data.me} />}
-
       <button type="button" className="today-skip" onClick={() => setStep("pick")}>
         다른 운세 보기
       </button>
@@ -452,25 +431,12 @@ export default function TodayPage() {
  * 않는다 — 산식 없는 숫자는 그럴듯할수록 위험하다.
  */
 function MyChart({ me }: { me: SajuProfileView }) {
-  const [open, setOpen] = useState(false);
-
-  if (!open) {
-    return (
-      <button type="button" className="today-skip" onClick={() => setOpen(true)}>
-        내 사주 수치로 보기
-      </button>
-    );
-  }
-
   return (
     <section className="card today-me">
       <div className="today-me-head">
         <p className="today-label today-label-first">내 사주</p>
-        <button type="button" className="today-me-close" onClick={() => setOpen(false)}>
-          접기
-        </button>
+        <p className="today-basis-label">일간 {me.dayMaster}</p>
       </div>
-      <p className="today-basis-label">일간 {me.dayMaster}</p>
 
       {/* 오행 — 상징 다섯이 줄지어 선다. 개수가 크기와 숫자로 같이 읽히고,
           0 인 오행은 흐려져 "자리는 있는데 비었다"가 보인다. 고리 그래프는

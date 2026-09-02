@@ -10182,55 +10182,6 @@ input[type="radio"] {
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
-/* 수치 한 줄 — 미니 엠블럼 + 점, 강약 알약 */
-.today-stats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 16px;
-  padding: 10px 12px;
-  border-radius: var(--r-lg);
-  background: var(--canvas-cream);
-}
-.today-stat {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-}
-.today-stat img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
-}
-.today-stat.is-zero {
-  opacity: 0.35;
-}
-.today-stat.is-zero img {
-  filter: grayscale(0.6);
-}
-.today-stat-dots {
-  display: flex;
-  gap: 2px;
-  min-height: 4px;
-}
-.today-stat-dots i {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--sj-c, var(--accent));
-}
-.today-stat-str {
-  margin-left: auto;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-.today-stat-str b {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
 /* 결과 밑 각주 — 정직 문구와 안내를 한 줄로 */
 .today-footnote {
   padding: 0 4px;
@@ -10354,15 +10305,6 @@ input[type="radio"] {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-}
-.today-me-close {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 4px;
 }
 
 /* 오행 엠블럼 줄 — 다섯 상징이 나란히 선다. 개수는 숫자와 크기로 같이
