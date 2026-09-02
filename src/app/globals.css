@@ -10240,17 +10240,17 @@ input[type="radio"] {
    회전축을 깃발 한참 아래(230%)에 두면 손목을 축으로 도는 것처럼 보인다. */
 .today-flag-row.is-step {
   position: relative;
-  height: 172px;
-  margin-top: 18px;
+  height: 232px;
+  margin-top: 20px;
 }
 .today-flag-row.is-step .today-flag {
   position: absolute;
   left: 50%;
-  top: 12px;
-  width: 78px;
-  height: 78px;
-  margin-left: -39px;
-  --rot: calc((var(--i) - 2) * 16deg);
+  top: 14px;
+  width: 108px;
+  height: 108px;
+  margin-left: -54px;
+  --rot: calc((var(--i) - 2) * 18deg);
   transform: rotate(var(--rot));
   transform-origin: 50% 230%;
   /* backwards: 제 차례가 오기 전에는 겹친 채(from) 기다린다.
