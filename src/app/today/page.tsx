@@ -18,7 +18,6 @@ import {
   FLAGS,
   flagOf,
   flipFlag,
-  type FlagResult,
   type SajuProfileView,
 } from "@/lib/saju-profile";
 import type { Ohaeng } from "@/lib/saju";
@@ -64,12 +63,28 @@ type Screen =
   | { kind: "ready"; data: DailyActionResponse };
 
 /** 지금 어느 걸음에 있는가 */
-type Step = "hello" | "pick" | "reveal";
+type Step = "hello" | "pick" | "flags" | "reveal";
 
 const GREETED_KEY = "lr_today_greeted";
 
 /** 오늘 뽑은 깃발 — 같은 날 다시 뽑는 화면을 주지 않으려고 남긴다 */
 const FLAG_KEY = "lr_today_flag";
+
+function hasFlaggedToday(today: string): boolean {
+  try {
+    return sessionStorage.getItem(FLAG_KEY)?.startsWith(`${today}:`) ?? false;
+  } catch {
+    return false;
+  }
+}
+
+function rememberFlag(today: string, ohaeng: string): void {
+  try {
+    sessionStorage.setItem(FLAG_KEY, `${today}:${ohaeng}`);
+  } catch {
+    /* 기억 못 해도 흐름은 간다 */
+  }
+}
 
 function alreadyGreetedToday(today: string): boolean {
   try {
@@ -270,7 +285,7 @@ export default function TodayPage() {
               className="today-domain"
               onClick={() => {
                 setPicked(domain);
-                setStep("reveal");
+                setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
               }}
             >
               <span>{DOMAIN_LABEL[domain]}</span>
@@ -284,7 +299,7 @@ export default function TodayPage() {
           className="today-skip"
           onClick={() => {
             setPicked(null);
-            setStep("reveal");
+            setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
           }}
         >
           오늘 흐름에 맞는 걸로 골라줘
@@ -293,26 +308,100 @@ export default function TodayPage() {
     );
   }
 
-  // ── 셋째 걸음: 들려주기 ──────────────────────────────────
+  // ── 셋째 걸음: 깃발 뽑기 ─────────────────────────────────
+  //
+  // 운세를 고른 뒤, 답을 듣기 전에 손을 한 번 쓰게 한다. 어느 깃발을
+  // 골라도 답은 오늘의 일진이 정해 둔 하나지만, 고르는 행위가 뒤에 오는
+  // 선언을 "내가 뽑은 것"으로 만든다.
+
+  if (step === "flags") {
+    return (
+      <main className="today">
+        <div className="today-stage">
+          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" small />
+          <h1 className="today-title today-title-sm">깃발을 하나 뽑아봐</h1>
+          <p className="today-sub">오늘의 기운이 네게 어느 자리인지 알려줄게.</p>
+        </div>
+        <div className="today-flag-row is-step">
+          {FLAGS.map((flag, i) => (
+            <button
+              key={flag.ohaeng}
+              type="button"
+              className="today-flag"
+              style={{ ["--i" as string]: i }}
+              onClick={() => {
+                rememberFlag(data.today, flag.ohaeng);
+                setStep("reveal");
+              }}
+              aria-label={`${flag.color}색 깃발`}
+            >
+              <Image src={flag.art} alt="" width={200} height={200} />
+            </button>
+          ))}
+        </div>
+      </main>
+    );
+  }
+
+  // ── 넷째 걸음: 결과 ──────────────────────────────────────
+  //
+  // 위계는 하나다: 전제(너의 결·오늘의 기운) → 선언(오늘 할 것) → 상세.
+  // 굵은 글자는 선언 하나에만 준다 — 전부 굵으면 아무것도 안 굵다.
 
   const done = data.completedToday.includes(shown.domain);
+  const flagResult = flipFlag(data.flow.myElement, data.flow.todayElement);
+  const wonFlag = flagOf(flagResult.todayElement);
 
   return (
     <main className="today">
-      {/* 토끼가 오늘의 흐름에 맞는 얼굴로 나와 한마디 건넨다 */}
-      <div className="today-stage">
-        <RabbitArt video={shown.rabbit.video} art={shown.rabbit.art} alt="" />
-        <p className="today-speech">{shown.rabbit.line}</p>
+      <div className="today-stage is-compact">
+        <RabbitArt video={shown.rabbit.video} art={shown.rabbit.art} alt="" small />
       </div>
 
+      {/* 전제 → 선언. "너가 이러니까(칩) → 오늘은 이런 날이니(전제) →
+          이걸 해(선언)" 이 한 호흡이 화면의 축이다. */}
+      <header className="today-hero">
+        <div className="today-chips">
+          <span className="today-chip is-domain">{DOMAIN_LABEL[shown.domain]}</span>
+          <span className="today-chip">일간 {data.flow.dayMaster}</span>
+          <span className="today-chip">오늘 {data.flow.dayGanji}일</span>
+        </div>
+        <p className="today-hero-premise">
+          <span className={`today-hero-flag ${wonFlag.className}`}>
+            <Image src={wonFlag.art} alt="" width={80} height={80} />
+          </span>
+          {flagResult.title.replace("입니다", "")} — {shown.rabbit.line}
+        </p>
+        <h1 className="today-hero-action">{shown.action}</h1>
+        {shown.durationMinutes && (
+          <p className="today-minutes">약 {shown.durationMinutes}분이면 돼요</p>
+        )}
+
+        {/* 내 수치 한 줄 — 자세한 것은 아래 "수치로 보기"가 연다 */}
+        {data.me && (
+          <div className="today-stats">
+            {data.me.elements.map((e) => (
+              <span
+                key={e.ohaeng}
+                className={`today-stat ${e.className}${e.count === 0 ? " is-zero" : ""}`}
+              >
+                <Image src={ELEMENT_ART[e.ohaeng]} alt={e.ohaeng} width={44} height={44} />
+                <span className="today-stat-dots" aria-label={`${e.ohaeng} ${e.count}`}>
+                  {Array.from({ length: e.count }, (_, i) => (
+                    <i key={i} />
+                  ))}
+                </span>
+              </span>
+            ))}
+            <span className="today-stat-str">
+              {data.me.strength.label} <b>{data.me.strength.score}</b>
+            </span>
+          </div>
+        )}
+      </header>
+
       <section className="card today-card">
-        <span className="badge">{DOMAIN_LABEL[shown.domain]}</span>
-
-        <p className="today-action">{shown.action}</p>
-
-        {shown.durationMinutes && <p className="today-minutes">약 {shown.durationMinutes}분</p>}
-
-        <p className="today-label">왜 이 행동인가</p>
+        <p className="today-label today-label-first">왜 이 행동인가</p>
         <p className="today-body">{shown.reason}</p>
 
         <p className="today-label">오늘 피할 행동</p>
@@ -337,25 +426,12 @@ export default function TodayPage() {
         </div>
       </section>
 
-      <section className="card today-basis">
-        <p className="today-label today-label-first">오늘의 사주 근거</p>
-        <p className="today-basis-label">{shown.sajuBasis.label}</p>
-        <p className="today-body">{shown.sajuBasis.description}</p>
-        {data.birthTimeUnknown && (
-          <p className="today-fine">
-            태어난 시각을 모르는 것으로 두고 계산했어요. 오늘의 흐름은 태어난 날로 정해지니 결과는 달라지지 않아요.
-          </p>
-        )}
-        <p className="today-fine">
-          이 결과는 미래를 확정하는 예언이 아니라, 오늘을 돌아보는 사주 기반 참고 가이드입니다.
-        </p>
-      </section>
-
-      <TodayFlags
-        myElement={data.flow.myElement}
-        todayElement={data.flow.todayElement}
-        today={data.today}
-      />
+      <p className="today-fine today-footnote">
+        오늘의 일진 {data.flow.dayGanji} · {flagResult.relation}의 자리 — 어느 깃발을
+        골라도 오늘의 답은 하나예요.
+        {data.birthTimeUnknown && " 태어난 시각은 몰라도 오늘의 흐름은 달라지지 않아요."}
+        {" "}예언이 아니라 오늘을 돌아보는 참고 가이드입니다.
+      </p>
 
       {data.me && <MyChart me={data.me} />}
 
@@ -481,98 +557,6 @@ function MyChart({ me }: { me: SajuProfileView }) {
   );
 }
 
-
-/**
- * 오늘의 깃발.
- *
- * 다섯 깃발 중 하나를 고르면 뒤집힌다. **어느 것을 골라도 같은 답이 나온다** —
- * 오늘의 일진과 내 일간이 이미 정해 둔 값이라 무작위가 없다.
- *
- * 무작위로 뽑으면 사주가 아니라 뽑기가 된다. 그래서 고르는 재미는 남기고
- * 답은 계산에서 가져온다. 주역도 같은 자리에 선다 — 날마다 뽑는 것은
- * 일진이 날마다 바뀌므로 맞고, 같은 날 다시 뽑는 것은 아니다.
- */
-function TodayFlags({
-  myElement,
-  todayElement,
-  today,
-}: {
-  myElement: Ohaeng;
-  todayElement: Ohaeng;
-  today: string;
-}) {
-  const [picked, setPicked] = useState<Ohaeng | null>(null);
-  const result: FlagResult = flipFlag(myElement, todayElement);
-
-  // 오늘 이미 뽑았으면 그대로 보여준다 — 다시 뽑는 화면을 주지 않는다.
-  useEffect(() => {
-    try {
-      const saved = sessionStorage.getItem(FLAG_KEY);
-      if (saved?.startsWith(`${today}:`)) {
-        setPicked(saved.slice(today.length + 1) as Ohaeng);
-      }
-    } catch {
-      /* 저장이 막혀도 뽑기는 된다 */
-    }
-  }, [today]);
-
-  const pick = (ohaeng: Ohaeng) => {
-    setPicked(ohaeng);
-    try {
-      sessionStorage.setItem(FLAG_KEY, `${today}:${ohaeng}`);
-    } catch {
-      /* 기억 못 해도 이번 화면은 그대로 간다 */
-    }
-  };
-
-  if (!picked) {
-    return (
-      <section className="card today-flags">
-        <p className="today-label today-label-first">오늘의 깃발</p>
-        <p className="today-body">하나를 뽑아보세요.</p>
-        <div className="today-flag-row">
-          {FLAGS.map((flag, i) => (
-            <button
-              key={flag.ohaeng}
-              type="button"
-              className="today-flag"
-              style={{ ["--i" as string]: i }}
-              onClick={() => pick(flag.ohaeng)}
-              aria-label={`${flag.color}색 깃발`}
-            >
-              <Image src={flag.art} alt="" width={200} height={200} />
-            </button>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="card today-flags">
-      <p className="today-label today-label-first">오늘의 깃발</p>
-      <div className="today-flag-open">
-        <div className="today-flag-won">
-          <Image
-            src={flagOf(result.todayElement).art}
-            alt={`${flagOf(result.todayElement).color}색 깃발`}
-            width={280}
-            height={280}
-            priority
-          />
-        </div>
-        <div className="today-flag-say">
-          <p className="today-flag-title">{result.title}</p>
-          <p className="today-body">{result.body}</p>
-        </div>
-      </div>
-      <p className="today-fine">
-        오늘의 일진은 {result.todayElement}, 내 일간은 {result.myElement} —
-        {" "}{result.relation}의 자리입니다. 어느 깃발을 골라도 오늘의 답은 하나입니다.
-      </p>
-    </section>
-  );
-}
 
 /**
  * 토끼 한 마리.

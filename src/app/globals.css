@@ -10125,6 +10125,126 @@ input[type="radio"] {
   cursor: pointer;
 }
 
+/* ── 결과 위계 ─────────────────────────────────────────
+   전제(칩·한 줄) → 선언(가장 크고 굵게) → 상세(흐리게).
+   굵기가 전부 같으면 아무것도 안 굵다 — 선언에만 무게를 몰아준다. */
+.today-stage.is-compact {
+  margin-bottom: 2px;
+}
+.today-hero {
+  padding: 4px 2px 0;
+}
+.today-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.today-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--canvas-lavender);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+.today-chip.is-domain {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* 전제 한 줄 — 깃발 작은 그림 + "이런 날이니" */
+.today-hero-premise {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.today-hero-flag {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+}
+.today-hero-flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+/* 선언 — 화면에서 유일하게 크고 굵은 글 */
+.today-hero-action {
+  margin: 10px 0 0;
+  font-size: 1.38rem;
+  font-weight: 800;
+  line-height: 1.42;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+/* 수치 한 줄 — 미니 엠블럼 + 점, 강약 알약 */
+.today-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  background: var(--canvas-cream);
+}
+.today-stat {
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+}
+.today-stat img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  display: block;
+}
+.today-stat.is-zero {
+  opacity: 0.35;
+}
+.today-stat.is-zero img {
+  filter: grayscale(0.6);
+}
+.today-stat-dots {
+  display: flex;
+  gap: 2px;
+  min-height: 4px;
+}
+.today-stat-dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--sj-c, var(--accent));
+}
+.today-stat-str {
+  margin-left: auto;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.today-stat-str b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+/* 결과 밑 각주 — 정직 문구와 안내를 한 줄로 */
+.today-footnote {
+  padding: 0 4px;
+}
+/* 깃발 걸음 — 뽑는 화면에서는 깃발이 주인공이라 키운다 */
+.today-flag-row.is-step {
+  margin-top: 26px;
+  gap: 8px;
+}
+.today-flag-row.is-step .today-flag {
+  width: 76px;
+  height: 76px;
+}
+
 /* 결과 카드 — 행동 문장이 화면에서 가장 크다 */
 .today-card {
   margin-top: 18px;
@@ -10142,8 +10262,10 @@ input[type="radio"] {
 }
 .today-label {
   font-weight: 800;
-  font-size: 0.92rem;
-  margin-top: 22px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+  margin-top: 20px;
   margin-bottom: 6px;
 }
 .today-label-first {
@@ -10504,22 +10626,6 @@ input[type="radio"] {
   animation-delay: calc(var(--i, 0) * -0.55s);
 }
 
-.today-flag-open {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  margin-top: 14px;
-}
-.today-flag-say {
-  flex: 1;
-  min-width: 0;
-}
-.today-flag-title {
-  font-size: 1.02rem;
-  font-weight: 800;
-  line-height: 1.45;
-  margin-bottom: 6px;
-}
 
 @media (prefers-reduced-motion: reduce) {
   .today-flag:hover,
