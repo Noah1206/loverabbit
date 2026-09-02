@@ -112,6 +112,9 @@ export default function TodayPage() {
   const [picked, setPicked] = useState<FortuneDomain | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  /** 깃발을 뽑고 답이 열리기까지의 뜸. 바로 열면 뽑은 손이 무의미해진다 */
+  const [flipping, setFlipping] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const load = useCallback(async (token: string) => {
     setScreen({ kind: "loading" });
@@ -149,7 +152,7 @@ export default function TodayPage() {
     void load(stored.token);
   }, [load]);
 
-  const complete = async (domain: FortuneDomain) => {
+  const complete = async (domain: FortuneDomain, text?: string) => {
     if (!account || saving) return;
     setSaving(true);
     setSaveError("");
@@ -171,6 +174,17 @@ export default function TodayPage() {
           ? { ...prev, data: { ...prev.data, completedToday: [...prev.data.completedToday, domain] } }
           : prev
       );
+      // 저장이 끝나면 오늘 몫을 클립보드에 담아 둔다. 복사가 막힌 브라우저에서도
+      // 저장 자체는 이미 끝났으니 흐름을 막지 않는다.
+      if (text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2400);
+        } catch {
+          /* 클립보드가 막혀도 저장은 됐다 */
+        }
+      }
     } catch {
       setSaveError("연결이 불안정해. 다시 눌러줘.");
     } finally {
@@ -321,9 +335,11 @@ export default function TodayPage() {
         <div className="today-stage">
           <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" small />
           <h1 className="today-title today-title-sm">깃발을 하나 뽑아봐</h1>
-          <p className="today-sub">오늘의 기운이 네게 어느 자리인지 알려줄게.</p>
+          <p className="today-sub" aria-live="polite">
+            {flipping ? "뽑은 깃발을 읽는 중이야…" : "오늘의 기운이 네게 어느 자리인지 알려줄게."}
+          </p>
         </div>
-        <div className="today-flag-row is-step">
+        <div className={`today-flag-row is-step${flipping ? " is-flipping" : ""}`}>
           {FLAGS.map((flag, i) => (
             <button
               key={flag.ohaeng}
@@ -331,8 +347,14 @@ export default function TodayPage() {
               className="today-flag"
               style={{ ["--i" as string]: i }}
               onClick={() => {
+                if (flipping) return;
                 rememberFlag(data.today, flag.ohaeng);
-                setStep("reveal");
+                // 뽑자마자 답을 주지 않는다. 잠깐 멈췄다 열려야 뽑은 것이 된다.
+                setFlipping(true);
+                setTimeout(() => {
+                  setStep("reveal");
+                  setFlipping(false);
+                }, 1400);
               }}
               aria-label={`${flag.color}색 깃발`}
             >
@@ -352,6 +374,19 @@ export default function TodayPage() {
   const done = data.completedToday.includes(shown.domain);
   const flagResult = flipFlag(data.flow.myElement, data.flow.todayElement);
   const wonFlag = flagOf(flagResult.todayElement);
+
+  /** 저장하기를 누르면 클립보드에 담기는 오늘 몫 */
+  const shareText = [
+    `[${DOMAIN_LABEL[shown.domain]}] 일간 ${data.flow.dayMaster} · 오늘 ${data.flow.dayGanji}일`,
+    flagResult.premise,
+    shown.action,
+    shown.durationMinutes ? `약 ${shown.durationMinutes}분이면 돼` : "",
+    "",
+    `왜 이 행동인가 — ${shown.reason}`,
+    `오늘 피할 행동 — ${shown.avoidAction}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   return (
     <main className="today">
@@ -393,15 +428,18 @@ export default function TodayPage() {
 
         <div className="today-do">
           {done ? (
-            <p className="today-done">오늘 몫은 했다. 잘했어.</p>
+            <p className="today-done">
+              오늘 몫은 했다. 잘했어.
+              {copied && <span className="today-copied">복사됐어</span>}
+            </p>
           ) : (
             <button
               type="button"
               className="btn today-cta"
               disabled={saving}
-              onClick={() => complete(shown.domain)}
+              onClick={() => complete(shown.domain, shareText)}
             >
-              {saving ? "저장하는 중…" : "지금 실행하기"}
+              {saving ? "저장하는 중…" : "저장하기"}
             </button>
           )}
           {saveError && <p className="today-error">{saveError}</p>}

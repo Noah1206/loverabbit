@@ -10267,8 +10267,30 @@ input[type="radio"] {
   width: 100%;
 }
 .today-done {
+  /* 위 도메인 칩(--accent)과 같은 먹으로 맞춘다. 초록(--semantic-success)은
+     이 화면의 따뜻한 무채색 팔레트에서 혼자 튀었다. */
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 800;
-  color: var(--semantic-success);
+  color: var(--accent);
+}
+/* 저장과 함께 클립보드에 담겼다는 표시 — 본문보다 한 단 낮춘 작은 꼬리표 */
+.today-copied {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: var(--canvas-lavender);
+  border-radius: var(--r-pill);
+  padding: 3px 10px;
+}
+/* 깃발을 뽑고 답이 열리기까지 — 누른 뒤에는 손을 막고 숨을 고른다 */
+.today-flag-row.is-flipping {
+  pointer-events: none;
+}
+.today-flag-row.is-flipping .today-flag {
+  opacity: 0.35;
+  transition: opacity 0.4s ease;
 }
 .today-error {
   color: var(--semantic-error);
