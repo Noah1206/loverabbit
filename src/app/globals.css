@@ -10235,14 +10235,40 @@ input[type="radio"] {
 .today-footnote {
   padding: 0 4px;
 }
-/* 깃발 걸음 — 뽑는 화면에서는 깃발이 주인공이라 키운다 */
+/* 깃발 걸음 — 손에 쥔 부채처럼 호를 그리며 펼쳐진다.
+   전부 가운데 겹쳐 있다가 하나씩 제 각도로 튕겨 나간다(쫘라락).
+   회전축을 깃발 한참 아래(230%)에 두면 손목을 축으로 도는 것처럼 보인다. */
 .today-flag-row.is-step {
-  margin-top: 26px;
-  gap: 8px;
+  position: relative;
+  height: 172px;
+  margin-top: 18px;
 }
 .today-flag-row.is-step .today-flag {
-  width: 76px;
-  height: 76px;
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  width: 78px;
+  height: 78px;
+  margin-left: -39px;
+  --rot: calc((var(--i) - 2) * 16deg);
+  transform: rotate(var(--rot));
+  transform-origin: 50% 230%;
+  /* backwards: 제 차례가 오기 전에는 겹친 채(from) 기다린다.
+     끝나면 기본 transform 으로 돌아가므로 hover 가 그대로 먹는다. */
+  animation: today-fan 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+  animation-delay: calc(var(--i) * 90ms);
+  z-index: calc(1 + var(--i));
+}
+@keyframes today-fan {
+  from {
+    transform: rotate(0deg) scale(0.86);
+  }
+}
+.today-flag-row.is-step .today-flag:hover {
+  transform: rotate(var(--rot)) translateY(-10px) scale(1.05);
+}
+.today-flag-row.is-step .today-flag:active {
+  transform: rotate(var(--rot)) translateY(-3px);
 }
 
 /* 결과 카드 — 행동 문장이 화면에서 가장 크다 */
@@ -10628,12 +10654,10 @@ input[type="radio"] {
 
 
 @media (prefers-reduced-motion: reduce) {
-  .today-flag:hover,
-  .today-flag:active {
-    transform: none;
+  .today-flag img {
+    animation: none;
   }
-  .today-flag img,
-  .today-flag-won img {
+  .today-flag-row.is-step .today-flag {
     animation: none;
   }
 }
