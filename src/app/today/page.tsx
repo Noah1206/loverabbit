@@ -409,10 +409,8 @@ export default function TodayPage() {
       </section>
 
       <p className="today-fine today-footnote">
-        오늘의 일진 {data.flow.dayGanji} · {flagResult.relation}의 자리 — 어느 깃발을
-        골라도 오늘의 답은 하나야.
-        {data.birthTimeUnknown && " 태어난 시각은 몰라도 오늘의 흐름은 안 달라져."}
-        {" "}예언이 아니라 오늘을 돌아보는 참고 가이드다.
+        어느 깃발을 골라도 답은 하나야. 예언이 아니라 참고 가이드다.
+        {data.birthTimeUnknown && " 태어난 시각은 몰라도 결과는 안 달라져."}
       </p>
 
       <button type="button" className="today-skip" onClick={() => setStep("pick")}>
