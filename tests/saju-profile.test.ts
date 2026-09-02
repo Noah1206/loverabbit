@@ -6,6 +6,7 @@ import { buildSajuFacts } from "../src/lib/saju-facts";
 import {
   ABSENT_GUIDELINE,
   CYCLE,
+  ELEMENT_ART,
   FLAGS,
   flipFlag,
   ELEMENTS,
@@ -164,6 +165,15 @@ test("같은 명식은 같은 결과 — 무작위가 없다", () => {
 test("깃발은 다섯이고 오행 자리가 고정이다", () => {
   assert.equal(FLAGS.length, 5);
   assert.deepEqual(FLAGS.map((f) => f.ohaeng), ELEMENTS);
+});
+
+test("오행 엠블럼 다섯 장이 실제로 있다", () => {
+  for (const ohaeng of ELEMENTS) {
+    const art = ELEMENT_ART[ohaeng];
+    assert.ok(art.startsWith("/assets/elements/"), `${ohaeng}: 경로가 예상 밖`);
+    assert.ok(existsSync(`public${art}`), `${ohaeng}: 파일이 없다 — public${art}`);
+  }
+  assert.equal(new Set(Object.values(ELEMENT_ART)).size, 5, "엠블럼이 겹친다");
 });
 
 test("오방기 그림 다섯 장이 실제로 있다", () => {

@@ -10217,79 +10217,64 @@ input[type="radio"] {
   padding: 4px;
 }
 
-/* 레이더와 막대를 나란히. 좁아지면 위아래로 쌓는다 — 둘 다 작아지면
-   레이더의 라벨이 먼저 뭉갠다. */
-.today-me-elements {
+/* 오행 엠블럼 줄 — 다섯 상징이 나란히 선다. 개수는 숫자와 크기로 같이
+   읽히고, 0 인 오행은 흐려져 "자리는 있는데 비었다"가 보인다.
+   고리 그래프는 걷었다 — 구조 설명이 앞서서 정작 내 값이 안 읽혔다. */
+.today-element-row {
   display: grid;
-  grid-template-columns: 168px 1fr;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 4px;
 }
-@media (max-width: 430px) {
-  .today-me-elements {
-    grid-template-columns: 1fr;
-    justify-items: center;
-  }
-  .today-me-elements .today-me-bars {
-    width: 100%;
-  }
+.today-element {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 10px 2px 12px;
+  border-radius: var(--r-lg);
+  text-align: center;
 }
-
-/* 오행 상생상극 고리.
-   바깥 고리가 상생(목→화→토→금→수), 안쪽 별이 상극(하나 건너).
-   원의 크기는 그 오행이 명식에 몇 개인지다. */
-.today-cycle {
-  width: 168px;
-  height: 168px;
-  overflow: visible;
+/* 가장 많은 오행만 면을 얻는다 — 다섯 다 칠하면 아무것도 안 두드러진다 */
+.today-element.is-major {
+  background: color-mix(in srgb, var(--sj-c, var(--accent)) 12%, transparent);
 }
-.today-cycle-generate {
-  stroke: color-mix(in srgb, var(--accent) 26%, transparent);
-  stroke-width: 1.5;
-  stroke-linecap: round;
+.today-element-art {
+  width: 44px;
+  height: 44px;
 }
-/* 상생 고리를 한 바퀴 그리는 원 — 직선 오각형만 있으면 "낳는 순환"이
-   아니라 그냥 도형으로 읽힌다. 아주 옅게 깔아 방향을 암시한다. */
-.today-cycle-orbit {
-  fill: none;
-  stroke: color-mix(in srgb, var(--accent) 9%, transparent);
-  stroke-width: 12;
+.today-element.is-major .today-element-art {
+  width: 54px;
+  height: 54px;
 }
-.today-cycle-control {
-  stroke: var(--line);
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
+.today-element-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
-.today-cycle-node circle {
-  fill: color-mix(in srgb, var(--sj-c, var(--accent)) 88%, var(--bg-card));
-  stroke: var(--canvas-cream);
-  stroke-width: 2;
-}
-.today-cycle-node circle.is-empty {
-  fill: color-mix(in srgb, var(--sj-c, var(--line)) 10%, transparent);
-  stroke: color-mix(in srgb, var(--sj-c, var(--line)) 60%, transparent);
-  stroke-width: 1.4;
-  stroke-dasharray: 2 3;
-}
-.today-cycle-node text {
-  fill: #fff;
-  font-size: 11px;
+.today-element-name {
+  font-size: 0.78rem;
   font-weight: 800;
-  text-anchor: middle;
-  pointer-events: none;
+  color: var(--sj-c, var(--text));
+  display: grid;
+  line-height: 1.25;
 }
-.today-cycle-node circle.is-empty + text {
-  fill: color-mix(in srgb, var(--sj-c, var(--text-dim)) 75%, var(--text));
+.today-element-name small {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--text-dim);
 }
-/* 금은 밝아서 흰 글자가 안 보인다 */
-.today-cycle-node.sj-metal text {
-  fill: #3a3a3a;
+.today-element-count {
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
-/* 금 원색(#d8d8de)은 라이트의 크림 바탕·다크의 트랙과 다 겹친다.
-   수치 화면 안에서만 중간 톤으로 — 양쪽 테마에서 다 선다. */
-.today-me .today-bar.sj-metal,
-.today-me .today-cycle-node.sj-metal {
-  --sj-c: #a6a6b4;
+.today-element.is-zero {
+  opacity: 0.42;
+}
+.today-element.is-zero .today-element-art img {
+  filter: grayscale(0.55);
 }
 
 .today-me-bars {

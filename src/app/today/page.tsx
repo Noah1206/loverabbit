@@ -14,7 +14,7 @@ import {
   type FortuneDomain,
 } from "@/lib/daily-action";
 import {
-  CYCLE,
+  ELEMENT_ART,
   FLAGS,
   flagOf,
   flipFlag,
@@ -469,25 +469,27 @@ function MyChart({ me }: { me: SajuProfileView }) {
       </div>
       <p className="today-basis-label">일간 {me.dayMaster}</p>
 
-      {/* 오행 — 레이더와 막대를 같이 둔다. 레이더는 치우친 모양이 한눈에
-          들어오고, 막대는 어느 쪽이 몇인지 정확히 읽힌다. */}
+      {/* 오행 — 상징 다섯이 줄지어 선다. 개수가 크기와 숫자로 같이 읽히고,
+          0 인 오행은 흐려져 "자리는 있는데 비었다"가 보인다. 고리 그래프는
+          걷었다 — 구조 설명이 앞서서 정작 내 값이 안 읽혔다. */}
       <p className="today-label">오행의 균형</p>
-      <div className="today-me-elements">
-        <ElementRadar elements={me.elements} />
-        <div className="today-me-bars">
-          {me.elements.map((e) => (
-            <div
-              key={e.ohaeng}
-              className={`today-bar ${e.className}${e.count === 0 ? " is-zero" : ""}`}
-            >
-              <span className="today-bar-name">{e.ohaeng}</span>
-              <span className="today-bar-track">
-                {e.count > 0 && <i style={{ width: `${Math.max(e.ratio, 4)}%` }} />}
-              </span>
-              <span className="today-bar-val">{e.count}</span>
-            </div>
-          ))}
-        </div>
+      <div className="today-element-row">
+        {me.elements.map((e) => (
+          <div
+            key={e.ohaeng}
+            className={`today-element ${e.className}${e.count === 0 ? " is-zero" : ""}${
+              e.tilt === "많음" ? " is-major" : ""
+            }`}
+          >
+            <span className="today-element-art">
+              <Image src={ELEMENT_ART[e.ohaeng]} alt="" width={120} height={120} />
+            </span>
+            <span className="today-element-name">
+              {e.ohaeng} <small>{e.trait}</small>
+            </span>
+            <span className="today-element-count">{e.count}</span>
+          </div>
+        ))}
       </div>
       <p className="today-fine">
         여덟 글자에서 센 개수입니다. 다섯이 고르면 하나에 20% 안팎이 됩니다.
@@ -550,87 +552,6 @@ function MyChart({ me }: { me: SajuProfileView }) {
   );
 }
 
-/**
- * 오행 상생상극 고리.
- *
- * 오각형 레이더는 값 다섯 개를 비교하는 그림이지 오행의 그림이 아니다.
- * 명리에서 오행은 목→화→토→금→수로 서로를 낳고(상생), 하나 건너 서로를
- * 누른다(상극) — 그 구조가 보여야 "오행을 봤다"가 된다.
- *
- * 바깥 고리의 화살표가 상생이고, 안쪽 별 모양 선이 상극이다. 원의 크기는
- * 그 오행이 명식에 몇 개인지다 — 비율이 아니라 개수로 잡는다. 비율은
- * 전체가 바뀌면 같은 개수도 달라 보인다.
- */
-function ElementRadar({ elements }: { elements: SajuProfileView["elements"] }) {
-  const size = 168;
-  const c = size / 2;
-  const ring = c - 26;
-  const max = Math.max(...elements.map((e) => e.count), 3);
-  const byName = new Map(elements.map((e) => [e.ohaeng, e]));
-
-  // 상생 순서대로 원 위에 놓는다 — 목이 위, 시계방향으로 화·토·금·수
-  const seat = CYCLE.map((ohaeng, i) => {
-    const angle = (Math.PI * 2 * i) / CYCLE.length - Math.PI / 2;
-    return {
-      ohaeng,
-      bar: byName.get(ohaeng)!,
-      x: c + Math.cos(angle) * ring,
-      y: c + Math.sin(angle) * ring,
-    };
-  });
-
-  return (
-    <svg
-      className="today-cycle"
-      viewBox={`0 0 ${size} ${size}`}
-      role="img"
-      aria-label="오행 상생상극"
-    >
-      {/* 상극 — 하나 건너 잇는 별 모양. 뒤에 깔아 상생보다 약하게 보인다 */}
-      {seat.map((from, i) => {
-        const to = seat[(i + 2) % seat.length];
-        return (
-          <line
-            key={`k${from.ohaeng}`}
-            x1={from.x}
-            y1={from.y}
-            x2={to.x}
-            y2={to.y}
-            className="today-cycle-control"
-          />
-        );
-      })}
-
-      {/* 상생 — 이웃끼리 잇는 고리 */}
-      {seat.map((from, i) => {
-        const to = seat[(i + 1) % seat.length];
-        return (
-          <line
-            key={`g${from.ohaeng}`}
-            x1={from.x}
-            y1={from.y}
-            x2={to.x}
-            y2={to.y}
-            className="today-cycle-generate"
-          />
-        );
-      })}
-
-      {/* 오행 — 개수만큼 커진다. 0 이면 테두리만 남는다 */}
-      {seat.map(({ ohaeng, bar, x, y }) => {
-        const r = 9 + (bar.count / max) * 12;
-        return (
-          <g key={ohaeng} className={`today-cycle-node ${bar.className}`}>
-            <circle cx={x} cy={y} r={r} className={bar.count === 0 ? "is-empty" : ""} />
-            <text x={x} y={y} dominantBaseline="central">
-              {ohaeng}
-            </text>
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
 
 /**
  * 오늘의 깃발.
