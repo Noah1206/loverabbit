@@ -13,7 +13,6 @@ import {
   seoulToday,
   type FortuneDomain,
 } from "@/lib/daily-action";
-import { adminKeyFromAuthorization, verifyAdminApprovalKey } from "@/lib/admin-auth";
 import { sajuProfileOf } from "@/lib/saju-profile";
 import { resolveUserToken } from "@/lib/tokens";
 
@@ -49,15 +48,6 @@ function daysBefore(todayISO: string, n: number): string {
 }
 
 export async function POST(request: NextRequest) {
-  // 아직 검수 중인 기능이라 관리자에게만 연다 (2026-09-01).
-  //
-  // 관문은 여기 하나다. 화면에서만 가리면 라우트를 직접 부르는 길이 남고,
-  // 그 길에는 검사가 없다. 검수가 끝나면 이 블록만 지우면 된다 —
-  // 아래 로직은 손댈 것이 없다.
-  if (!verifyAdminApprovalKey(adminKeyFromAuthorization(request.headers.get("authorization")))) {
-    return NextResponse.json({ error: "준비 중인 기능이에요." }, { status: 404 });
-  }
-
   const body = (await request.json().catch(() => ({}))) as Body;
 
   let user;

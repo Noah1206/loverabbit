@@ -10532,28 +10532,6 @@ input[type="radio"] {
   }
 }
 
-/* 검수 중 잠금 — 열쇠 구멍만 둔다 (2026-09-01).
-   기능을 열 때 이 블록도 같이 지운다. */
-.today-unlock {
-  display: flex;
-  gap: 8px;
-  margin-top: 18px;
-  width: min(300px, 100%);
-}
-.today-unlock input {
-  flex: 1;
-  min-width: 0;
-  padding: 13px 16px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--line);
-  background: var(--bg-card);
-  color: var(--text);
-  font-size: 0.95rem;
-}
-.today-unlock .btn {
-  padding: 13px 20px;
-  font-size: 0.95rem;
-}
 
 /* 결제 전 고지 (PurchaseNotice). 눈에 띄되 결제를 가리지 않는 크기 —
    법이 요구하는 건 "알렸는가" 이지 "크게 썼는가" 가 아니다. */

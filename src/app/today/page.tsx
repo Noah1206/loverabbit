@@ -37,15 +37,6 @@ import { getUser, type User } from "@/lib/user";
 // 하루에 한 번만 인사한다. 세 번째 열 때도 손을 흔들면 그건 인사가 아니라
 // 관문이다. sessionStorage 에 오늘 날짜를 남겨 그 다음부터는 결과로 바로
 // 간다 — 탭을 닫으면 초기화되는 편이 "오늘 처음"의 감각에 가깝다.
-//
-// ── 아직 검수 중이라 관리자에게만 보인다 (2026-09-01) ──
-//
-// 진짜 관문은 /api/daily-action 에 있다. 여기서 하는 일은 그 관문에 키를
-// 실어 보내고, 없으면 화면을 안 그리는 것뿐이다 — 화면만 가리면 라우트를
-// 직접 부르는 길이 남는다.
-//
-// 열 때 지울 것: ADMIN_KEY 상수, adminKey 상태, 아래 "준비 중" 화면,
-// fetch 의 Authorization 헤더, 그리고 라우트의 verifyAdminApprovalKey 블록.
 
 interface DailyActionResponse {
   today: string;
@@ -67,7 +58,6 @@ interface DailyActionResponse {
 
 type Screen =
   | { kind: "loading" }
-  | { kind: "locked" }
   | { kind: "guest" }
   | { kind: "needsProfile" }
   | { kind: "error"; message: string }
@@ -80,17 +70,6 @@ const GREETED_KEY = "lr_today_greeted";
 
 /** 오늘 뽑은 깃발 — 같은 날 다시 뽑는 화면을 주지 않으려고 남긴다 */
 const FLAG_KEY = "lr_today_flag";
-
-/** 다른 관리자 화면과 같은 자리 — 한쪽에서 열어두면 여기도 열린다 */
-const ADMIN_KEY = "loverabbit_admin_approval_key";
-
-function storedAdminKey(): string {
-  try {
-    return sessionStorage.getItem(ADMIN_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
 
 function alreadyGreetedToday(today: string): boolean {
   try {
@@ -113,18 +92,17 @@ function rememberGreeted(today: string): void {
 export default function TodayPage() {
   const [screen, setScreen] = useState<Screen>({ kind: "loading" });
   const [step, setStep] = useState<Step>("hello");
-  const [adminKey, setAdminKey] = useState("");
   const [account, setAccount] = useState<User | null>(null);
   const [picked, setPicked] = useState<FortuneDomain | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  const load = useCallback(async (token: string, key: string) => {
+  const load = useCallback(async (token: string) => {
     setScreen({ kind: "loading" });
     try {
       const res = await fetch("/api/daily-action", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userToken: token }),
       });
       const body = await res.json().catch(() => null);
@@ -146,19 +124,13 @@ export default function TodayPage() {
   }, []);
 
   useEffect(() => {
-    const key = storedAdminKey();
-    setAdminKey(key);
-    if (!key) {
-      setScreen({ kind: "locked" });
-      return;
-    }
     const stored = getUser();
     setAccount(stored);
     if (!stored) {
       setScreen({ kind: "guest" });
       return;
     }
-    void load(stored.token, key);
+    void load(stored.token);
   }, [load]);
 
   const complete = async (domain: FortuneDomain) => {
@@ -168,7 +140,7 @@ export default function TodayPage() {
     try {
       const res = await fetch("/api/daily-action", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${adminKey}` },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userToken: account.token, intent: "complete", domain }),
       });
       const body = await res.json().catch(() => null);
@@ -196,51 +168,6 @@ export default function TodayPage() {
     return (
       <main className="today">
         <p className="today-waiting">오늘의 흐름을 읽고 있어요…</p>
-      </main>
-    );
-  }
-
-  // 검수 중 — 키를 아는 사람만 들어온다.
-  //
-  // "준비 중"이라고만 말하고 무엇을 준비하는지는 적지 않는다. 열쇠 구멍은
-  // 있지만 안에 무엇이 있는지는 밖에서 안 보이는 편이 낫다.
-  if (screen.kind === "locked") {
-    return (
-      <main className="today">
-        <div className="today-stage">
-          <h1 className="today-title today-title-sm">준비 중인 기능이에요.</h1>
-          <p className="today-sub">조금만 기다려 주세요.</p>
-          <form
-            className="today-unlock"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const key = new FormData(event.currentTarget).get("key");
-              if (typeof key !== "string" || !key.trim()) return;
-              try {
-                sessionStorage.setItem(ADMIN_KEY, key.trim());
-              } catch {
-                /* 저장이 막혀도 이번 세션은 연다 */
-              }
-              setAdminKey(key.trim());
-              const stored = getUser();
-              setAccount(stored);
-              if (!stored) {
-                setScreen({ kind: "guest" });
-                return;
-              }
-              void load(stored.token, key.trim());
-            }}
-          >
-            <input
-              name="key"
-              type="password"
-              autoComplete="off"
-              placeholder="운영 키"
-              aria-label="운영 키"
-            />
-            <button type="submit" className="btn">열기</button>
-          </form>
-        </div>
       </main>
     );
   }
@@ -279,7 +206,7 @@ export default function TodayPage() {
               <button
                 type="button"
                 className="btn today-cta"
-                onClick={() => account && void load(account.token, adminKey)}
+                onClick={() => account && void load(account.token)}
               >
                 다시 시도
               </button>
