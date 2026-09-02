@@ -10265,10 +10265,29 @@ input[type="radio"] {
   color: var(--text-dim);
 }
 .today-element-count {
-  font-size: 0.92rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  margin-top: 2px;
+}
+/* 점 하나 = 여덟 글자 중 한 글자. 맨숫자보다 "세었다"가 보인다. */
+.today-element-dots {
+  display: flex;
+  gap: 3px;
+}
+.today-element-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sj-c, var(--accent));
+}
+.today-element-tilt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.today-element.is-major .today-element-tilt {
+  color: var(--sj-c, var(--text));
 }
 .today-element.is-zero {
   opacity: 0.42;

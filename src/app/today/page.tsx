@@ -487,12 +487,24 @@ function MyChart({ me }: { me: SajuProfileView }) {
             <span className="today-element-name">
               {e.ohaeng} <small>{e.trait}</small>
             </span>
-            <span className="today-element-count">{e.count}</span>
+            {/* 맨숫자 "3" 은 여덟 글자 중 셋이라는 뜻이 안 실린다.
+                점 하나가 글자 하나 — 세는 단위가 눈에 보이고,
+                상태 말이 그 양의 뜻을 준다. */}
+            <span className="today-element-count">
+              {e.count > 0 && (
+                <span className="today-element-dots" aria-hidden>
+                  {Array.from({ length: e.count }, (_, i) => (
+                    <i key={i} />
+                  ))}
+                </span>
+              )}
+              <span className="today-element-tilt">{e.tilt}</span>
+            </span>
           </div>
         ))}
       </div>
       <p className="today-fine">
-        여덟 글자에서 센 개수입니다. 다섯이 고르면 하나에 20% 안팎이 됩니다.
+        점 하나가 사주 여덟 글자 중 한 글자입니다. 다섯이 고르면 한 오행에 한두 개씩 돌아갑니다.
         {me.absent.length > 0 && ` 지장간까지 열어도 없는 것: ${me.absent.join("·")}.`}
         {me.hidden.length > 0 && ` 겉에 없지만 지장간에 든 것: ${me.hidden.join("·")}.`}
       </p>
