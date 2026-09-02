@@ -476,10 +476,13 @@ function MyChart({ me }: { me: SajuProfileView }) {
         <ElementRadar elements={me.elements} />
         <div className="today-me-bars">
           {me.elements.map((e) => (
-            <div key={e.ohaeng} className={`today-bar ${e.className}`}>
+            <div
+              key={e.ohaeng}
+              className={`today-bar ${e.className}${e.count === 0 ? " is-zero" : ""}`}
+            >
               <span className="today-bar-name">{e.ohaeng}</span>
               <span className="today-bar-track">
-                <i style={{ width: `${Math.max(e.ratio, 2)}%` }} />
+                {e.count > 0 && <i style={{ width: `${Math.max(e.ratio, 4)}%` }} />}
               </span>
               <span className="today-bar-val">{e.count}</span>
             </div>
@@ -516,7 +519,12 @@ function MyChart({ me }: { me: SajuProfileView }) {
           <div key={t.tenGod} className="today-bar is-tengod">
             <span className="today-bar-name is-wide">{t.tenGod}</span>
             <span className="today-bar-track">
-              <i style={{ width: `${Math.max(t.ratio, 3)}%` }} />
+              <i
+                style={{
+                  width: `${Math.max(t.ratio, 4)}%`,
+                  ["--w" as string]: `${Math.min(45 + t.ratio * 1.4, 95)}%`,
+                }}
+              />
             </span>
             <span className="today-bar-val">{t.count}</span>
           </div>
