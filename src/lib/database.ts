@@ -326,6 +326,46 @@ export async function getUserSajuProfile(userId: number): Promise<SajuProfile | 
 
 // ── 오늘의 사주 액션 ───────────────────────────────────────
 
+/**
+ * AI 개인화 문구 캐시 — (유저, 날짜, 흐름:영역)당 한 번만 생성한다.
+ * 없거나 DB 가 죽어 있으면 null — 호출부가 표 문구로 폴백한다.
+ */
+export async function getDailyActionText(
+  userId: number,
+  date: string,
+  cacheKey: string
+): Promise<Record<string, string> | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_daily_action_texts")
+    .select("payload")
+    .eq("user_id", userId)
+    .eq("action_date", date)
+    .eq("cache_key", cacheKey)
+    .maybeSingle();
+  if (error) throw databaseError("오늘의 액션 문구 조회", error);
+  return (data?.payload as Record<string, string>) ?? null;
+}
+
+export async function saveDailyActionText(
+  userId: number,
+  date: string,
+  cacheKey: string,
+  payload: Record<string, string>
+): Promise<void> {
+  const db = getSupabaseAdmin();
+  if (!db) return;
+  // 같은 조합이 동시에 두 번 생성돼도 한 줄만 남으면 된다 — 충돌은 무시.
+  const { error } = await db
+    .from("lr_daily_action_texts")
+    .upsert(
+      { user_id: userId, action_date: date, cache_key: cacheKey, payload },
+      { onConflict: "user_id,action_date,cache_key", ignoreDuplicates: true }
+    );
+  if (error) throw databaseError("오늘의 액션 문구 저장", error);
+}
+
 export interface DailyActionRecord {
   /** "2026-09-01" */
   date: string;

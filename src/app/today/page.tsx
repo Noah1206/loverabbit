@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -203,6 +203,29 @@ export default function TodayPage() {
   /** 들어가는 중 — 데이터가 빨리 와도 끄덕이는 토끼를 잠깐은 보여준다.
       문이 벌컥 열리는 것보다 한 박자 있다 열리는 쪽이 들어가는 기분이 든다. */
   const [entering, setEntering] = useState(true);
+  /** AI 가 내 명식으로 다시 쓴 문구. key 는 "오행:영역" — 조합이 바뀌면 다시 받는다.
+      null 이면(생성 실패·키 없음) 표 문구가 그대로 나간다. */
+  const [ai, setAi] = useState<{ key: string; text: { action: string; reason: string; avoidAction: string; rabbitLine: string } | null } | null>(null);
+
+  /** 개인화 요청 — 같은 조합은 다시 부르지 않는다. 뽑기 연출 2.6초 사이에
+      미리 불러 두면 결과가 열릴 때쯤 도착해 있다. */
+  const aiKeyRef = useRef<string | null>(null);
+  const requestAi = useCallback(
+    (token: string, ohaeng: Ohaeng | null, domain: FortuneDomain) => {
+      const key = `${ohaeng ?? "일진"}:${domain}`;
+      if (aiKeyRef.current === key) return;
+      aiKeyRef.current = key;
+      fetch("/api/daily-action/personalize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userToken: token, ohaeng: ohaeng ?? undefined, domain }),
+      })
+        .then((res) => res.json())
+        .then((body) => setAi({ key, text: body?.text ?? null }))
+        .catch(() => setAi({ key, text: null }));
+    },
+    []
+  );
 
   useEffect(() => {
     const t = window.setTimeout(() => setEntering(false), 1600);
@@ -244,6 +267,20 @@ export default function TodayPage() {
     }
     void load(stored.token);
   }, [load]);
+
+  // 결과로 들어오는 다른 길들(어제 인사 완료 → 바로 결과, 영역 바꾸기)에서도
+  // 개인화를 받는다. 뽑기 클릭 경로는 onClick 에서 먼저 쏜다 — 연출 2.6초를
+  // 대기 시간으로 쓰기 위해서다.
+  useEffect(() => {
+    if (step !== "reveal" || screen.kind !== "ready" || !account) return;
+    const d = screen.data;
+    const ohaeng = flaggedOhaeng(d.today);
+    const fr = flipFlag(d.flow.myElement, ohaeng ?? d.flow.todayElement);
+    const domain = ohaeng
+      ? buildFlagAction(RELATION_FLOW[fr.relation], picked ?? undefined, d.completedToday as FortuneDomain[]).domain
+      : (picked ?? d.action.domain);
+    requestAi(account.token, ohaeng, domain);
+  }, [step, screen, picked, account, requestAi]);
 
   const complete = async (domain: FortuneDomain, text?: string) => {
     if (!account || saving) return;
@@ -480,6 +517,16 @@ export default function TodayPage() {
                   rememberFlag(data.today, flag.ohaeng);
                   setDrawn(flag.ohaeng);
                   playDrawSound();
+                  // 깃발이 펼쳐지는 사이에 AI 개인화를 미리 받아 둔다
+                  if (account) {
+                    const fr = flipFlag(data.flow.myElement, flag.ohaeng);
+                    const dom = buildFlagAction(
+                      RELATION_FLOW[fr.relation],
+                      picked ?? undefined,
+                      data.completedToday as FortuneDomain[]
+                    ).domain;
+                    requestAi(account.token, flag.ohaeng, dom);
+                  }
                   // 뽑자마자 답을 주지 않는다. 깃발이 크게 펼쳐지는 것을 본 뒤에 넘어간다.
                   setFlipping(true);
                   setTimeout(() => {
@@ -524,6 +571,13 @@ export default function TodayPage() {
 
   const done = data.completedToday.includes(shown.domain);
   const wonFlag = flagOf(pickedOhaeng ?? flagResult.todayElement);
+  // AI 가 내 명식으로 다시 쓴 문구가 도착해 있으면 그것을, 아니면 표 문구를.
+  // 조합(key)이 지금 화면과 다르면 남의 조합 문구라 쓰지 않는다.
+  const aiText =
+    ai?.key === `${pickedOhaeng ?? "일진"}:${shown.domain}` ? ai.text : null;
+  const shownAction = aiText?.action ?? shown.action;
+  const shownReason = aiText?.reason ?? shown.reason;
+  const shownAvoid = aiText?.avoidAction ?? shown.avoidAction;
   /** 전제 — 뽑은 깃발이 있으면 그 깃발이 말하고, 없으면 오늘의 일진이 말한다 */
   const premise = pickedOhaeng
     ? `네가 뽑은 ${wonFlag.color}기(${pickedOhaeng}) — ${PICKED_PREMISE[flagResult.relation]}`
@@ -533,11 +587,11 @@ export default function TodayPage() {
   const shareText = [
     `[${DOMAIN_LABEL[shown.domain]}] 일간 ${data.flow.dayMaster} · 오늘 ${data.flow.dayGanji}일`,
     premise,
-    shown.action,
+    shownAction,
     shown.durationMinutes ? `약 ${shown.durationMinutes}분이면 돼` : "",
     "",
-    `왜 이 행동인가 — ${shown.reason}`,
-    `오늘 피할 행동 — ${shown.avoidAction}`,
+    `왜 이 행동인가 — ${shownReason}`,
+    `오늘 피할 행동 — ${shownAvoid}`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -551,7 +605,7 @@ export default function TodayPage() {
           </span>
           {premise}
         </p>
-        <h1 className="today-sky-title is-action">{shown.action}</h1>
+        <h1 className="today-sky-title is-action">{shownAction}</h1>
         {shown.durationMinutes && (
           <p className="today-sky-sub">약 {shown.durationMinutes}분이면 돼</p>
         )}
@@ -564,10 +618,10 @@ export default function TodayPage() {
           </p>
 
           <p className="today-label">왜 이 행동인가</p>
-          <p className="today-body">{shown.reason}</p>
+          <p className="today-body">{shownReason}</p>
 
           <p className="today-label">오늘 피할 행동</p>
-          <p className="today-body">{shown.avoidAction}</p>
+          <p className="today-body">{shownAvoid}</p>
 
           {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
 
