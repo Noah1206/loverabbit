@@ -12,7 +12,9 @@ import { useEscape } from "@/lib/use-escape";
   초대형 가격, 재물 토끼, 진갈색 CTA.
 
   광고에서 온 사람은 상품 페이지 9초에서 나간다. 값을 첫 화면 어디에 적어도
-  안 읽는 사람이 있어서, 한 번은 눈앞에 세운다. 한 브라우저에 한 번만 (localStorage).
+  안 읽는 사람이 있어서, 한 번은 눈앞에 세운다. 방문할 때마다 뜬다
+  (2026-09-04 운영자 — 브라우저당 1회에서 바꿈). sessionStorage 라 탭을
+  닫았다 다시 오면 또 뜨고, 같은 세션 안에서 페이지를 오갈 때는 안 뜬다.
 
   뜨는 곳: 홈, 상품 페이지, 광고 랜딩. 폼·결제·리딩·관리자 화면에서는 안 뜬다 —
   거기서는 이미 하던 일이 있다.
@@ -31,7 +33,7 @@ export default function WelcomePopup() {
   useEffect(() => {
     if (!SHOW_ON.some((re) => re.test(pathname ?? ""))) return;
     try {
-      if (localStorage.getItem(KEY)) return;
+      if (sessionStorage.getItem(KEY)) return;
     } catch {
       return;
     }
@@ -41,7 +43,7 @@ export default function WelcomePopup() {
 
   const close = () => {
     try {
-      localStorage.setItem(KEY, String(Date.now()));
+      sessionStorage.setItem(KEY, String(Date.now()));
     } catch {
       // 저장이 막힌 브라우저면 다음 방문에 한 번 더 뜬다. 그 정도는 괜찮다.
     }
