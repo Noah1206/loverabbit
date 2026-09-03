@@ -209,7 +209,10 @@ body {
      그래서 로그인 팝업이 화면이 아니라 문서 한가운데(y≈1500)에 앉아,
      사용자에게는 어두워지기만 하고 아무것도 안 뜨는 것으로 보였다.
      backwards 는 시작 프레임만 미리 당겨 쓰고 끝나면 손을 뗀다. */
-  animation: route-slide-in 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  /* 옆에서 미끄러지는 대신 아래에서 살짝 떠오르며 스며든다 (2026-09-03
+     운영자: "땅 뜨지 말고 부드럽게"). 시간을 조금 늘려 팝이 아니라
+     페이드로 읽히게 한다. */
+  animation: route-slide-in 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   /* 들어오는 동안 가로 스크롤바가 잠깐 생기는 것을 막는다 */
   overflow-x: clip;
 }
@@ -217,7 +220,7 @@ body {
 @keyframes route-slide-in {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;

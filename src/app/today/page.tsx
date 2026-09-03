@@ -479,10 +479,9 @@ export default function TodayPage() {
 
         {data.me && <MyChart me={data.me} />}
 
-        <p className="today-fine today-footnote">
-          어느 깃발을 골라도 답은 하나야. 예언이 아니라 참고 가이드다.
-          {data.birthTimeUnknown && " 태어난 시각은 몰라도 결과는 안 달라져."}
-        </p>
+        {data.birthTimeUnknown && (
+          <p className="today-fine today-footnote">태어난 시각은 몰라도 결과는 안 달라져.</p>
+        )}
 
         <button type="button" className="today-skip" onClick={() => setStep("pick")}>
           다른 운세 보기
