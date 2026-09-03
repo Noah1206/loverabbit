@@ -408,10 +408,11 @@ export default function TodayPage() {
     return (
       <main className="today">
         <Sky date={dateLabel(data.today)}>
+          {/* "되돌릴 수 없어"는 다시 뽑기가 생기면서 거짓말이 됐다 — 뺐다. */}
           <h1 className="today-sky-title">
-            &ldquo;한 번 뽑은 깃발은
+            마음이 가는 깃발,
             <br />
-            되돌릴 수 없어.&rdquo;
+            하나만 뽑아봐.
           </h1>
           <p className="today-sky-sub" aria-live="polite">
             {flipping ? "뽑은 깃발을 펼치는 중이야…" : "신중하게 골라. 네가 뽑는 기운으로 오늘을 풀게."}
@@ -527,9 +528,27 @@ export default function TodayPage() {
           <p className="today-fine today-footnote">태어난 시각은 몰라도 결과는 안 달라져.</p>
         )}
 
-        <button type="button" className="today-skip" onClick={() => setStep("pick")}>
-          다른 운세 보기
-        </button>
+        <div className="today-again">
+          <button type="button" className="today-skip" onClick={() => setStep("pick")}>
+            다른 운세 보기
+          </button>
+          <button
+            type="button"
+            className="today-skip"
+            onClick={() => {
+              // 오늘의 깃발을 무르고 다시 뽑는다 (2026-09-03 운영자).
+              try {
+                sessionStorage.removeItem(FLAG_KEY);
+              } catch {
+                /* 지우기가 막혀도 화면은 뽑기로 간다 */
+              }
+              setDrawn(null);
+              setStep("flags");
+            }}
+          >
+            오방기 다시 뽑기
+          </button>
+        </div>
 
         <TodayShelf />
       </div>

@@ -10323,6 +10323,15 @@ input[type="radio"] {
   font-weight: 700;
   color: var(--semantic-success);
 }
+/* 결과 아래의 두 갈래 — 다른 운세 보기 · 오방기 다시 뽑기 */
+.today-again {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+.today-again .today-skip {
+  margin: 18px 0 0;
+}
 .today-skip {
   display: block;
   margin: 18px auto 0;
