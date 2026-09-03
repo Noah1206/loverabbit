@@ -47,6 +47,8 @@ import { getUser, type User } from "@/lib/user";
 
 interface DailyActionResponse {
   today: string;
+  /** 프로필 별명. 없으면 null — 화면은 "안녕"으로 부른다. */
+  name: string | null;
   action: DailySajuAction;
   others: DailySajuAction[];
   completedToday: string[];
@@ -178,6 +180,16 @@ function playDrawSound() {
   } catch {
     /* 소리가 막혀도 뽑기는 간다 */
   }
+}
+
+/**
+ * 이름을 부르는 호격 — "현웅아", "수야". 마지막 글자에 받침이 있으면 "아",
+ * 없으면 "야". 한글이 아닌 이름(영문 등)은 조사 없이 이름만 부른다.
+ */
+function vocative(name: string): string {
+  const last = name.charCodeAt(name.length - 1);
+  if (last < 0xac00 || last > 0xd7a3) return name;
+  return name + ((last - 0xac00) % 28 === 0 ? "야" : "아");
 }
 
 /** "9/3 목" — 밤하늘 왼쪽 위의 오늘. 서버가 준 날짜가 있으면 그 날을 쓴다. */
@@ -410,14 +422,16 @@ export default function TodayPage() {
         <Sky date={dateLabel(data.today)} rabbitArt={OBANG_RABBIT_ART}>
           <p className="today-sky-eyebrow">오늘의 사주 액션</p>
           <h1 className="today-sky-title">
-            오방기 다섯,
+            {data.name ? `${vocative(data.name)},` : "안녕,"}
             <br />
-            하나만 뽑아봐.
+            오늘의 운세를
+            <br />
+            알려줄게.
           </h1>
           <p className="today-sky-sub">
             {data.yesterdayDomain
-              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 오늘은 네가 뽑는 깃발로 풀어줄게.`
-              : "네가 뽑는 깃발의 기운으로 오늘을 풀어줄게."}
+              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 뭐가 궁금해? 네가 뽑는 오방기로 풀어줄게.`
+              : "뭐가 궁금해? 네가 뽑는 오방기의 기운으로 풀어줄게."}
           </p>
           <button
             type="button"

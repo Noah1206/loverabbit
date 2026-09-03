@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   completeDailyAction,
+  getUserProfile,
   getUserSajuProfile,
   listRecentDailyActions,
   type DailyActionRecord,
@@ -143,9 +144,18 @@ export async function POST(request: NextRequest) {
   const yesterday = daysBefore(today, 1);
   const yesterdayDomain = history.find((row) => row.date === yesterday)?.domain;
 
+  // 토끼가 이름을 부른다 — 별명이 없으면 null, 화면이 "안녕"으로 대신한다.
+  let displayName: string | null = null;
+  try {
+    displayName = (await getUserProfile(user.userId))?.displayName ?? null;
+  } catch {
+    /* 이름을 못 불러도 운세는 나간다 */
+  }
+
   return NextResponse.json(
     {
       today,
+      name: displayName,
       action,
       // 다른 운세 보기 — 오늘의 같은 흐름을 나머지 영역에 대입한 것이다.
       others: buildAllDomains({
