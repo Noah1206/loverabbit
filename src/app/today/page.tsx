@@ -445,12 +445,15 @@ export default function TodayPage() {
                 }}
                 aria-label="말려 있는 깃발"
               >
-                {drawn === flag.ohaeng ? (
+                {/* 말린 기둥은 늘 서 있고, 뽑히면 드르륵 오른 뒤 그 위에서
+                    깃발이 펼쳐진다 — 바꿔치기가 아니라 겹침이라 빈 순간이 없다 */}
+                <span className="today-pole-body">
+                  <PoleArt />
+                </span>
+                {drawn === flag.ohaeng && (
                   <span className="today-pole-open">
                     <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
                   </span>
-                ) : (
-                  <PoleArt />
                 )}
               </button>
             ))}

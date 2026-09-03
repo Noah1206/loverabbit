@@ -10573,20 +10573,29 @@ input[type="radio"] {
   width: 100%;
 }
 .today-pole {
+  position: relative;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
   width: 19%;
   max-width: 88px;
+  /* 밑동을 바닥 아래 40px 묻는다 — 들어 올려도(호버·뽑힘) 잘린 끝이
+     안 보인다. 방(.today-draw)의 overflow 가 넘친 부분을 가린다. */
+  margin-bottom: -40px;
   transition: transform 0.25s ease, opacity 0.4s ease;
 }
-/* 자리마다 키가 다르다 — 손이 고를 이유가 생긴다 */
-.today-pole:nth-child(1) { height: 200px; }
-.today-pole:nth-child(2) { height: 246px; }
-.today-pole:nth-child(3) { height: 214px; }
-.today-pole:nth-child(4) { height: 288px; }
-.today-pole:nth-child(5) { height: 228px; }
+/* 자리마다 키가 다르다 — 손이 고를 이유가 생긴다 (묻힌 40px 포함) */
+.today-pole:nth-child(1) { height: 240px; }
+.today-pole:nth-child(2) { height: 286px; }
+.today-pole:nth-child(3) { height: 254px; }
+.today-pole:nth-child(4) { height: 328px; }
+.today-pole:nth-child(5) { height: 268px; }
+.today-pole-body {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .today-pole svg {
   width: 100%;
   height: 100%;
@@ -10597,17 +10606,35 @@ input[type="radio"] {
 .today-pole:hover svg,
 .today-pole:active svg {
   filter: brightness(1) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
-  transform: translateY(-10px);
+  transform: translateY(-12px);
 }
-/* 뽑힌 자리 — 말린 천이 진짜 깃발로 펼쳐진다 */
+/* 뽑힌 자리 — 기둥이 드르륵 오르고, 그 위에서 깃발이 펼쳐진다 */
 .today-pole.is-drawn {
   z-index: 5;
+  animation: today-pole-rise 0.6s ease-out forwards;
+}
+/* 드르륵 — 걸리는 데 없이 매끈하게 오르면 기계다. 턱을 넘듯 두 번 걸린다. */
+@keyframes today-pole-rise {
+  0% { transform: translateY(0); }
+  22% { transform: translateY(-10px) rotate(-1deg); }
+  36% { transform: translateY(-7px) rotate(0.8deg); }
+  58% { transform: translateY(-18px) rotate(-0.5deg); }
+  72% { transform: translateY(-15px); }
+  100% { transform: translateY(-26px); }
 }
 .today-pole-open {
-  display: block;
-  width: 100%;
-  height: 100%;
-  animation: today-unfurl 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: absolute;
+  inset: 0 0 40px;
+  /* 기둥이 다 오른 뒤에 펼쳐진다 — backwards 라 기다리는 동안은 안 보이고
+     밑의 기둥이 자리를 지킨다 */
+  animation: today-unfurl 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+}
+.today-pole.is-drawn .today-pole-body svg {
+  /* 깃발이 펼쳐질 때 기둥은 조용히 물러난다 */
+  animation: today-pole-fade 0.4s ease 0.55s forwards;
+}
+@keyframes today-pole-fade {
+  to { opacity: 0; }
 }
 .today-pole-open .alpha-motion,
 .today-pole-open img,
@@ -10632,9 +10659,6 @@ input[type="radio"] {
 }
 .today-draw.is-flipping .today-pole:not(.is-drawn) {
   opacity: 0.18;
-}
-.today-draw.is-flipping .today-pole.is-drawn {
-  transform: translateY(-16px) scale(1.1);
 }
 .today-error {
   color: var(--semantic-error);
