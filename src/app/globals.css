@@ -10119,19 +10119,37 @@ input[type="radio"] {
   border-color: transparent;
   color: #f0eff2;
 }
+/* 카드 안은 한 덩이로 읽혀야 한다 (2026-09-03). 눈썹·라벨·본문·잔글씨가
+   저마다 다른 밝기로 떨어져 있어 네 조각으로 끊겨 보였다. 이제 밝기는 둘
+   뿐이다 — 본문은 밝게, 나머지 안내는 흐리게. 라벨은 제목이 아니라 본문에
+   붙은 머리말이라, 사이 간격을 좁혀 한 문단처럼 앉힌다. */
 .today-feature-eyebrow {
   font-size: 0.78rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.5);
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
-.today-feature .today-label {
-  color: rgba(255, 255, 255, 0.6);
+.today-feature .today-label,
+.today-feature .today-fine {
+  color: rgba(255, 255, 255, 0.5);
 }
 .today-feature .today-body {
   color: rgba(255, 255, 255, 0.85);
 }
+/* 라벨-본문은 한 쌍이다: 쌍 안은 붙이고, 쌍과 쌍 사이만 벌린다. */
+.today-feature .today-label {
+  margin-top: 18px;
+  margin-bottom: 3px;
+}
+.today-feature .today-label:first-of-type {
+  margin-top: 0;
+}
 .today-feature .today-fine {
-  color: rgba(255, 255, 255, 0.5);
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 .today-feature .today-cta {
   background: #fff;
