@@ -155,6 +155,8 @@ export default function TodayPage() {
   const [copied, setCopied] = useState(false);
   /** 방금 손이 닿은 깃발 — 색이 열리는 연출에만 쓴다. 정본은 sessionStorage. */
   const [drawn, setDrawn] = useState<Ohaeng | null>(null);
+  /** 깃대 자리 — 자리가 색을 누설하지 않게 섞어 세운다. 다시 뽑을 때도 섞는다. */
+  const [shuffled, setShuffled] = useState(() => [...FLAGS].sort(() => Math.random() - 0.5));
   /** 들어가는 중 — 데이터가 빨리 와도 끄덕이는 토끼를 잠깐은 보여준다.
       문이 벌컥 열리는 것보다 한 박자 있다 열리는 쪽이 들어가는 기분이 든다. */
   const [entering, setEntering] = useState(true);
@@ -407,24 +409,28 @@ export default function TodayPage() {
   if (step === "flags") {
     return (
       <main className="today" key="flags">
-        <Sky date={dateLabel(data.today)}>
-          {/* "되돌릴 수 없어"는 다시 뽑기가 생기면서 거짓말이 됐다 — 뺐다. */}
-          <h1 className="today-sky-title">
-            마음이 가는 깃발,
-            <br />
-            하나만 뽑아봐.
-          </h1>
-          <p className="today-sky-sub" aria-live="polite">
-            {flipping ? "뽑은 깃발을 펼치는 중이야…" : "신중하게 골라. 네가 뽑는 기운으로 오늘을 풀게."}
+        <div className={`today-draw${flipping ? " is-flipping" : ""}`}>
+          <p className="today-draw-quote" aria-live="polite">
+            {flipping ? (
+              "뽑은 깃발을 펼치는 중이야…"
+            ) : (
+              <>
+                &ldquo;마음이 가는 깃발,
+                <br />
+                하나만 뽑아봐.&rdquo;
+              </>
+            )}
           </p>
-        </Sky>
-        <div className="today-content">
-          <div className={`today-flag-row is-step is-mystery${flipping ? " is-flipping" : ""}`}>
-            {FLAGS.map((flag, i) => (
+          {/* 오방기 다발을 든 토끼가 어둠 속에 흐릿하게 서 있다 — 뽑는 손의 상대 */}
+          <div className="today-draw-rabbit" aria-hidden>
+            <Image src={OBANG_RABBIT_ART} alt="" width={512} height={512} priority />
+          </div>
+          <div className="today-draw-row">
+            {shuffled.map((flag, i) => (
               <button
                 key={flag.ohaeng}
                 type="button"
-                className={`today-flag${drawn === flag.ohaeng ? " is-revealed" : ""}`}
+                className={`today-pole${drawn === flag.ohaeng ? " is-drawn" : ""}`}
                 style={{ ["--i" as string]: i }}
                 onClick={() => {
                   if (flipping) return;
@@ -435,11 +441,17 @@ export default function TodayPage() {
                   setTimeout(() => {
                     setStep("reveal");
                     setFlipping(false);
-                  }, 1600);
+                  }, 1800);
                 }}
-                aria-label="깃발"
+                aria-label="말려 있는 깃발"
               >
-                <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
+                {drawn === flag.ohaeng ? (
+                  <span className="today-pole-open">
+                    <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
+                  </span>
+                ) : (
+                  <PoleArt />
+                )}
               </button>
             ))}
           </div>
@@ -543,6 +555,7 @@ export default function TodayPage() {
                 /* 지우기가 막혀도 화면은 뽑기로 간다 */
               }
               setDrawn(null);
+              setShuffled([...FLAGS].sort(() => Math.random() - 0.5));
               setStep("flags");
             }}
           >
@@ -627,6 +640,30 @@ function Sky({
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * 말려 있는 오방기 하나 — 색을 감춘 나무 깃대.
+ *
+ * 천이 감겨 있어 무슨 색인지 보이지 않는다. 뽑히면 이 자리에 진짜 깃발
+ * (AlphaMotion)이 펼쳐진다. 그림 파일 없이 코드로 그린다.
+ */
+function PoleArt() {
+  return (
+    <svg viewBox="0 0 88 300" aria-hidden>
+      <defs>
+        <linearGradient id="pole-wood" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#8d7c60" />
+          <stop offset="0.45" stopColor="#c9b894" />
+          <stop offset="0.5" stopColor="#cdbd98" />
+          <stop offset="1" stopColor="#7c6c52" />
+        </linearGradient>
+      </defs>
+      <rect x="8" y="16" width="72" height="278" rx="8" fill="url(#pole-wood)" />
+      <ellipse cx="44" cy="18" rx="36" ry="12" fill="#e3d4ad" />
+      <path d="M20 60 q30 26 0 60 M64 120 q-26 30 0 62 M28 200 q24 24 0 52" stroke="rgba(90,74,52,0.35)" stroke-width="3" fill="none" />
+    </svg>
   );
 }
 
