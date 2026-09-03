@@ -137,6 +137,49 @@ function rememberGreeted(today: string): void {
   }
 }
 
+/**
+ * 뽑는 소리 — 나무가 딱 걸리고, 천이 스르륵 풀린다.
+ *
+ * 파일 없이 WebAudio 로 합성한다. 클릭 안에서 부르므로 자동재생 정책에
+ * 걸리지 않고, 소리가 막힌 환경에서는 조용히 지나간다.
+ */
+function playDrawSound() {
+  try {
+    const ctx = new AudioContext();
+    const t = ctx.currentTime;
+    // 딱 — 짧은 타격음
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "triangle";
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(140, t + 0.09);
+    g.gain.setValueAtTime(0.4, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    o.connect(g).connect(ctx.destination);
+    o.start(t);
+    o.stop(t + 0.2);
+    // 스르륵 — 대역 거른 잡음이 부풀었다 잦아든다 (천 펼쳐지는 소리)
+    const len = Math.floor(ctx.sampleRate * 0.7);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const n = ctx.createBufferSource();
+    n.buffer = buf;
+    const f = ctx.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = 1500;
+    f.Q.value = 0.7;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(0.0001, t + 0.4);
+    ng.gain.exponentialRampToValueAtTime(0.16, t + 0.6);
+    ng.gain.exponentialRampToValueAtTime(0.001, t + 1.1);
+    n.connect(f).connect(ng).connect(ctx.destination);
+    n.start(t + 0.4);
+  } catch {
+    /* 소리가 막혀도 뽑기는 간다 */
+  }
+}
+
 /** "9/3 목" — 밤하늘 왼쪽 위의 오늘. 서버가 준 날짜가 있으면 그 날을 쓴다. */
 function dateLabel(iso?: string): string {
   const d = iso ? new Date(`${iso}T00:00:00+09:00`) : new Date();
@@ -436,28 +479,39 @@ export default function TodayPage() {
                   if (flipping) return;
                   rememberFlag(data.today, flag.ohaeng);
                   setDrawn(flag.ohaeng);
-                  // 뽑자마자 답을 주지 않는다. 색이 열리는 것을 본 뒤에 넘어간다.
+                  playDrawSound();
+                  // 뽑자마자 답을 주지 않는다. 깃발이 크게 펼쳐지는 것을 본 뒤에 넘어간다.
                   setFlipping(true);
                   setTimeout(() => {
                     setStep("reveal");
                     setFlipping(false);
-                  }, 1800);
+                  }, 2600);
                 }}
                 aria-label="말려 있는 깃발"
               >
-                {/* 말린 기둥은 늘 서 있고, 뽑히면 드르륵 오른 뒤 그 위에서
-                    깃발이 펼쳐진다 — 바꿔치기가 아니라 겹침이라 빈 순간이 없다 */}
                 <span className="today-pole-body">
                   <PoleArt />
                 </span>
-                {drawn === flag.ohaeng && (
-                  <span className="today-pole-open">
-                    <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
-                  </span>
-                )}
               </button>
             ))}
           </div>
+
+          {/* 뽑힌 깃발은 슬롯 안이 아니라 방 한가운데에서 크게 펼쳐진다 —
+              작은 칸 안의 깃발은 결과가 아니라 아이콘으로 읽혔다. */}
+          {drawn && (
+            <div className="today-draw-reveal" aria-hidden>
+              <AlphaMotion
+                video={flagOf(drawn).video}
+                art={flagOf(drawn).art}
+                alt=""
+                width={512}
+                height={512}
+              />
+              <p className="today-draw-reveal-name">
+                {flagOf(drawn).color}기 · {drawn}
+              </p>
+            </div>
+          )}
         </div>
       </main>
     );

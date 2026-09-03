@@ -10622,30 +10622,42 @@ input[type="radio"] {
   72% { transform: translateY(-15px); }
   100% { transform: translateY(-26px); }
 }
-.today-pole-open {
+/* 방 한가운데의 큰 펼침 — 기둥이 드르륵 오른 뒤(0.55s) 어둠이 깊어지고
+   뽑힌 깃발이 화면 중앙에서 크게 펼쳐진다. */
+.today-draw-reveal {
   position: absolute;
-  inset: 0 0 40px;
-  /* 기둥이 다 오른 뒤에 펼쳐진다 — backwards 라 기다리는 동안은 안 보이고
-     밑의 기둥이 자리를 지킨다 */
-  animation: today-unfurl 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  background: radial-gradient(circle at 50% 44%, rgba(93, 72, 128, 0.55) 0%, rgba(14, 11, 16, 0.94) 68%);
+  animation: today-reveal-in 0.5s ease 0.55s backwards;
 }
-.today-pole.is-drawn .today-pole-body svg {
-  /* 깃발이 펼쳐질 때 기둥은 조용히 물러난다 */
-  animation: today-pole-fade 0.4s ease 0.55s forwards;
+.today-draw-reveal .alpha-motion {
+  animation: today-unfurl 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.55s backwards;
 }
-@keyframes today-pole-fade {
-  to { opacity: 0; }
+.today-draw-reveal img,
+.today-draw-reveal video {
+  width: min(340px, 74vw);
+  height: auto;
+  filter: drop-shadow(0 0 44px rgba(255, 226, 150, 0.35));
 }
-.today-pole-open .alpha-motion,
-.today-pole-open img,
-.today-pole-open video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.today-draw-reveal-name {
+  color: rgba(255, 255, 255, 0.92);
+  font-family: Georgia, "Nanum Myeongjo", serif;
+  font-size: 1.35rem;
+  letter-spacing: 0.14em;
+  animation: today-reveal-in 0.5s ease 1s backwards;
+}
+@keyframes today-reveal-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes today-unfurl {
   from {
-    transform: scaleY(0.4) translateY(30%);
+    transform: scale(0.45) translateY(18%);
     opacity: 0;
   }
   to {
