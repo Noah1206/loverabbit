@@ -35,6 +35,7 @@ export default function ReadingCheckoutPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  const [used, setUsed] = useState<number | null>(null);
   // 이 사람이 낼 단품 값. 서버가 열어본 장수로 정한다 (2·4·10러빗).
   const [readingCost, setReadingCost] = useState(READING_SALE_CREDITS);
   // 이 리딩을 0원으로 여는 쿠폰(세트 나머지 장). 있으면 크레딧보다 먼저 권한다.
@@ -68,9 +69,17 @@ export default function ReadingCheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userToken: stored.token }),
       })
-        .then(async (res) => (res.ok ? ((await res.json()) as { balance?: number; readingCost?: number }) : null))
+        .then(async (res) =>
+          res.ok
+            ? ((await res.json()) as { balance?: number; readingCost?: number; ledger?: { delta: number }[] })
+            : null
+        )
         .then((data) => {
           if (typeof data?.balance === "number") setBalance(data.balance);
+          // 실제로 쓴 러빗 — 원장의 차감 합. "사용 러빗"이 가격으로 오해받던 자리다.
+          if (Array.isArray(data?.ledger)) {
+            setUsed(data.ledger.reduce((sum, l) => (l.delta < 0 ? sum - l.delta : sum), 0));
+          }
           // 단품 값은 사람마다 다르다 (2·4·10러빗) — 서버가 센 장수로 정해진다.
           if (typeof data?.readingCost === "number") setReadingCost(data.readingCost);
         })
@@ -239,8 +248,8 @@ export default function ReadingCheckoutPage() {
             </b>
           </div>
           <div>
-            <span>사용 러빗</span>
-            <b>{cost}</b>
+            <span>쓴 러빗</span>
+            <b>{user ? (used === null ? "…" : used) : "-"}</b>
           </div>
         </div>
         {user && balance !== null && !enough && !freeCoupon && (
