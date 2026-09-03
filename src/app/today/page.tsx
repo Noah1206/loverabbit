@@ -660,7 +660,9 @@ function PoleArt() {
           <stop offset="1" stopColor="#7c6c52" />
         </linearGradient>
       </defs>
-      <rect x="8" y="16" width="72" height="278" rx="8" fill="url(#pole-wood)" />
+      {/* 아래로 뷰박스를 넘겨 그린다 — 바닥이 평평하게 잘려 화면 끝(탭바)에
+          맞닿는다. 둥근 밑동이 보이면 기둥이 아니라 막대 사탕이 된다. */}
+      <rect x="8" y="16" width="72" height="300" rx="8" fill="url(#pole-wood)" />
       <ellipse cx="44" cy="18" rx="36" ry="12" fill="#e3d4ad" />
       <path d="M20 60 q30 26 0 60 M64 120 q-26 30 0 62 M28 200 q24 24 0 52" stroke="rgba(90,74,52,0.35)" stroke-width="3" fill="none" />
     </svg>
