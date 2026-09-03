@@ -10496,13 +10496,30 @@ input[type="radio"] {
   border-radius: var(--r-pill);
   padding: 3px 10px;
 }
-/* 깃발을 뽑고 답이 열리기까지 — 누른 뒤에는 손을 막고 숨을 고른다 */
+/* 오방기 — 뽑기 전에는 색을 감춘다. 무엇이 나올지 모르는 손이어야
+   뽑기가 뽑기다. 손이 닿은 깃발만 색이 열린다. */
+.today-flag-row.is-mystery .today-flag .alpha-motion {
+  filter: grayscale(1) brightness(0.5) sepia(0.4);
+  transition: filter 0.5s ease;
+}
+.today-flag-row.is-mystery .today-flag.is-revealed .alpha-motion {
+  filter: none;
+}
+.today-flag-row.is-mystery .today-flag.is-revealed {
+  z-index: 9;
+}
+/* 깃발을 뽑고 답이 열리기까지 — 누른 뒤에는 손을 막고 숨을 고른다.
+   뽑힌 깃발은 또렷이 남고 나머지가 물러난다. */
 .today-flag-row.is-flipping {
   pointer-events: none;
 }
-.today-flag-row.is-flipping .today-flag {
-  opacity: 0.35;
+.today-flag-row.is-flipping .today-flag:not(.is-revealed) {
+  opacity: 0.25;
   transition: opacity 0.4s ease;
+}
+.today-flag-row.is-flipping .today-flag.is-revealed {
+  transform: rotate(var(--rot)) translateY(-14px) scale(1.12);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .today-error {
   color: var(--semantic-error);

@@ -7,9 +7,11 @@ import Link from "next/link";
 import RabbitLoader from "@/components/RabbitLoader";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
 import {
+  buildFlagAction,
   DOMAIN_LABEL,
   DOMAINS,
   GREETING_RABBIT_ART,
+  RELATION_FLOW,
   type DailySajuAction,
   type FortuneDomain,
 } from "@/lib/daily-action";
@@ -84,6 +86,31 @@ function hasFlaggedToday(today: string): boolean {
   }
 }
 
+/** 오늘 뽑은 오방기의 오행. 안 뽑았거나 저장이 막혔으면 null. */
+function flaggedOhaeng(today: string): Ohaeng | null {
+  try {
+    const v = sessionStorage.getItem(FLAG_KEY);
+    if (!v?.startsWith(`${today}:`)) return null;
+    const o = v.slice(today.length + 1);
+    return (["목", "화", "토", "금", "수"] as Ohaeng[]).includes(o as Ohaeng) ? (o as Ohaeng) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** 오방기 손잡이 든 토끼 — 첫 화면 전용 */
+const OBANG_RABBIT_ART = "/assets/today/rabbit-obanggi.webp";
+
+/** 뽑은 깃발의 오행이 내 일간에게 무엇인가 — 전제 한 줄.
+    관계는 saju-profile 의 상생상극 산식이 정하고, 여기는 말만 입힌다. */
+const PICKED_PREMISE: Record<keyof typeof RELATION_FLOW, string> = {
+  생받음: "너를 채워주는 기운이야. 인성의 자리.",
+  생해줌: "네 기운을 밖으로 꺼내는 깃발이야. 식상의 자리.",
+  "내가 이김": "네가 다룰 수 있는 기운이야. 재성의 자리.",
+  "나를 누름": "너를 단단히 붙드는 기운이야. 관성의 자리.",
+  "같은 편": "너와 같은 결의 기운이야. 비겁의 자리.",
+};
+
 function rememberFlag(today: string, ohaeng: string): void {
   try {
     sessionStorage.setItem(FLAG_KEY, `${today}:${ohaeng}`);
@@ -126,6 +153,8 @@ export default function TodayPage() {
   /** 깃발을 뽑고 답이 열리기까지의 뜸. 바로 열면 뽑은 손이 무의미해진다 */
   const [flipping, setFlipping] = useState(false);
   const [copied, setCopied] = useState(false);
+  /** 방금 손이 닿은 깃발 — 색이 열리는 연출에만 쓴다. 정본은 sessionStorage. */
+  const [drawn, setDrawn] = useState<Ohaeng | null>(null);
   /** 들어가는 중 — 데이터가 빨리 와도 끄덕이는 토끼를 잠깐은 보여준다.
       문이 벌컥 열리는 것보다 한 박자 있다 열리는 쪽이 들어가는 기분이 든다. */
   const [entering, setEntering] = useState(true);
@@ -280,36 +309,43 @@ export default function TodayPage() {
   }
 
   const { data } = screen;
-  const shown = picked
-    ? [data.action, ...data.others].find((a) => a.domain === picked) ?? data.action
-    : data.action;
+
+  // 뽑은 오방기가 있으면 그 오행이 흐름을 정하고, 없으면(저장이 막힌
+  // 브라우저 등) 오늘의 일진 흐름으로 돌아간다 — 어느 쪽이든 표에서 나온다.
+  const pickedOhaeng = flaggedOhaeng(data.today);
+  const flagResult = flipFlag(data.flow.myElement, pickedOhaeng ?? data.flow.todayElement);
+  const shown = pickedOhaeng
+    ? buildFlagAction(RELATION_FLOW[flagResult.relation], picked ?? undefined, data.completedToday as FortuneDomain[])
+    : picked
+      ? [data.action, ...data.others].find((a) => a.domain === picked) ?? data.action
+      : data.action;
 
   // ── 첫 걸음: 인사 ────────────────────────────────────────
 
   if (step === "hello") {
     return (
       <main className="today">
-        <Sky date={dateLabel(data.today)}>
+        <Sky date={dateLabel(data.today)} rabbitArt={OBANG_RABBIT_ART}>
           <p className="today-sky-eyebrow">오늘의 사주 액션</p>
           <h1 className="today-sky-title">
-            안녕!
+            오방기 다섯,
             <br />
-            오늘도 왔구나.
+            하나만 뽑아봐.
           </h1>
           <p className="today-sky-sub">
             {data.yesterdayDomain
-              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 오늘은 어떤 걸 볼까?`
-              : "오늘의 흐름을 가장 잘 쓰는 방법, 하나만 알려줄게."}
+              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 오늘은 네가 뽑는 깃발로 풀어줄게.`
+              : "네가 뽑는 깃발의 기운으로 오늘을 풀어줄게."}
           </p>
           <button
             type="button"
             className="today-sky-more"
             onClick={() => {
               rememberGreeted(data.today);
-              setStep("pick");
+              setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
             }}
           >
-            자세히 보기 <span aria-hidden>→</span>
+            오방기 뽑으러 가기 <span aria-hidden>→</span>
           </button>
         </Sky>
         <div className="today-content">
@@ -362,40 +398,45 @@ export default function TodayPage() {
     );
   }
 
-  // ── 셋째 걸음: 깃발 뽑기 ─────────────────────────────────
+  // ── 셋째 걸음: 오방기 뽑기 ───────────────────────────────
   //
-  // 운세를 고른 뒤, 답을 듣기 전에 손을 한 번 쓰게 한다. 어느 깃발을
-  // 골라도 답은 오늘의 일진이 정해 둔 하나지만, 고르는 행위가 뒤에 오는
-  // 선언을 "내가 뽑은 것"으로 만든다.
+  // 뽑은 깃발이 답을 정한다 (2026-09-03). 다섯 깃발은 색을 감춘 채
+  // 서 있고, 손이 닿은 하나만 색을 드러낸다 — 뽑은 오행이 내 일간을
+  // 어떻게 대하는지(상생상극)가 그대로 오늘의 흐름이 된다.
 
   if (step === "flags") {
     return (
       <main className="today">
         <Sky date={dateLabel(data.today)}>
-          <h1 className="today-sky-title">깃발을 하나 뽑아봐</h1>
+          <h1 className="today-sky-title">
+            &ldquo;한 번 뽑은 깃발은
+            <br />
+            되돌릴 수 없어.&rdquo;
+          </h1>
           <p className="today-sky-sub" aria-live="polite">
-            {flipping ? "뽑은 깃발을 읽는 중이야…" : "오늘의 기운이 네게 어느 자리인지 알려줄게."}
+            {flipping ? "뽑은 깃발을 펼치는 중이야…" : "신중하게 골라. 네가 뽑는 기운으로 오늘을 풀게."}
           </p>
         </Sky>
         <div className="today-content">
-          <div className={`today-flag-row is-step${flipping ? " is-flipping" : ""}`}>
+          <div className={`today-flag-row is-step is-mystery${flipping ? " is-flipping" : ""}`}>
             {FLAGS.map((flag, i) => (
               <button
                 key={flag.ohaeng}
                 type="button"
-                className="today-flag"
+                className={`today-flag${drawn === flag.ohaeng ? " is-revealed" : ""}`}
                 style={{ ["--i" as string]: i }}
                 onClick={() => {
                   if (flipping) return;
                   rememberFlag(data.today, flag.ohaeng);
-                  // 뽑자마자 답을 주지 않는다. 잠깐 멈췄다 열려야 뽑은 것이 된다.
+                  setDrawn(flag.ohaeng);
+                  // 뽑자마자 답을 주지 않는다. 색이 열리는 것을 본 뒤에 넘어간다.
                   setFlipping(true);
                   setTimeout(() => {
                     setStep("reveal");
                     setFlipping(false);
-                  }, 1400);
+                  }, 1600);
                 }}
-                aria-label={`${flag.color}색 깃발`}
+                aria-label="깃발"
               >
                 <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
               </button>
@@ -412,13 +453,16 @@ export default function TodayPage() {
   // 선언이 밤하늘의 큰 글이 된다 — 스크린샷의 "당신의 능력을…" 자리다.
 
   const done = data.completedToday.includes(shown.domain);
-  const flagResult = flipFlag(data.flow.myElement, data.flow.todayElement);
-  const wonFlag = flagOf(flagResult.todayElement);
+  const wonFlag = flagOf(pickedOhaeng ?? flagResult.todayElement);
+  /** 전제 — 뽑은 깃발이 있으면 그 깃발이 말하고, 없으면 오늘의 일진이 말한다 */
+  const premise = pickedOhaeng
+    ? `네가 뽑은 ${wonFlag.color}기(${pickedOhaeng}) — ${PICKED_PREMISE[flagResult.relation]}`
+    : flagResult.premise;
 
   /** 저장하기를 누르면 클립보드에 담기는 오늘 몫 */
   const shareText = [
     `[${DOMAIN_LABEL[shown.domain]}] 일간 ${data.flow.dayMaster} · 오늘 ${data.flow.dayGanji}일`,
-    flagResult.premise,
+    premise,
     shown.action,
     shown.durationMinutes ? `약 ${shown.durationMinutes}분이면 돼` : "",
     "",
@@ -435,7 +479,7 @@ export default function TodayPage() {
           <span className={`today-hero-flag ${wonFlag.className}`}>
             <AlphaMotion video={wonFlag.video} art={wonFlag.art} alt="" width={80} height={80} />
           </span>
-          {flagResult.premise}
+          {premise}
         </p>
         <h1 className="today-sky-title is-action">{shown.action}</h1>
         {shown.durationMinutes && (

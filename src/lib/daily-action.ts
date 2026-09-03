@@ -588,6 +588,52 @@ export function buildAllDomains(input: DailyActionInput): DailySajuAction[] {
   return DOMAINS.map((domain) => buildDailyAction({ ...input, domain }).action);
 }
 
+// ── 오방기 ────────────────────────────────────────────────
+//
+// 뽑은 깃발이 답을 바꾼다 (2026-09-03 운영자). 깃발 다섯은 오방색이자
+// 오행이고, 뽑은 오행이 내 일간을 어떻게 대하는가는 상생상극 산식으로
+// 다섯 갈래(비겁·식상·재성·관성·인성)에 정확히 떨어진다. 지어내는 값이
+// 없다 — 표(ACTIONS)의 어느 행을 펴는지가 손에 달렸을 뿐이다.
+
+/** 오행 관계(saju-profile의 FlagResult.relation) → 흐름 */
+export const RELATION_FLOW: Record<
+  "같은 편" | "생해줌" | "내가 이김" | "나를 누름" | "생받음",
+  Flow
+> = {
+  "같은 편": "비겁",
+  생해줌: "식상",
+  "내가 이김": "재성",
+  "나를 누름": "관성",
+  생받음: "인성",
+};
+
+/** 뽑은 깃발의 흐름으로 표의 한 칸을 편다. 영역을 안 주면 흐름이 고른다. */
+export function buildFlagAction(
+  flow: Flow,
+  domain?: FortuneDomain,
+  recentDomains: FortuneDomain[] = []
+): {
+  domain: FortuneDomain;
+  action: string;
+  reason: string;
+  avoidAction: string;
+  durationMinutes: number;
+  rabbit: { art: string; line: string };
+  disclaimer?: string;
+} {
+  const d = domain ?? pickDomain(flow, recentDomains);
+  const copy = ACTIONS[flow][d];
+  return {
+    domain: d,
+    action: copy.action,
+    reason: copy.reason,
+    avoidAction: copy.avoid,
+    durationMinutes: copy.minutes,
+    rabbit: FLOW_RABBIT[flow],
+    disclaimer: DISCLAIMER[d],
+  };
+}
+
 /** Asia/Seoul 기준 오늘 (ISO 날짜). 서버가 어느 지역에 있든 같은 날을 가리킨다. */
 export function seoulToday(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
