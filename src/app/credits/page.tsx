@@ -91,7 +91,19 @@ export default function CreditsPage() {
     // 포트원 결제창을 다녀오면 쿼리가 사라진다 — 탭에 남겨 두고, 없으면 남긴 것을 꺼낸다.
     if (safeNext) rememberCreditsReturn(safeNext);
     setNextPath(safeNext ?? peekCreditsReturn());
-    if (stored) void load(stored);
+    if (!stored) return;
+    void load(stored);
+    // 승인은 손님이 화면을 보는 사이 뒤에서 일어난다 — 리로드 없이 잔액이
+    // 채워지게 주기적으로, 그리고 탭에 돌아온 순간 다시 읽는다.
+    const tick = setInterval(() => void load(stored), 5000);
+    const onFocus = () => void load(stored);
+    document.addEventListener("visibilitychange", onFocus);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(tick);
+      document.removeEventListener("visibilitychange", onFocus);
+      window.removeEventListener("focus", onFocus);
+    };
   }, [load]);
 
   const submitTransfer = async () => {

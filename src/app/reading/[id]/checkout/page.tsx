@@ -63,27 +63,40 @@ export default function ReadingCheckoutPage() {
       return;
     }
     trackFunnel("checkout_opened", { product: found.category });
+    // 충전을 마치고 돌아온 사람의 잔액이 리로드 없이 채워지게 — 주기 폴링과
+    // 탭 복귀 시 재조회. 정리는 이 효과의 cleanup 이 맡는다.
+    let stopBalance = () => {};
     if (stored) {
-      void fetch("/api/credits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userToken: stored.token }),
-      })
-        .then(async (res) =>
-          res.ok
-            ? ((await res.json()) as { balance?: number; readingCost?: number; ledger?: { delta: number }[] })
-            : null
-        )
-        .then((data) => {
-          if (typeof data?.balance === "number") setBalance(data.balance);
-          // 실제로 쓴 러빗 — 원장의 차감 합. "사용 러빗"이 가격으로 오해받던 자리다.
-          if (Array.isArray(data?.ledger)) {
-            setUsed(data.ledger.reduce((sum, l) => (l.delta < 0 ? sum - l.delta : sum), 0));
-          }
-          // 단품 값은 사람마다 다르다 (2·4·10러빗) — 서버가 센 장수로 정해진다.
-          if (typeof data?.readingCost === "number") setReadingCost(data.readingCost);
+      const loadCredits = () =>
+        void fetch("/api/credits", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userToken: stored.token }),
         })
-        .catch(() => {});
+          .then(async (res) =>
+            res.ok
+              ? ((await res.json()) as { balance?: number; readingCost?: number; ledger?: { delta: number }[] })
+              : null
+          )
+          .then((data) => {
+            if (typeof data?.balance === "number") setBalance(data.balance);
+            // 실제로 쓴 러빗 — 원장의 차감 합. "사용 러빗"이 가격으로 오해받던 자리다.
+            if (Array.isArray(data?.ledger)) {
+              setUsed(data.ledger.reduce((sum, l) => (l.delta < 0 ? sum - l.delta : sum), 0));
+            }
+            // 단품 값은 사람마다 다르다 (2·4·10러빗) — 서버가 센 장수로 정해진다.
+            if (typeof data?.readingCost === "number") setReadingCost(data.readingCost);
+          })
+          .catch(() => {});
+      loadCredits();
+      const tick = setInterval(loadCredits, 5000);
+      document.addEventListener("visibilitychange", loadCredits);
+      window.addEventListener("focus", loadCredits);
+      stopBalance = () => {
+        clearInterval(tick);
+        document.removeEventListener("visibilitychange", loadCredits);
+        window.removeEventListener("focus", loadCredits);
+      };
       // 세트로 산 사람의 나머지 장은 0원 쿠폰으로 열린다. 크레딧 결제창이
       // 그 쿠폰을 못 보면 세트 약속("나머지 장은 무료")이 깨진다.
       void fetch("/api/coupons", {
@@ -98,6 +111,7 @@ export default function ReadingCheckoutPage() {
         })
         .catch(() => {});
     }
+    return () => stopBalance();
   }, [id, router]);
 
   /*
