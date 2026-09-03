@@ -2251,7 +2251,8 @@ label {
   min-height: 76px;
   overflow: hidden;
   border-color: rgba(255, 255, 255, 0.32);
-  border-radius: var(--r-xl);
+  /* 랜딩 CTA 는 더 둥글게 (2026-09-03 운영자) */
+  border-radius: 22px;
   text-align: center;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.44),
@@ -2443,7 +2444,7 @@ label {
 
   .ad-saju-sticky-shell .product-sticky-cta {
     min-height: 72px;
-    border-radius: var(--r-xl);
+    border-radius: 22px;
   }
 
   .ad-saju-cta-flames {
