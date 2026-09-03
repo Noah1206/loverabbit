@@ -9,7 +9,6 @@ import {
   DOMAIN_LABEL,
   DOMAINS,
   GREETING_RABBIT_ART,
-  GREETING_RABBIT_VIDEO,
   type DailySajuAction,
   type FortuneDomain,
 } from "@/lib/daily-action";
@@ -501,7 +500,7 @@ function Sky({
   date,
   children,
   rabbitArt = GREETING_RABBIT_ART,
-  rabbitVideo = GREETING_RABBIT_VIDEO,
+  rabbitVideo,
 }: {
   date: string;
   children: ReactNode;

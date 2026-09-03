@@ -604,9 +604,10 @@ export function seoulToday(now = new Date()): string {
   }).format(now);
 }
 
-/** 첫 화면에서 인사하는 토끼 — 흐름과 무관하게 늘 같다 */
-export const GREETING_RABBIT_VIDEO = "/assets/today/rabbit-hello.webm";
-export const GREETING_RABBIT_ART = "/assets/today/rabbit-hello.webp";
+/** 첫 화면에서 인사하는 토끼 — 흐름과 무관하게 늘 같다.
+    한복(조끼) 입은 러브레빗 전신 인사 컷 (2026-09-03, 힉스필드 생성).
+    영상 쌍이 아직 없어 정지 그림만 쓴다 — 화면에서는 bob 으로 움직인다. */
+export const GREETING_RABBIT_ART = "/assets/today/rabbit-hello-hanbok.webp";
 
 /** 테스트가 표 전체를 훑는 데 쓴다 */
 export const FLOWS: Flow[] = ["비겁", "식상", "재성", "관성", "인성"];

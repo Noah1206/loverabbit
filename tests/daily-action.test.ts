@@ -7,7 +7,6 @@ import {
   DAILY_ACTION_TABLE,
   FLOW_RABBIT,
   GREETING_RABBIT_ART,
-  GREETING_RABBIT_VIDEO,
   DOMAINS,
   DOMAIN_LABEL,
   FLOWS,
@@ -218,8 +217,8 @@ test("토끼 영상과 그림이 흐름마다 실제로 있다", () => {
     }
     assert.ok(line.length > 5, `${flow}: 토끼가 할 말이 없다`);
   }
+  // 인사 토끼는 한복 정지 그림 한 장뿐이다 (2026-09-03) — 영상 쌍이 없다.
   assert.ok(existsSync(`public${GREETING_RABBIT_ART}`), "인사 그림이 없다");
-  assert.ok(existsSync(`public${GREETING_RABBIT_VIDEO}`), "인사 영상이 없다");
 });
 
 test("영상이 없으면 정지 그림이 대신할 수 있게 짝이 맞는다", () => {
@@ -233,11 +232,6 @@ test("영상이 없으면 정지 그림이 대신할 수 있게 짝이 맞는다
       `${flow}: 영상과 그림이 다른 토끼를 가리킨다`
     );
   }
-  assert.equal(
-    GREETING_RABBIT_VIDEO.replace(/\.webm$/, ""),
-    GREETING_RABBIT_ART.replace(/\.webp$/, ""),
-    "인사 토끼의 영상과 그림이 어긋난다"
-  );
 });
 
 test("흐름마다 다른 얼굴이고 다른 말을 한다", () => {
