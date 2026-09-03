@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import loveRabbitLogo from "../../public/logo.png";
 
 // 슬랙식 플랫 탭바 (2026-08-31).
 //
@@ -34,14 +36,9 @@ const NAV_ITEMS = [
     href: "/today",
     label: "오늘",
     matches: (path: string) => path.startsWith("/today"),
-    // 해 — 오늘의 물건. 가운데 원과 네 방향 빛살.
-    icon: (
-      <>
-        <circle cx="12" cy="12" r="4" />
-        <path d="M12 3.2v2.1M12 18.7v2.1M3.2 12h2.1M18.7 12h2.1" />
-        <path d="M5.9 5.9l1.5 1.5M16.6 16.6l1.5 1.5M18.1 5.9l-1.5 1.5M7.4 16.6l-1.5 1.5" />
-      </>
-    ),
+    // 오늘의 사주를 보는 곳 — 브랜드 얼굴(원형 토끼 로고)을 그대로 얹는다.
+    // stroke 아이콘 대신 이미지라, 렌더에서 logo 플래그로 분기한다.
+    logo: true as const,
   },
   {
     href: "/profile",
@@ -87,10 +84,14 @@ export default function BottomNav() {
             className={active ? "on" : ""}
             aria-current={active ? "page" : undefined}
           >
-            <span className="tabbar-icon" aria-hidden>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                {item.icon}
-              </svg>
+            <span className={`tabbar-icon${"logo" in item ? " is-logo" : ""}`} aria-hidden>
+              {"logo" in item ? (
+                <Image src={loveRabbitLogo} alt="" width={24} height={24} sizes="24px" />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                  {item.icon}
+                </svg>
+              )}
             </span>
             <span className="tabbar-label">{item.label}</span>
           </Link>
