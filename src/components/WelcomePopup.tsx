@@ -8,6 +8,8 @@ import { useEscape } from "@/lib/use-escape";
 
 /*
   처음 온 사람에게 한 번 뜨는 팝업 — "첫 사주는 무조건 1,900원".
+  포춘 앱 이벤트 팝업 꼴(2026-09-04 운영자 지시): 골드 카드, 배지,
+  초대형 가격, 재물 토끼, 진갈색 CTA.
 
   광고에서 온 사람은 상품 페이지 9초에서 나간다. 값을 첫 화면 어디에 적어도
   안 읽는 사람이 있어서, 한 번은 눈앞에 세운다. 한 브라우저에 한 번만 (localStorage).
@@ -51,28 +53,37 @@ export default function WelcomePopup() {
   return (
     <div className="app-modal-layer welcome-popup-layer" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title" onClick={close}>
       <div className="card welcome-popup" onClick={(event) => event.stopPropagation()}>
-        {/* 닫기는 진짜 버튼이어야 한다 — 그림에 그려진 X 는 눌리지 않는다.
-            그래서 포스터에는 X 를 그리지 않았다. */}
+        {/* 추석 장식 — 배경 그라데이션(달·금화 무더기·구름)은 카드가 그리고,
+            움직이는 잎·반짝임만 요소로 띄운다. 전부 장식이라 aria-hidden. */}
+        <span className="welcome-popup-deco" aria-hidden="true">
+          <i className="wp-leaf wp-leaf-1">🍁</i>
+          <i className="wp-leaf wp-leaf-2">🍂</i>
+          <i className="wp-leaf wp-leaf-3">🍁</i>
+          <i className="wp-leaf wp-leaf-4">🍂</i>
+          <i className="wp-spark wp-spark-1">✦</i>
+          <i className="wp-spark wp-spark-2">✦</i>
+          <i className="wp-spark wp-spark-3">✧</i>
+        </span>
+
         <button type="button" className="welcome-popup-close" onClick={close} aria-label="닫기">
           ✕
         </button>
 
-        {/* 포스터 한 장. 문구("궁금해? 러브레빗한테 물어봐")까지 그림에 들어 있다
-            (2026-09-02 운영자 결정) — 그래서 화면에는 h3 을 두지 않고, 대신
-            낭독기와 검색을 위해 alt 로 같은 말을 남긴다.
+        {/* 값은 그림에 굽지 않는다 — 가격이 바뀌면 코드만 고치면 된다. */}
+        <span className="welcome-popup-badge">첫 가입 한정 혜택</span>
 
-            값은 그림에 넣지 않았다. 오늘 환율이 바뀌었듯 가격은 또 바뀌고,
-            구워 두면 그때마다 그림을 다시 만들어야 한다. */}
-        <img
-          className="welcome-popup-poster"
-          src="/assets/home/welcome-poster.webp"
-          alt="궁금해? 러브레빗한테 물어봐"
-          id="welcome-popup-title"
-        />
+        <h3 className="welcome-popup-headline" id="welcome-popup-title">
+          첫 사주 리딩
+        </h3>
 
-        <p className="welcome-popup-price">
-          어떤 사주든 첫 한 장은 {FIRST_READING_PRICE.toLocaleString("ko-KR")}원
+        <p className="welcome-popup-big-price" aria-label={`${FIRST_READING_PRICE.toLocaleString("ko-KR")}원`}>
+          <strong>{FIRST_READING_PRICE.toLocaleString("ko-KR")}</strong>
+          <span>원</span>
         </p>
+
+        <img className="welcome-popup-mascot" src="/assets/today/rabbit-hello-hanbok.webp" alt="" />
+
+        <p className="welcome-popup-price">어떤 사주든, 처음 온 분께만 드리는 가격이에요</p>
 
         <button type="button" className="btn welcome-popup-cta" onClick={close}>
           내 사주 보러가기

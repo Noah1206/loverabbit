@@ -375,7 +375,10 @@ body {
   transform: translateX(-50%);
 }
 
-/* 첫 방문 팝업 — 값 하나만 크게. 읽는 데 3초면 된다. */
+/* 첫 방문 팝업 — 값 하나만 크게. 읽는 데 3초면 된다.
+   포춘 앱 이벤트 팝업 꼴: 골드 그라데이션 카드에 배지 → 초대형 가격 →
+   토끼 → CTA 가 세로로 선다. 반경은 각진 전역 규칙의 예외 —
+   파일 끝 예외 블록에서 !important 로 뚫는다. */
 .welcome-popup-layer {
   z-index: 96;
 }
@@ -384,14 +387,129 @@ body {
   position: relative;
   overflow: hidden;
   width: min(100%, 330px);
-  /* .card 의 24px 패딩을 걷는다 — 남으면 포스터 위에 흰 띠가 생겨
-     "카드 안에 사진을 붙인" 티가 난다. 포스터가 맨 위부터 시작해야 한다.
-     .card 가 이 파일 뒤쪽에 있어 순서로는 지므로 클래스 둘로 명시도를 올린다. */
-  padding: 0;
+  padding: 26px 20px 20px;
   text-align: center;
-  /* 모서리는 전역 규칙이 각지게 만든다 — 여기서 둥글게 적어도 무시되므로
-     아예 적지 않는다 (적어 두면 되는 줄 알고 다음 사람이 헤맨다). */
+  border: 0;
+  /* 추석 무대를 배경 스택으로 다 그린다 — 요소를 늘리는 대신 그라데이션을
+     쌓는다. 위에서부터: 보름달 → 달무리 → 좌우 금화 무더기 → 구름 두 점 →
+     바닥 앰버 → 바탕. 가운데는 비워 글이 앉는다. */
+  background:
+    radial-gradient(circle at 50% 9%, rgba(255, 253, 231, 0.95) 0%, rgba(255, 244, 189, 0.55) 9%, rgba(255, 240, 170, 0) 20%),
+    radial-gradient(circle at 50% 10%, rgba(255, 233, 150, 0.5) 0%, rgba(255, 233, 150, 0) 34%),
+    radial-gradient(ellipse 48% 26% at 50% 60%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(ellipse 60% 20% at 6% 97%, rgba(243, 190, 84, 0.34) 0%, rgba(243, 190, 84, 0) 70%),
+    radial-gradient(ellipse 60% 20% at 94% 97%, rgba(243, 190, 84, 0.34) 0%, rgba(243, 190, 84, 0) 70%),
+    radial-gradient(ellipse 34% 7% at 18% 78%, rgba(184, 108, 56, 0.1) 0%, rgba(184, 108, 56, 0) 75%),
+    radial-gradient(ellipse 30% 6% at 84% 72%, rgba(122, 138, 96, 0.1) 0%, rgba(122, 138, 96, 0) 75%),
+    linear-gradient(180deg, #fffdf7 0%, #fff7e2 52%, #ffedc0 84%, #ffe4a4 100%);
+  box-shadow: 0 18px 48px rgba(64, 44, 4, 0.35);
   animation: welcome-pop-in 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 떠다니는 장식 — 잎은 떨어지고 반짝임은 숨쉰다. 글 위를 지나지 않게
+   가장자리에만 둔다. */
+.welcome-popup-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.welcome-popup-deco i {
+  position: absolute;
+  font-style: normal;
+  line-height: 1;
+}
+
+.wp-leaf {
+  top: -12%;
+  font-size: 1.15rem;
+  opacity: 0.85;
+  animation: wp-leaf-fall 9s linear infinite;
+}
+
+.wp-leaf-1 { left: 6%; animation-delay: 0s; }
+.wp-leaf-2 { left: 84%; font-size: 0.95rem; animation-delay: 2.4s; }
+.wp-leaf-3 { left: 16%; font-size: 0.85rem; animation-delay: 4.8s; }
+.wp-leaf-4 { left: 74%; animation-delay: 6.6s; }
+
+@keyframes wp-leaf-fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(64vh) translateX(-18px) rotate(300deg);
+    opacity: 0;
+  }
+}
+
+.wp-spark {
+  color: #e8b53a;
+  font-size: 0.8rem;
+  animation: wp-spark-twinkle 2.6s ease-in-out infinite;
+}
+
+.wp-spark-1 { top: 12%; left: 10%; }
+.wp-spark-2 { top: 8%; right: 14%; animation-delay: 0.9s; }
+.wp-spark-3 { top: 30%; right: 7%; font-size: 0.65rem; animation-delay: 1.7s; }
+
+@keyframes wp-spark-twinkle {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* 배지 — 진갈색 알약, 스크린샷의 "첫 충전 한정 이벤트" 자리 */
+.welcome-popup-badge {
+  display: inline-block;
+  padding: 7px 16px;
+  /* 추석 감 색 — 골드 판 위의 한 점 붉은 악센트 */
+  background: #8f3418;
+  color: #ffe9c2;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.welcome-popup-headline {
+  margin: 14px 0 2px;
+  color: #6b5417;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* 초대형 가격 — 스크린샷의 "1+1" 자리. 크림색 속 + 갈색 윤곽 */
+.welcome-popup-big-price {
+  margin: 0 0 6px;
+  line-height: 1.05;
+  color: #fff7dd;
+  font-weight: 900;
+  /* 배경이 크림으로 밝아져 윤곽을 더 진하게 — 안 그러면 숫자가 묻힌다 */
+  -webkit-text-stroke: 3px #7a5a10;
+  paint-order: stroke fill;
+  text-shadow: 0 5px 0 rgba(122, 90, 16, 0.4);
+}
+
+.welcome-popup-big-price strong {
+  font-size: 4rem;
+  font-weight: 900;
+}
+
+.welcome-popup-big-price span {
+  font-size: 2.2rem;
+}
+
+/* 재물 토끼 — 원본이 흰 배경이라 골드 위에서 판처럼 보인다.
+   mix-blend 로 흰 판을 카드색에 녹인다. */
+.welcome-popup-mascot {
+  display: block;
+  width: 168px;
+  margin: 2px auto 0;
+  mix-blend-mode: multiply;
 }
 
 @keyframes welcome-pop-in {
@@ -405,8 +523,7 @@ body {
   }
 }
 
-/* 닫기 — 포스터 위에 뜬다. 반투명 검정 원이라 밝은 그림 위에서도 읽힌다
-   (흰 알약은 라벤더 배경에 묻혀 네모난 판처럼 보였다). */
+/* 닫기 — 반투명 검정 원이라 밝은 골드 위에서도 읽힌다 */
 .welcome-popup-close {
   position: absolute;
   top: 12px;
@@ -428,34 +545,32 @@ body {
   -webkit-backdrop-filter: blur(3px);
 }
 
-/* 문구까지 담긴 포스터 한 장. 카드 맨 위에 딱 붙는다. */
-.welcome-popup-poster {
-  display: block;
-  width: 100%;
-  background: #efe6f3;
-  /* 아래 크림 여백이 넓어 잘라 낸다 — 버튼이 그 자리를 대신한다 */
-  aspect-ratio: 1792 / 2180;
-  object-fit: cover;
-  object-position: top;
-}
-
-/* 값과 버튼만 코드가 그린다 — 바뀌는 것은 그림에 굽지 않는다 */
 .welcome-popup-price {
-  margin: 14px 20px 12px;
-  color: var(--text-dim);
-  font-size: 0.9rem;
+  margin: 10px 0 14px;
+  color: #7a6320;
+  font-size: 0.88rem;
 }
 
-/* 알약 모양을 쓰지 않는다 — 이 저장소는 각진 모서리가 원칙이고(전역 규칙),
-   버튼 하나만 둥글면 그것만 딴 화면에서 온 것처럼 보인다. */
-.welcome-popup-cta {
-  width: calc(100% - 40px);
-  margin: 0 20px 20px;
+/* CTA — 스크린샷의 진갈색 버튼. .btn 기본색을 덮는다 */
+.btn.welcome-popup-cta {
+  width: 100%;
+  margin: 0;
+  padding: 15px 16px;
+  background: #4c3d12;
+  color: #fdf3cf;
+  font-size: 1.02rem;
+  font-weight: 700;
+  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .card.welcome-popup {
+  .card.welcome-popup,
+  .wp-leaf,
+  .wp-spark {
     animation: none;
+  }
+  .wp-leaf {
+    display: none; /* 멈춘 잎이 화면 밖(-12%)에 걸려 있느니 없는 게 낫다 */
   }
 }
 
@@ -9998,6 +10113,17 @@ input[type="radio"] {
 .product-sticky-cta,
 .ad-saju-sticky-shell .product-sticky-cta {
   border-radius: 22px !important;
+}
+
+/* 첫 방문 팝업도 예외 (2026-09-04 운영자 지시 — 포춘 앱 팝업 꼴) */
+.card.welcome-popup {
+  border-radius: 26px !important;
+}
+.welcome-popup-badge {
+  border-radius: 999px !important;
+}
+.btn.welcome-popup-cta {
+  border-radius: 16px !important;
 }
 
 /* ── 오늘의 사주 액션 ─────────────────────────────────────
