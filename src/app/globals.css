@@ -4243,21 +4243,6 @@ label {
   display: none;
 }
 
-/* 캡처 첨부 — 선택 사항이라 버튼 아래 작은 글씨로 둔다. */
-.payment-receipt-alt {
-  display: block;
-  margin-top: 10px;
-  text-align: center;
-  font-size: 0.82rem;
-  color: var(--text-dim);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.payment-receipt-alt input {
-  display: none;
-}
-
 /* 운영자가 승인·거절하며 남긴 말. 손님이 읽는 칸이다. */
 .payment-admin-note {
   margin-top: 14px;

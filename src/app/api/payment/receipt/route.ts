@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { isDatabaseConfigured } from "@/lib/database";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
-import { notifyAdmin, notifyAdminPhoto, reviewButtons } from "@/lib/telegram";
+import { notifyAdminPhoto, reviewButtons } from "@/lib/telegram";
 import { reviewOrderAndFollowUp } from "@/lib/order-review";
 import { resolveUserToken } from "@/lib/tokens";
 
@@ -52,13 +52,14 @@ export async function POST(request: NextRequest) {
   if (!Number.isSafeInteger(orderId) || orderId <= 0) {
     return NextResponse.json({ error: "주문 번호가 올바르지 않아요." }, { status: 400 });
   }
-  // 사진은 선택이다 — 캡처를 안 올리는 손님이 많아 "입금을 마쳤어요"만으로도 승인한다.
-  const photo = file instanceof File && file.size > 0 ? file : null;
-  if (photo && photo.size > MAX_BYTES) {
+  if (!(file instanceof File) || file.size === 0) {
+    return NextResponse.json({ error: "이체 화면 사진을 골라주세요." }, { status: 400 });
+  }
+  if (file.size > MAX_BYTES) {
     return NextResponse.json({ error: "사진이 너무 커요. 5MB 이하로 올려주세요." }, { status: 413 });
   }
-  const ext = photo ? TYPES[photo.type] : null;
-  if (photo && !ext) {
+  const ext = TYPES[file.type];
+  if (!ext) {
     return NextResponse.json({ error: "사진 파일(JPG·PNG)만 올릴 수 있어요." }, { status: 415 });
   }
 
@@ -88,38 +89,36 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "사진은 주문당 3장까지 올릴 수 있어요. 이미 접수됐으니 기다려주세요." }, { status: 429 });
   }
 
-  let bytes: Uint8Array | null = null;
-  if (photo) {
-    bytes = new Uint8Array(await photo.arrayBuffer());
-    const key = `${orderId}/${Date.now()}.${ext}`;
-    const { error: upErr } = await db.storage.from(BUCKET).upload(key, bytes, { contentType: photo.type });
-    if (upErr) {
-      console.error("이체 캡처 저장 실패:", upErr.message);
-      return NextResponse.json({ error: "사진을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
-    }
-    const at = new Date().toISOString();
-    await db
-      .from("lr_orders")
-      .update({ metadata: { ...metadata, receipts: [...receipts, { key, at }] }, updated_at: at })
-      .eq("id", orderId);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const key = `${orderId}/${Date.now()}.${ext}`;
+  const { error: upErr } = await db.storage.from(BUCKET).upload(key, bytes, { contentType: file.type });
+  if (upErr) {
+    console.error("이체 캡처 저장 실패:", upErr.message);
+    return NextResponse.json({ error: "사진을 저장하지 못했어요. 잠시 후 다시 시도해주세요." }, { status: 503 });
   }
+
+  const at = new Date().toISOString();
+  await db
+    .from("lr_orders")
+    .update({ metadata: { ...metadata, receipts: [...receipts, { key, at }] }, updated_at: at })
+    .eq("id", orderId);
 
   /*
     캡처가 곧 승인이다. 사람이 통장을 열 때까지 손님이 기다리던 구간(#261·#283,
     2026-09-02)을 지웠다 — 사진은 버킷에 남으니 대조는 나중에 해도 된다.
     실패하면 예전처럼 승인 버튼을 붙여 보낸다. 그때만 사람 손이 필요하다.
   */
-  const outcome = await reviewOrderAndFollowUp(orderId, "paid", photo ? "이체 캡처 접수 — 자동 승인" : "입금 완료 확인 — 자동 승인");
+  const outcome = await reviewOrderAndFollowUp(orderId, "paid", "이체 캡처 접수 — 자동 승인");
   const approved = outcome.ok || outcome.reason === "already_reviewed";
-  const caption = [
-    `[${photo ? "이체 캡처" : "입금 완료"}] 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
-    `입금코드 ${order.depositor_code ?? "-"}${photo ? ` · 사진 ${receipts.length + 1}/${MAX_PER_ORDER}` : " · 캡처 없음"}`,
-    approved ? "자동 승인 완료 — 통장과 나중에 대조하세요." : "자동 승인 실패 — 확인하고 승인하세요.",
-  ].join("\n");
-  const buttons = approved ? undefined : reviewButtons(orderId);
-  const sent = photo && bytes
-    ? await notifyAdminPhoto({ bytes, filename: `receipt-${orderId}.${ext}`, contentType: photo.type }, caption, buttons)
-    : (await notifyAdmin(caption, buttons), true);
-  console.log(`[이체캡처] order=${orderId} photo=${!!photo} approved=${approved} telegram=${sent}`);
+  const sent = await notifyAdminPhoto(
+    { bytes, filename: `receipt-${orderId}.${ext}`, contentType: file.type },
+    [
+      `[이체 캡처] 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
+      `입금코드 ${order.depositor_code ?? "-"} · 사진 ${receipts.length + 1}/${MAX_PER_ORDER}`,
+      approved ? "자동 승인 완료 — 통장과 나중에 대조하세요." : "자동 승인 실패 — 확인하고 승인하세요.",
+    ].join("\n"),
+    approved ? undefined : reviewButtons(orderId)
+  );
+  console.log(`[이체캡처] order=${orderId} key=${key} approved=${approved} telegram=${sent}`);
   return NextResponse.json({ ok: true, count: receipts.length + 1, status: approved ? "paid" : "pending" });
 }

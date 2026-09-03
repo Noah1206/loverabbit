@@ -41,8 +41,8 @@ export default function PaymentPendingPage() {
   );
   const [receiptError, setReceiptError] = useState("");
 
-  const uploadReceipt = async (file?: File) => {
-    if (!order) return;
+  const uploadReceipt = async (file: File | undefined) => {
+    if (!file || !order) return;
     const user = getUser();
     if (!user?.token) {
       setReceiptError("로그인이 풀렸어요. 다시 로그인해주세요.");
@@ -54,7 +54,7 @@ export default function PaymentPendingPage() {
       const form = new FormData();
       form.set("orderId", String(order.orderId));
       form.set("userToken", user.token);
-      if (file) form.set("file", file);
+      form.set("file", file);
       const res = await fetch("/api/payment/receipt", { method: "POST", body: form });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "사진을 보내지 못했어요.");
@@ -209,28 +209,21 @@ export default function PaymentPendingPage() {
 
         {error && <p className="payment-error">{error}</p>}
 
-        {/* "입금을 마쳤어요"가 곧 승인이다 — 캡처는 선택. 통장 대조는 운영자가
-            나중에 한다. 버튼도 안 누른 사람만 /admin/payments 수동 승인으로. */}
+        {/* 캡처가 곧 승인이다 — 올리는 즉시 자동 승인되고, 통장 대조는 운영자가
+            나중에 한다. 사진 없이 입금만 한 사람은 /admin/payments 수동 승인으로. */}
         {!rejected && order?.status === "pending" && (
           <div className={`payment-receipt${receipt === "sent" ? " sent" : ""}`}>
             {receipt === "sent" ? (
               <p>
-                <strong>확인했어요.</strong> 곧 자동으로 승인돼요.
+                <strong>이체 화면을 받았어요.</strong> 곧 자동으로 승인돼요.
               </p>
             ) : (
               <>
                 <p>
-                  <strong>이체를 마쳤다면</strong> 아래 버튼을 눌러주세요. 누르는 즉시 자동 승인돼요.
+                  <strong>이체를 마쳤다면</strong> 이체 완료 화면을 올려주세요. 올리는 즉시 자동 승인돼요.
                 </p>
-                <button
-                  className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}
-                  disabled={receipt === "sending"}
-                  onClick={() => void uploadReceipt()}
-                >
-                  {receipt === "sending" ? "확인 중…" : "입금을 마쳤어요 ✓"}
-                </button>
-                <label className="payment-receipt-alt">
-                  📷 이체 완료 화면도 같이 보내기 (선택)
+                <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
+                  {receipt === "sending" ? "보내는 중…" : "📷 이체 완료 화면 올리기"}
                   <input
                     type="file"
                     accept="image/*"
