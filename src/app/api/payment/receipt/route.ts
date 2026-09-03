@@ -3,11 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isDatabaseConfigured } from "@/lib/database";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { notifyAdminPhoto, reviewButtons } from "@/lib/telegram";
-import { reviewOrderAndFollowUp } from "@/lib/order-review";
 import { resolveUserToken } from "@/lib/tokens";
-
-// 승인이 곧 생성 시작이라 관리자 승인 라우트와 같은 이유로 길게 잡는다.
-export const maxDuration = 300;
 
 /*
   이체 완료 화면 캡처 접수.
@@ -103,22 +99,15 @@ export async function POST(request: NextRequest) {
     .update({ metadata: { ...metadata, receipts: [...receipts, { key, at }] }, updated_at: at })
     .eq("id", orderId);
 
-  /*
-    캡처가 곧 승인이다. 사람이 통장을 열 때까지 손님이 기다리던 구간(#261·#283,
-    2026-09-02)을 지웠다 — 사진은 버킷에 남으니 대조는 나중에 해도 된다.
-    실패하면 예전처럼 승인 버튼을 붙여 보낸다. 그때만 사람 손이 필요하다.
-  */
-  const outcome = await reviewOrderAndFollowUp(orderId, "paid", "이체 캡처 접수 — 자동 승인");
-  const approved = outcome.ok || outcome.reason === "already_reviewed";
   const sent = await notifyAdminPhoto(
     { bytes, filename: `receipt-${orderId}.${ext}`, contentType: file.type },
     [
-      `[이체 캡처] 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
+      `[이체 캡처] 리딩 주문 #${orderId} · ${Number(order.amount).toLocaleString()}원`,
       `입금코드 ${order.depositor_code ?? "-"} · 사진 ${receipts.length + 1}/${MAX_PER_ORDER}`,
-      approved ? "자동 승인 완료 — 통장과 나중에 대조하세요." : "자동 승인 실패 — 확인하고 승인하세요.",
+      "사진의 금액·받는 계좌를 확인하고 승인하세요.",
     ].join("\n"),
-    approved ? undefined : reviewButtons(orderId)
+    reviewButtons(orderId)
   );
-  console.log(`[이체캡처] order=${orderId} key=${key} approved=${approved} telegram=${sent}`);
-  return NextResponse.json({ ok: true, count: receipts.length + 1, status: approved ? "paid" : "pending" });
+  console.log(`[이체캡처] order=${orderId} key=${key} telegram=${sent}`);
+  return NextResponse.json({ ok: true, count: receipts.length + 1 });
 }
