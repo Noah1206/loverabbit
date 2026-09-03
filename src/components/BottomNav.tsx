@@ -12,10 +12,10 @@ import { usePathname } from "next/navigation";
 // 아이콘은 전부 24 격자에 stroke 로만 그린다. 채움 없음 — 활성일 때 CSS 가
 // 선을 굵혀(2.4) 무게가 실린 것처럼 읽히게 한다.
 //
-// 탭은 넷이다. "오늘"이 검수를 마치고 두 번째 자리로 돌아왔다 (2026-09-02) —
+// 탭은 셋이다. "오늘"이 검수를 마치고 두 번째 자리로 돌아왔다 (2026-09-02) —
 // 매일 열어보는 것이라 홈 옆이 맞다. 귀인지도는 아직 만드는 중이라 뺐다 —
-// /guin 페이지는 남아 있어 주소로는 열린다. "내 사주"와 "내 상담"은 결국
-// 같은 이야기라 하나로 합쳤다 (2026-08-26). 보관함은 로그인해야 열린다.
+// /guin 페이지는 남아 있어 주소로는 열린다. "내 상담"은 탭에서 빼고
+// 마이 페이지 안으로 넣었다 (2026-09-03) — /my 페이지는 그대로 있다.
 const NAV_ITEMS = [
   {
     href: "/",
@@ -44,24 +44,15 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/my",
-    label: "내 상담",
-    matches: (path: string) =>
-      path.startsWith("/my") ||
-      path.startsWith("/reading") ||
-      path.startsWith("/product") ||
-      path.startsWith("/payment"),
-    // 말풍선 — 상담의 물건
-    icon: (
-      <path d="M20 6.9a2.4 2.4 0 0 0-2.4-2.4H6.4A2.4 2.4 0 0 0 4 6.9v7.2a2.4 2.4 0 0 0 2.4 2.4h2.1v3l3.8-3h5.3a2.4 2.4 0 0 0 2.4-2.4Z" />
-    ),
-  },
-  {
     href: "/profile",
     label: "마이",
-    // /rewards 는 탭에서 뺐지만 페이지는 남아 있다 (공유 링크가 그리로 간다).
-    // 여기서 받지 않으면 activeIndex 가 못 찾아 0 을 돌려줘 표시가 홈으로 튄다.
-    matches: (path: string) => path.startsWith("/profile") || path.startsWith("/rewards"),
+    // /my(내 상담)·/rewards 는 탭에서 뺐지만 페이지는 남아 있다. 여기서 받지
+    // 않으면 activeIndex 가 못 찾아 0 을 돌려줘 표시가 홈으로 튄다.
+    matches: (path: string) =>
+      path.startsWith("/profile") ||
+      path.startsWith("/rewards") ||
+      path.startsWith("/my") ||
+      path.startsWith("/payment"),
     // 사람 — 머리와 어깨. 두르는 원은 뺐다, 작아질수록 선이 뭉친다.
     icon: (
       <>

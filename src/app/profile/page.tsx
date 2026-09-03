@@ -124,6 +124,11 @@ export default function ProfilePage() {
         )}
       </div>
 
+      {/* 내 상담 — 탭바에서 뺐으니(2026-09-03) 들어오는 문은 여기 하나다. */}
+      <Link href="/my" className="btn btn-ghost" style={{ width: "100%", marginTop: 14, display: "block", textAlign: "center" }}>
+        📜 내 상담 보기
+      </Link>
+
       {/* 탈퇴 — 사람을 기다리지 않는다. 파기는 권리라, 누르면 그 자리에서 지운다.
           되돌릴 수 없으므로 한 번 더 묻고, 무엇이 남는지도 미리 밝힌다. */}
       {user && (
