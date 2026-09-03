@@ -209,18 +209,18 @@ export default function PaymentPendingPage() {
 
         {error && <p className="payment-error">{error}</p>}
 
-        {/* 캡처 한 장이 통장 대조보다 빠르다. 운영자는 사진을 보고 승인하고,
-            통장은 나중에 맞춘다. 사진 없이도 승인은 되므로 강요하지 않는다. */}
+        {/* 캡처가 곧 승인이다 — 올리는 즉시 자동 승인되고, 통장 대조는 운영자가
+            나중에 한다. 사진 없이 입금만 한 사람은 /admin/payments 수동 승인으로. */}
         {!rejected && order?.status === "pending" && (
           <div className={`payment-receipt${receipt === "sent" ? " sent" : ""}`}>
             {receipt === "sent" ? (
               <p>
-                <strong>이체 화면을 받았어요.</strong> 관리자가 사진을 보고 바로 승인해드릴게요.
+                <strong>이체 화면을 받았어요.</strong> 곧 자동으로 승인돼요.
               </p>
             ) : (
               <>
                 <p>
-                  <strong>더 빨리 열고 싶다면</strong> 이체 완료 화면을 올려주세요. 사진을 보고 바로 승인해드려요.
+                  <strong>이체를 마쳤다면</strong> 이체 완료 화면을 올려주세요. 올리는 즉시 자동 승인돼요.
                 </p>
                 <label className={`btn payment-receipt-btn${receipt === "sending" ? " busy" : ""}`}>
                   {receipt === "sending" ? "보내는 중…" : "📷 이체 완료 화면 올리기"}

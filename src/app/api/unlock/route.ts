@@ -20,7 +20,7 @@ import { finishReading } from "@/lib/reading-finish";
 import type { SealedScore } from "@/lib/saju-score";
 import { normalizeAttribution } from "@/lib/attribution";
 import { snapshotMetaMatch } from "@/lib/meta-capi";
-import { notifyAdmin, reviewButtons } from "@/lib/telegram";
+import { notifyAdmin } from "@/lib/telegram";
 import { finalizePortOnePayment } from "@/lib/portone-payment";
 import { claimReadingForPayment } from "@/lib/reading-claim";
 import { bundleOfReading, bundleRest } from "@/lib/bundles";
@@ -420,8 +420,8 @@ export async function POST(req: NextRequest) {
       console.log(
         `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${order.amount}`
       );
-      // 입금 확인 요청은 사람이 승인해야 풀린다. 알리지 않으면 입금한 사람이
-      // 관리자가 우연히 /admin/payments 를 열 때까지 기다린다.
+      // 이체 캡처가 오면 자동 승인된다. 알림은 기록용 — 캡처 없이 입금한 건만
+      // 관리자가 /admin/payments 에서 승인한다.
       // 단, 같은 주문은 한 번만 알린다 — "이체했어요"를 다시 눌러도 이미 대기 중인
       // 주문이 돌아오므로, 그때마다 텔레그램에 같은 요청이 쌓이면 안 된다.
       if (order.created) await notifyAdmin(
@@ -431,9 +431,8 @@ export async function POST(req: NextRequest) {
             order.amount !== price ? ` (정가 ${price.toLocaleString()}원, 쿠폰 적용)` : ""
           }`,
           `상품 ${stored?.category ?? "리딩"} · 입금코드 ${body.depositorCode}`,
-          "https://loverebbit.xyz/admin/payments",
-        ].join("\n"),
-        reviewButtons(order.id)
+          "이체 캡처가 오면 자동 승인됩니다 — https://loverebbit.xyz/admin/payments",
+        ].join("\n")
       );
       return NextResponse.json({
         orderId: order.id,

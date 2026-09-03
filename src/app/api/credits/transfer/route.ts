@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { creditDepositorCode, getCreditPack, isFirstBuyPack } from "@/lib/credits";
 import { createPendingCreditTransferOrder, hasPurchasedCredits } from "@/lib/credits-db";
 import { isDatabaseConfigured } from "@/lib/database";
-import { notifyAdmin, reviewButtons } from "@/lib/telegram";
+import { notifyAdmin } from "@/lib/telegram";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 크레딧 팩 — 직접 송금. 지금 실제로 돈이 들어오는 유일한 길이다 (pay-method.ts).
-// 관리자가 /admin/payments 에서 승인하면 lr_review_transfer_order 가 지급한다.
+// 이체 캡처(/api/payment/receipt)가 오면 자동 승인되고, 캡처 없이 입금한 건만
+// 관리자가 /admin/payments 에서 승인한다.
 interface Body {
   packId?: string;
   userToken?: string;
@@ -75,9 +76,8 @@ export async function POST(request: NextRequest) {
           "[입금 확인 요청] 질문 러빗",
           `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${pack.credits}러빗`,
           `입금코드 ${order.depositorCode}`,
-          "https://loverebbit.xyz/admin/payments",
-        ].join("\n"),
-        reviewButtons(order.id)
+          "이체 캡처가 오면 자동 승인됩니다 — https://loverebbit.xyz/admin/payments",
+        ].join("\n")
       );
     }
     return NextResponse.json({
