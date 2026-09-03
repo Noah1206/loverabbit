@@ -243,6 +243,16 @@ export default function ReadingCheckoutPage() {
 
   return (
     <main className="container reading-flow-page">
+      {paying && (
+        /* 러빗을 쓰는 순간부터 전문이 올 때까지 — 버튼 글자 하나로 버티게 하지
+           않고 화면 전체로 알린다. 끝나면 리딩으로 바로 이어진다. */
+        <div className="rv-preparing" role="status" aria-live="polite">
+          <p className="reading-generating-kicker">{label} 전문</p>
+          <h2>사주 전문을 준비하고 있어요</h2>
+          <div className="reading-generating-dots" aria-hidden><i /><i /><i /></div>
+          <p className="rv-preparing-sub">다 되면 바로 이어서 보여드려요. 창을 닫지 말아주세요.</p>
+        </div>
+      )}
       <div className="card reading-checkout-card" style={{ display: "grid", gap: 14 }}>
         <div style={{ textAlign: "center", display: "grid", gap: 4 }}>
           <h1 style={{ fontSize: "1.2rem" }}>{label} 전문</h1>

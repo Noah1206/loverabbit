@@ -87,6 +87,9 @@ export default function ReadingReportPage() {
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // 결제(권리)는 확인됐는데 전문이 아직 만들어지는 중 — 로딩 화면을 띄우고
+  // 다 되면 그 자리에서 이어서 보여준다. 수동 새로고침을 시키지 않는다.
+  const [preparing, setPreparing] = useState(false);
   const [shareNotice, setShareNotice] = useState("");
   const [referralStatus, setReferralStatus] = useState<ReferralStatus | null>(null);
   const [page, setPage] = useState(0);
@@ -167,8 +170,8 @@ export default function ReadingReportPage() {
             return;
           } else {
             // 결제는 돼 있는데 전문을 못 받았다(준비 중 등). 리딩 자체는 세우고
-            // 사정을 밝힌다 — 여기서 "찾을 수 없음"을 내면 산 사람이 더 놀란다.
-            setNotice(unlockData.error ?? "전문을 준비 중이에요. 잠시 후 다시 열어주세요.");
+            // 로딩 화면으로 넘긴다 — 아래 폴링이 완성되는 대로 이어서 보여준다.
+            setPreparing(true);
           }
         }
         if (!alive) return;
@@ -208,8 +211,8 @@ export default function ReadingReportPage() {
         const unlockData = await unlockRes.json().catch(() => ({}));
         if (!alive) return;
         if (!unlockRes.ok || typeof unlockData.full !== "string") {
-          // 승인은 났는데 본문이 아직이다. 잠긴 화면이 아니라 사정을 보여준다.
-          setNotice(unlockData.error ?? "전문을 준비 중이에요. 잠시 후 다시 열어주세요.");
+          // 승인은 났는데 본문이 아직이다. 로딩 화면을 띄우고 폴링에 맡긴다.
+          setPreparing(true);
           return;
         }
         const patch = {
@@ -344,6 +347,48 @@ export default function ReadingReportPage() {
     "안 산 사람"으로 읽으면 돈 낸 사람을 결제 화면으로 돌려보내게 된다.
   */
   const [paidUnlocked, setPaidUnlocked] = useState(false);
+
+  // 준비 중인 전문을 5초마다 다시 청한다. 서버는 완성돼 있으면 그대로 주고,
+  // 아직이면 503 — 도착하는 순간 로딩을 걷고 이어서 보여준다.
+  useEffect(() => {
+    if (!preparing || !entry) return;
+    let stopped = false;
+    const readingId = entry.readingId;
+    const blob = entry.blob || undefined;
+    const tick = async () => {
+      try {
+        const res = await fetch("/api/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ readingId, blob, userToken: user?.token }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (stopped || !res.ok || typeof data.full !== "string") return;
+        const patch = {
+          full: data.full as string,
+          score: data.score ?? null,
+          scoreBand: data.scoreBand ?? null,
+          scoreFactors: data.scoreFactors ?? [],
+          scoreAsOf: data.scoreAsOf ?? null,
+          report: data.report ?? null,
+          pendingOrderId: undefined,
+        };
+        updateArchive(readingId, patch);
+        setEntry((now) => (now ? { ...now, ...patch } : now));
+        setPreparing(false);
+        setNotice("");
+      } catch {
+        // 다음 주기에 다시
+      }
+    };
+    void tick();
+    const timer = setInterval(() => void tick(), 5000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+    };
+  }, [preparing, entry, user]);
+
   const viewedRef = useRef<string | null>(null);
   useEffect(() => {
     if (status !== "ready" || !entry) return;
@@ -724,6 +769,14 @@ export default function ReadingReportPage() {
 
   return (
     <ChapterShell>
+      {preparing && (
+        <div className="rv-preparing" role="status" aria-live="polite">
+          <p className="reading-generating-kicker">{entry.label}</p>
+          <h2>사주 전문을 준비하고 있어요</h2>
+          <div className="reading-generating-dots" aria-hidden><i /><i /><i /></div>
+          <p className="rv-preparing-sub">다 되면 바로 이어서 보여드려요. 창을 닫아도 돼요 — 다시 열면 이어져요.</p>
+        </div>
+      )}
       <ChapterTopBar
         concept={concept}
         // 표지에서는 제목이 곧 상품명이라 부제까지 같은 말을 반복할 이유가 없다.

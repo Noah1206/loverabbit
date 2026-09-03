@@ -10664,3 +10664,33 @@ input[type="radio"] {
 }
 .purchase-notice strong { color: #2b2430; }
 .purchase-notice a { color: #6b6472; text-decoration: underline; }
+
+/* ── 전문 준비 로딩 — 러빗을 쓴 순간부터 전문이 올 때까지 화면 전체를 덮는다 ── */
+.rv-preparing {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 24px;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.rv-preparing h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.rv-preparing .reading-generating-dots {
+  justify-content: center;
+  margin: 6px auto 0;
+}
+
+.rv-preparing-sub {
+  color: var(--text-dim);
+  font-size: 0.88rem;
+  margin: 8px 0 0;
+}
