@@ -427,11 +427,7 @@ export default function TodayPage() {
 
   return (
     <main className="today">
-      <Sky
-        date={dateLabel(data.today)}
-        rabbitArt={shown.rabbit.art}
-        rabbitVideo={shown.rabbit.video}
-      >
+      <Sky date={dateLabel(data.today)} rabbitArt={shown.rabbit.art}>
         <p className="today-sky-premise">
           <span className={`today-hero-flag ${wonFlag.className}`}>
             <AlphaMotion video={wonFlag.video} art={wonFlag.art} alt="" width={80} height={80} />

@@ -61,10 +61,9 @@ export interface DailySajuAction {
     label: string;
     description: string;
   };
-  /** 오늘의 흐름에 반응하는 토끼 — 움직임, 정지 그림, 첫 마디 */
+  /** 오늘의 흐름에 반응하는 토끼 — 정지 그림과 첫 마디.
+      한복 버전으로 통일하며 영상 쌍은 걷었다 (2026-09-03). */
   rabbit: {
-    /** 투명 배경 webm. 재생이 막히면 art 가 그 자리에 남는다. */
-    video: string;
     art: string;
     line: string;
   };
@@ -111,30 +110,25 @@ const FLOW_MEANING: Record<Flow, string> = {
  * 설명이고 이쪽은 말이라 더 짧고 사람 말투에 가깝다. 둘이 같은 것을 두 번
  * 말하지 않도록, line 은 "그래서 오늘 뭘 하자"는 쪽으로만 간다.
  */
-const FLOW_RABBIT: Record<Flow, { video: string; art: string; line: string }> = {
+const FLOW_RABBIT: Record<Flow, { art: string; line: string }> = {
   비겁: {
-    video: "/assets/today/rabbit-bigyeop.webm",
-    art: "/assets/today/rabbit-bigyeop.webp",
+    art: "/assets/today/rabbit-bigyeop-hanbok.webp",
     line: "오늘은 혼자 다 안고 가지 말자. 몫을 나눠두면 편해져.",
   },
   식상: {
-    video: "/assets/today/rabbit-siksang.webm",
-    art: "/assets/today/rabbit-siksang.webp",
+    art: "/assets/today/rabbit-siksang-hanbok.webp",
     line: "오늘은 말이 잘 닿는 날이야. 담아뒀던 한마디, 지금 꺼내보자.",
   },
   재성: {
-    video: "/assets/today/rabbit-jaeseong.webm",
-    art: "/assets/today/rabbit-jaeseong.webp",
+    art: "/assets/today/rabbit-jaeseong-hanbok.webp",
     line: "오늘은 늘리는 날이 아니라 세어보는 날이야. 같이 한번 확인해볼까?",
   },
   관성: {
-    video: "/assets/today/rabbit-gwanseong.webm",
-    art: "/assets/today/rabbit-gwanseong.webp",
+    art: "/assets/today/rabbit-gwanseong-hanbok.webp",
     line: "오늘은 하나만 분명히 정해두자. 그거면 충분해.",
   },
   인성: {
-    video: "/assets/today/rabbit-inseong.webm",
-    art: "/assets/today/rabbit-inseong.webp",
+    art: "/assets/today/rabbit-inseong-hanbok.webp",
     line: "오늘은 좀 천천히 가도 돼. 채우는 것도 하는 일이야.",
   },
 };
