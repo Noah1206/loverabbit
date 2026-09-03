@@ -205,7 +205,7 @@ export default function TodayPage() {
   const [entering, setEntering] = useState(true);
   /** AI 가 내 명식으로 다시 쓴 문구. key 는 "오행:영역" — 조합이 바뀌면 다시 받는다.
       null 이면(생성 실패·키 없음) 표 문구가 그대로 나간다. */
-  const [ai, setAi] = useState<{ key: string; text: { action: string; reason: string; avoidAction: string; rabbitLine: string } | null } | null>(null);
+  const [ai, setAi] = useState<{ key: string; text: { action: string; reason: string; avoidAction: string; rabbitLine: string } | null; needCredits?: boolean } | null>(null);
 
   /** 개인화 요청 — 같은 조합은 다시 부르지 않는다. 뽑기 연출 2.6초 사이에
       미리 불러 두면 결과가 열릴 때쯤 도착해 있다. */
@@ -221,7 +221,7 @@ export default function TodayPage() {
         body: JSON.stringify({ userToken: token, ohaeng: ohaeng ?? undefined, domain }),
       })
         .then((res) => res.json())
-        .then((body) => setAi({ key, text: body?.text ?? null }))
+        .then((body) => setAi({ key, text: body?.text ?? null, needCredits: body?.needCredits === true }))
         .catch(() => setAi({ key, text: null }));
     },
     []
@@ -624,6 +624,13 @@ export default function TodayPage() {
           <p className="today-body">{shownAvoid}</p>
 
           {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
+
+          {ai?.needCredits && (
+            <p className="today-fine">
+              러빗이 있으면 네 사주 수치로 더 깊게 풀어줘.{" "}
+              <Link href="/credits">러빗 충전하기</Link>
+            </p>
+          )}
 
           <div className="today-do">
             {done ? (

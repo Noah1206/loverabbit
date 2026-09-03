@@ -13,6 +13,8 @@ import {
   type FortuneDomain,
 } from "@/lib/daily-action";
 import { getDailyActionText, getUserSajuProfile, saveDailyActionText } from "@/lib/database";
+import { applyCredit, InsufficientCreditsError } from "@/lib/credits-db";
+import { DAILY_ACTION_COST } from "@/lib/credits";
 import { flipFlag, sajuProfileOf } from "@/lib/saju-profile";
 import type { Ohaeng } from "@/lib/saju";
 import { resolveUserToken } from "@/lib/tokens";
@@ -76,6 +78,20 @@ export async function POST(request: NextRequest) {
     /* 캐시가 죽어도 생성은 간다 */
   }
 
+  // 새 조합 하나에 러빗 1개 (2026-09-04 운영자). 캐시에 있으면 위에서 이미
+  // 나갔으니 무료 — 같은 조합을 다시 열어도 두 번 내지 않는다. 원장의
+  // (reason, ref) unique 가 재시도 이중 청구를 막는다.
+  const ledgerRef = `${user.userId}:${today}:${cacheKey}`;
+  try {
+    await applyCredit(user.userId, -DAILY_ACTION_COST, "daily_action", ledgerRef);
+  } catch (error) {
+    if (error instanceof InsufficientCreditsError) {
+      return NextResponse.json({ text: null, needCredits: true }, { headers: noStore });
+    }
+    console.error("오늘의 액션 러빗 차감 실패:", error);
+    return NextResponse.json({ text: null }, { headers: noStore });
+  }
+
   const text: PersonalizedText | null = await personalizeDailyAction({
     today,
     dayGanji: flow.dayGanji,
@@ -98,6 +114,13 @@ export async function POST(request: NextRequest) {
       await saveDailyActionText(user.userId, today, cacheKey, { ...text });
     } catch (error) {
       console.error("오늘의 액션 문구 캐시 저장 실패:", error);
+    }
+  } else {
+    // 생성이 실패했으면 받은 것이 없다 — 차감을 되돌린다.
+    try {
+      await applyCredit(user.userId, DAILY_ACTION_COST, "refund", `${ledgerRef}:refund`);
+    } catch (error) {
+      console.error("오늘의 액션 러빗 환불 실패:", error);
     }
   }
 

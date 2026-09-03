@@ -145,6 +145,9 @@ export function questionsLeft(balance: number): number {
  */
 export const REFERRAL_SIGNUP_CREDITS = 3;
 
+/** 오늘의 액션 AI 개인화 한 조합에 드는 러빗 */
+export const DAILY_ACTION_COST = 1;
+
 export type CreditReason =
   | "signup"
   | "referral_click"
@@ -153,7 +156,8 @@ export type CreditReason =
   | "question"
   | "reading"
   | "refund"
-  | "admin";
+  | "admin"
+  | "daily_action";
 
 export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   signup: "가입 선물",
@@ -164,6 +168,7 @@ export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   reading: "리딩 열람",
   refund: "질문 실패 되돌림",
   admin: "운영자 조정",
+  daily_action: "오늘의 운세",
 };
 
 export interface CreditLedgerEntry {
