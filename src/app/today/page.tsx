@@ -430,8 +430,8 @@ export default function TodayPage() {
           </h1>
           <p className="today-sky-sub">
             {data.yesterdayDomain
-              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 뭐가 궁금해? 네가 뽑는 오방기로 풀어줄게.`
-              : "뭐가 궁금해? 네가 뽑는 오방기의 기운으로 풀어줄게."}
+              ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 뭐가 궁금해? 네가 뽑는 오방기로 풀어줄게. 운세 한 번에 1러빗이야.`
+              : "뭐가 궁금해? 네가 뽑는 오방기의 기운으로 풀어줄게. 운세 한 번에 1러빗이야."}
           </p>
           <button
             type="button"
@@ -592,6 +592,9 @@ export default function TodayPage() {
   const shownAction = aiText?.action ?? shown.action;
   const shownReason = aiText?.reason ?? shown.reason;
   const shownAvoid = aiText?.avoidAction ?? shown.avoidAction;
+  // 러빗이 없으면 운세를 열지 않는다 (2026-09-04 운영자 — "더 강하게").
+  // 공짜 표 문구를 내주면 1러빗의 값이 안 보인다. 잠긴 카드와 충전 길만 보인다.
+  const locked = ai?.needCredits === true && !aiText;
   /** 전제 — 뽑은 깃발이 있으면 그 깃발이 말하고, 없으면 오늘의 일진이 말한다 */
   const premise = pickedOhaeng
     ? `네가 뽑은 ${wonFlag.color}기(${pickedOhaeng}) — ${PICKED_PREMISE[flagResult.relation]}`
@@ -619,13 +622,32 @@ export default function TodayPage() {
           </span>
           {premise}
         </p>
-        <h1 className="today-sky-title is-action">{shownAction}</h1>
-        {shown.durationMinutes && (
+        <h1 className="today-sky-title is-action">
+          {locked ? "오늘의 운세가 준비됐어." : shownAction}
+        </h1>
+        {!locked && shown.durationMinutes && (
           <p className="today-sky-sub">약 {shown.durationMinutes}분이면 돼</p>
         )}
       </Sky>
 
       <div className="today-content">
+        {locked ? (
+          // 잠긴 운세 — 내용은 안 보여주고, 무엇이 준비됐는지와 여는 값만 말한다.
+          <section className="card today-card today-feature">
+            <p className="today-feature-eyebrow">
+              {DOMAIN_LABEL[shown.domain]} · 일간 {data.flow.dayMaster} · 오늘 {data.flow.dayGanji}일
+            </p>
+            <p className="today-body">
+              네 일간과 오늘의 일진, 오행 균형과 강약까지 맞대어 풀어둔 오늘의
+              운세야. 1러빗이면 열 수 있어.
+            </p>
+            <div className="today-do">
+              <Link href="/credits" className="btn today-cta">
+                러빗 충전하고 오늘의 운세 열기
+              </Link>
+            </div>
+          </section>
+        ) : (
         <section className="card today-card today-feature">
           <p className="today-feature-eyebrow">
             {DOMAIN_LABEL[shown.domain]} · 일간 {data.flow.dayMaster} · 오늘 {data.flow.dayGanji}일
@@ -638,13 +660,6 @@ export default function TodayPage() {
           <p className="today-body">{shownAvoid}</p>
 
           {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
-
-          {ai?.needCredits && (
-            <p className="today-fine">
-              러빗이 있으면 네 사주 수치로 더 깊게 풀어줘.{" "}
-              <Link href="/credits">러빗 충전하기</Link>
-            </p>
-          )}
 
           <div className="today-do">
             {done ? (
@@ -665,6 +680,7 @@ export default function TodayPage() {
             {saveError && <p className="today-error">{saveError}</p>}
           </div>
         </section>
+        )}
 
         {data.me && <MyChart me={data.me} />}
 
