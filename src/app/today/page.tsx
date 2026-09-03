@@ -21,6 +21,7 @@ import {
   type SajuProfileView,
 } from "@/lib/saju-profile";
 import type { Ohaeng } from "@/lib/saju";
+import { PRODUCTS } from "@/lib/products";
 import { getUser, type User } from "@/lib/user";
 
 // 오늘의 사주 액션 — 토끼가 데리고 가는 세 걸음.
@@ -239,7 +240,9 @@ export default function TodayPage() {
           {screen.kind === "guest" && (
             <>
               <p className="today-sub">
-                오늘의 일진과 네 사주를 맞대어 봐야 해서, 먼저 로그인이 필요해.
+                오늘의 일진과 네 사주를 맞대어 봐야 해서,
+                <br />
+                먼저 로그인이 필요해.
               </p>
               <div className="today-gate">
                 <SocialLoginButtons nextPath="/today" />
@@ -306,6 +309,9 @@ export default function TodayPage() {
             자세히 보기 <span aria-hidden>→</span>
           </button>
         </Sky>
+        <div className="today-content">
+          <TodayShelf />
+        </div>
       </main>
     );
   }
@@ -482,8 +488,50 @@ export default function TodayPage() {
         <button type="button" className="today-skip" onClick={() => setStep("pick")}>
           다른 운세 보기
         </button>
+
+        <TodayShelf />
       </div>
     </main>
+  );
+}
+
+/**
+ * 오늘 화면 아래의 사주 진열대 — 포스텔러 투데이 피드의 카드 문법.
+ *
+ * 연한 머리면에 작은 소개와 큰 후킹 질문, 그 아래 상품 일러스트.
+ * 카드는 상세 판매 페이지(/product/[id])로 간다 — 들어온 사람이 오늘
+ * 화면에서 바로 사주로 흘러갈 수 있게. 목록은 인기 태그 상위 넷이다.
+ */
+const SHELF = PRODUCTS.filter((p) => p.tags.includes("popular")).slice(0, 4);
+
+function TodayShelf() {
+  return (
+    <section className="today-shelf">
+      <p className="today-shelf-label">지금 바로 보는 사주</p>
+      {SHELF.map((p) => (
+        <Link key={p.id} href={`/product/${p.id}`} className="today-promo">
+          <span
+            className="today-promo-head"
+            style={{
+              background: `color-mix(in srgb, ${p.grad[0]} 10%, var(--bg-card))`,
+            }}
+          >
+            <span className="today-promo-eyebrow">{p.ctaHook}</span>
+            <strong className="today-promo-title">
+              {p.emoji} {p.headline}
+            </strong>
+          </span>
+          <span
+            className="today-promo-art"
+            aria-hidden
+            style={{ background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})` }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/cards-pastel/${p.id}.jpg`} alt="" loading="lazy" />
+          </span>
+        </Link>
+      ))}
+    </section>
   );
 }
 
