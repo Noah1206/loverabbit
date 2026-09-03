@@ -1982,7 +1982,8 @@ label {
   min-height: 72px;
   padding: 11px 16px;
   border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: var(--r-xl);
+  /* 상세 하단 CTA — 더 둥글게 (2026-09-03 운영자) */
+  border-radius: 22px;
   /* 진한 먹색 단색 (2026-08-31 운영자 선택 — 오베르진도 핑크 그라데이션도 반려).
      검은 판 위에서 불꽃 이모지와 핑크 러빗 값이 살아난다. 전역 버튼 토큰은 그대로다. */
   background: #16161a;
