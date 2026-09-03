@@ -182,8 +182,8 @@ body {
   width: min(100%, var(--app-max-width));
   min-height: 100dvh;
   margin-inline: auto;
-  /* 탭바(62px, 바닥에 붙음)를 비우고 20px 더 — 마지막 요소가 가리지 않게 */
-  padding-bottom: calc(82px + env(safe-area-inset-bottom));
+  /* 탭바(72px, 바닥에 붙음) + 솟은 FAB(24px)를 비우고 여유 — 마지막 요소가 가리지 않게 */
+  padding-bottom: calc(112px + env(safe-area-inset-bottom));
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -4118,22 +4118,20 @@ label {
   text-align: center;
 }
 
-/* 상단바와 같은 재질이어야 한 앱으로 읽힌다. 떠 있는 알약이 아니라
-   바닥에 붙은 면이다 — 굴림도 그림자도 없다. 위쪽 실선 하나로만 본문과
-   가른다. --nav-count 는 컴포넌트가 실제 탭 수로 덮어쓴다. */
+/* 상단바와 같은 재질이어야 한 앱으로 읽힌다. 바닥에 붙은 면이다 —
+   굴림도 그림자도 없다. 위쪽 실선 하나로만 본문과 가른다.
+   가운데 "오늘"만 원형 FAB 로 면 위로 솟는다 (아래 .fab). */
 .tabbar {
   position: fixed;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
   width: min(100vw, var(--app-max-width));
-  height: calc(58px + env(safe-area-inset-bottom));
+  height: calc(72px + env(safe-area-inset-bottom));
   padding: 0 0 env(safe-area-inset-bottom);
   z-index: 60;
   display: flex;
   background: var(--chrome-bg);
-  /* 슬랙식 플랫 바 — 그림자도 미끄러지는 표시기도 없다. 본문과는
-     헤어라인 하나로만 가른다. 활성 탭은 색과 선 굵기가 전부다. */
   border-top: 1px solid var(--line);
 }
 
@@ -4196,6 +4194,98 @@ label {
 
 .tabbar .on {
   color: var(--chrome-ink-on);
+}
+
+/* 가운데 큰 원형 버튼 (오늘의 사주) — 바의 윗선을 뚫고 솟는 FAB.
+   원판은 아이콘 자리가 지고, 링크는 원판 밑에 라벨을 받치는 기둥이다. */
+.tabbar a.fab {
+  flex: 0 0 auto;
+  min-width: 76px;
+  align-self: flex-start;
+  margin: -24px 8px 0;
+  /* 라벨이 양옆 탭 라벨과 같은 높이에 앉도록 3px 더 내린다 */
+  gap: 8px;
+}
+
+/* 원판 — 사진이 꽉 채우고, 바 배경색 링이 윗선을 끊어 노치처럼 읽힌다 */
+.tabbar a.fab .tabbar-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 5px var(--chrome-bg), 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.tabbar a.fab .tabbar-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tabbar a.fab:active {
+  transform: scale(0.94);
+}
+
+/* FAB 위 튜토리얼 말풍선 — 작게, 원판 바로 위에 떠서 아래로 꼬리를 낸다.
+   × 로 닫으면 localStorage 에 남아 다시 안 뜬다. */
+.fab-tip {
+  position: absolute;
+  bottom: calc(100% + 32px);
+  /* 꼬리가 왼쪽 끝에 있고 그 꼬리가 FAB 를 가리킨다 — 몸통은 왼쪽으로 물러난다 */
+  left: 50%;
+  transform: translateX(-24px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px 10px 14px;
+  background: var(--chrome-ink-on);
+  color: var(--chrome-bg);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  animation: fab-tip-bob 1.6s ease-in-out infinite;
+}
+
+.fab-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 18px;
+  border: 6px solid transparent;
+  border-top-color: var(--chrome-ink-on);
+}
+
+.fab-tip button {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.8rem;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+@keyframes fab-tip-bob {
+  0%,
+  100% {
+    transform: translateX(-24px) translateY(0);
+  }
+  50% {
+    transform: translateX(-24px) translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab-tip {
+    animation: none;
+  }
 }
 
 /* 채움 대신 무게 — 활성 아이콘은 선이 굵어진다. 채우면 말풍선·나침반처럼
@@ -10126,6 +10216,11 @@ input[type="radio"] {
   border-radius: 16px !important;
 }
 
+/* 탭바 가운데 FAB 원판도 예외 — 원형이 모양이 아니라 뜻인 자리다. */
+.tabbar a.fab .tabbar-icon {
+  border-radius: 50% !important;
+}
+
 /* ── 오늘의 사주 액션 ─────────────────────────────────────
    토끼가 데리고 가는 세 걸음(인사·고르기·들려주기)이 같은 무대를 쓴다.
    .today-stage 가 그 무대다 — 걸음이 바뀌어도 토끼의 자리가 안 움직여야
@@ -10691,8 +10786,8 @@ input[type="radio"] {
 }
 .today-draw {
   position: relative;
-  /* 탭바(58px+안전영역) 몫만 뺀 한 화면 — 스크롤 없이 방이 탭바에 딱 붙는다 */
-  height: calc(100dvh - 58px - env(safe-area-inset-bottom));
+  /* 탭바(72px+안전영역) 몫만 뺀 한 화면 — 스크롤 없이 방이 탭바에 딱 붙는다 */
+  height: calc(100dvh - 72px - env(safe-area-inset-bottom));
   background: radial-gradient(circle at 50% 30%, #241d2c 0%, #171219 55%, #0e0b10 100%);
   overflow: hidden;
   display: flex;
@@ -11234,4 +11329,74 @@ input[type="radio"] {
   color: var(--text-dim);
   font-size: 0.88rem;
   margin: 8px 0 0;
+}
+
+
+/* ── 표지 화면 (2026-09-03) ────────────────────────────────────────────
+   처음 온 사람에게 1.5초 덮였다 걷힌다. 뒤 화면은 이미 그려져 있어서,
+   이것이 걷히면 곧장 홈이다 — 기다리는 화면이 아니라 덮개다. */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  /* 그림은 화면을 채우고, 글은 그 위 윗자락에 앉는다 */
+  place-items: start center;
+  /* 그림이 늦게 와도 색이 튀지 않게 하늘색을 바닥에 미리 깐다.
+     splash.webp 윗자락 평균색이라 그림이 얹혀도 이음매가 안 보인다. */
+  background: #9480a5;
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+.splash.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+.splash-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* 세로 그림을 어떤 화면비에도 꽉 채운다. 잘려도 위쪽 하늘은 남는다 */
+  object-fit: cover;
+  object-position: center bottom;
+}
+.splash-copy {
+  position: relative;
+  /* 그림에서 비워둔 윗자락 — 여기 말고는 토끼나 처마가 글을 받는다 */
+  margin-top: clamp(72px, 14vh, 132px);
+  text-align: center;
+  color: #fff;
+  animation: splash-rise 620ms ease both;
+}
+.splash-title {
+  font-size: clamp(2rem, 9vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(40, 24, 66, 0.45);
+}
+.splash-tagline {
+  margin-top: 8px;
+  font-size: clamp(0.9rem, 3.6vw, 1.02rem);
+  color: rgba(255, 255, 255, 0.86);
+  text-shadow: 0 1px 12px rgba(40, 24, 66, 0.4);
+}
+@keyframes splash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* 움직임을 줄여달라고 한 기기에서는 떠오르지 않고 그냥 있다 */
+@media (prefers-reduced-motion: reduce) {
+  .splash-copy {
+    animation: none;
+  }
 }
