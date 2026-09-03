@@ -10525,13 +10525,14 @@ input[type="radio"] {
 }
 .today-draw {
   position: relative;
-  min-height: 100dvh;
+  /* 탭바(58px+안전영역) 몫만 뺀 한 화면 — 스크롤 없이 방이 탭바에 딱 붙는다 */
+  height: calc(100dvh - 58px - env(safe-area-inset-bottom));
   background: radial-gradient(circle at 50% 30%, #241d2c 0%, #171219 55%, #0e0b10 100%);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(56px + env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom));
+  padding: calc(40px + env(safe-area-inset-top)) 20px 0;
 }
 .today-draw-quote {
   position: relative;
