@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+import RabbitLoader from "@/components/RabbitLoader";
 import SocialLoginButtons from "@/components/SocialLoginButtons";
 import {
   DOMAIN_LABEL,
@@ -125,6 +126,14 @@ export default function TodayPage() {
   /** 깃발을 뽑고 답이 열리기까지의 뜸. 바로 열면 뽑은 손이 무의미해진다 */
   const [flipping, setFlipping] = useState(false);
   const [copied, setCopied] = useState(false);
+  /** 들어가는 중 — 데이터가 빨리 와도 끄덕이는 토끼를 잠깐은 보여준다.
+      문이 벌컥 열리는 것보다 한 박자 있다 열리는 쪽이 들어가는 기분이 든다. */
+  const [entering, setEntering] = useState(true);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setEntering(false), 1600);
+    return () => window.clearTimeout(t);
+  }, []);
 
   const load = useCallback(async (token: string) => {
     setScreen({ kind: "loading" });
@@ -204,14 +213,8 @@ export default function TodayPage() {
 
   // ── 걸음 밖의 화면들 ──────────────────────────────────────
 
-  if (screen.kind === "loading") {
-    return (
-      <main className="today">
-        <Sky date={dateLabel()}>
-          <p className="today-sky-sub">오늘의 흐름을 읽는 중이야…</p>
-        </Sky>
-      </main>
-    );
+  if (entering || screen.kind === "loading") {
+    return <RabbitLoader message="오늘의 흐름을 읽는 중이야" sub="오늘의 일진과 네 사주를 맞대어 보고 있어" />;
   }
 
   if (screen.kind === "guest" || screen.kind === "needsProfile" || screen.kind === "error") {
