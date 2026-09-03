@@ -68,7 +68,7 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           {/* 광고 소재의 속마음 후킹을 실제 판매 상품인 썸 사주로 이어 준다. */}
           <div className="lp-intro-art">
             <Image
-              src="/cards-pastel/sseom.jpg"
+              src="/cards-pastel/sseom.jpg?v=2"
               alt="썸 사주"
               fill
               priority

@@ -526,7 +526,7 @@ function TodayShelf() {
             style={{ background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})` }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/cards-pastel/${p.id}.jpg`} alt="" loading="lazy" />
+            <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
           </span>
         </Link>
       ))}

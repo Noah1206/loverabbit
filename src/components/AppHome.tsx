@@ -35,7 +35,7 @@ function CardArt({ p, height, className }: { p: Product; height?: number; classN
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/cards-pastel/${p.id}.jpg`}
+        src={`/cards-pastel/${p.id}.jpg?v=2`}
         alt=""
         loading="lazy"
         style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 18%" }}

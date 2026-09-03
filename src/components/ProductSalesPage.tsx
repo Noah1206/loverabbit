@@ -98,7 +98,7 @@ export default function ProductSalesPage({
           style={{ background: `linear-gradient(160deg, ${product.grad[0]}, ${product.grad[1]})` }}
         >
           <Image
-            src={`/cards-pastel/${product.id}.jpg`}
+            src={`/cards-pastel/${product.id}.jpg?v=2`}
             alt=""
             fill
             priority

@@ -807,7 +807,7 @@ export default function ReadingReportPage() {
               <div className="rv-cover-art" aria-hidden>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={`/cards-pastel/${entry.category}.jpg`}
+                  src={`/cards-pastel/${entry.category}.jpg?v=2`}
                   alt=""
                   onError={(event) => {
                     // 일러스트가 없는 카테고리(내린 상품 등)는 조용히 접는다
