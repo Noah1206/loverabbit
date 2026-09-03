@@ -9997,7 +9997,9 @@ input[type="radio"] {
   position: relative;
   background: linear-gradient(180deg, #14163a 0%, #1c1e46 62%, #23204a 100%);
   color: #fff;
-  padding: 20px 22px 0;
+  /* 노치·상태바 아래로 파고들지 않게 — 안전영역만큼 내린다.
+     이게 없으면 날짜와 제목 첫 줄이 브라우저 크롬에 잘린다. */
+  padding: calc(20px + env(safe-area-inset-top)) 22px 0;
   overflow: hidden;
 }
 .today-sky-date {
@@ -10008,9 +10010,8 @@ input[type="radio"] {
 .today-sky-text {
   position: relative;
   z-index: 2;
-  margin-top: 30px;
+  margin-top: 26px;
   max-width: 21rem;
-  min-height: 120px;
 }
 .today-sky-eyebrow {
   color: #e8b84b;
@@ -10064,10 +10065,12 @@ input[type="radio"] {
 .today-sky-more:active {
   opacity: 0.7;
 }
-/* 풍경 — SVG 가 폭을 꽉 채우고, 토끼가 능선 위에 앉는다 */
+/* 풍경 — SVG 가 폭을 꽉 채우고, 토끼가 능선 위에 앉는다.
+   위로 당겨 글과 언덕 사이의 빈 하늘을 줄인다 — 별은 글 뒤로 지나가도
+   된다(글이 z-index 2). */
 .today-scene {
   position: relative;
-  margin: 10px -22px 0;
+  margin: -28px -22px 0;
 }
 .today-scene svg {
   display: block;
@@ -10077,7 +10080,9 @@ input[type="radio"] {
 .today-scene-rabbit {
   position: absolute;
   right: 7%;
-  bottom: -4px;
+  /* 발이 흰 땅을 살짝 파고들어야 "서 있다"로 읽힌다. 능선에 발끝만 걸치면
+     언덕 앞에 떠 있는 것처럼 보였다. */
+  bottom: -12px;
   width: min(190px, 44vw);
   z-index: 3;
 }
@@ -10163,14 +10168,8 @@ input[type="radio"] {
 .today-rabbit.has-video img {
   visibility: hidden;
 }
-/* 살아 있다는 표시만 — 3px 뜬다. 시선을 뺏을 만큼 크면 글을 못 읽는다. */
-.today-rabbit.is-bob img {
-  animation: today-bob 3.2s ease-in-out infinite;
-}
-@keyframes today-bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
+/* 정지 그림은 정지해 있다 — 둥둥 애니메이션은 걷었다 (2026-09-03).
+   언덕 위에 선 캐릭터가 떠다니면 땅이 거짓말이 된다. */
 .today-eyebrow {
   color: var(--accent);
   font-weight: 800;
@@ -10192,13 +10191,19 @@ input[type="radio"] {
   max-width: 20rem;
 }
 .today-cta {
-  margin-top: 12px;
+  display: block;
+  margin: 12px auto 0;
   width: min(300px, 100%);
   text-align: center;
 }
 .today-gate {
-  margin-top: 12px;
-  width: min(300px, 100%);
+  margin: 16px auto 0;
+  width: min(340px, 100%);
+}
+/* 관문 화면(로그인·사주 입력·오류)의 안내문 — 버튼과 같은 축으로 가운데 */
+.today-content > .today-sub {
+  margin-inline: auto;
+  text-align: center;
 }
 
 /* 토끼의 말 — 카드 위에 얹히는 한마디. 따옴표 없이 크기와 자리로만 말임을
@@ -10439,11 +10444,6 @@ input[type="radio"] {
   margin-bottom: 6px;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .today-rabbit.is-bob img {
-    animation: none;
-  }
-}
 
 /* ── 내 사주 수치 (2026-09-02) ──────────────────────────
    접혀 있다가 펴진다. 첫 화면은 오늘 할 행동 하나여야 하므로 여기는

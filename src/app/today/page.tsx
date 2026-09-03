@@ -744,8 +744,10 @@ function RabbitArt({
   const [videoFailed, setVideoFailed] = useState(false);
   const showVideo = Boolean(video) && !videoFailed;
 
+  // 정지 그림일 때 둥둥 띄우지 않는다 (2026-09-03 운영자) — 언덕 위에 서
+  // 있는 캐릭터가 떠다니면 땅이 거짓말이 된다.
   return (
-    <div className={`today-rabbit${showVideo ? " has-video" : " is-bob"}`}>
+    <div className={`today-rabbit${showVideo ? " has-video" : ""}`}>
       <Image
         src={art}
         alt={alt}
