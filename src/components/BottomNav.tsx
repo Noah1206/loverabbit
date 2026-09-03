@@ -112,12 +112,12 @@ export default function BottomNav() {
             aria-current={active ? "page" : undefined}
           >
             <span className="tabbar-icon" aria-hidden>
-              {"fab" in item && item.fab ? (
-                <Image src={loveRabbitLogo} alt="" width={44} height={44} sizes="44px" />
-              ) : (
+              {"icon" in item ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                   {item.icon}
                 </svg>
+              ) : (
+                <Image src={loveRabbitLogo} alt="" width={44} height={44} sizes="44px" />
               )}
             </span>
             <span className="tabbar-label">{item.label}</span>
