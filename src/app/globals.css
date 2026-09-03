@@ -10518,15 +10518,20 @@ input[type="radio"] {
    청월당식 문법: 어두운 방, 색을 감춘 채 말려 있는 깃대 다섯,
    그 뒤에 오방기 다발을 든 토끼가 흐릿하게 서 있다.
    손이 닿은 깃대 자리에서 진짜 깃발이 색을 열며 펼쳐진다. */
+/* 어둠이 탭바 뒤까지 내려간다 — main 의 흰 바닥 패딩이 여기서는
+   어둠 아래 흰 띠로 보이므로 걷고, 어둠 자체가 그 몫의 여백을 진다. */
+.today:has(> .today-draw) {
+  padding-bottom: 0;
+}
 .today-draw {
   position: relative;
-  min-height: calc(100dvh - 96px - env(safe-area-inset-bottom));
+  min-height: 100dvh;
   background: radial-gradient(circle at 50% 30%, #241d2c 0%, #171219 55%, #0e0b10 100%);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: calc(56px + env(safe-area-inset-top)) 20px 40px;
+  padding: calc(56px + env(safe-area-inset-top)) 20px calc(96px + env(safe-area-inset-bottom));
 }
 .today-draw-quote {
   position: relative;
