@@ -248,7 +248,7 @@ export default function TodayPage() {
 
   if (screen.kind === "guest" || screen.kind === "needsProfile" || screen.kind === "error") {
     return (
-      <main className="today">
+      <main className="today" key={screen.kind}>
         <Sky date={dateLabel()}>
           {screen.kind === "guest" && (
             <h1 className="today-sky-title">
@@ -324,7 +324,7 @@ export default function TodayPage() {
 
   if (step === "hello") {
     return (
-      <main className="today">
+      <main className="today" key="hello">
         <Sky date={dateLabel(data.today)} rabbitArt={OBANG_RABBIT_ART}>
           <p className="today-sky-eyebrow">오늘의 사주 액션</p>
           <h1 className="today-sky-title">
@@ -359,7 +359,7 @@ export default function TodayPage() {
 
   if (step === "pick") {
     return (
-      <main className="today">
+      <main className="today" key="pick">
         <Sky date={dateLabel(data.today)}>
           <h1 className="today-sky-title">어떤 게 궁금해?</h1>
           <p className="today-sky-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
@@ -406,7 +406,7 @@ export default function TodayPage() {
 
   if (step === "flags") {
     return (
-      <main className="today">
+      <main className="today" key="flags">
         <Sky date={dateLabel(data.today)}>
           {/* "되돌릴 수 없어"는 다시 뽑기가 생기면서 거짓말이 됐다 — 뺐다. */}
           <h1 className="today-sky-title">
@@ -474,7 +474,7 @@ export default function TodayPage() {
     .join("\n");
 
   return (
-    <main className="today">
+    <main className="today" key="reveal">
       <Sky date={dateLabel(data.today)} rabbitArt={shown.rabbit.art}>
         <p className="today-sky-premise">
           <span className={`today-hero-flag ${wonFlag.className}`}>

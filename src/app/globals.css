@@ -9986,6 +9986,15 @@ input[type="radio"] {
   padding: 0 0 calc(96px + env(safe-area-inset-bottom));
   max-width: 480px;
   margin: 0 auto;
+  /* 걸음(인사→뽑기→결과)은 라우트가 아니라 상태 전환이라 route-slide-in 이
+     안 붙는다. main 에 key 를 줘 걸음마다 새로 마운트되고, 여기서 같은
+     떠오름을 탄다 — 결과가 띡 나오지 않는다. */
+  animation: route-slide-in 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .today {
+    animation: none;
+  }
 }
 /* 하늘 아래 밝은 바닥 — 걸음별 내용이 여기에 온다 */
 .today-content {
