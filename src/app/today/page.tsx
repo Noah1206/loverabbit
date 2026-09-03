@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -33,6 +33,10 @@ import { getUser, type User } from "@/lib/user";
 // 순서로 두면 같은 내용이 대화가 된다. 고르는 걸음이 하는 일이 하나 더
 // 있다 — 답을 듣기 전에 잠깐 뜸을 들이게 해서, 뒤에 나오는 한 줄이 더
 // 무겁게 읽힌다.
+//
+// 화면의 뼈대 (2026-09-03 개편): 밤하늘 무대가 위에 늘 떠 있고, 그 아래
+// 밝은 바닥에 걸음별 내용이 온다. 토끼는 언덕 능선 위에 산다 — 걸음이
+// 바뀌어도 하늘과 언덕은 그대로라, 같은 밤 같은 자리에서 이야기가 이어진다.
 //
 // 하루에 한 번만 인사한다. 세 번째 열 때도 손을 흔들면 그건 인사가 아니라
 // 관문이다. sessionStorage 에 오늘 날짜를 남겨 그 다음부터는 결과로 바로
@@ -103,6 +107,12 @@ function rememberGreeted(today: string): void {
   } catch {
     /* 기억 못 해도 흐름은 그대로 간다 */
   }
+}
+
+/** "9/3 목" — 밤하늘 왼쪽 위의 오늘. 서버가 준 날짜가 있으면 그 날을 쓴다. */
+function dateLabel(iso?: string): string {
+  const d = iso ? new Date(`${iso}T00:00:00+09:00`) : new Date();
+  return `${d.getMonth() + 1}/${d.getDate()} ${"일월화수목금토"[d.getDay()]}`;
 }
 
 export default function TodayPage() {
@@ -197,7 +207,9 @@ export default function TodayPage() {
   if (screen.kind === "loading") {
     return (
       <main className="today">
-        <p className="today-waiting">오늘의 흐름을 읽는 중이야…</p>
+        <Sky date={dateLabel()}>
+          <p className="today-sky-sub">오늘의 흐름을 읽는 중이야…</p>
+        </Sky>
       </main>
     );
   }
@@ -205,11 +217,28 @@ export default function TodayPage() {
   if (screen.kind === "guest" || screen.kind === "needsProfile" || screen.kind === "error") {
     return (
       <main className="today">
-        <div className="today-stage">
-          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" />
+        <Sky date={dateLabel()}>
+          {screen.kind === "guest" && (
+            <h1 className="today-sky-title">
+              안녕!
+              <br />
+              오늘 뭐 하면 좋을지
+              <br />
+              같이 볼까?
+            </h1>
+          )}
+          {screen.kind === "needsProfile" && (
+            <h1 className="today-sky-title">
+              아직 네 사주를
+              <br />
+              몰라.
+            </h1>
+          )}
+          {screen.kind === "error" && <h1 className="today-sky-title">잠깐, 뭔가 어긋났어.</h1>}
+        </Sky>
+        <div className="today-content">
           {screen.kind === "guest" && (
             <>
-              <h1 className="today-title">안녕! 오늘 뭐 하면 좋을지 같이 볼까?</h1>
               <p className="today-sub">
                 오늘의 일진과 네 사주를 맞대어 봐야 해서, 먼저 로그인이 필요해.
               </p>
@@ -220,7 +249,6 @@ export default function TodayPage() {
           )}
           {screen.kind === "needsProfile" && (
             <>
-              <h1 className="today-title">아직 네 사주를 몰라.</h1>
               <p className="today-sub">
                 생년월일만 알려주면 매일 오늘의 흐름을 읽어줄게. 한 번만 입력하면 돼.
               </p>
@@ -231,7 +259,6 @@ export default function TodayPage() {
           )}
           {screen.kind === "error" && (
             <>
-              <h1 className="today-title">잠깐, 뭔가 어긋났어.</h1>
               <p className="today-sub">{screen.message}</p>
               <button
                 type="button"
@@ -257,26 +284,29 @@ export default function TodayPage() {
   if (step === "hello") {
     return (
       <main className="today">
-        <div className="today-stage">
-          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" />
-          <p className="today-eyebrow">오늘의 사주 액션</p>
-          <h1 className="today-title">안녕! 오늘도 왔구나.</h1>
-          <p className="today-sub">
+        <Sky date={dateLabel(data.today)}>
+          <p className="today-sky-eyebrow">오늘의 사주 액션</p>
+          <h1 className="today-sky-title">
+            안녕!
+            <br />
+            오늘도 왔구나.
+          </h1>
+          <p className="today-sky-sub">
             {data.yesterdayDomain
               ? `어제는 ${DOMAIN_LABEL[data.yesterdayDomain]} 액션을 해냈지. 오늘은 어떤 걸 볼까?`
               : "오늘의 흐름을 가장 잘 쓰는 방법, 하나만 알려줄게."}
           </p>
           <button
             type="button"
-            className="btn today-cta"
+            className="today-sky-more"
             onClick={() => {
               rememberGreeted(data.today);
               setStep("pick");
             }}
           >
-            오늘의 사주 보기
+            자세히 보기 <span aria-hidden>→</span>
           </button>
-        </div>
+        </Sky>
       </main>
     );
   }
@@ -286,39 +316,40 @@ export default function TodayPage() {
   if (step === "pick") {
     return (
       <main className="today">
-        <div className="today-stage">
-          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" small />
-          <h1 className="today-title today-title-sm">어떤 게 궁금해?</h1>
-          <p className="today-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
-        </div>
+        <Sky date={dateLabel(data.today)}>
+          <h1 className="today-sky-title">어떤 게 궁금해?</h1>
+          <p className="today-sky-sub">하나만 골라줘. 오늘의 흐름으로 읽어줄게.</p>
+        </Sky>
 
-        <div className="today-domains">
-          {DOMAINS.map((domain) => (
-            <button
-              key={domain}
-              type="button"
-              className="today-domain"
-              onClick={() => {
-                setPicked(domain);
-                setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
-              }}
-            >
-              <span>{DOMAIN_LABEL[domain]}</span>
-              {data.completedToday.includes(domain) && <span className="today-domain-done">완료</span>}
-            </button>
-          ))}
-        </div>
+        <div className="today-content">
+          <div className="today-domains">
+            {DOMAINS.map((domain) => (
+              <button
+                key={domain}
+                type="button"
+                className="today-domain"
+                onClick={() => {
+                  setPicked(domain);
+                  setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
+                }}
+              >
+                <span>{DOMAIN_LABEL[domain]}</span>
+                {data.completedToday.includes(domain) && <span className="today-domain-done">완료</span>}
+              </button>
+            ))}
+          </div>
 
-        <button
-          type="button"
-          className="today-skip"
-          onClick={() => {
-            setPicked(null);
-            setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
-          }}
-        >
-          오늘 흐름에 맞는 걸로 골라줘
-        </button>
+          <button
+            type="button"
+            className="today-skip"
+            onClick={() => {
+              setPicked(null);
+              setStep(hasFlaggedToday(data.today) ? "reveal" : "flags");
+            }}
+          >
+            오늘 흐름에 맞는 걸로 골라줘
+          </button>
+        </div>
       </main>
     );
   }
@@ -332,35 +363,36 @@ export default function TodayPage() {
   if (step === "flags") {
     return (
       <main className="today">
-        <div className="today-stage">
-          <RabbitArt video={GREETING_RABBIT_VIDEO} art={GREETING_RABBIT_ART} alt="" small />
-          <h1 className="today-title today-title-sm">깃발을 하나 뽑아봐</h1>
-          <p className="today-sub" aria-live="polite">
+        <Sky date={dateLabel(data.today)}>
+          <h1 className="today-sky-title">깃발을 하나 뽑아봐</h1>
+          <p className="today-sky-sub" aria-live="polite">
             {flipping ? "뽑은 깃발을 읽는 중이야…" : "오늘의 기운이 네게 어느 자리인지 알려줄게."}
           </p>
-        </div>
-        <div className={`today-flag-row is-step${flipping ? " is-flipping" : ""}`}>
-          {FLAGS.map((flag, i) => (
-            <button
-              key={flag.ohaeng}
-              type="button"
-              className="today-flag"
-              style={{ ["--i" as string]: i }}
-              onClick={() => {
-                if (flipping) return;
-                rememberFlag(data.today, flag.ohaeng);
-                // 뽑자마자 답을 주지 않는다. 잠깐 멈췄다 열려야 뽑은 것이 된다.
-                setFlipping(true);
-                setTimeout(() => {
-                  setStep("reveal");
-                  setFlipping(false);
-                }, 1400);
-              }}
-              aria-label={`${flag.color}색 깃발`}
-            >
-              <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
-            </button>
-          ))}
+        </Sky>
+        <div className="today-content">
+          <div className={`today-flag-row is-step${flipping ? " is-flipping" : ""}`}>
+            {FLAGS.map((flag, i) => (
+              <button
+                key={flag.ohaeng}
+                type="button"
+                className="today-flag"
+                style={{ ["--i" as string]: i }}
+                onClick={() => {
+                  if (flipping) return;
+                  rememberFlag(data.today, flag.ohaeng);
+                  // 뽑자마자 답을 주지 않는다. 잠깐 멈췄다 열려야 뽑은 것이 된다.
+                  setFlipping(true);
+                  setTimeout(() => {
+                    setStep("reveal");
+                    setFlipping(false);
+                  }, 1400);
+                }}
+                aria-label={`${flag.color}색 깃발`}
+              >
+                <AlphaMotion video={flag.video} art={flag.art} alt="" width={200} height={200} />
+              </button>
+            ))}
+          </div>
         </div>
       </main>
     );
@@ -369,7 +401,7 @@ export default function TodayPage() {
   // ── 넷째 걸음: 결과 ──────────────────────────────────────
   //
   // 위계는 하나다: 전제(너의 결·오늘의 기운) → 선언(오늘 할 것) → 상세.
-  // 굵은 글자는 선언 하나에만 준다 — 전부 굵으면 아무것도 안 굵다.
+  // 선언이 밤하늘의 큰 글이 된다 — 스크린샷의 "당신의 능력을…" 자리다.
 
   const done = data.completedToday.includes(shown.domain);
   const flagResult = flipFlag(data.flow.myElement, data.flow.todayElement);
@@ -390,71 +422,146 @@ export default function TodayPage() {
 
   return (
     <main className="today">
-      <div className="today-stage is-compact">
-        <RabbitArt video={shown.rabbit.video} art={shown.rabbit.art} alt="" small />
-      </div>
-
-      {data.me && <MyChart me={data.me} />}
-
-      {/* 전제 → 선언. "너가 이러니까(칩) → 오늘은 이런 날이니(전제) →
-          이걸 해(선언)" 이 한 호흡이 화면의 축이다. */}
-      <header className="today-hero">
-        <div className="today-chips">
-          <span className="today-chip is-domain">{DOMAIN_LABEL[shown.domain]}</span>
-          <span className="today-chip">일간 {data.flow.dayMaster}</span>
-          <span className="today-chip">오늘 {data.flow.dayGanji}일</span>
-        </div>
-        <p className="today-hero-premise">
+      <Sky
+        date={dateLabel(data.today)}
+        rabbitArt={shown.rabbit.art}
+        rabbitVideo={shown.rabbit.video}
+      >
+        <p className="today-sky-premise">
           <span className={`today-hero-flag ${wonFlag.className}`}>
             <AlphaMotion video={wonFlag.video} art={wonFlag.art} alt="" width={80} height={80} />
           </span>
           {flagResult.premise}
         </p>
-        <h1 className="today-hero-action">{shown.action}</h1>
+        <h1 className="today-sky-title is-action">{shown.action}</h1>
         {shown.durationMinutes && (
-          <p className="today-minutes">약 {shown.durationMinutes}분이면 돼</p>
+          <p className="today-sky-sub">약 {shown.durationMinutes}분이면 돼</p>
         )}
+      </Sky>
 
-      </header>
+      <div className="today-content">
+        <section className="card today-card today-feature">
+          <p className="today-feature-eyebrow">
+            {DOMAIN_LABEL[shown.domain]} · 일간 {data.flow.dayMaster} · 오늘 {data.flow.dayGanji}일
+          </p>
 
-      <section className="card today-card">
-        <p className="today-label today-label-first">왜 이 행동인가</p>
-        <p className="today-body">{shown.reason}</p>
+          <p className="today-label">왜 이 행동인가</p>
+          <p className="today-body">{shown.reason}</p>
 
-        <p className="today-label">오늘 피할 행동</p>
-        <p className="today-body">{shown.avoidAction}</p>
+          <p className="today-label">오늘 피할 행동</p>
+          <p className="today-body">{shown.avoidAction}</p>
 
-        {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
+          {shown.disclaimer && <p className="today-fine">{shown.disclaimer}</p>}
 
-        <div className="today-do">
-          {done ? (
-            <p className="today-done">
-              오늘 몫은 했다. 잘했어.
-              {copied && <span className="today-copied">복사됐어</span>}
-            </p>
-          ) : (
-            <button
-              type="button"
-              className="btn today-cta"
-              disabled={saving}
-              onClick={() => complete(shown.domain, shareText)}
-            >
-              {saving ? "저장하는 중…" : "저장하기"}
-            </button>
-          )}
-          {saveError && <p className="today-error">{saveError}</p>}
-        </div>
-      </section>
+          <div className="today-do">
+            {done ? (
+              <p className="today-done">
+                오늘 몫은 했다. 잘했어.
+                {copied && <span className="today-copied">복사됐어</span>}
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="btn today-cta"
+                disabled={saving}
+                onClick={() => complete(shown.domain, shareText)}
+              >
+                {saving ? "저장하는 중…" : "저장하기"}
+              </button>
+            )}
+            {saveError && <p className="today-error">{saveError}</p>}
+          </div>
+        </section>
 
-      <p className="today-fine today-footnote">
-        어느 깃발을 골라도 답은 하나야. 예언이 아니라 참고 가이드다.
-        {data.birthTimeUnknown && " 태어난 시각은 몰라도 결과는 안 달라져."}
-      </p>
+        {data.me && <MyChart me={data.me} />}
 
-      <button type="button" className="today-skip" onClick={() => setStep("pick")}>
-        다른 운세 보기
-      </button>
+        <p className="today-fine today-footnote">
+          어느 깃발을 골라도 답은 하나야. 예언이 아니라 참고 가이드다.
+          {data.birthTimeUnknown && " 태어난 시각은 몰라도 결과는 안 달라져."}
+        </p>
+
+        <button type="button" className="today-skip" onClick={() => setStep("pick")}>
+          다른 운세 보기
+        </button>
+      </div>
     </main>
+  );
+}
+
+/**
+ * 밤하늘 무대 — 모든 걸음이 이 위에서 논다.
+ *
+ * 스크린샷(포스텔러 투데이)의 뼈대를 옮겼다: 왼쪽 위 날짜, 큰 흰 글,
+ * 아래로 가을 언덕과 달, 능선 위의 토끼, 그리고 밝은 바닥으로 넘어가는
+ * 흰 곡선. 하늘·언덕·달은 인라인 SVG 하나다 — 그림 파일이 없어도 되고,
+ * 테마가 바뀌어도 밤은 밤이다. 바닥 곡선만 var(--bg) 를 물려받아
+ * 라이트·다크 어느 쪽에서도 콘텐츠 면과 이어진다.
+ */
+function Sky({
+  date,
+  children,
+  rabbitArt = GREETING_RABBIT_ART,
+  rabbitVideo = GREETING_RABBIT_VIDEO,
+}: {
+  date: string;
+  children: ReactNode;
+  rabbitArt?: string;
+  rabbitVideo?: string;
+}) {
+  return (
+    <section className="today-sky">
+      <p className="today-sky-date">{date}</p>
+      <div className="today-sky-text">{children}</div>
+      <div className="today-scene" aria-hidden>
+        <SceneArt />
+        <div className="today-scene-rabbit">
+          <RabbitArt video={rabbitVideo} art={rabbitArt} alt="" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** 가을 언덕과 달 — 코드로 그린 밤 풍경. 아래 흰 면이 콘텐츠 바닥과 이어진다. */
+function SceneArt() {
+  return (
+    <svg viewBox="0 0 480 240" preserveAspectRatio="xMidYMax slice">
+      {/* 별 — 크기 둘, 흩뿌림 */}
+      <g fill="#e8dcae" opacity="0.85">
+        <circle cx="42" cy="18" r="1.6" />
+        <circle cx="118" cy="44" r="1.2" />
+        <circle cx="205" cy="12" r="1.4" />
+        <circle cx="286" cy="38" r="1.1" />
+        <circle cx="356" cy="10" r="1.5" />
+        <circle cx="428" cy="30" r="1.2" />
+        <circle cx="70" cy="66" r="1" />
+        <circle cx="392" cy="60" r="1" />
+        <circle cx="160" cy="76" r="1.2" />
+        <circle cx="250" cy="58" r="0.9" />
+      </g>
+      {/* 달 */}
+      <circle cx="172" cy="86" r="22" fill="#ded4a2" opacity="0.95" />
+      {/* 뒷산 */}
+      <path
+        d="M0 158 Q60 108 128 140 Q180 96 248 138 Q318 100 380 142 Q430 118 480 146 V240 H0 Z"
+        fill="#6d4a39"
+      />
+      {/* 앞 수풀 — 둥근 덤불 띠 */}
+      <path
+        d="M0 190 Q30 168 62 184 Q92 162 128 182 Q160 164 196 184 Q232 166 268 186 Q302 168 338 186 Q372 170 408 188 Q442 174 480 188 V240 H0 Z"
+        fill="#54382f"
+      />
+      {/* 풀밭의 잔별 */}
+      <g fill="#c9a24d" opacity="0.6">
+        <circle cx="60" cy="206" r="1.4" />
+        <circle cx="150" cy="214" r="1.2" />
+        <circle cx="240" cy="206" r="1.4" />
+        <circle cx="330" cy="216" r="1.2" />
+        <circle cx="420" cy="208" r="1.4" />
+      </g>
+      {/* 콘텐츠 면으로 넘어가는 흰 능선 */}
+      <path d="M0 236 Q240 200 480 232 V240 H0 Z" fill="var(--bg)" />
+    </svg>
   );
 }
 
@@ -629,30 +736,24 @@ function RabbitArt({
   video,
   art,
   alt,
-  small = false,
 }: {
   /** 없으면 정지 그림만 (bob 으로 대신 움직인다) */
   video?: string;
   art: string;
   alt: string;
-  small?: boolean;
 }) {
   const [videoFailed, setVideoFailed] = useState(false);
   const showVideo = Boolean(video) && !videoFailed;
 
   return (
-    <div
-      className={`today-rabbit${small ? " is-small" : ""}${
-        showVideo ? " has-video" : " is-bob"
-      }`}
-    >
+    <div className={`today-rabbit${showVideo ? " has-video" : " is-bob"}`}>
       <Image
         src={art}
         alt={alt}
         width={512}
         height={512}
         priority
-        sizes="(max-width: 480px) 62vw, 280px"
+        sizes="(max-width: 480px) 46vw, 210px"
       />
       {showVideo && (
         <video

@@ -9980,10 +9980,143 @@ input[type="radio"] {
    .today-stage 가 그 무대다 — 걸음이 바뀌어도 토끼의 자리가 안 움직여야
    같은 토끼가 이야기를 이어가는 것으로 읽힌다. */
 .today {
-  padding: 32px 20px calc(96px + env(safe-area-inset-bottom));
+  padding: 0 0 calc(96px + env(safe-area-inset-bottom));
   max-width: 480px;
   margin: 0 auto;
 }
+/* 하늘 아래 밝은 바닥 — 걸음별 내용이 여기에 온다 */
+.today-content {
+  padding: 18px 20px 0;
+}
+
+/* ── 밤하늘 무대 (2026-09-03) ─────────────────────────────
+   왼쪽 위 날짜, 큰 흰 글, 가을 언덕과 달, 능선 위의 토끼.
+   하늘은 테마와 무관하게 밤이다 — 색을 하드코딩한다. 바닥으로 넘어가는
+   흰 능선(SVG 마지막 path)만 var(--bg) 를 물려받아 콘텐츠 면과 이어진다. */
+.today-sky {
+  position: relative;
+  background: linear-gradient(180deg, #14163a 0%, #1c1e46 62%, #23204a 100%);
+  color: #fff;
+  padding: 20px 22px 0;
+  overflow: hidden;
+}
+.today-sky-date {
+  font-size: 1.02rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+.today-sky-text {
+  position: relative;
+  z-index: 2;
+  margin-top: 30px;
+  max-width: 21rem;
+  min-height: 120px;
+}
+.today-sky-eyebrow {
+  color: #e8b84b;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+.today-sky-title {
+  margin: 0;
+  font-size: 1.68rem;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.01em;
+  color: #fff;
+  text-wrap: balance;
+}
+.today-sky-title.is-action {
+  font-size: 1.44rem;
+}
+.today-sky-sub {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.62;
+}
+/* 전제 한 줄 — 깃발 작은 그림 + "이런 날이니". 큰 선언 위에 온다. */
+.today-sky-premise {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.5;
+}
+.today-sky-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.today-sky-more:active {
+  opacity: 0.7;
+}
+/* 풍경 — SVG 가 폭을 꽉 채우고, 토끼가 능선 위에 앉는다 */
+.today-scene {
+  position: relative;
+  margin: 10px -22px 0;
+}
+.today-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.today-scene-rabbit {
+  position: absolute;
+  right: 7%;
+  bottom: -4px;
+  width: min(190px, 44vw);
+  z-index: 3;
+}
+.today-scene-rabbit .today-rabbit {
+  width: 100%;
+}
+
+/* 결과 카드 — 상영표풍 어두운 카드. 밝은 바닥 위에서 혼자 가라앉는다. */
+.today-feature {
+  background: #1b1826;
+  border-color: transparent;
+  color: #f0eff2;
+}
+.today-feature-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+}
+.today-feature .today-label {
+  color: rgba(255, 255, 255, 0.6);
+}
+.today-feature .today-body {
+  color: rgba(255, 255, 255, 0.85);
+}
+.today-feature .today-fine {
+  color: rgba(255, 255, 255, 0.5);
+}
+.today-feature .today-cta {
+  background: #fff;
+  color: #111;
+}
+.today-feature .today-done {
+  color: #fff;
+}
+.today-feature .today-copied {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.8);
+}
+
 .today-waiting {
   color: var(--text-dim);
   text-align: center;
