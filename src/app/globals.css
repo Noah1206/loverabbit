@@ -11576,6 +11576,7 @@ input[type="radio"] {
 .guide-steps span { font-size: 0.86rem; line-height: 1.65; color: #55555e; }
 
 .guide-dark {
+  position: relative;
   display: grid;
   justify-items: center;
   text-align: center;
@@ -11585,6 +11586,31 @@ input[type="radio"] {
   border-radius: 26px;
   background: linear-gradient(160deg, #201a3d 0%, #2c2154 100%);
   color: #fff;
+  overflow: hidden;
+}
+/* 조선 구름당초 문양 — 금빛 소용돌이 구름을 격자로 깐다. 좌우 대칭 타일이라
+   어디서 잘려도 균형이 맞는다. 글 뒤에 은은하게(9%) 깔리는 배경이다. */
+.guide-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.14;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23e8c476' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M30 30c-8 0-12-6-8-12s14-4 14 4c0-8 10-10 14-4s0 12-8 12z'/%3E%3Cpath d='M90 30c-8 0-12-6-8-12s14-4 14 4c0-8 10-10 14-4s0 12-8 12z'/%3E%3Cpath d='M30 90c-8 0-12-6-8-12s14-4 14 4c0-8 10-10 14-4s0 12-8 12z'/%3E%3Cpath d='M90 90c-8 0-12-6-8-12s14-4 14 4c0-8 10-10 14-4s0 12-8 12z'/%3E%3Ccircle cx='60' cy='60' r='7'/%3E%3Cpath d='M60 47v-6M60 79v-6M47 60h-6M79 60h-6'/%3E%3Ccircle cx='0' cy='60' r='7'/%3E%3Ccircle cx='120' cy='60' r='7'/%3E%3Ccircle cx='60' cy='0' r='7'/%3E%3Ccircle cx='60' cy='120' r='7'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+}
+/* 위·아래 금줄 테두리 — 병풍의 가장자리 선 */
+.guide-dark::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  pointer-events: none;
+  border: 1px solid rgba(232, 196, 118, 0.28);
+  border-radius: 18px;
+}
+.guide-dark > * {
+  position: relative;
+  z-index: 1;
 }
 .guide-dark .guide-h2 { color: #fff; }
 .guide-dark-body { font-size: 0.92rem; line-height: 1.75; color: rgba(255,255,255,0.82); }
