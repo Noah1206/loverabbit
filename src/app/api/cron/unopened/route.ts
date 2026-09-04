@@ -12,9 +12,9 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
   잊는다. 산 물건이 있다는 알림이라 광고가 아니고, 마케팅 동의와 무관하게
   보낸다. 명리 주장은 넣지 않는다.
 
-  창은 열린 지 12시간~7일. 12시간 전에는 아직 볼 참일 수 있고, 7일이 지난
-  건 굳었다. 한 리딩에 한 번 — payment.unopened_nudge_at 이 찍히면 다시 안
-  보낸다. 발송 실패(비카카오 로그인)도 찍는다: 매일 다시 시도할 이유가 없다.
+  창은 열린 지 12시간~30일. 12시간 전에는 아직 볼 참일 수 있다. 한 리딩에
+  한 번 — payment.unopened_nudge_at 이 찍히면 다시 안 보낸다. 발송 실패
+  (비카카오 로그인)도 찍는다: 매일 다시 시도할 이유가 없다.
 
   vercel.json 의 cron 이 매일 11시(KST)에 부른다. Authorization: Bearer CRON_SECRET.
 */
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
   if (!db) return NextResponse.json({ error: "db" }, { status: 503 });
 
   const now = Date.now();
-  const from = new Date(now - 7 * 86_400_000).toISOString();
+  const from = new Date(now - 30 * 86_400_000).toISOString();
   const to = new Date(now - 12 * 3_600_000).toISOString();
   const { data, error } = await db
     .from("lr_readings")
