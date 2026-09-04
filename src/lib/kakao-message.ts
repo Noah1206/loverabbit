@@ -141,6 +141,10 @@ export interface KakaoMemo {
   /** 카드의 링크. 카카오 앱에 등록된 도메인이어야 한다. */
   url: string;
   buttonTitle?: string;
+  /** 카드 상단 그림(공개 https). 있으면 feed 템플릿으로 보낸다 — 토끼가 보인다. */
+  imageUrl?: string;
+  /** feed 템플릿의 굵은 제목. imageUrl 과 함께 쓴다. */
+  title?: string;
 }
 
 /**
@@ -183,12 +187,28 @@ export async function sendKakaoMemo(userId: number, memo: KakaoMemo): Promise<bo
         "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
       },
       body: new URLSearchParams({
-        template_object: JSON.stringify({
-          object_type: "text",
-          text: memo.text.slice(0, 200),
-          link: { web_url: memo.url, mobile_web_url: memo.url },
-          button_title: memo.buttonTitle ?? "열기",
-        }),
+        // 그림이 있으면 feed 카드(그림+제목+본문+버튼), 없으면 기존 text 카드.
+        template_object: JSON.stringify(
+          memo.imageUrl
+            ? {
+                object_type: "feed",
+                content: {
+                  title: (memo.title ?? "러브레빗").slice(0, 100),
+                  description: memo.text.slice(0, 200),
+                  image_url: memo.imageUrl,
+                  link: { web_url: memo.url, mobile_web_url: memo.url },
+                },
+                buttons: [
+                  { title: memo.buttonTitle ?? "열기", link: { web_url: memo.url, mobile_web_url: memo.url } },
+                ],
+              }
+            : {
+                object_type: "text",
+                text: memo.text.slice(0, 200),
+                link: { web_url: memo.url, mobile_web_url: memo.url },
+                button_title: memo.buttonTitle ?? "열기",
+              }
+        ),
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
