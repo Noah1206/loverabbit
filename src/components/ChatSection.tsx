@@ -54,7 +54,7 @@ export default function ChatSection({
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
         <span style={{ fontSize: "1.3rem" }}>🔮</span>
         <strong>추가 사주 상담</strong>
-        <span className="badge">첫 질문 무료</span>
+        <span className="badge">질문당 1러빗</span>
       </div>
 
       <div style={{ display: "grid", gap: 10, marginBottom: 12 }}>
