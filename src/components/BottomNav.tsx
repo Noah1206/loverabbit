@@ -5,6 +5,25 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
+import { getUser } from "@/lib/user";
+
+// 귀인지도 탭은 아직 만드는 중 — 개발자 계정에만 보인다.
+const DEV_EMAILS = ["ab40905045@gmail.com", "ab40905045@handong.ac.kr"];
+
+const GUIN_ITEM = {
+  href: "/guin",
+  label: "귀인지도",
+  matches: (path: string) => path.startsWith("/guin"),
+  // 궤도 위 별 — 지도 화면의 문법 그대로
+  icon: (
+    <>
+      <ellipse cx="12" cy="12" rx="9" ry="4.6" />
+      <circle cx="12" cy="12" r="1.6" />
+      <circle cx="4.8" cy="9.4" r="1.1" />
+      <circle cx="19.2" cy="14.6" r="1.1" />
+    </>
+  ),
+} as const;
 
 // FAB 위 튜토리얼 말풍선 — 한 번 닫으면 다시 안 뜬다
 const FAB_TIP_KEY = "fab-tip-dismissed";
@@ -65,22 +84,23 @@ const NAV_ITEMS = [
   },
 ] as const;
 
-function activeIndex(path: string): number {
-  const index = NAV_ITEMS.findIndex((item) => item.matches(path));
-  return index < 0 ? 0 : index;
-}
-
 export default function BottomNav() {
   const path = usePathname();
-  const routeIndex = activeIndex(path);
 
-  // 하이드레이션 불일치를 피하려고 마운트 뒤에만 켠다
+  // 하이드레이션 불일치를 피하려고 마운트 뒤에만 켠다 (개발자 탭도 같은 이유)
   const [showTip, setShowTip] = useState(false);
+  const [isDev, setIsDev] = useState(false);
   useEffect(() => {
     try {
       if (!localStorage.getItem(FAB_TIP_KEY)) setShowTip(true);
     } catch {}
+    const email = getUser()?.email?.toLowerCase();
+    if (email && DEV_EMAILS.includes(email)) setIsDev(true);
   }, []);
+
+  const items = isDev ? [...NAV_ITEMS, GUIN_ITEM] : [...NAV_ITEMS];
+  const found = items.findIndex((item) => item.matches(path));
+  const routeIndex = found < 0 ? 0 : found;
   const dismissTip = () => {
     setShowTip(false);
     try {
@@ -102,7 +122,7 @@ export default function BottomNav() {
           </button>
         </div>
       )}
-      {NAV_ITEMS.map((item, index) => {
+      {items.map((item, index) => {
         const active = routeIndex === index;
         return (
           <Link
