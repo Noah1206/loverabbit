@@ -10,7 +10,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
-import GuinMapIntro from "@/components/GuinMapIntro";
 import GuinRunLoader from "@/components/GuinRunLoader";
 import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
@@ -32,9 +31,7 @@ function GuinLanding() {
   const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  // 오프닝 — 이 페이지에 들어온 순간 영상이 끝까지 돌고, 그 뒤에 폼이 선다.
-  // 로그인 여부와 무관하다. 건너뛰기·Escape·reduced-motion 은 컴포넌트가 연다.
-  const [introDone, setIntroDone] = useState(false);
+  // 오프닝 영상은 뺐다 (2026-09-04 운영자) — 들어오면 바로 폼이다.
   // 참여 화면에서 넘어온 사람의 방금 입력값. 동의는 새로 받는다.
   const [prefill, setPrefill] = useState<GuinPrefill | null>(null);
   const viewed = useRef(false);
@@ -130,16 +127,6 @@ function GuinLanding() {
     router.push(`/guin/${match[1]}`);
   };
 
-  if (!introDone) {
-    return (
-      <GuinMapIntro
-        existingNodeCount={0}
-        mode="full"
-        onDone={() => setIntroDone(true)}
-      />
-    );
-  }
-
   return (
     <main className="container guin-landing" style={{ paddingTop: 28, paddingBottom: 120 }}>
       {busy && <GuinRunLoader />}
@@ -147,7 +134,7 @@ function GuinLanding() {
       {/* 딱딱한 제목+문단 대신 토끼가 서 있는 무대 — 폼은 그 아래 카드에 앉는다 */}
       <header className="guin-landing-hero">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="guin-landing-rabbit anim-float" src="/assets/today/rabbit-hello-hanbok.webp" alt="" width={140} height={140} />
+        <img className="guin-landing-rabbit" src="/assets/today/rabbit-hello-hanbok.webp" alt="" width={140} height={140} />
         <h1>
           내 주변에
           <br />
