@@ -10466,6 +10466,14 @@ input[type="radio"] {
   display: block;
 }
 
+/* 진열대의 마침표 — 탭바 위 필수 여백이 "끊긴 화면"으로 안 읽히게. */
+.today-shelf-end {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  margin-top: 14px;
+}
+
 .today-waiting {
   color: var(--text-dim);
   text-align: center;

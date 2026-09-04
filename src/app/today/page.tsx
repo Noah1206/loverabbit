@@ -753,6 +753,9 @@ function TodayShelf() {
           </span>
         </Link>
       ))}
+      {/* 피드의 마침표 — 이게 없으면 마지막 카드 아래 탭바 여백이
+          "덜 불러온 화면"처럼 읽힌다. */}
+      <p className="today-shelf-end">오늘 준비한 건 여기까지야. 내일 또 올게 🌙</p>
     </section>
   );
 }
