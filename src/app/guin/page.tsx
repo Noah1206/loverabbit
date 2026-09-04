@@ -141,13 +141,32 @@ function GuinLanding() {
   }
 
   return (
-    <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
+    <main className="container guin-landing" style={{ paddingTop: 28, paddingBottom: 120 }}>
       {busy && <GuinRunLoader />}
-      <h1 style={{ marginBottom: 8 }}>내 주변에 어떤 인연이 있을까?</h1>
-      <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
-        생년월일을 입력하면 나와 잘 맞는 사람, 나를 도와주는 사람, 나를 성장시키는 사람을 관계
-        지도에서 확인할 수 있어요.
-      </p>
+
+      {/* 딱딱한 제목+문단 대신 토끼가 서 있는 무대 — 폼은 그 아래 카드에 앉는다 */}
+      <header className="guin-landing-hero">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="guin-landing-rabbit anim-float" src="/assets/today/rabbit-hello-hanbok.webp" alt="" width={140} height={140} />
+        <h1>
+          내 주변에
+          <br />
+          어떤 <em>인연</em>이 있을까?
+        </h1>
+        <p>
+          생년월일 하나면 주변 사람들이 나에게 어떤 인연인지,
+          <br />
+          관계 지도 위에 별처럼 놓여요.
+        </p>
+        {/* 만들면 뭐가 나오는지 — 역할 이름을 미리 보여준다 */}
+        <div className="guin-role-chips" aria-hidden>
+          <span>🌟 귀인</span>
+          <span>💪 오른팔형</span>
+          <span>🌱 성장형</span>
+          <span>🪞 거울형</span>
+          <span>🛋️ 안식처형</span>
+        </div>
+      </header>
 
       {mode === "paste" && (
         <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
@@ -168,7 +187,7 @@ function GuinLanding() {
       )}
 
       {mode === "form" && (
-        <div>
+        <div className="guin-landing-form">
           <GuinBirthForm
             submitLabel="내 귀인 지도 만들기"
             consentNote={CREATE_CONSENT}
