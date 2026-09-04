@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { peekAuthReturn, takeAuthReturn } from "@/lib/auth-return";
+import { peekReadingDraft } from "@/lib/reading-draft";
 import { clearPendingReferral, getPendingReferral } from "@/lib/referral";
 import { saveUser, type User } from "@/lib/user";
 import { trackCompleteRegistration } from "@/lib/meta-events";
@@ -65,7 +66,15 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       원래 가려던 화면은 쿼리로 넘겨, 충전함에서 이어 갈 수 있게 둔다.
     */
     const back = peekAuthReturn() ?? nextPath;
-    const destination = data.isNewUser
+    /*
+      리딩 초안을 들고 온 사람은 새 회원이라도 충전함에 세우지 않는다 (2026-09-04).
+
+      폼을 다 채우고 로그인하러 나온 사람이다 — 그 초안이 곧 주문이고, 폼으로
+      돌아가면 저장된 초안이 자동 재개되어 생성→결제로 이어진다. 충전함으로
+      돌리면 방금 채운 폼과 상관없는 가격표 앞에 서고, 거기서 나간다
+      (퍼널: 폼 완주자의 2/3가 이 관문 뒤에서 사라졌다).
+    */
+    const destination = data.isNewUser && !peekReadingDraft()
       ? `/credits?welcome=1&next=${encodeURIComponent(back)}`
       : back;
     setNeedsProfile(false);
