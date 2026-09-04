@@ -190,6 +190,16 @@ export default function AppHome() {
           </button>
         ))}
 
+        {/* ── 처음 온 사람의 문 ── glowy 의 "처음이면 여기부터" 행. */}
+        <Link href="/guide" className="home-guide-row">
+          <span className="home-guide-icon" aria-hidden>🐰</span>
+          <span className="home-guide-copy">
+            <strong>러브레빗에 처음 오셨다면?</strong>
+            <small>리딩 받는 법 · 러빗 · 매일 무료 운세 — 3분 가이드</small>
+          </span>
+          <span className="home-guide-go" aria-hidden>›</span>
+        </Link>
+
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
              페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
              홈에서 들어가는 줄만 걷었다. 되돌리려면 아래 주석을 풀고,
