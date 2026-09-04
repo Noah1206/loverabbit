@@ -12,7 +12,6 @@ export default function ChatSection({
 }: {
   readingId: string;
   blob: string;
-  /** 무료 1회는 계정 기준으로 서버가 센다 */
   userToken?: string | null;
 }) {
   const [msgs, setMsgs] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
@@ -82,7 +81,7 @@ export default function ChatSection({
       {locked ? (
         <div style={{ textAlign: "center", padding: "8px 0" }}>
           <p style={{ fontSize: "0.88rem", color: "var(--text-dim)" }}>
-            이번 리딩의 무료 추가 상담을 사용했어요. 더 묻고 싶으면{" "}
+            이 리딩의 추가 상담이 마감됐어요. 더 묻고 싶으면{" "}
             <Link href="/ask" style={{ color: "var(--accent)", fontWeight: 700 }}>오늘의 질문</Link>
             에서 러빗으로 이어가 주세요.
           </p>
