@@ -11711,11 +11711,12 @@ input[type="radio"] {
 /* 귀인 폼 다이어트 (2026-09-04) — 라운드 키우고, 접힌 시간·동의 전문 */
 .guin-landing-form input,
 .guin-landing-form select {
-  border-radius: 16px;
+  border-radius: 22px;
+  padding-left: 18px;
 }
 .guin-landing-form .guin-cal-seg,
 .guin-landing-form .guin-cal-seg button {
-  border-radius: 14px;
+  border-radius: 22px;
 }
 .guin-hour-toggle {
   border: 1px dashed var(--line);
@@ -11723,7 +11724,7 @@ input[type="radio"] {
   color: var(--text-dim);
   font-size: 0.84rem;
   padding: 12px;
-  border-radius: 16px;
+  border-radius: 22px;
   cursor: pointer;
   text-align: center;
 }
