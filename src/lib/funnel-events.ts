@@ -47,6 +47,10 @@ export const FUNNEL_EVENTS = [
   "purchase_done",
   /** 리딩 결과의 스토리 카드 이미지를 저장했다 */
   "reading_share_card_saved",
+  /** 궁합 리딩의 상대에게 초대 링크를 보냈다(공유창 열림) */
+  "partner_invite_sent",
+  /** 상대가 초대 랜딩(/invite)을 열었다 */
+  "partner_invite_view",
 
   // ── 귀인 지도 (2026-08-31) ─────────────────────────────
   // 같은 파이프라인(lr_funnel_events)을 쓴다. 역할은 product 칸에,

@@ -649,6 +649,37 @@ export default function ReadingReportPage() {
     }
   };
 
+  /*
+    그 사람에게 보내기 — 궁합 리딩의 두 번째 유저를 부른다 (2026-09-04).
+
+    이 리딩의 절반은 상대 이야기다. 상대가 받는 것은 /invite 랜딩 —
+    리딩 내용은 한 글자도 안 실리고, "당신 이야기가 절반"이라는 사실과
+    시작하는 길만 있다. 링크에 내 초대 코드를 실어, 상대가 가입하면
+    기존 추천인 보상(3러빗+쿠폰)이 그대로 돈다.
+  */
+  const invitePartner = async () => {
+    if (!entry || !user) return;
+    setShareNotice("");
+    try {
+      const state = referralStatus?.referralCode ? referralStatus : await refreshReferralStatus();
+      const params = new URLSearchParams({ c: entry.category });
+      if (state?.referralCode) params.set("ref", state.referralCode);
+      const url = `${window.location.origin}/invite?${params.toString()}`;
+      const text = "내가 우리 궁합 사주를 봤는데, 절반은 네 이야기더라. 네 쪽에서도 볼 수 있대 🐰";
+      trackFunnel("partner_invite_sent", { product: entry.category });
+      if (navigator.share) {
+        await navigator.share({ title: "러브레빗", text, url });
+        setShareNotice("보냈어요. 그 사람이 열면 자기 쪽 리딩으로 이어져요.");
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setShareNotice("링크를 복사했어요. 그 사람에게 붙여넣어 보내세요.");
+      }
+    } catch (reason) {
+      if (reason instanceof DOMException && reason.name === "AbortError") return;
+      setShareNotice("링크를 만들지 못했어요.");
+    }
+  };
+
   // 상단 공유 버튼 — 리딩 자체가 아니라 서비스로 데려온다(본문은 본인 기기에만 있다)
   const shareReading = async () => {
     setShareNotice("");
@@ -996,6 +1027,13 @@ export default function ReadingReportPage() {
                     </div>
                   </section>
                 )}
+                {/* 그 사람에게 보내기 — 상대 생년월일이 들어간 리딩에서만.
+                    상대는 /invite 랜딩을 받는다(리딩 내용 없음). */}
+                {user && PRODUCT_MAP[entry.category]?.needsPartner && (
+                  <button className="btn" style={{ width: "100%" }} onClick={() => void invitePartner()}>
+                    💌 그 사람에게 보내기 — 절반은 그 사람 이야기예요
+                  </button>
+                )}
                 {/* 스토리 카드 — 본문은 본인 것이지만 티저 한 줄은 자랑거리다.
                     캔버스 카드(share-image.ts)라 생년월일·점수는 안 실린다. */}
                 {entry.teaser && (
@@ -1023,7 +1061,7 @@ export default function ReadingReportPage() {
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
             <h2>친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 드려요</h2>
-            <p>러빗은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
+            <p>친구도 3,000원 환영 쿠폰을 받아요 — 초대가 서로에게 선물이 돼요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
                 <strong>{REFERRAL_SIGNUP_CREDITS}러빗</strong>
