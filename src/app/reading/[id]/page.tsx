@@ -18,6 +18,7 @@ import {
   trackResultUnlockClicked,
 } from "@/lib/meta-events";
 import { trackFunnel } from "@/lib/funnel";
+import { downloadShareImage } from "@/lib/share-image";
 import SignupModal from "@/components/SignupModal";
 import { listArchive, saveToArchive, updateArchive, type ArchiveEntry } from "@/lib/archive";
 import { DEMO_SOURCE_NOTE } from "@/lib/reading-demo";
@@ -994,6 +995,20 @@ export default function ReadingReportPage() {
                       ))}
                     </div>
                   </section>
+                )}
+                {/* 스토리 카드 — 본문은 본인 것이지만 티저 한 줄은 자랑거리다.
+                    캔버스 카드(share-image.ts)라 생년월일·점수는 안 실린다. */}
+                {entry.teaser && (
+                  <button
+                    className="btn btn-ghost"
+                    style={{ width: "100%" }}
+                    onClick={() => {
+                      downloadShareImage(entry.teaser);
+                      trackFunnel("reading_share_card_saved", { product: entry.category });
+                    }}
+                  >
+                    📸 인스타 스토리용 카드 저장
+                  </button>
                 )}
                 <ChatSection readingId={entry.readingId} blob={entry.blob} userToken={user?.token ?? null} />
               </>

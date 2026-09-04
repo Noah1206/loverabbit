@@ -45,6 +45,8 @@ export const FUNNEL_EVENTS = [
   "checkout_submitted",
   /** 결제가 끝났다 */
   "purchase_done",
+  /** 리딩 결과의 스토리 카드 이미지를 저장했다 */
+  "reading_share_card_saved",
 
   // ── 귀인 지도 (2026-08-31) ─────────────────────────────
   // 같은 파이프라인(lr_funnel_events)을 쓴다. 역할은 product 칸에,

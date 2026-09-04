@@ -233,7 +233,8 @@ export default function ReadingCheckoutPage() {
     );
   }
 
-  const label = PRODUCT_MAP[entry.category]?.shortLabel ?? entry.label;
+  const product = PRODUCT_MAP[entry.category];
+  const label = product?.shortLabel ?? entry.label;
   const bundle = bundleOfReading(entry.category, entry.price);
   // 세트는 값이 하나지만 단품은 그 사람이 열어본 장수를 탄다. 서버가 준
   // readingCost 가 오기 전에는 첫 장 값으로 그린다 — 오면 그것으로 바뀐다.
@@ -262,6 +263,17 @@ export default function ReadingCheckoutPage() {
             {bundle && <small style={{ display: "block", color: "var(--text-dim)", fontWeight: 400 }}>세트 값 · 나머지 장 쿠폰 포함</small>}
           </p>
         </div>
+
+        {/* 지금 사는 것이 무엇인지 — 가격표만 있으면 "얼마"만 남고 "왜"가 없다.
+            전문의 절 제목을 보여 주면 잠긴 문 너머가 보인다. 제목은 상품 표(toc)의
+            것이라 지어내는 값이 아니다. */}
+        {product && product.toc.length > 0 && (
+          <ul className="checkout-toc">
+            {product.toc.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        )}
 
         {/* 보유·사용을 나란히 — 잔액이 값을 감당하는지 눈으로 바로 비교된다 */}
         <div className="checkout-stats">

@@ -592,8 +592,9 @@ export default function TodayPage() {
   const shownAction = aiText?.action ?? shown.action;
   const shownReason = aiText?.reason ?? shown.reason;
   const shownAvoid = aiText?.avoidAction ?? shown.avoidAction;
-  // 러빗이 없으면 운세를 열지 않는다 (2026-09-04 운영자 — "더 강하게").
-  // 공짜 표 문구를 내주면 1러빗의 값이 안 보인다. 잠긴 카드와 충전 길만 보인다.
+  // 한 줄은 공짜, 풀이는 러빗 (2026-09-04 운영자 — 재방문 루프).
+  // 전부 잠그면 돌아올 이유가 없다. 표의 행동 한 줄은 매일 공짜로 주고,
+  // "왜 이 행동인가·피할 행동" — 명식으로 맞춘 풀이만 잠근다.
   const locked = ai?.needCredits === true && !aiText;
   /** 전제 — 뽑은 깃발이 있으면 그 깃발이 말하고, 없으면 오늘의 일진이 말한다 */
   const premise = pickedOhaeng
@@ -622,9 +623,7 @@ export default function TodayPage() {
           </span>
           {premise}
         </p>
-        <h1 className="today-sky-title is-action">
-          {locked ? "오늘의 운세가 준비됐어." : shownAction}
-        </h1>
+        <h1 className="today-sky-title is-action">{shownAction}</h1>
         {!locked && shown.durationMinutes && (
           <p className="today-sky-sub">약 {shown.durationMinutes}분이면 돼</p>
         )}
@@ -632,14 +631,15 @@ export default function TodayPage() {
 
       <div className="today-content">
         {locked ? (
-          // 잠긴 운세 — 내용은 안 보여주고, 무엇이 준비됐는지와 여는 값만 말한다.
+          // 잠긴 풀이 — 행동 한 줄은 위(하늘)에서 이미 줬다. 여기서는 그 행동의
+          // "왜"와 "피할 것"이 잠겨 있음을 말한다.
           <section className="card today-card today-feature">
             <p className="today-feature-eyebrow">
               {DOMAIN_LABEL[shown.domain]} · 일간 {data.flow.dayMaster} · 오늘 {data.flow.dayGanji}일
             </p>
             <p className="today-body">
-              네 일간과 오늘의 일진, 오행 균형과 강약까지 맞대어 풀어둔 오늘의
-              운세야. 1러빗이면 열 수 있어.
+              왜 오늘 이 행동인지, 그리고 오늘 피해야 할 행동 — 네 명식(일간·오행
+              균형·강약)으로 맞춘 풀이는 1러빗이면 열 수 있어.
             </p>
             <div className="today-do">
               <Link href="/credits" className="btn today-cta">
