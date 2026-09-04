@@ -11707,3 +11707,37 @@ input[type="radio"] {
 .guin-landing-form .btn {
   border-radius: 999px;
 }
+
+/* 귀인 폼 다이어트 (2026-09-04) — 라운드 키우고, 접힌 시간·동의 전문 */
+.guin-landing-form input,
+.guin-landing-form select {
+  border-radius: 16px;
+}
+.guin-landing-form .guin-cal-seg,
+.guin-landing-form .guin-cal-seg button {
+  border-radius: 14px;
+}
+.guin-hour-toggle {
+  border: 1px dashed var(--line);
+  background: none;
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  padding: 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+.guin-consent-details {
+  margin-top: 4px;
+}
+.guin-consent-details summary {
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 0.76rem;
+  text-decoration: underline;
+  list-style: none;
+}
+.guin-consent-details[open] {
+  font-size: 0.76rem;
+  line-height: 1.6;
+}

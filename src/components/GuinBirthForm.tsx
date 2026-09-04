@@ -49,6 +49,7 @@ export default function GuinBirthForm({
     initial ? (initial.birth.hour === null ? "unknown" : String(initial.birth.hour)) : "unknown"
   );
   const [consent, setConsent] = useState(false);
+  const [showHour, setShowHour] = useState(initial ? initial.birth.hour !== null : false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState(false);
 
@@ -94,22 +95,21 @@ export default function GuinBirthForm({
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <label style={{ display: "grid", gap: 6 }}>
-        <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>이름 또는 별명</span>
-        <input
-          value={nickname}
-          maxLength={20}
-          placeholder="별명을 권해요 (예: 러브레빗)"
-          onChange={(e) => {
-            touch();
-            setNickname(e.target.value);
-          }}
-          disabled={busy}
-        />
-      </label>
+      {/* 라벨은 접었다 (2026-09-04) — 플레이스홀더가 같은 말을 하는데 위에
+          한 번 더 적으면 글자만 는다. 스크린리더에는 aria-label 로 남긴다. */}
+      <input
+        value={nickname}
+        maxLength={20}
+        aria-label="이름 또는 별명"
+        placeholder="이름 또는 별명 (별명을 권해요)"
+        onChange={(e) => {
+          touch();
+          setNickname(e.target.value);
+        }}
+        disabled={busy}
+      />
 
       <div style={{ display: "grid", gap: 6 }}>
-        <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>생년월일</span>
         {/* 달력 선택이 입력값의 해석을 정한다 — 인풋 바로 위, 같은 폭으로 세운다 */}
         <div className="guin-cal-seg" role="group" aria-label="달력 종류">
           {(
@@ -136,7 +136,8 @@ export default function GuinBirthForm({
           value={dateText}
           inputMode="numeric"
           maxLength={10}
-          placeholder="19990102 (8자리)"
+          aria-label="생년월일 8자리"
+          placeholder="생년월일 8자리 (예: 19990102)"
           onChange={(e) => {
             touch();
             setDateText(e.target.value);
@@ -156,11 +157,21 @@ export default function GuinBirthForm({
         )}
       </div>
 
-      {/* ⑥ 생년월일 묶음과 사이를 띄워 다른 항목임을 보이게 한다 */}
-      <label style={{ display: "grid", gap: 6, marginTop: 14 }}>
-        <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>태어난 시간</span>
+      {/* 태어난 시간은 접어 둔다 — 대부분 "모름"이고, 몰라도 지도는 만들어진다.
+          아는 사람만 펼쳐서 고른다: 처음 화면의 칸 수가 하나 준다. */}
+      {!showHour ? (
+        <button
+          type="button"
+          className="guin-hour-toggle"
+          onClick={() => setShowHour(true)}
+          disabled={busy}
+        >
+          태어난 시간을 알아요 (선택)
+        </button>
+      ) : (
         <select
           value={hourText}
+          aria-label="태어난 시간"
           onChange={(e) => {
             touch();
             setHourText(e.target.value);
@@ -174,9 +185,11 @@ export default function GuinBirthForm({
             </option>
           ))}
         </select>
-      </label>
+      )}
 
-      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: "0.78rem", color: "var(--text-dim)" }}>
+      {/* 동의 전문은 접는다 — 체크 줄은 한 줄, 전문은 펼쳐 읽을 수 있다.
+          내용을 줄이는 게 아니라 접는 것이다: 동의문 자체는 그대로 남는다. */}
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: "0.8rem", color: "var(--text-dim)" }}>
         <input
           type="checkbox"
           checked={consent}
@@ -184,7 +197,13 @@ export default function GuinBirthForm({
           disabled={busy}
           style={{ marginTop: 2 }}
         />
-        <span>{consentNote}</span>
+        <span>
+          입력 정보 이용 안내에 동의해요
+          <details className="guin-consent-details">
+            <summary>안내 전문 보기</summary>
+            {consentNote}
+          </details>
+        </span>
       </label>
 
       {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem" }}>{error}</p>}
