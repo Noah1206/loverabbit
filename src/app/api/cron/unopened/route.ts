@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const ok = await sendKakaoMemo(userId, {
       title: "🐰 리딩이 기다리고 있어요",
       text: "결제하신 러브레빗 리딩이 아직 열리지 않았어요. 러빗은 이미 쓰였으니, 준비된 전문을 지금 열어보세요.",
-      imageUrl: `${SITE_URL}/assets/home/welcome-poster.webp`,
+      imageUrl: `${SITE_URL}/assets/home/welcome-poster.jpg`,
       url: `${SITE_URL}/reading/${encodeURIComponent(String(reading.id))}`,
       buttonTitle: "내 리딩 열기",
     });
