@@ -1061,7 +1061,7 @@ export default function ReadingReportPage() {
           <div className="referral-reward-card">
             <span className="badge">친구 초대 보상</span>
             <h2>친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 드려요</h2>
-            <p>친구도 3,000원 환영 쿠폰을 받아요 — 초대가 서로에게 선물이 돼요.</p>
+            <p>러빗은 다음 리딩에도, 오늘의 질문에도 바로 쓸 수 있어요.</p>
             <div className="referral-reward-options referral-reward-options-single">
               <button onClick={() => void shareReward()}>
                 <strong>{REFERRAL_SIGNUP_CREDITS}러빗</strong>

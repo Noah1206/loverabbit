@@ -50,7 +50,7 @@ export default function GuidePage() {
         <div className="guide-invite-copy">
           <strong>친구를 데려오면 {REFERRAL_SIGNUP_CREDITS}러빗</strong>
           <span>
-            친구가 내 링크로 가입하면 나는 {REFERRAL_SIGNUP_CREDITS}러빗, 친구는 3,000원 환영 쿠폰.
+            친구가 내 초대 링크로 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 줘.
             <br />
             초대 링크는 리딩 결과 화면에 있어.
           </span>

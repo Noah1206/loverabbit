@@ -67,8 +67,8 @@ export default async function InvitePage({
         <div className="guide-card">
           <p className="guide-card-label">지금 시작하면</p>
           <ul>
-            <li>가입 선물 — 3,000원 환영 쿠폰</li>
             <li>생년월일 하나면 3분 안에 나와요</li>
+            <li>태어난 시간을 몰라도 볼 수 있어요</li>
           </ul>
         </div>
       </section>
