@@ -10138,6 +10138,26 @@ input[type="radio"] {
   border-radius: 50% !important;
 }
 
+/* 귀인 지도 만들기 화면도 예외 (2026-09-04 운영자 지시 — 알약형).
+   전역 각진 규칙이 !important 라 여기서도 !important 로만 되돌릴 수 있다. */
+.guin-landing-form {
+  border-radius: 24px !important;
+}
+.guin-landing-form input,
+.guin-landing-form select,
+.guin-landing-form .guin-hour-toggle,
+.guin-landing-form .guin-cal-seg,
+.guin-landing-form .guin-cal-seg button {
+  border-radius: 22px !important;
+}
+.guin-landing-form .btn,
+.guin-landing .guin-join-link {
+  border-radius: 999px !important;
+}
+.guin-role-chips span {
+  border-radius: 999px !important;
+}
+
 /* ── 오늘의 사주 액션 ─────────────────────────────────────
    토끼가 데리고 가는 세 걸음(인사·고르기·들려주기)이 같은 무대를 쓴다.
    .today-stage 가 그 무대다 — 걸음이 바뀌어도 토끼의 자리가 안 움직여야
