@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
+import { READING_PRICE_TIERS } from "@/lib/credits";
 
 /*
   처음 온 사람을 위한 가이드 (2026-09-04).
@@ -69,7 +69,7 @@ export default function GuidePage() {
         <img className="guide-rabbit-sm anim-bob" src="/assets/today/rabbit-jaeseong-hanbok.webp" alt="" width={120} height={120} />
         <p className="guide-step">S T E P · 2</p>
         <h2 className="guide-h2">러빗이 뭐야?</h2>
-        <p className="guide-accent-line">여기서 쓰는 화폐야 · 1러빗 = {KRW_PER_CREDIT.toLocaleString("ko-KR")}원</p>
+        <p className="guide-accent-line">여기서 쓰는 화폐야</p>
         <p className="guide-body">
           리딩 전문을 열거나, 오늘의 운세를 내 명식에 맞춰 풀거나, 리딩에 대해
           질문할 때 러빗을 써. 첫 장은 {FIRST}러빗으로 열 수 있어.
