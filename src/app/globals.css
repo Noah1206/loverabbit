@@ -11526,3 +11526,99 @@ input[type="radio"] {
   margin: -14px -2px -18px 0;
   filter: drop-shadow(0 6px 10px rgba(80, 60, 120, 0.18));
 }
+
+/* ── 가이드 개정 (2026-09-04) — 섹션마다 옷이 다르다 ── */
+.guide-invite {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(120deg, #fdf3e7 0%, #f6e9fb 55%, #e9e4ff 100%);
+  margin-bottom: 8px;
+}
+.guide-invite-rabbit { width: 110px; height: auto; flex-shrink: 0; margin: -6px -4px -10px -10px; }
+.guide-invite-copy { display: grid; gap: 6px; }
+.guide-invite-copy strong { font-size: 1.02rem; font-weight: 800; color: #2a2233; }
+.guide-invite-copy span { font-size: 0.82rem; line-height: 1.6; color: #7d7290; }
+
+.guide-steps {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+}
+.guide-steps li {
+  display: flex;
+  gap: 14px;
+  background: #f5f5f7;
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+.guide-steps i {
+  font-style: normal;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #6a5cff;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.guide-steps strong { display: block; font-size: 0.95rem; font-weight: 800; margin-bottom: 4px; }
+.guide-steps span { font-size: 0.86rem; line-height: 1.65; color: #55555e; }
+
+.guide-dark {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-top: 36px;
+  padding: 30px 22px;
+  border-radius: 26px;
+  background: linear-gradient(160deg, #201a3d 0%, #2c2154 100%);
+  color: #fff;
+}
+.guide-dark .guide-h2 { color: #fff; }
+.guide-dark-body { font-size: 0.92rem; line-height: 1.75; color: rgba(255,255,255,0.82); }
+.guide-tiers {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
+.guide-tiers > div {
+  background: rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 14px 6px;
+  display: grid;
+  gap: 4px;
+}
+.guide-tiers .is-now {
+  background: rgba(255,255,255,0.95);
+  color: #2c2154;
+}
+.guide-tiers small { font-size: 0.72rem; opacity: 0.75; }
+.guide-tiers strong { font-size: 1.15rem; font-weight: 800; }
+.guide-dark-note { font-size: 0.82rem; line-height: 1.7; color: rgba(255,255,255,0.65); }
+
+.guide-pastel {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 30px 22px;
+  border-radius: 26px;
+  background: linear-gradient(160deg, #f3efff 0%, #ffeef5 100%);
+}
+.guide-pastel-body { font-size: 0.92rem; line-height: 1.8; color: #55555e; }
+.guide-pastel-link { font-size: 0.88rem; font-weight: 800; color: #6a5cff; text-decoration: none; }
