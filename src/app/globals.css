@@ -11480,39 +11480,49 @@ input[type="radio"] {
   .anim-float, .anim-wiggle, .anim-bob, .anim-nod, .anim-sway, .anim-pop { animation: none; }
 }
 
-/* 홈의 가이드 진입 줄 — glowy 의 "처음이면 여기부터" 행 문법 */
-.home-guide-row {
+/* 홈의 가이드 카드 — 인사 토끼가 실린 배너형 카드. 밝은 파스텔은
+   가이드(항상 흰 화면)의 예고편이라 테마를 타지 않고 색을 고정한다 */
+.home-guide-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 14px;
   margin: 14px 20px 0;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--bg-card);
+  padding: 20px 10px 20px 22px;
+  border-radius: 22px;
+  background: linear-gradient(120deg, #fdf3e7 0%, #f6e9fb 55%, #e9e4ff 100%);
   text-decoration: none;
-  color: inherit;
+  color: #2a2233;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(80, 60, 120, 0.12);
 }
-.home-guide-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #111;
+.home-guide-copy {
+  flex: 1;
+  min-width: 0;
   display: grid;
-  place-items: center;
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
 }
-.home-guide-copy { flex: 1; min-width: 0; }
 .home-guide-copy strong {
-  display: block;
-  font-size: 0.95rem;
+  font-size: 1.08rem;
   font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 .home-guide-copy small {
-  display: block;
-  margin-top: 2px;
   font-size: 0.78rem;
-  color: var(--text-dim);
+  color: #7d7290;
 }
-.home-guide-go { color: var(--text-dim); }
+.home-guide-cta {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #6a5cff;
+}
+.home-guide-art {
+  width: 118px;
+  height: auto;
+  flex-shrink: 0;
+  margin: -14px -2px -18px 0;
+  filter: drop-shadow(0 6px 10px rgba(80, 60, 120, 0.18));
+}

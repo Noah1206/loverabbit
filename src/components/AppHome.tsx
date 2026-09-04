@@ -190,14 +190,19 @@ export default function AppHome() {
           </button>
         ))}
 
-        {/* ── 처음 온 사람의 문 ── glowy 의 "처음이면 여기부터" 행. */}
-        <Link href="/guide" className="home-guide-row">
-          <span className="home-guide-icon" aria-hidden>🐰</span>
+        {/* ── 처음 온 사람의 문 ── 인사하는 토끼가 실려 있는 카드. */}
+        <Link href="/guide" className="home-guide-card">
           <span className="home-guide-copy">
-            <strong>러브레빗에 처음 오셨다면?</strong>
-            <small>리딩 받는 법 · 러빗 · 매일 무료 운세 — 3분 가이드</small>
+            <strong>
+              러브레빗에
+              <br />
+              처음 오셨다면?
+            </strong>
+            <small>리딩 받는 법 · 러빗 · 매일 무료 운세</small>
+            <span className="home-guide-cta">3분 가이드 보기 <i aria-hidden>›</i></span>
           </span>
-          <span className="home-guide-go" aria-hidden>›</span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
         </Link>
 
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
