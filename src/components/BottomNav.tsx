@@ -8,7 +8,7 @@ import loveRabbitLogo from "../../public/logo.png";
 import { getUser } from "@/lib/user";
 
 // 귀인지도 탭은 아직 만드는 중 — 개발자 계정에만 보인다.
-const DEV_EMAILS = ["ab40905045@gmail.com", "ab40905045@handong.ac.kr"];
+const DEV_EMAILS = ["ab40905045@gmail.com"];
 
 const GUIN_ITEM = {
   href: "/guin",
