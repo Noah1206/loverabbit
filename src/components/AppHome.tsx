@@ -157,7 +157,7 @@ export default function AppHome() {
               <br />
               처음 오셨다면?
             </strong>
-            <small>리딩 받는 법 · 러빗 · 매일 무료 운세</small>
+            <small>리딩 받는 법 · 러빗</small>
             <span className="home-guide-cta">3분 가이드 보기 <i aria-hidden>›</i></span>
           </span>
           {/* eslint-disable-next-line @next/next/no-img-element */}

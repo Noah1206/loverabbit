@@ -16,7 +16,7 @@ import { READING_PRICE_TIERS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 
 export const metadata: Metadata = {
   title: "러브레빗에 처음 오셨다면? — 사용 가이드",
-  description: "리딩 받는 법, 러빗, 매일 무료 운세, 친구 초대 보상까지 — 러브레빗 사용법 한눈에.",
+  description: "리딩 받는 법, 러빗, 친구 초대 보상까지 — 러브레빗 사용법 한눈에.",
 };
 
 const [FIRST, SECOND, THIRD] = READING_PRICE_TIERS;
