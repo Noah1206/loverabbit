@@ -7,6 +7,11 @@
 // 색으로 읽는 것이 만세력의 관습이라, 무채색으로 칠하면 판을 못 읽는다.
 //
 // 시각을 모르면 시주 자리는 세우지 않고 '모름'으로 비운다(계산도 그렇게 한다).
+//
+// 시주 아래에 진태양시 보정을 적는다 (2026-09-06). 서울 기준 시계보다 32분 앞선
+// 시각으로 시주를 세우므로, 홀수 시 정각~32분 출생은 보정 없는 만세력과 한 칸
+// 다르다. 그걸 모르면 "계해시인데 임술로 나온다"는 문의가 된다 — 버그가 아니라
+// 기준 차이라는 걸 표 자리에서 바로 말한다.
 
 import {
   CHEONGAN,
@@ -62,6 +67,10 @@ export default function SajuChart({
     { label: "년주", pillar: chart.year },
   ];
 
+  // 저장된 옛 명식에는 moment 가 없을 수 있다 — 그러면 아무 말도 안 한다.
+  const shift = chart.hour ? Math.round(-(chart.moment?.longitudeCorrectionMinutes ?? 0)) : 0;
+  const dst = chart.moment?.notes?.some((n) => n.includes("서머타임 적용")) ?? false;
+
   return (
     <section className="sj-wrap" aria-label="내 명식">
       {(name || birthLine) && (
@@ -113,6 +122,14 @@ export default function SajuChart({
           )}
         </div>
       </div>
+
+      {shift > 0 && (
+        <p className="sj-note">
+          시주는 시계 시각에서 {shift}분을 뺀 진태양시(서울 기준)로 세웠어요
+          {dst ? ", 서머타임 1시간도 되돌렸어요" : ""}. 보정하지 않는 만세력과는 홀수 시 정각부터{" "}
+          {shift}분 사이 출생(예: 21:00~21:{String(shift).padStart(2, "0")})에서 시주가 한 칸 다를 수 있어요.
+        </p>
+      )}
     </section>
   );
 }

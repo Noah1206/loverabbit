@@ -2838,6 +2838,13 @@ label {
   font-size: 1.2rem;
 }
 
+.sj-note {
+  margin: 10px 0 0;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .reading-step-note {
   margin: 0 0 16px;
   padding-left: 11px;
