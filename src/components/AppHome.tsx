@@ -51,7 +51,6 @@ export default function AppHome() {
   const [user, setUser] = useState<User | null>(null);
   // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
-  const [checked, setChecked] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
   /* 그리드에 적는 사주 한 장 값. 사람마다 다르다 (2·4·10러빗 — 지금까지
      열어본 장수를 탄다). 로그인 전에는 첫 장 값을 적는다: 아직 아무것도
@@ -60,7 +59,6 @@ export default function AppHome() {
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
-    setChecked(true);
     return () => clearInterval(t);
   }, []);
 
@@ -97,18 +95,10 @@ export default function AppHome() {
       <div className="app-home-shell" style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* ── 상단바 ── */}
         <header className="app-header">
-          {/* 글자를 걷고 로고만 남긴다 (2026-09-01 운영자). 이름은 alt 가 진다 —
-              눈으로는 안 보여도 낭독기와 검색에는 남아야 한다. */}
-          <strong className="app-header-brand">
-            <Image
-              className="app-header-logo"
-              src={loveRabbitLogo}
-              alt="러브레빗"
-              width={36}
-              height={36}
-              priority
-              sizes="36px"
-            />
+          {/* 로고 대신 영문 이름을 굵게 (2026-09-06 운영자). 9/1 에 글자를 걷고
+              로고만 뒀던 것을 되돌린 셈인데, 이번엔 그림 없이 글자만이다. */}
+          <strong className="app-header-brand" lang="en">
+            LoveRabbit
           </strong>
           <div className="app-header-actions">
             <Link href="/credits" className="app-header-icon" aria-label="크레딧 충전 · 내 러빗">
@@ -156,39 +146,8 @@ export default function AppHome() {
           </div>
         </header>
 
-        {/* ── 배너 ── 헤더 바로 밑에 고정. 그림은 하나지만 문구는 사람에 따라
-             갈린다 — 아직 로그인하지 않았으면 로그인을, 이미 들어온 사람에게는
-             사주를 권한다. "로그인하세요"를 로그인한 사람에게 다시 보이면 소음이다.
-
-             그림에는 글자가 없다. 문구는 왼쪽 빈 자리에 얹는 텍스트라서
-             카피를 바꿔도 이미지를 다시 만들 필요가 없다. */}
-        {checked && (user ? (
-          <Link href="/reading" className="home-login-banner home-member-banner">
-            <span className="home-login-banner-copy">
-              <strong>
-                오늘의 인연,
-                <br />
-                사주로 먼저 봐요
-              </strong>
-              <span className="home-login-banner-cta">
-                내 사주 보러 가기 <i aria-hidden>›</i>
-              </span>
-            </span>
-          </Link>
-        ) : (
-          <button type="button" className="home-login-banner" onClick={() => setShowSignup(true)}>
-            <span className="home-login-banner-copy">
-              <strong>
-                지금 로그인하고
-                <br />
-                러빗을 받아보세요!
-              </strong>
-              <span className="home-login-banner-cta">
-                로그인하고 시작하기 <i aria-hidden>›</i>
-              </span>
-            </span>
-          </button>
-        ))}
+        {/* 헤더 밑 로그인·사주 배너는 뺐다 (2026-09-06 운영자). 9/4 이후 처음 온
+            424명 중 297명이 이 화면만 보고 나갔다 — 첫 요구가 로그인이었다. */}
 
         {/* ── 처음 온 사람의 문 ── 인사하는 토끼가 실려 있는 카드. */}
         <Link href="/guide" className="home-guide-card">

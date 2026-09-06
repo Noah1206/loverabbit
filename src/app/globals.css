@@ -2545,18 +2545,10 @@ label {
      카드가 된 뒤로는 "LOVE" 가 바탕에 묻혀 안 보였다. */
   color: var(--text);
   font-size: 1.08rem;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: 0.01em;
   white-space: nowrap;
-}
-
-.app-header-logo {
-  flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: none;
 }
 
 .app-header-actions {
@@ -2604,11 +2596,6 @@ label {
   .app-header-brand {
     gap: 5px;
     font-size: 0.98rem;
-  }
-
-  .app-header-logo {
-    width: 32px;
-    height: 32px;
   }
 
   .app-header-action {
