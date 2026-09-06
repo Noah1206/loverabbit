@@ -48,10 +48,10 @@ export async function notifyCustomerReviewed(orderId: number, decision: "paid" |
     const text =
       decision === "paid"
         ? isReading
-          ? "러브레빗 입금이 확인됐어요. 리딩이 준비됐으니 지금 열어보세요."
+          ? "러브레빗 리딩이 준비됐어요. 지금 열어보세요."
           : isCredits
-            ? "러브레빗 입금이 확인됐어요. 질문 러빗이 들어왔어요."
-            : "러브레빗 입금이 확인됐어요. 보관함에서 확인해주세요."
+            ? "러브레빗 질문 러빗이 들어왔어요. 바로 질문할 수 있어요."
+            : "러브레빗 구매가 완료됐어요. 보관함에서 확인해주세요."
         : "러브레빗 계좌에서 입금을 찾지 못했어요. 이체가 실제로 빠져나갔는지 확인한 뒤 다시 요청해주세요. 이미 보냈다면 입금자명과 금액을 문의로 알려주세요.";
 
     const sent = await sendKakaoMemo(order.userId, {
