@@ -18,7 +18,6 @@ import {
   type ChapterBrief,
   type ReadingImage,
 } from "@/lib/reading-images";
-import { planTalisman } from "@/lib/reading-talisman";
 import { markImage, putImage, saveImageState } from "@/lib/reading-image-store";
 
 export interface ImageJobInput {
@@ -52,9 +51,6 @@ export async function runImageJob({
   try {
     // 먼저 자리를 잡아 둔다 — 화면이 "몇 장이 오는 중인지" 를 알아야 틀을 그린다.
     const pending: ReadingImage[] = chapters.map((c) => ({ chapter: c.chapter, status: "pending" }));
-    // 부적도 자리를 잡아 둔다. 마지막 장에서 "부적받기" 를 누를 때까지 기다리게 하지 않고,
-    // 글을 읽는 동안 뒤에서 미리 그려 둔다 — 다 읽고 눌렀을 때 이미 있어야 선물이 된다.
-    if (chart) pending.push({ chapter: TALISMAN_SLOT, status: "pending" });
     await saveImageState(readingId, pending);
 
     const prompts = await writeImagePrompts(chapters, { occupation, question });
@@ -83,17 +79,11 @@ export async function runImageJob({
       - 직렬 기록: markImage 는 전체 배열을 읽고-고쳐-쓴다. 두 완료가 겹치면
         한쪽 기록이 사라져 그 장이 pending 인 채 영영 남는다. 그래서 그리는
         것은 겹치되 적는 것은 한 줄로 세운다.
-
-      부적은 대기열 맨 뒤다. 장 그림이 먼저 붙어야 읽는 순서와 맞는다.
     */
     type ImageTask = { chapter: number; prompt: string; alt?: string; kind: "scene" | "talisman" };
     const tasks: ImageTask[] = prompts
       .sort((a, b) => a.chapter - b.chapter)
       .map((p) => ({ chapter: p.chapter, prompt: p.prompt, alt: p.alt, kind: "scene" as const }));
-    if (chart) {
-      const plan = planTalisman(chart, label ?? "이 리딩");
-      tasks.push({ chapter: TALISMAN_SLOT, prompt: plan.prompt, alt: plan.alt, kind: "talisman" });
-    }
 
     let markChain: Promise<void> = Promise.resolve();
     const mark = (chapter: number, patch: { status: "ready" | "failed"; url?: string; alt?: string }) => {

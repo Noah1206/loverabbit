@@ -5,7 +5,7 @@ import {
   type DayMasterElement,
   type EmotionTag,
 } from "@/lib/reading-asset-selector";
-import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
+import { type ReadingImage } from "@/lib/reading-image-shape";
 
 // 리딩 한 편의 삽화를 "고른" 결과를 화면이 쓰는 모양으로 옮긴다.
 //
@@ -33,13 +33,6 @@ export function planImagesFor(input: {
     url: assetSrc(scene),
     alt: altForScene(scene.emotionTag),
   }));
-
-  images.push({
-    chapter: TALISMAN_SLOT,
-    status: "ready",
-    url: assetSrc(plan.talisman),
-    alt: `${input.label ?? "이 리딩"} 부적 — ${plan.talisman.element ?? "토"}의 기운을 담은 문양`,
-  });
 
   return images;
 }

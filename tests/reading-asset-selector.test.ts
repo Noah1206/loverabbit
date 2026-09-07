@@ -129,19 +129,20 @@ describe("화면이 쓰는 모양", () => {
     label: "이별 부검",
   });
 
-  it("여섯 자리가 전부 ready 다 — 기다릴 것이 없다", () => {
-    assert.equal(images.length, 6);
+  it("다섯 자리가 전부 ready 다 — 기다릴 것이 없다", () => {
+    assert.equal(images.length, 5);
     assert.ok(images.every((image) => image.status === "ready"), "pending 이 남아 있다");
     assert.ok(images.every((image) => image.url), "주소가 빈 자리가 있다");
   });
 
-  it("부적은 0번 자리에 앉는다", () => {
-    assert.equal(images.filter((image) => image.chapter === TALISMAN_SLOT).length, 1);
+  // 부적은 걷어냈다 (2026-09-08 운영자). 장 그림만 남는다.
+  it("부적 자리는 더 이상 만들지 않는다", () => {
+    assert.equal(images.filter((image) => image.chapter === TALISMAN_SLOT).length, 0);
   });
 
   it("주소는 public 아래 webp 를 가리킨다", () => {
     for (const image of images) {
-      assert.match(image.url ?? "", /^\/assets\/love-rabbit\/(scenes|talismans)\/[a-z_]+\.webp$/);
+      assert.match(image.url ?? "", /^\/assets\/love-rabbit\/scenes\/[a-z_]+\.webp$/);
     }
   });
 

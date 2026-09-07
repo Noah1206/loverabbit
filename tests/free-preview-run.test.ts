@@ -115,19 +115,20 @@ describe("근거가 모자랄 때", () => {
 });
 
 describe("삽화 연결", () => {
-  it("카드의 감정 태그로 장면 다섯과 부적 하나가 채워진다", async () => {
+  it("카드의 감정 태그로 장면 다섯이 채워진다", async () => {
     blockCalls();
     const outcome = await runFreePreview(input());
     const tags = emotionTagsForAssets(outcome.result);
     assert.equal(tags.length, 2);
 
-    // 리딩 화면은 자리 여섯을 쓴다. 태그가 셋이어도 빈칸이 남으면 안 된다.
+    // 리딩 화면은 장 자리 다섯을 쓴다. 태그가 셋이어도 빈칸이 남으면 안 된다.
+    // 부적은 걷어냈다 (2026-09-08) — 장 그림만 남는다.
     const images = planImagesFor({
       chapterNumbers: [1, 2, 3, 4, 5],
       chapterEmotionTags: [...tags, [], [], []],
       chart: "임자 갑진 병오 무신",
     });
-    assert.equal(images.length, 6);
+    assert.equal(images.length, 5);
     for (const image of images) assert.equal(image.status, "ready");
   });
 });

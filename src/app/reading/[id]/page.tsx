@@ -46,8 +46,7 @@ import {
 } from "@/components/ReadingChapters";
 import { getUser, saveUser, type User } from "@/lib/user";
 import { REFERRAL_REWARD_PARAM } from "@/lib/referral";
-import { TALISMAN_SLOT, type ReadingImage } from "@/lib/reading-image-shape";
-import Talisman from "@/components/Talisman";
+import { type ReadingImage } from "@/lib/reading-image-shape";
 import ReviewPrompt from "@/components/ReviewPrompt";
 
 interface ReferralStatus {
@@ -985,9 +984,6 @@ export default function ReadingReportPage() {
 
             {unlocked && page === total && (
               <>
-                {/* 마지막 장 끝 — 다 읽은 사람만 받는다 */}
-                <Talisman image={imageOf(TALISMAN_SLOT)} label={entry.label} />
-
                 {/* 후기는 다음 상품을 권하기 전에 묻는다. 다 읽은 직후가 할 말이
                     남아 있는 유일한 순간이고, 홈에 걸리는 후기는 전부 여기서 온다. */}
                 <ReviewPrompt

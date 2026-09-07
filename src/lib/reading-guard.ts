@@ -823,7 +823,18 @@ export function checkReport(report: StructuredReport, options: GuardOptions): Gu
         kind: "강조",
         where,
         detail: `강조 ${total}개 — 절당 ${MARK_MIN}개 이상`,
-        blocking: false,
+        /*
+          강조가 아예 없는 절은 막는다 (2026-09-08).
+
+          경고로만 두었더니 모델이 표기를 통째로 무시했고, 실제로 9월에 나간
+          리딩 열두 편의 강조 수가 전부 0 이었다. 독자 화면은 처음부터 끝까지
+          같은 검은 글씨 한 덩어리였다 — 화면에 색을 칠하는 장치가 다 갖춰져
+          있는데 칠할 것이 오지 않았다.
+
+          하나도 없는 것과 모자란 것은 다르다. 하나라도 있으면 모델이 표기를
+          알고 쓴 것이므로 경고로 두고, 0 이면 다시 받는다.
+        */
+        blocking: total === 0,
       });
     }
     if (total > MARK_MAX) {

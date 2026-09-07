@@ -163,9 +163,24 @@ export function previewBatchCount(outline: string[]): number {
   return batches.length;
 }
 
+/*
+  한 번의 호출이 맡는 절의 수.
+
+  2026-09-08 에 목차를 촘촘하게 늘리면서(상품당 8~15절 -> 12~15절) 이 값의 뜻이
+  달라졌다. **비용은 절 수가 아니라 호출 수에 붙는다** — 호출마다 지시문 전체가
+  다시 입력으로 들어가기 때문이다. 실측으로 호출 하나가 입력 11,000 토큰쯤이고,
+  절 하나가 만드는 출력은 1,000 토큰쯤이다. 절을 넷 늘리는 것보다 호출을 하나
+  늘리는 쪽이 세 배 비싸다.
+
+  그래서 절이 늘어난 만큼 묶음을 키운다. 절 하나의 길이도 함께 줄였으므로
+  (본문 계약 1,200~1,500자 -> 800~950자) 묶음당 출력은 오히려 전보다 작다.
+
+  환경변수로 지정하면 그 값을 쓴다. 없으면 4 다 — 늘어난 목차에서 호출 수가
+  예전과 같아지는 값이다.
+*/
 function batchSize(): number {
   const raw = Number(process.env.READING_BATCH_SIZE);
-  return Number.isInteger(raw) && raw >= 1 && raw <= 8 ? raw : 3;
+  return Number.isInteger(raw) && raw >= 1 && raw <= 8 ? raw : 4;
 }
 
 /**
@@ -365,13 +380,14 @@ function parseSections(text: string, items: string[]): ReportSectionOut[] {
 /**
  * 한 묶음에 허용하는 출력 토큰.
  *
- * 절 하나가 1,200~1,500자다(reading-prompt.ts 의 본문 계약). 한국어는
- * 글자당 대략 1토큰이 나가고, 여기에 JSON 껍데기와 facts_used·rule_ids 가 붙는다.
- * 추론 모델은 **생각한 토큰도 이 예산에서 깎으므로** 그 몫까지 얹어 둔다.
- * 모자라면 절이 문장 중간에서 잘리고, 잘린 절은 재시도로 다시 돈을 쓴다.
+ * 절 하나가 800~950자다(reading-prompt.ts 의 본문 계약, 2026-09-08 에 1,200~1,500
+ * 에서 줄였다). 한국어는 글자당 대략 1토큰이 나가고, 여기에 JSON 껍데기와
+ * facts_used·rule_ids 가 붙는다. 추론 모델은 **생각한 토큰도 이 예산에서 깎으므로**
+ * 그 몫까지 얹어 둔다. 모자라면 절이 문장 중간에서 잘리고, 잘린 절은 재시도로
+ * 다시 돈을 쓴다 — 아껴서 잘리는 것이 제일 비싸므로 넉넉히 둔다.
  */
 function chapterBudget(items: number): number {
-  return 2400 + items * 3600;
+  return 2400 + items * 2600;
 }
 
 export interface ComposeOptions {

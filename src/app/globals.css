@@ -6425,20 +6425,45 @@ body:has(.product-page[data-landing]) .consent-banner {
   font-weight: 800;
 }
 
+/* 아래 세 색은 **밝은 바탕** 기준이다 (2026-09-08).
+   원래 값은 어두운 바탕에 쓰려고 옅은 파스텔 글자색이었는데, 2026-08-30 에 기본
+   테마가 라이트로 바뀐 뒤로 흰 종이에 옅은 글자를 얹는 꼴이 됐다. 강조한 자리가
+   본문보다 오히려 흐려서, 화면 전체가 검은 글씨 한 덩어리로 읽혔다.
+   이제 글자색은 진하게 깔고 배경으로 띠를 준다. 다크는 아래에서 되돌린다. */
+
 /* 주의 — 걸리는 자리 */
 .rv-mark[data-mark="주의"] {
-  background: rgba(255, 107, 107, 0.14);
-  color: #ff9b9b;
+  background: rgba(200, 40, 40, 0.1);
+  color: #b3261e;
 }
 
-/* 시기 — 언제인지. 독자가 가장 먼저 찾는 것이라 가장 밝다 */
+/* 시기 — 언제인지. 독자가 가장 먼저 찾는 것이라 띠가 가장 진하다 */
 .rv-mark[data-mark="시기"] {
-  background: rgba(240, 190, 70, 0.16);
-  color: #f2ca6b;
+  background: rgba(180, 120, 0, 0.16);
+  color: #8a5a00;
 }
 
 /* 행동 — 지금 할 것 */
 .rv-mark[data-mark="행동"] {
+  background: rgba(20, 130, 70, 0.12);
+  color: #16713f;
+}
+
+/* 어두운 바탕에서는 반대로 — 옅은 글자에 아주 옅은 띠 */
+[data-theme="dark"] .rv-mark[data-mark="주의"],
+.theme-dark .rv-mark[data-mark="주의"] {
+  background: rgba(255, 107, 107, 0.14);
+  color: #ff9b9b;
+}
+
+[data-theme="dark"] .rv-mark[data-mark="시기"],
+.theme-dark .rv-mark[data-mark="시기"] {
+  background: rgba(240, 190, 70, 0.16);
+  color: #f2ca6b;
+}
+
+[data-theme="dark"] .rv-mark[data-mark="행동"],
+.theme-dark .rv-mark[data-mark="행동"] {
   background: rgba(90, 200, 130, 0.14);
   color: #79d69b;
 }

@@ -110,8 +110,16 @@ describe("강조를 센다", () => {
     assert.equal(marks(same).some((v) => v.detail.includes("한 종류가 절을 덮고")), true);
   });
 
-  it("강조는 어느 것도 문장을 막지 않는다 — 표현 문제일 뿐이다", () => {
+  // 2026-09-08: 하나도 없는 것만 막는다. 경고로만 두었더니 모델이 표기를 통째로
+  // 무시했고, 9월에 나간 리딩 열두 편의 강조 수가 전부 0 이었다 — 독자 화면이
+  // 처음부터 끝까지 같은 검은 글씨였다.
+  it("강조가 하나도 없으면 막는다", () => {
     const found = marks("강조가 하나도 없는 밋밋한 요약이에요.");
+    assert.equal(found.some((v) => v.blocking), true);
+  });
+
+  it("모자라기만 하면 막지 않는다 — 표현 문제일 뿐이다", () => {
+    const found = marks("**하나는 있어요.** 나머지는 밋밋한 요약이에요.");
     assert.equal(found.every((v) => !v.blocking), true);
   });
 });
