@@ -77,13 +77,20 @@ export default function GuinMapBackground({
     perRole[node.role] = indexInRole + 1;
     return { node, ...positionOf(node, indexInRole) };
   });
-  // 빈 방위에 점선 자리를 남긴다 — 다음 인연이 앉을 곳. 3명까지만 힌트를 준다.
+  /*
+    빈 방위에 점선 자리를 남긴다 — 다음 인연이 앉을 곳.
+
+    아무도 없을 때는 **네 자리를 다 보여준다** (2026-09-08). 전에는 3 - nodes.length
+    로 잘라서 0명일 때 세 자리만 떴는데, 그 화면이 이 지도의 첫인상이다. 역할이
+    넷인데 셋만 비어 있으면 하나는 이미 찬 것처럼 읽힌다.
+    한 명이라도 들어오면 그때부터는 남은 자리를 조금만 비춘다.
+  */
   const emptySlots =
     nodes.length >= 3
       ? []
       : Object.entries(ROLE_ANGLE)
           .filter(([role]) => !nodes.some((n) => n.role === role))
-          .slice(0, 3 - nodes.length)
+          .slice(0, nodes.length === 0 ? 4 : 3 - nodes.length)
           .map(([, deg]) => {
             const angle = (deg * Math.PI) / 180;
             return { x: CX + 32 * Math.cos(angle), y: CY + 32 * Math.sin(angle) };

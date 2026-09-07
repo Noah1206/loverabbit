@@ -50,6 +50,21 @@ import { getUser } from "@/lib/user";
 
 const BUSY_MESSAGE = "지금 귀인지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
 
+/*
+  아직 아무도 안 들어온 지도에서 보여줄 네 자리.
+
+  배경 지도(GuinMapBackground)가 네 방위에 하나씩 두는 역할과 같은 순서다 —
+  화면의 점선 자리와 이 목록이 어긋나면 두 개의 지도로 읽힌다. 라벨과 한 줄
+  설명은 GUIN_ROLES 의 것을 그대로 옮겼다(guin-map.ts). 여기서 새 말을 만들면
+  같은 역할이 화면마다 다른 이름을 갖는다.
+*/
+const EMPTY_SLOT_HINTS: { role: GuinRole; label: string; hint: string }[] = [
+  { role: "comforter", label: "안식처형", hint: "마음을 편하게 해주는 사람" },
+  { role: "right_hand", label: "오른팔형", hint: "현실적으로 내 편이 되어주는 사람" },
+  { role: "communicator", label: "대화형", hint: "서로의 생각을 풀어내기 쉬운 사람" },
+  { role: "growth_teacher", label: "성장형", hint: "새로운 방향과 자극을 주는 사람" },
+];
+
 interface MapResponse extends GuinMapView {
   linkEnabled: boolean;
   claimed: boolean;
@@ -471,7 +486,7 @@ export default function GuinMapPage() {
 
   const stageHeadline =
     stage === "empty"
-      ? "아직 참여한 사람이 없어요"
+      ? "지도가 열렸어요 · 이제 인연이 앉을 차례"
       : stage === "one"
         ? "첫 번째 인연이 지도에 들어왔어요"
         : stage === "two"
@@ -620,7 +635,7 @@ export default function GuinMapPage() {
               <div className="card" style={{ padding: 14, background: "var(--bg)", fontSize: "0.86rem" }}>
                 <strong>{view.ownerNickname}님의 귀인 지도</strong>
                 <p style={{ color: "var(--text-dim)", margin: "4px 0" }}>
-                  {view.count > 0 ? roleSummary : "아직 지도가 비어 있어요"}
+                  {view.count > 0 ? roleSummary : "지도의 중심에 나 한 사람"}
                 </p>
                 <p>너는 나에게 어떤 인연일까? 생일만 입력하고 확인해보기</p>
               </div>
@@ -632,7 +647,7 @@ export default function GuinMapPage() {
                 onClick={() => {
                   downloadGuinShareImage(
                     view.ownerNickname,
-                    view.count > 0 ? roleSummary.split(" · ") : ["아직 지도가 비어 있어요"]
+                    view.count > 0 ? roleSummary.split(" · ") : ["지도의 중심에 나 한 사람"]
                   );
                   trackFunnel("guin_share_image_downloaded");
                 }}
@@ -644,15 +659,39 @@ export default function GuinMapPage() {
         </section>
       )}
 
-      {/* 0명 — empty state */}
+      {/*
+        0명 — 빈 지도가 아니라 **나 한 사람이 이미 서 있는 지도**다 (2026-09-08 운영자).
+
+        전에는 "아직 등록된 사람이 없어요" 라고만 적힌 흰 카드였다. 만들자마자
+        보는 화면이 그것이라, 방금 생년월일을 넣은 사람에게 돌아오는 것이 빈
+        상자였다. 지도는 배경에 이미 그려져 있는데(GuinMapBackground 가 중앙에
+        주인을 찍는다) 그 위에 "없어요" 카드를 덮어 가린 셈이다.
+
+        그래서 카드를 내 자리 카드로 바꾼다. 별명과 오행·띠는 이미 서버가 보내는
+        값이라(ownerPersona) 새로 계산할 것이 없다.
+      */}
       {stage === "empty" && (
-        <section className="card" style={{ padding: 24, textAlign: "center", marginBottom: 14 }}>
-          <p aria-hidden style={{ fontSize: "2rem", marginBottom: 6 }}>○</p>
-          <p style={{ fontWeight: 700, marginBottom: 6 }}>아직 지도에 등록된 사람이 없어요</p>
-          <p style={{ color: "var(--text-dim)", fontSize: "0.86rem" }}>
-            친구 한 명이 들어오면 첫 번째 관계 카드가 열려요.
-            <br />첫 번째 인연까지 1명 남았어요.
+        <section className="card guin-solo" style={{ padding: 22, marginBottom: 14 }}>
+          <span className="badge">지도의 중심</span>
+          <h2 className="guin-solo-name">{view.ownerNickname}</h2>
+          {view.ownerPersona && (
+            <p className="guin-solo-persona">
+              {view.ownerPersona.elementLabel} 기운의 {view.ownerPersona.animal}띠
+            </p>
+          )}
+          <p className="guin-solo-note">
+            지도 한가운데는 이미 당신이에요. 둘레의 빈 자리는 아직 오지 않은 인연이고,
+            친구가 생일을 넣으면 그 자리에 별이 하나씩 앉아요.
           </p>
+          <ul className="guin-solo-slots" aria-label="아직 비어 있는 자리">
+            {EMPTY_SLOT_HINTS.map((slot) => (
+              <li key={slot.role}>
+                <i aria-hidden style={{ background: ROLE_DOT[slot.role] }} />
+                <b>{slot.label}</b>
+                <span>{slot.hint}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
