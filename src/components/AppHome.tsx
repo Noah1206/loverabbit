@@ -20,7 +20,7 @@ import { useTheme } from "@/components/ThemeProvider";
   종목 목록이 말하고, 홈은 어디로 갈지만 고르게 한다.
 */
 import GenreIcon from "@/components/GenreIcon";
-import TodayRadar from "@/components/TodayRadar";
+import WorryPicker from "@/components/WorryPicker";
 import { CREDIT_EVENT } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
 import InquiryButton from "@/components/InquiryButton";
@@ -227,16 +227,16 @@ export default function AppHome() {
         </div>
 
         {/*
-          ── 오늘의 사주 ── (2026-09-09 운영자)
+          ── 고민 고르기 ── (2026-09-09 운영자)
 
-          "지금 많이 보는 사주" 목록을 걷고 그 자리에 넣는다. 그 목록은 판매
-          집계가 없어 popular 태그를 순서대로 세운 것이었다 — 순위처럼 보이는데
-          순위가 아니었다.
+          오늘의 사주 오각형 자리를 대신한다. 종목 줄이 "무엇을 볼까" 를
+          묻는다면 여기는 "무엇이 걸리는가" 를 묻는다 — 아직 종목을 정하지
+          않았지만 마음에 걸리는 게 있는 사람의 길이다.
 
-          이쪽은 오늘의 흐름에서 나온다. 매일 바뀌므로 다시 올 이유가 되고,
-          홈에서 /today 로 가는 길도 여기가 잇는다.
+          문구는 상품의 headline 을 그대로 쓴다. 여기서 새로 지으면 같은
+          상품이 두 가지 말로 팔린다.
         */}
-        <TodayRadar />
+        <WorryPicker />
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>

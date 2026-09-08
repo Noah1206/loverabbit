@@ -13393,3 +13393,98 @@ input[type="radio"] {
   color: var(--text-dim);
   text-align: center;
 }
+
+/* ── 고민 고르기 (2026-09-09) ─────────────────────────────────────
+   상품 목록 대신 물음으로 묻는다. 옆으로 밀어 보게 두는 이유: 세로로
+   늘어놓으면 목록이 되고, 목록은 훑는 것이지 고르는 것이 아니다. */
+.wp {
+  margin: 26px 0 0;
+  padding: 22px 0 18px;
+  background: #1c2b3f;
+  color: #eaf1fb;
+  border-radius: 28px;
+  margin-inline: 20px;
+}
+.wp-head { padding: 0 20px; }
+.wp-head small {
+  display: block;
+  font-size: 0.78rem;
+  color: #8fa6c4;
+  margin-bottom: 4px;
+}
+.wp-head h2 {
+  margin: 0;
+  font-size: 1.26rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.wp-lead {
+  margin: 12px 20px 16px;
+  padding: 13px 15px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: #cfdcee;
+}
+.wp-rail {
+  display: flex;
+  gap: 12px;
+  padding: 0 20px 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.wp-rail::-webkit-scrollbar { display: none; }
+.wp-card {
+  flex: 0 0 66%;
+  max-width: 210px;
+  scroll-snap-align: start;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 20px;
+  background: #fff;
+  color: #1c2b3f;
+}
+.wp-card-art {
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--tint-2);
+}
+.wp-card-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+}
+.wp-card-q {
+  margin: 0;
+  min-height: 2.8em;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+.wp-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px;
+  border-radius: 999px;
+  background: #4b7bec;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.wp-card-btn i { font-style: normal; }
+.wp-foot {
+  margin: 14px 20px 0;
+  font-size: 0.76rem;
+  color: #8fa6c4;
+  text-align: center;
+}
