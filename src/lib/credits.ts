@@ -148,6 +148,17 @@ export const REFERRAL_SIGNUP_CREDITS = 3;
 /** 오늘의 액션 AI 개인화 한 조합에 드는 러빗 */
 export const DAILY_ACTION_COST = 1;
 
+/**
+ * 타로 한 번 뽑기 값.
+ *
+ * 사주 한 장(READING_SALE_CREDITS = 2)보다 싸게 둔다. 타로는 카드 세 장짜리
+ * 짧은 리딩이라 열두 절짜리 사주와 같은 값을 받을 수 없다.
+ *
+ * 그래도 값을 받는 이유: 뽑을 때마다 결과가 달라 매번이 새 상품이다. 명식이
+ * 안 바뀌어 한 번 사면 끝인 사주와 달리, 여기는 반복 구매가 자연스럽다.
+ */
+export const TAROT_COST = 1;
+
 export type CreditReason =
   | "signup"
   | "referral_click"
@@ -157,7 +168,8 @@ export type CreditReason =
   | "reading"
   | "refund"
   | "admin"
-  | "daily_action";
+  | "daily_action"
+  | "tarot";
 
 export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   signup: "가입 선물",
@@ -169,6 +181,7 @@ export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   refund: "질문 실패 되돌림",
   admin: "운영자 조정",
   daily_action: "오늘의 운세",
+  tarot: "타로 뽑기",
 };
 
 export interface CreditLedgerEntry {

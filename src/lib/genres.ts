@@ -13,7 +13,7 @@
 
 import { PRODUCTS, type Product } from "@/lib/products";
 
-export type GenreId = "saju" | "gunghap" | "period" | "map" | "manseryeok";
+export type GenreId = "saju" | "tarot" | "gunghap" | "period" | "map" | "manseryeok";
 
 export interface Genre {
   id: GenreId;
@@ -34,6 +34,13 @@ export const GENRES: Genre[] = [
     desc: "내 명식으로 읽는 나의 결",
     art: "/assets/zodiac/rabbit-hanbok.webp",
     href: "/genre/saju",
+  },
+  {
+    id: "tarot",
+    label: "타로",
+    desc: "뽑은 카드를 내 결에 겹쳐",
+    art: "/assets/zodiac/snake-hanbok.webp",
+    href: "/tarot",
   },
   {
     id: "gunghap",

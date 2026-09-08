@@ -12438,8 +12438,9 @@ input[type="radio"] {
    보이고, 그 사이 만세력 같은 것은 홈에서 들어가는 길조차 없었다. */
 .home-genres {
   display: grid;
-  /* 종목이 다섯이 됐다 (2026-09-08) — 네 칸에 다섯을 넣으면 한 줄이 남는다 */
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* 종목이 여섯 (2026-09-08). 여섯을 한 줄에 넣으면 칸이 너무 좁아
+     두 줄 세 칸으로 둔다 — 얼굴과 이름이 다 읽혀야 고를 수 있다. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin: 26px 0 0;
   padding: 0 20px;
@@ -12950,4 +12951,141 @@ input[type="radio"] {
   font-weight: 700;
   color: var(--accent);
   text-decoration: none;
+}
+
+/* ── 타로 (2026-09-08) ── 두 번째 엔진. 카드가 주인공이라 카드 칸을 크게 */
+.tr-h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 10px 0 6px;
+}
+.tr-lede {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-dim);
+  margin: 0 0 18px;
+}
+.tr-question {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+.tr-error { color: var(--accent); font-size: 0.86rem; margin-top: 14px; }
+.tr-note {
+  margin-top: 18px;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* 물음 고르기 */
+.tr-topics { display: grid; gap: 9px; }
+.tr-topic {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 16px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease;
+}
+.tr-topic:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  .tr-topic, .tr-topic:active { transition: none; transform: none; }
+}
+.tr-topic-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.tr-topic-copy { display: grid; gap: 3px; min-width: 0; }
+.tr-topic-copy strong { font-size: 1rem; font-weight: 800; }
+.tr-topic-copy small { font-size: 0.8rem; color: var(--text-dim); line-height: 1.45; }
+
+/* 뽑힌 카드 */
+.tr-cards { display: grid; gap: 12px; margin-top: 18px; }
+.tr-card { padding: 18px 16px; }
+.tr-card header {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.tr-card header small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.tr-card header strong {
+  font-size: 1.22rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.tr-card header i {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-style: normal;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-dim);
+}
+.tr-card-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 10px;
+}
+.tr-card-keywords b {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--tint-2);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.tr-card-read {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.72;
+}
+
+.tr-closing {
+  margin-top: 14px;
+  padding: 18px 16px;
+  background: var(--tint-1);
+}
+.tr-closing small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.tr-closing p {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 700;
+  line-height: 1.65;
+}
+
+.tr-again { margin-top: 26px; }
+.tr-again > p {
+  margin: 0 0 8px;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+.tr-again-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.tr-again-row button {
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
 }
