@@ -20,6 +20,8 @@ import {
   type CreditLedgerEntry,
   type CreditPack,
   REFERRAL_SIGNUP_CREDITS,
+  CREDIT_EVENT,
+  bonusOf,
 } from "@/lib/credits";
 import { peekCreditsReturn, rememberCreditsReturn } from "@/lib/credits-return";
 import { PAYMENT_METHOD_OPEN } from "@/lib/pay-method";
@@ -151,6 +153,16 @@ export default function CreditsPage() {
 
   return (
     <main className="container credits-cute" style={{ paddingTop: 48 }}>
+      {/* 이벤트 배너 — CREDIT_EVENT 를 null 로 두면 사라진다 */}
+      {CREDIT_EVENT && (
+        <div className="cc-event">
+          <span className="cc-event-copy">
+            <b>{CREDIT_EVENT.title}</b>
+            <strong>{CREDIT_EVENT.sub}</strong>
+            <small>{CREDIT_EVENT.until}까지</small>
+          </span>
+        </div>
+      )}
       <h1 style={{ marginBottom: 8 }}>러빗 충전소</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>
         사주를 러빗으로 열어요.
@@ -253,7 +265,17 @@ export default function CreditsPage() {
                       {p.id === bestId.id && <span className="cc-best">BEST</span>}
                     </span>
                     <span className="cc-row-sub" style={{ display: "block" }}>
-                      <span className="pink">{p.credits}러빗</span>
+                      {/* 이벤트 중이면 원래 수를 지우고 지금 수를 옆에 둔다 —
+                          "얼마를 더 받는가" 가 이 줄에서 가장 중요한 정보다. */}
+                      {bonusOf(p) > 0 ? (
+                        <>
+                          <s className="cc-row-was">{p.baseCredits}러빗</s>
+                          <span className="pink"> {p.credits}러빗</span>
+                          <span className="cc-row-bonus">+{bonusOf(p)}</span>
+                        </>
+                      ) : (
+                        <span className="pink">{p.credits}러빗</span>
+                      )}
                       <span className="orange"> · {p.note}</span>
                       {firstBuy && off > 0 && <span className="lav"> · {off}% 할인!</span>}
                     </span>

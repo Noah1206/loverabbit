@@ -12,6 +12,7 @@ import { useTheme } from "@/components/ThemeProvider";
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import GenreIcon from "@/components/GenreIcon";
+import { CREDIT_EVENT } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
 import {
   GRID_HIDDEN,
@@ -205,6 +206,30 @@ export default function AppHome() {
 
         {/* 헤더 밑 로그인·사주 배너는 뺐다 (2026-09-06 운영자). 9/4 이후 처음 온
             424명 중 297명이 이 화면만 보고 나갔다 — 첫 요구가 로그인이었다. */}
+
+        {/*
+          ── 이벤트 배너 ── (2026-09-09)
+
+          값을 깎지 않고 러빗을 더 준다. 콘텐츠가 계속 늘어나는 단계라 가격을
+          내리면 정가 인식을 다시 세우기 어렵다 — 할인은 한 번 하면 그 값이
+          정가가 되고, "더 준다" 는 끝나도 값이 그대로다.
+
+          맨 위에 둔다. 결제 전환을 노리는 배너라 사주지도(유입)보다 앞이다.
+          CREDIT_EVENT 를 null 로 두면 이 줄이 사라진다.
+        */}
+        {CREDIT_EVENT && (
+          <Link href="/credits" className="home-event-card">
+            <span className="home-event-copy">
+              <b>{CREDIT_EVENT.title}</b>
+              <strong>
+                충전하면
+                <br />
+                러빗을 더 드려요
+              </strong>
+              <span className="home-event-cta">충전하러 가기 <i aria-hidden>›</i></span>
+            </span>
+          </Link>
+        )}
 
         {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
 

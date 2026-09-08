@@ -13090,3 +13090,91 @@ input[type="radio"] {
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ── 러빗 위크 배너 (2026-09-09) ──────────────────────────────────
+   값을 깎지 않고 러빗을 더 주는 이벤트. 당근과 동전이 오른쪽에 있고
+   왼쪽이 비어 있는 그림이라 글자를 왼쪽에 얹는다. */
+.home-event-card {
+  position: relative;
+  display: block;
+  min-height: 118px;
+  padding: 18px 20px;
+  margin: 14px 20px 0;
+  border-radius: 22px;
+  overflow: hidden;
+  text-decoration: none;
+  background: #fdf3dd url("/assets/genre/event-banner.webp") right center / cover no-repeat;
+  color: #4a3a1c;
+}
+.home-event-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(253, 243, 221, 0.95) 0%, rgba(253, 243, 221, 0.8) 40%, rgba(253, 243, 221, 0) 70%);
+}
+.home-event-copy { position: relative; z-index: 1; display: grid; gap: 3px; }
+.home-event-copy b {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #4a3a1c;
+  color: #fdf3dd;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.home-event-copy strong {
+  margin-top: 3px;
+  font-size: 1.14rem;
+  font-weight: 800;
+  line-height: 1.36;
+  letter-spacing: -0.01em;
+}
+.home-event-cta {
+  margin-top: 5px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #b47516;
+}
+
+/* ── 충전 화면의 이벤트 줄과 보너스 표시 ── */
+.cc-event {
+  position: relative;
+  min-height: 96px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #fdf3dd url("/assets/genre/event-banner.webp") right center / cover no-repeat;
+  color: #4a3a1c;
+}
+.cc-event::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(253, 243, 221, 0.95) 0%, rgba(253, 243, 221, 0.78) 44%, rgba(253, 243, 221, 0) 72%);
+}
+.cc-event-copy { position: relative; z-index: 1; display: grid; gap: 2px; }
+.cc-event-copy b {
+  justify-self: start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #4a3a1c;
+  color: #fdf3dd;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+.cc-event-copy strong { margin-top: 3px; font-size: 1.02rem; font-weight: 800; }
+.cc-event-copy small { font-size: 0.72rem; color: #8a6f3c; }
+
+/* 원래 러빗 수 — 지우고, 그 옆에 더 주는 수를 붙인다 */
+.cc-row-was { color: var(--cc-dim); font-size: 0.82rem; }
+.cc-row-bonus {
+  margin-left: 4px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: #b47516;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+}

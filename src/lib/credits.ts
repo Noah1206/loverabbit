@@ -22,10 +22,20 @@ export const QUESTION_COST = 1;
 export interface CreditPack {
   id: string;
   name: string;
+  /** 실제로 지급되는 러빗. 이벤트 중에는 보너스가 포함된 수다. */
   credits: number;
   price: number;
   /** 화면에 쓰는 한 줄 */
   note: string;
+  /**
+   * 이벤트가 아닐 때의 러빗. 이벤트 중일 때만 채운다 —
+   * 화면이 "원래 15 → 지금 20" 을 보여주는 데 쓴다.
+   *
+   * credits 를 늘리고 baseCredits 에 옛 수를 남기는 방향으로 적는다.
+   * 지급은 주문 메타데이터의 credits 를 DB 함수가 읽어서 하므로
+   * (lr_complete_chat_credit_order), 여기만 고치면 지급까지 바뀐다.
+   */
+  baseCredits?: number;
 }
 
 /**
@@ -41,9 +51,51 @@ export interface CreditPack {
  */
 export const CREDIT_PACKS: CreditPack[] = [
   { id: "credits-2", name: "맛보기", credits: 2, price: 1_900, note: "첫 사주 한 장" },
-  { id: "credits-6", name: "기본", credits: 6, price: 4_900, note: "러빗당 817원" },
-  { id: "credits-15", name: "넉넉히", credits: 15, price: 12_000, note: "러빗당 800원 · 가장 이득" },
+  {
+    id: "credits-6",
+    name: "기본",
+    credits: 8,
+    baseCredits: 6,
+    price: 4_900,
+    note: "2러빗 더 드려요",
+  },
+  {
+    id: "credits-15",
+    name: "넉넉히",
+    credits: 20,
+    baseCredits: 15,
+    price: 12_000,
+    note: "5러빗 더 드려요 · 가장 이득",
+  },
 ];
+
+/**
+ * 러빗 위크 (2026-09-09 ~).
+ *
+ * **값을 깎지 않고 러빗을 더 준다.** 콘텐츠가 계속 늘어나는 단계라 가격을
+ * 내리면 정가 인식을 다시 세우기 어렵다 — "50% 할인" 은 한 번 하면 그 값이
+ * 정가가 된다. 반대로 "지금만 더 준다" 는 끝나도 값이 그대로다.
+ *
+ * 크레딧제와도 맞다. 남은 러빗이 다음 사주나 타로로 이어지므로, 한 장을
+ * 반값에 파는 것보다 재구매가 붙는다.
+ *
+ * 맛보기(2러빗)에는 보너스를 얹지 않았다. 그 칸은 "한 장만 보고 싶다" 는
+ * 사람의 자리라 러빗이 남으면 오히려 목적과 어긋나고, 위 칸이 손해로
+ * 보여야 아래 칸이 팔린다는 표의 뜻도 무너진다.
+ *
+ * 끝낼 때: 위 CREDIT_PACKS 의 credits 를 baseCredits 값으로 되돌리고
+ * baseCredits 와 note 를 지운다. EVENT 를 null 로 두면 화면 문구가 사라진다.
+ */
+export const CREDIT_EVENT: { title: string; sub: string; until: string } | null = {
+  title: "러빗 위크",
+  sub: "충전하면 러빗을 더 드려요",
+  until: "2026-09-16",
+};
+
+/** 이벤트로 더 주는 러빗 수. 이벤트가 아니면 0 */
+export function bonusOf(pack: CreditPack): number {
+  return pack.baseCredits ? pack.credits - pack.baseCredits : 0;
+}
 
 /**
  * 첫 구매 전용 팩은 없앴다 (2026-09-01 운영자 — 세 칸을 하나로 고정).
