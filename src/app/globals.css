@@ -13231,37 +13231,40 @@ input[type="radio"] {
 }
 
 /* ── 배너 슬라이드 (2026-09-09) ───────────────────────────────────
-   사주지도와 가이드를 한 자리에서 3초마다 넘긴다. 종목 줄 아래에 둔다 —
-   들어온 사람이 먼저 할 일은 무엇을 볼지 고르는 것이다. */
+   사주지도와 가이드를 3초마다 넘긴다. 종목 줄 아래에 둔다 — 들어온 사람이
+   먼저 할 일은 무엇을 볼지 고르는 것이다.
+
+   둘을 다 그려 두고 트랙을 옆으로 민다. 하나씩 갈아 끼우면 움직임이 보이지
+   않고 넘어가는 방향도 알 수 없다. */
 .home-slide {
   margin-top: 18px;
+  overflow: hidden;
 }
-/* 두 카드의 높이가 다르면 넘어갈 때 아래 내용이 튄다. 자리를 미리 잡아 둔다. */
 .home-slide-track {
-  min-height: 132px;
-}
-.home-slide-track > a {
-  /* 슬라이드 안에서는 카드 자신의 위 여백을 쓰지 않는다 */
-  margin-top: 0;
-  margin-bottom: 0;
-  /* 두 카드의 원래 높이가 달라(사주지도가 더 길다) 넘어갈 때 아래가 튀었다.
-     트랙 높이에 맞춰 둘을 같은 크기로 늘린다. */
-  min-height: 132px;
-  box-sizing: border-box;
-  animation: home-slide-in 260ms ease;
-}
-@keyframes home-slide-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
+  display: flex;
+  transition: transform 420ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-slide-track > a { animation: none; }
+  .home-slide-track { transition: none; }
+}
+.home-slide-item {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+/* 슬라이드 안에서는 카드 자신의 위아래 여백을 쓰지 않는다. 두 카드의 원래
+   높이가 달라(사주지도가 더 길다) 짧은 쪽에 맞추면 아래가 튄다 — 같은 키로
+   맞춘다. */
+.home-slide-item > a {
+  margin: 0 20px;
+  min-height: 132px;
+  box-sizing: border-box;
+  border-radius: 28px;
 }
 .home-slide-dots {
   display: flex;
   justify-content: center;
   gap: 6px;
-  margin-top: 9px;
+  margin-top: 10px;
 }
 .home-slide-dot {
   width: 6px;
@@ -13271,6 +13274,7 @@ input[type="radio"] {
   border-radius: 50%;
   background: var(--line);
   cursor: pointer;
+  transition: width 240ms ease, background 240ms ease;
 }
 .home-slide-dot.on {
   width: 16px;

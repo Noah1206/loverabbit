@@ -179,8 +179,13 @@ export default function AppHome() {
           그건 안내가 아니라 방해다.
         */}
         <div className="home-slide">
-          <div className="home-slide-track">
-            {slide === 0 ? (
+          {/* 둘을 다 그려 두고 트랙을 옆으로 민다 — 하나씩 갈아 끼우면
+              움직임이 안 보이고, 넘어가는 방향도 알 수 없다. */}
+          <div
+            className="home-slide-track"
+            style={{ transform: `translateX(-${slide * 100}%)` }}
+          >
+            <div className="home-slide-item">
               <Link href="/guin" className="home-map-card">
                 <span className="home-map-copy">
                   <span className="home-map-tags">
@@ -196,7 +201,8 @@ export default function AppHome() {
                   <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
                 </span>
               </Link>
-            ) : (
+            </div>
+            <div className="home-slide-item">
               <Link href="/guide" className="home-guide-card">
                 <span className="home-guide-copy">
                   <strong>
@@ -210,7 +216,7 @@ export default function AppHome() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
               </Link>
-            )}
+            </div>
           </div>
           <div className="home-slide-dots" role="tablist" aria-label="배너">
             {[0, 1].map((i) => (
@@ -228,28 +234,6 @@ export default function AppHome() {
             ))}
           </div>
         </div>
-
-        {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
-             페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
-             홈에서 들어가는 줄만 걷었다. 되돌리려면 아래 주석을 풀고,
-             webtoonId 상태와 /api/my-readings 조회도 같이 되살려야 한다
-             (해금된 리딩 하나를 찾아 그 웹툰으로 보내던 값이다).
-
-        <Link
-          href={webtoonId ? `/webtoon-saju/${webtoonId}` : "/reading"}
-          className="home-webtoon"
-        >
-          <span className="home-webtoon-emoji" aria-hidden>🐰</span>
-          <span className="home-webtoon-copy">
-            <strong>내 사주를 웹툰으로 읽어요</strong>
-            <small>재물운 · 연애운 · 이별운 · 앞 장면은 무료</small>
-          </span>
-          <span className="home-webtoon-go" aria-hidden>›</span>
-        </Link>
-        */}
-
-        {/* 세트 줄은 홈에서 뺐다 (2026-09-01 운영자). /set/[id] 판매 페이지와
-             쿠폰 정산은 그대로 살아 있어 직접 링크는 여전히 열린다. */}
 
         {/*
           ── 지금 인기 ── (2026-09-08)
