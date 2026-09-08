@@ -39,8 +39,10 @@ test("쉬운 목차의 줄은 비어 있지 않고 너무 길지 않다", () => 
     if (!p.tocPlain) continue;
     for (const line of p.tocPlain) {
       assert.ok(line.trim().length >= 4, `${p.id}: "${line}" 이 너무 짧다`);
-      // 한 줄에 안 들어가면 목록이 아니라 문단이 된다
-      assert.ok(line.length <= 22, `${p.id}: "${line}" 이 너무 길다 (${line.length}자)`);
+      /* 한 줄에 안 들어가면 목록이 아니라 문단이 된다.
+         30자인 이유: "스킨십 — 어디서부터 얼마나 빠르게" 처럼 무엇을 알게 되는지
+         적으려면 22자로는 모자란다. 짧게 줄이면 다시 추상적인 제목이 된다. */
+      assert.ok(line.length <= 30, `${p.id}: "${line}" 이 너무 길다 (${line.length}자)`);
     }
   }
 });
