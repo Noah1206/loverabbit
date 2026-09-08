@@ -38,9 +38,9 @@ import { PortOnePaymentError } from "@/lib/portone-validation";
 export const maxDuration = 300;
 
 // 풀 리딩 해금 — 결제 방식 2가지:
-// 1) transfer: 계좌이체 주문을 저장하고 그 자리에서 승인한다 (2026-09-06, 러빗과
-//    같은 이유 — 운영자가 자는 사이 기다리다 나간다). 통장 대조는 텔레그램을
-//    보고 나중에. 자동 승인이 실패하면 예전처럼 승인 버튼이 달린 알림이 간다.
+// 1) transfer: 계좌이체 승인 요청만 저장. 관리자가 입금을 확인하고 승인해야 해금된다.
+//    (2026-09-06 에 자동 승인으로 바꿨다가 2026-09-08 에 되돌렸다 — 입금 없이
+//     받아 가는 일이 실제로 생겼다. 자세한 사정은 api/credits/transfer 머리에.)
 // 2) toss-pg: TOSS_SECRET_KEY가 있으면 토스페이먼츠 결제 승인 API로 실결제 검증.
 // 3) mock: 키·방식 지정 없을 때 개발용 모의결제.
 //
@@ -419,32 +419,28 @@ export async function POST(req: NextRequest) {
         await notifyAdmin(`[세트 쿠폰] 주문 #${order.id} · ${stored?.category ?? "리딩"} 0원으로 열림 (userId=${user.userId})`);
         return NextResponse.json({ orderId: order.id, readingId: order.readingId, status: "paid", method: "transfer" });
       }
-      // 바로 승인 — 해금·생성 시작·손님 알림까지 관리자 버튼과 같은 함수.
-      // 던지지 않는다. 이미 승인된 주문(재시도)은 already_reviewed 로 온다.
-      const auto = await reviewOrderAndFollowUp(order.id, "paid");
-      const granted = auto.ok || auto.reason === "already_reviewed";
       console.log(
-        `[계좌이체:자동승인] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${order.amount} ${
-          granted ? "ok" : `실패:${auto.reason}`
-        }`
+        `[결제승인대기:계좌이체] userId=${user.userId} reading=${body.readingId} order=${order.id} amount=${order.amount}`
       );
-      // 같은 주문은 한 번만 알린다 — "이체했어요"를 다시 눌러도 이미 있던 주문이
-      // 돌아오므로, 그때마다 텔레그램에 같은 알림이 쌓이면 안 된다.
+      // 입금 확인 요청은 사람이 승인해야 풀린다. 알리지 않으면 입금한 사람이
+      // 관리자가 우연히 /admin/payments 를 열 때까지 기다린다.
+      // 단, 같은 주문은 한 번만 알린다 — "이체했어요"를 다시 눌러도 이미 대기 중인
+      // 주문이 돌아오므로, 그때마다 텔레그램에 같은 요청이 쌓이면 안 된다.
       if (order.created) await notifyAdmin(
         [
-          granted ? "[자동 승인] 리딩 — 통장에서 입금을 확인하세요" : "[입금 확인 요청] 리딩 (자동 승인 실패)",
+          "[입금 확인 요청] 리딩",
           `주문 #${order.id} · ${order.amount.toLocaleString()}원${
             order.amount !== price ? ` (정가 ${price.toLocaleString()}원, 쿠폰 적용)` : ""
           }`,
           `상품 ${stored?.category ?? "리딩"} · 입금코드 ${body.depositorCode}`,
           "https://loverebbit.xyz/admin/payments",
         ].join("\n"),
-        granted ? undefined : reviewButtons(order.id)
+        reviewButtons(order.id)
       );
       return NextResponse.json({
         orderId: order.id,
         readingId: order.readingId,
-        status: granted ? "paid" : order.status,
+        status: order.status,
         method: "transfer",
       });
     } catch (error) {

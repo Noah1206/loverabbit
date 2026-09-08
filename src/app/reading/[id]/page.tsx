@@ -226,7 +226,7 @@ export default function ReadingReportPage() {
         };
         updateArchive(id, patch);
         setEntry((now) => (now ? { ...now, ...patch } : now));
-        setNotice("전문이 모두 열렸어요.");
+        setNotice("입금이 확인됐어요. 전문이 모두 열렸어요.");
       } catch {
         // 확인에 실패한 것뿐이다. 다음에 열 때 다시 확인한다.
       }

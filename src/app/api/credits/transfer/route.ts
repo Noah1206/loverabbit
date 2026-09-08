@@ -3,18 +3,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { creditDepositorCode, getCreditPack, isFirstBuyPack } from "@/lib/credits";
 import { createPendingCreditTransferOrder, hasPurchasedCredits } from "@/lib/credits-db";
 import { isDatabaseConfigured } from "@/lib/database";
-import { reviewOrderAndFollowUp } from "@/lib/order-review";
 import { notifyAdmin, reviewButtons } from "@/lib/telegram";
 import { resolveUserToken } from "@/lib/tokens";
 
 // 크레딧 팩 — 직접 송금. 지금 실제로 돈이 들어오는 유일한 길이다 (pay-method.ts).
 //
-// 러빗은 "이체했어요" 를 누르는 순간 바로 준다 (2026-09-06). 전에는 관리자가
-// 텔레그램 버튼을 눌러야 들어왔는데, 운영자가 자는 사이나 알림을 못 본 사이에
-// 기다리다 나가는 사람이 많았다. 승인은 같은 RPC(lr_review_transfer_order)를
-// 사람 대신 서버가 누르는 것뿐이다 — 통장 대조는 텔레그램 알림을 보고 나중에
-// 한다. 자동 승인이 실패하면 예전처럼 승인 버튼이 달린 알림이 가고, 주문은
-// pending 으로 남는다.
+// 사람이 승인해야 지급된다. 관리자가 텔레그램 버튼을 누르거나 /admin/payments
+// 에서 승인하면 lr_review_transfer_order 가 지급한다.
+//
+// 2026-09-06 에 "이체했어요" 를 누르는 순간 바로 주도록 바꿨다가, 이틀 만에
+// 되돌렸다 (2026-09-08). 이탈은 줄었지만 입금 없이 러빗을 받아 리딩을 열고
+// 나가는 일이 실제로 생겼다 — 주문 205·206 에서 27,000원어치가 그렇게 나갔다.
+// 통장 대조를 나중에 하는 구조에서는 그 사이의 손실을 막을 방법이 없다.
+// 기다리게 하는 값이 떼이는 값보다 싸다.
 interface Body {
   packId?: string;
   userToken?: string;
@@ -75,26 +76,21 @@ export async function POST(request: NextRequest) {
       depositorCode: expectedCode,
     });
     if (!order) throw new Error("승인 대기 주문을 만들 수 없습니다.");
-    // 바로 지급. 던지지 않는 함수라 실패는 결과로 온다. 이미 지급된 주문(재시도)
-    // 이면 already_reviewed — 그것도 지급된 것이다.
-    const auto = await reviewOrderAndFollowUp(order.id, "paid");
-    const granted = auto.ok || auto.reason === "already_reviewed";
-    if (!auto.ok) console.error(`[러빗자동지급] order=${order.id} 실패: ${auto.reason}`);
     // 같은 주문은 한 번만 알린다 — 리딩 이체와 같은 이유.
     if (order.created) {
       await notifyAdmin(
         [
-          granted ? "[자동 지급] 질문 러빗 — 통장에서 입금을 확인하세요" : "[입금 확인 요청] 질문 러빗 (자동 지급 실패)",
+          "[입금 확인 요청] 질문 러빗",
           `주문 #${order.id} · ${order.amount.toLocaleString()}원 · ${pack.credits}러빗`,
           `입금코드 ${order.depositorCode}`,
           "https://loverebbit.xyz/admin/payments",
         ].join("\n"),
-        granted ? undefined : reviewButtons(order.id)
+        reviewButtons(order.id)
       );
     }
     return NextResponse.json({
       orderId: order.id,
-      status: granted ? "paid" : order.status,
+      status: order.status,
       amount: order.amount,
       credits: pack.credits,
       depositorCode: order.depositorCode,

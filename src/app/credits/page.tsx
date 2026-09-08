@@ -171,7 +171,7 @@ export default function CreditsPage() {
 
       {approved && (
         <p className="cc-card" style={{ background: "#eefaf3", borderColor: "#bfe6d2", color: "#1f7a4d", fontWeight: 700, fontSize: "0.88rem" }}>
-          러빗이 들어왔어요 🐰
+          입금이 확인됐어요. 러빗이 들어왔어요 🐰
         </p>
       )}
 
