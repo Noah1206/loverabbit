@@ -13,7 +13,7 @@
 
 import { PRODUCTS, type Product } from "@/lib/products";
 
-export type GenreId = "saju" | "gunghap" | "map" | "manseryeok";
+export type GenreId = "saju" | "gunghap" | "period" | "map" | "manseryeok";
 
 export interface Genre {
   id: GenreId;
@@ -41,6 +41,14 @@ export const GENRES: Genre[] = [
     desc: "두 사람 사이를 읽는다",
     art: "/assets/zodiac/rooster-hanbok.webp",
     href: "/genre/gunghap",
+  },
+  {
+    id: "period",
+    label: "주간·월간",
+    desc: "이번 주와 이번 달의 흐름",
+    art: "/assets/zodiac/horse-hanbok.webp",
+    href: "/period",
+    free: true,
   },
   {
     id: "map",

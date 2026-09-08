@@ -12438,7 +12438,8 @@ input[type="radio"] {
    보이고, 그 사이 만세력 같은 것은 홈에서 들어가는 길조차 없었다. */
 .home-genres {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* 종목이 다섯이 됐다 (2026-09-08) — 네 칸에 다섯을 넣으면 한 줄이 남는다 */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
   margin: 26px 0 0;
   padding: 0 20px;
@@ -12820,4 +12821,133 @@ input[type="radio"] {
   height: 100%;
   object-fit: cover;
   object-position: center 18%;
+}
+
+/* ── 이번 주·이번 달 운세 (2026-09-08) ────────────────────────────
+   반복해서 볼 수 있는 것이 오늘의 운세뿐이었다. 여덟 영역을 접었다 폈다
+   하며 훑는 화면이라, 하나를 고르게 하는 오늘의 사주와 구조가 다르다. */
+.pf-h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 10px 0 4px;
+}
+.pf-lede {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-dim);
+  margin: 0;
+}
+.pf-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 14px 0 10px;
+}
+.pf-tab {
+  flex: 1;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pf-tab.on {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+.pf-range {
+  display: grid;
+  gap: 2px;
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.pf-range small {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.pf-error {
+  color: var(--accent);
+  font-size: 0.86rem;
+  margin: 10px 0;
+}
+.pf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.pf-item {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+.pf-item.on { border-color: var(--accent); }
+.pf-item > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 14px;
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.pf-item-emoji { font-size: 1.3rem; flex-shrink: 0; }
+.pf-item-copy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.pf-item-copy small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.pf-item-copy strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+.pf-item-go {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+}
+.pf-body {
+  padding: 0 14px 16px 50px;
+  display: grid;
+  gap: 10px;
+}
+.pf-body p {
+  margin: 0;
+  font-size: 0.87rem;
+  line-height: 1.62;
+  color: var(--text-dim);
+}
+.pf-body b {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.pf-note {
+  margin-top: 20px;
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.pf-more { margin-top: 12px; }
+.pf-more a {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
 }
