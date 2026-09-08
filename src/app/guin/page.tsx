@@ -15,6 +15,38 @@ import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { captureReferralFromLocation } from "@/lib/referral";
 import { getUser } from "@/lib/user";
+import TermSheet, { type TermPage } from "@/components/TermSheet";
+
+
+/**
+ * 사주지도가 쓰는 말들. 만세력과 같은 시트(TermSheet)를 쓴다 — 화면마다 다른
+ * 설명 방식을 만들면 어느 쪽도 익숙해지지 않는다.
+ *
+ * 규칙 표(guin-map.ts)가 쓰는 것과 같은 뜻으로만 적는다. 여기서 새 주장을
+ * 만들지 않는다 — 용어를 풀 뿐이다.
+ */
+const GUIN_TERMS: TermPage[] = [
+  {
+    title: "사주지도",
+    body: "내 명식과 주변 사람의 명식을 견줘, 그 사람이 나에게 어떤 결의 인연인지 그린 지도예요. 사람을 넣을수록 지도가 넓어져요.",
+  },
+  {
+    title: "귀인",
+    body: "나를 살리는 쪽으로 작용하는 인연이에요. 좋은 사람이라는 뜻이 아니라, 내 기운이 부족한 자리를 그 사람이 채워 주는 관계라는 뜻이에요.",
+  },
+  {
+    title: "관계의 역할",
+    body: "안식처·오른팔·대화·성장처럼 이름이 붙어요. 상대의 일간이 내 일간에게 어떤 십성인지로 정해지고, 사람됨이 아니라 둘 사이의 결을 말해요.",
+  },
+  {
+    title: "양방향",
+    body: "나에게 그 사람이 어떤 인연인지와, 그 사람에게 내가 어떤 인연인지는 다를 수 있어요. 관계는 한쪽에서만 보면 절반만 보이거든요.",
+  },
+  {
+    title: "지도에 올라간 사람",
+    body: "내가 대신 넣은 사람은 임시로 표시돼요. 그 사람이 직접 들어와 자기 정보를 확인하면 정식 참여로 바뀌고, 원하지 않으면 스스로 지울 수 있어요.",
+  },
+];
 
 const CREATE_CONSENT =
   "입력한 정보는 사주지도 관계 계산과 지도 관리에만 사용됩니다. 지도에 표시되는 이름은 별명이며, 생년월일과 출생시간은 다른 사람에게 공개하지 않습니다. 만 14세 이상만 이용할 수 있어요.";
@@ -28,8 +60,6 @@ function GuinLanding() {
   // 초대 링크에서 "나도 만들기"로 넘어온 사람 — 2차 바이럴 계측용
   const fromInvite = params.get("from") === "invite";
 
-  const [mode, setMode] = useState<"form" | "paste">("form");
-  const [pasted, setPasted] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   // 오프닝 영상은 뺐다 (2026-09-04 운영자) — 들어오면 바로 폼이다.
@@ -57,7 +87,6 @@ function GuinLanding() {
       const kept = takeGuinPrefill();
       if (kept) setPrefill(kept);
       trackFunnel("guin_form_started");
-      setMode("form");
       if (kept) return;
     }
     // 리딩에서 저장해 둔 내 사주가 있으면 그걸로 채운다 — 같은 사람에게
@@ -120,16 +149,6 @@ function GuinLanding() {
     }
   };
 
-  const openPasted = () => {
-    // /guin/토큰 링크나 토큰만 붙여넣어도 들어가게 한다.
-    const match = pasted.trim().match(/guin\/([A-Za-z0-9_-]{20,64})/) ?? pasted.trim().match(/^([A-Za-z0-9_-]{20,64})$/);
-    if (!match) {
-      setError("링크를 다시 확인해 주세요.");
-      return;
-    }
-    router.push(`/guin/${match[1]}`);
-  };
-
   return (
     <main className="container guin-landing" style={{ paddingTop: 28, paddingBottom: 120 }}>
       {busy && <GuinRunLoader />}
@@ -142,6 +161,7 @@ function GuinLanding() {
           내 주변에
           <br />
           어떤 <em>인연</em>이 있을까?
+          <TermSheet pages={GUIN_TERMS} label="사주지도 용어 설명" />
         </h1>
         <p>
           생년월일 하나면 주변 사람들이 나에게 어떤 인연인지,
@@ -158,50 +178,21 @@ function GuinLanding() {
         </div>
       </header>
 
-      {mode === "paste" && (
-        <div className="card" style={{ padding: 20, display: "grid", gap: 10 }}>
-          <span style={{ fontSize: "0.86rem", fontWeight: 700 }}>친구가 보낸 링크</span>
-          <input
-            value={pasted}
-            placeholder="https://loverebbit.xyz/guin/…"
-            onChange={(e) => setPasted(e.target.value)}
-          />
-          {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem" }}>{error}</p>}
-          <button className="btn" onClick={openPasted}>
-            지도 열기
+      <div className="guin-landing-form">
+        <GuinBirthForm
+          submitLabel="내 사주지도 만들기"
+          consentNote={CREATE_CONSENT}
+          busy={busy}
+          onSubmit={create}
+          initial={prefill}
+        />
+        {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginTop: 10 }}>{error}</p>}
+        {error && (
+          <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={() => setError("")}>
+            다시 시도하기
           </button>
-          <button className="btn btn-ghost" onClick={() => setMode("form")}>
-            뒤로
-          </button>
-        </div>
-      )}
-
-      {mode === "form" && (
-        <div className="guin-landing-form">
-          <GuinBirthForm
-            submitLabel="내 사주지도 만들기"
-            consentNote={CREATE_CONSENT}
-            busy={busy}
-            onSubmit={create}
-            initial={prefill}
-          />
-          {error && <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginTop: 10 }}>{error}</p>}
-          {error && (
-            <button className="btn btn-ghost" style={{ width: "100%", marginTop: 10 }} onClick={() => setError("")}>
-              다시 시도하기
-            </button>
-          )}
-        </div>
-      )}
-      {mode === "form" && (
-        <button
-          className="guin-join-link"
-          style={{ width: "100%", marginTop: 12 }}
-          onClick={() => setMode("paste")}
-        >
-          친구가 보낸 링크로 참여하기
-        </button>
-      )}
+        )}
+      </div>
     </main>
   );
 }
