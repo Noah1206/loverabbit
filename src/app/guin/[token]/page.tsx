@@ -60,6 +60,7 @@ import {
 import { REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import { captureReferralFromLocation, REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { getUser } from "@/lib/user";
+import RoleFace from "@/components/RoleFace";
 import ZodiacMark from "@/components/ZodiacMark";
 
 const BUSY_MESSAGE = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
@@ -94,6 +95,7 @@ interface SharedResult {
   person: {
     id: string;
     nickname: string;
+    role: string;
     roleLabel: string;
     roleTagline: string;
     score: number | null;
@@ -676,6 +678,9 @@ export default function GuinMapPage() {
         <h1 className="guin-shared-name">{person.nickname}님은</h1>
 
         <section className="card guin-shared-card">
+          <span className="guin-shared-face">
+            <RoleFace role={person.role} size={72} />
+          </span>
           <span className="badge">{person.roleLabel} 인연</span>
           <p className="guin-shared-tagline">{person.roleTagline}</p>
           {typeof person.score === "number" && (
@@ -965,9 +970,12 @@ export default function GuinMapPage() {
       {myNode && !isOwner && (
         <section className="card" style={{ padding: 20, marginBottom: 14, borderColor: ROLE_DOT[myNode.role] }}>
           <span className="badge">{view.ownerNickname}님에게 나는</span>
-          <h2 style={{ fontSize: "1.3rem", margin: "10px 0 2px" }}>
-            {myNode.roleLabel} 인연
-            {myNode.secondaryRoleLabel ? ` · ${myNode.secondaryRoleLabel}` : ""}
+          <h2 style={{ fontSize: "1.3rem", margin: "10px 0 2px", display: "flex", alignItems: "center", gap: 10 }}>
+            <RoleFace role={myNode.role} size={52} />
+            <span>
+              {myNode.roleLabel} 인연
+              {myNode.secondaryRoleLabel ? ` · ${myNode.secondaryRoleLabel}` : ""}
+            </span>
           </h2>
           <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 10 }}>
             {myNode.roleTagline}
@@ -986,9 +994,12 @@ export default function GuinMapPage() {
           {showReverse && myNode.reverse && (
             <div className="card" style={{ padding: 14, marginTop: 12, background: "var(--bg)" }}>
               <span className="badge">나에게 {view.ownerNickname}님은</span>
-              <p style={{ fontWeight: 700, margin: "8px 0 2px" }}>
-                {myNode.reverse.roleLabel} 인연
-                {myNode.reverse.score !== null ? ` · 케미 ${myNode.reverse.score}점` : ""}
+              <p style={{ fontWeight: 700, margin: "8px 0 2px", display: "flex", alignItems: "center", gap: 8 }}>
+                <RoleFace role={myNode.reverse.role} size={34} />
+                <span>
+                  {myNode.reverse.roleLabel} 인연
+                  {myNode.reverse.score !== null ? ` · 케미 ${myNode.reverse.score}점` : ""}
+                </span>
               </p>
               <p style={{ color: "var(--text-dim)", fontSize: "0.84rem" }}>{myNode.reverse.roleTagline}</p>
               {myNode.reverse.strengths[0] && (
@@ -1216,7 +1227,10 @@ export default function GuinMapPage() {
                 onClick={() => setSelected(selected === node.id ? null : node.id)}
               >
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <span aria-hidden style={{ width: 10, height: 10, borderRadius: "50%", background: ROLE_DOT[node.role] }} />
+                  {/* 색 점 대신 얼굴 (2026-09-08) — 여덟이 늘어서면 색만으로는
+                      무엇이 무엇인지 안 갈린다. 상대의 띠가 아니라 역할에 붙은
+                      그림이라 개인정보를 새로 꺼내지 않는다. */}
+                  <RoleFace role={node.role} size={30} />
                   <strong>{node.nickname}</strong>
                   <span style={{ color: "var(--text-dim)", fontSize: "0.82rem" }}>
                     {node.roleLabel}
@@ -1229,8 +1243,11 @@ export default function GuinMapPage() {
           </div>
           {selectedNode && (
             <div className="card" style={{ padding: 16, marginTop: 12, borderColor: ROLE_DOT[selectedNode.role] }}>
-              <strong>
-                {selectedNode.nickname}님은 당신에게 {selectedNode.roleLabel} 인연이에요
+              <strong style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <RoleFace role={selectedNode.role} size={40} />
+                <span>
+                  {selectedNode.nickname}님은 당신에게 {selectedNode.roleLabel} 인연이에요
+                </span>
               </strong>
               <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", margin: "2px 0 8px" }}>
                 {selectedNode.roleTagline}

@@ -95,3 +95,23 @@ test('"토끼띠" 처럼 접미사가 붙어 와도 찾는다', () => {
   // 접미사를 벗겨도 없는 이름은 여전히 없다
   assert.equal(zodiacOf("유니콘띠"), null);
 });
+
+test("관계 역할 여덟 가지에 각각 다른 얼굴이 선다", async () => {
+  const { zodiacForRole } = await import("../src/lib/zodiac-character");
+  const { GUIN_ROLES } = await import("../src/lib/guin-map");
+  const seen = new Set<string>();
+  for (const role of Object.keys(GUIN_ROLES)) {
+    const z = zodiacForRole(role);
+    assert.ok(z, `역할 "${role}" 에 붙은 얼굴이 없다`);
+    seen.add(z.animal);
+  }
+  // 겹치면 두 역할이 같은 얼굴로 보인다 — 갈라 보이려고 붙인 것이 무의미해진다
+  assert.equal(seen.size, Object.keys(GUIN_ROLES).length, "두 역할이 같은 동물을 쓴다");
+});
+
+test("모르는 역할은 null — 엉뚱한 얼굴을 세우지 않는다", async () => {
+  const { zodiacForRole } = await import("../src/lib/zodiac-character");
+  assert.equal(zodiacForRole("wizard"), null);
+  assert.equal(zodiacForRole(""), null);
+  assert.equal(zodiacForRole(null), null);
+});

@@ -104,3 +104,43 @@ export function hasZodiacArt(animal: string | null | undefined): boolean {
   const z = zodiacOf(animal);
   return z ? ZODIAC_ART_READY.has(z.animal) : false;
 }
+
+// ── 관계 역할에 얹는 얼굴 ────────────────────────────────────────
+//
+// 사주지도의 사람 카드가 지금은 글자뿐이라, 여덟 사람이 늘어서면 무엇이
+// 무엇인지 한눈에 안 갈린다. 역할마다 다른 얼굴을 세우면 이름을 읽기 전에
+// 색과 생김새로 먼저 갈린다.
+//
+// **상대의 띠가 아니다.** 상대 생년월일은 봉인 저장이라 화면에 온 적이 없고
+// (guin-db.ts), 그 규칙은 그대로 둔다. 여기 쓰는 것은 계산된 **역할**에
+// 붙인 그림일 뿐이라 어떤 개인정보도 새로 꺼내지 않는다.
+//
+// 배정은 역할의 tagline 을 따랐다 (guin-map.ts):
+//   귀인 "나를 살리는 사람"          → 용   (기운을 크게 키우는 쪽)
+//   오른팔형 "현실적으로 내 편"       → 소   (묵묵히 곁에서 일하는 쪽)
+//   성장형 "새 방향과 자극"          → 말   (앞으로 내달리는 쪽)
+//   거울형 "나를 비춰주는"           → 토끼 (대표 캐릭터, 나에 가장 가깝다)
+//   자극형 "새 방향을 열어주는"       → 호랑이(밀어붙이는 쪽)
+//   안식처형 "마음을 편하게"          → 양   (곁이 순한 쪽)
+//   대화형 "생각을 풀어내기 쉬운"     → 원숭이(말이 오가는 쪽)
+//   동행 "결이 달라 배울 게 많은"     → 개   (나란히 걷는 쪽)
+const ROLE_ANIMAL: Record<string, ZodiacAnimal> = {
+  benefactor: "용",
+  right_hand: "소",
+  growth_teacher: "말",
+  mirror: "토끼",
+  stimulator: "호랑이",
+  comforter: "양",
+  communicator: "원숭이",
+  neutral: "개",
+};
+
+/**
+ * 관계 역할에 붙는 캐릭터. 모르는 역할이면 null 이고, 화면은 그림 없이 그린다 —
+ * 역할이 늘었을 때 엉뚱한 얼굴이 서는 것보다 안 서는 편이 낫다.
+ */
+export function zodiacForRole(role: string | null | undefined): ZodiacCharacter | null {
+  if (!role) return null;
+  const animal = ROLE_ANIMAL[role];
+  return animal ? zodiacOf(animal) : null;
+}

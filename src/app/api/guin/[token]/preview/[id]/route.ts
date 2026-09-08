@@ -50,6 +50,9 @@ export async function GET(
         person: {
           id: node.id,
           nickname: node.nickname,
+          // 역할 열쇠 — 화면이 여기에 얼굴을 붙인다(RoleFace). roleLabel 로
+          // 이미 나가는 것과 같은 정보라 새로 열리는 것은 없다.
+          role: node.role,
           roleLabel: node.roleLabel,
           roleTagline: node.roleTagline,
           score: map.showScores ? node.score : null,
