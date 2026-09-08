@@ -206,6 +206,35 @@ export default function AppHome() {
         {/* 헤더 밑 로그인·사주 배너는 뺐다 (2026-09-06 운영자). 9/4 이후 처음 온
             424명 중 297명이 이 화면만 보고 나갔다 — 첫 요구가 로그인이었다. */}
 
+        {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
+
+             상품 카드 사이에 끼우지 않는다. 이건 파는 물건이 아니라 친구를
+             데려오는 기능이고, 값이 없다는 것이 가장 큰 정보다 — 그래서
+             유료 상품 줄보다 위에, 오늘의 운세 바로 아래에 둔다.
+
+             아직 만드는 중이라 탭과 같은 계정에서만 보인다(BottomNav 의
+             DEV_EMAILS 와 같은 규칙). 열 때 두 곳을 같이 푼다. */}
+        {/* 개발자 제한을 푼다 (2026-09-08 운영자) — 공유로 퍼지는 기능이라
+            아무도 못 보면 퍼질 길이 없다. */}
+        {(
+          <Link href="/guin" className="home-map-card">
+            <span className="home-map-copy">
+              <span className="home-map-tags">
+                <b>NEW</b>
+                <i>무료</i>
+              </span>
+              <strong>
+                내 주변 사람 중
+                <br />
+                누가 진짜 내 귀인일까?
+              </strong>
+              <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
+              <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
+            </span>
+
+          </Link>
+        )}
+
         {/* ── 처음 온 사람의 문 ── 인사하는 토끼가 실려 있는 카드. */}
         <Link href="/guide" className="home-guide-card">
           <span className="home-guide-copy">
@@ -246,36 +275,6 @@ export default function AppHome() {
             </Link>
           ))}
         </nav>
-
-        {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
-
-             상품 카드 사이에 끼우지 않는다. 이건 파는 물건이 아니라 친구를
-             데려오는 기능이고, 값이 없다는 것이 가장 큰 정보다 — 그래서
-             유료 상품 줄보다 위에, 오늘의 운세 바로 아래에 둔다.
-
-             아직 만드는 중이라 탭과 같은 계정에서만 보인다(BottomNav 의
-             DEV_EMAILS 와 같은 규칙). 열 때 두 곳을 같이 푼다. */}
-        {/* 개발자 제한을 푼다 (2026-09-08 운영자) — 공유로 퍼지는 기능이라
-            아무도 못 보면 퍼질 길이 없다. */}
-        {(
-          <Link href="/guin" className="home-map-card">
-            <span className="home-map-copy">
-              <span className="home-map-tags">
-                <b>NEW</b>
-                <i>무료</i>
-              </span>
-              <strong>
-                내 주변 사람 중
-                <br />
-                누가 진짜 내 귀인일까?
-              </strong>
-              <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
-              <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
-            </span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className="home-map-art" src="/assets/zodiac/monkey-hanbok.webp" alt="" loading="lazy" />
-          </Link>
-        )}
 
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
              페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
