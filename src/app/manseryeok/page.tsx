@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import ZodiacMark from "@/components/ZodiacMark";
 
 import { josa } from "@/lib/korean-josa";
 import { SITE_URL } from "@/lib/site";
@@ -138,7 +139,12 @@ function Chart({ data }: { data: Manseryeok }) {
         </div>
         <div>
           <span>띠</span>
-          <strong>{data.animal}</strong>
+          {/* 그림이 준비된 띠는 그림으로, 아직이면 글자만 — 없는 파일을 걸면
+              깨진 이미지가 뜬다 (zodiac-character.ts). */}
+          <strong className="zodiac-inline">
+            <ZodiacMark animal={data.animal} size={22} />
+            {data.animal}
+          </strong>
         </div>
         <div>
           <span>강약</span>

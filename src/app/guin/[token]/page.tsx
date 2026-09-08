@@ -61,6 +61,7 @@ import {
 import { REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
 import { captureReferralFromLocation, REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { getUser } from "@/lib/user";
+import ZodiacMark from "@/components/ZodiacMark";
 
 const BUSY_MESSAGE = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
 
@@ -1155,7 +1156,8 @@ export default function GuinMapPage() {
           <span className="badge">지도의 중심</span>
           <h2 className="guin-solo-name">{view.ownerNickname}</h2>
           {view.ownerPersona && (
-            <p className="guin-solo-persona">
+            <p className="guin-solo-persona zodiac-inline">
+              <ZodiacMark animal={view.ownerPersona.animal} size={20} />
               {view.ownerPersona.elementLabel} 기운의 {view.ownerPersona.animal}띠
             </p>
           )}

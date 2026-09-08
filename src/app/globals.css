@@ -12448,3 +12448,10 @@ input[type="radio"] {
   text-underline-offset: 3px;
   cursor: pointer;
 }
+
+/* 띠 표식과 글자를 한 줄에 세운다 (2026-09-08) — 그림이든 이모지든 같은 자리 */
+.zodiac-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
