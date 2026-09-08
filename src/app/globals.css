@@ -12054,3 +12054,97 @@ input[type="radio"] {
   gap: 6px;
   margin-top: 10px;
 }
+
+/* ── 홈 주제 줄 (2026-09-08) ──────────────────────────────────────
+   21종이 세로 한 판에 쏟아지던 것을 주제별 가로 줄로 세운다. 한 화면에서
+   다섯 주제가 다 보이는 것이 목적이라, 카드는 화면 폭보다 좁게 잡아
+   다음 장이 살짝 걸치게 둔다 — 옆에 더 있다는 것을 스크롤바 없이 말한다. */
+.home-topic-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.home-topic-tabs::-webkit-scrollbar { display: none; }
+.home-topic-tabs .chip { white-space: nowrap; flex-shrink: 0; }
+
+.home-topic-row { margin-top: 26px; }
+
+.home-topic-head {
+  display: grid;
+  gap: 2px;
+  padding: 0 20px 10px;
+}
+.home-topic-head strong {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.home-topic-head small {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.home-topic-scroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 0 20px 4px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.home-topic-scroller::-webkit-scrollbar { display: none; }
+
+/* 줄에 선 카드는 각지지 않는다 — 각진 모서리는 "이어진 한 판"의 문법이라
+   낱장으로 떨어져 서는 줄에서는 반대로 읽힌다. */
+.home-topic-card {
+  flex: 0 0 62%;
+  max-width: 210px;
+  scroll-snap-align: start;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* ── 오늘의 운세 배너 ── */
+.home-today-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 10px 20px 0;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #1c1b3a 0%, #2d1f4a 60%, #3a2456 100%);
+  color: #f3efff;
+  text-decoration: none;
+  overflow: hidden;
+}
+.home-today-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.home-today-copy small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #b9a8ff;
+}
+.home-today-copy strong {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.home-today-cta {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #c8b8ff;
+}
+.home-today-art {
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-left: 12px;
+}

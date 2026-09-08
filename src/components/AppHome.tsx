@@ -11,7 +11,14 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { READING_SALE_CREDITS } from "@/lib/credits";
-import { GRID_HIDDEN, PRODUCTS, PRODUCT_MAP, type Product } from "@/lib/products";
+import {
+  GRID_HIDDEN,
+  PRODUCTS,
+  TOPIC_LABEL,
+  TOPIC_ORDER,
+  type Product,
+  type ProductTopic,
+} from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
 
@@ -44,10 +51,51 @@ function CardArt({ p, height, className }: { p: Product; height?: number; classN
   );
 }
 
+/**
+ * 상품 카드 하나. 주제 줄(rail)과 한 판(grid)이 같은 카드를 쓴다 — 두 벌로
+ * 나누면 값·링크·아트가 두 곳에서 갈라진다.
+ */
+function ProductCard({ p, cost, variant }: { p: Product; cost: number; variant: "rail" | "grid" }) {
+  return (
+    /* 카드는 상세 판매 페이지로 간다 (2026-09-01 운영자 결정) — 무엇을 사는지
+       먼저 읽고 나서 폼으로 간다. */
+    <Link
+      href={`/product/${p.id}`}
+      className={`card fortune-grid-card${variant === "rail" ? " home-topic-card" : ""}`}
+      data-tone={p.tone}
+      data-product={p.id}
+    >
+      <div className="fortune-grid-media">
+        <CardArt p={p} className="fortune-grid-art" />
+      </div>
+      <div className="fortune-grid-body">
+        <strong>{p.title}</strong>
+        <p>{p.cardCopy}</p>
+        <span className="fortune-grid-foot">
+          <span className="fortune-grid-price">
+            {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
+            <i className="rabbit-coin" aria-hidden>
+              <Image src={loveRabbitLogo} alt="" width={12} height={12} />
+            </i>
+            <b>{cost}</b>
+            <small>러빗</small>
+          </span>
+          <span className="fortune-grid-go" aria-hidden>›</span>
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default function AppHome() {
   const { theme } = useTheme();
   const [notice, setNotice] = useState(0);
-  const [filter, setFilter] = useState<"all" | "popular" | "new">("all");
+  /* 주제 탭 (2026-09-08 운영자: "종목이 적다"). 21종이 세로 한 판에 쏟아지면
+     스크롤에 지친 만큼만 본 것이 전부가 된다. products.ts 의 topic 이 이미
+     다섯으로 갈라 두었는데 화면이 그걸 안 쓰고 있었다 — 데이터는 그대로 두고
+     화면만 그 축으로 세운다. "전체"는 주제별 줄로, 주제 하나를 고르면 그것만
+     한 판으로 편다. */
+  const [topic, setTopic] = useState<ProductTopic | "all">("all");
   const [user, setUser] = useState<User | null>(null);
   // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
@@ -88,7 +136,9 @@ export default function AppHome() {
     };
   }, [user]);
 
-  const list = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id) && (filter === "all" || p.tags.includes(filter)));
+  const visible = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id));
+  const byTopic = (t: ProductTopic) => visible.filter((p) => p.topic === t);
+  const list = topic === "all" ? visible : byTopic(topic);
 
   return (
     <div className={`theme-${theme}`} style={{ margin: "0 auto" }}>
@@ -164,6 +214,18 @@ export default function AppHome() {
           <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
         </Link>
 
+        {/* ── 오늘의 운세 ── 엔진(daily-action.ts)과 /today 는 이미 있었는데
+             홈에서 들어가는 줄이 없었다 (2026-09-08). 매일 바뀌는 유일한
+             화면이라 재방문이 여기 걸린다 — 그래서 상품 위에 둔다. */}
+        <Link href="/today" className="home-today-card">
+          <span className="home-today-copy">
+            <small>오늘의 운세</small>
+            <strong>오늘 나에게 맞는 한 걸음</strong>
+            <span className="home-today-cta">지금 확인하기 <i aria-hidden>›</i></span>
+          </span>
+          <span className="home-today-art" aria-hidden>🌙</span>
+        </Link>
+
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
              페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
              홈에서 들어가는 줄만 걷었다. 되돌리려면 아래 주석을 풀고,
@@ -186,53 +248,59 @@ export default function AppHome() {
         {/* 세트 줄은 홈에서 뺐다 (2026-09-01 운영자). /set/[id] 판매 페이지와
              쿠폰 정산은 그대로 살아 있어 직접 링크는 여전히 열린다. */}
 
-        {/* ── 필터 탭 + 상품 그리드 ── */}
-        <section style={{ padding: "40px 8px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px" }}>
-            {([["all", "전체"], ["popular", "인기"], ["new", "신규"]] as const).map(([k, label]) => (
-              <button key={k} className={`chip${filter === k ? " on" : ""}`} onClick={() => setFilter(k)}>{label}</button>
+        {/* ── 주제 탭 + 상품 ── */}
+        <section style={{ padding: "40px 0 0" }}>
+          {/* 탭은 옆으로 민다 — 다섯이 한 줄에 다 안 들어가는 폭이 있다 */}
+          <div className="home-topic-tabs">
+            <button
+              className={`chip${topic === "all" ? " on" : ""}`}
+              onClick={() => setTopic("all")}
+            >
+              전체
+            </button>
+            {/* 상품이 하나도 없는 주제는 탭도 세우지 않는다 — 삶의 자리 셋
+                (건강·가족·이사)이 GRID_HIDDEN 에 들어 있어, 탭만 있으면
+                눌렀을 때 빈 화면이 나온다. 그 셋을 다시 열면 탭도 같이 선다. */}
+            {TOPIC_ORDER.filter((t) => byTopic(t).length > 0).map((t) => (
+              <button
+                key={t}
+                className={`chip${topic === t ? " on" : ""}`}
+                onClick={() => setTopic(t)}
+              >
+                <span aria-hidden>{TOPIC_LABEL[t].emoji}</span> {TOPIC_LABEL[t].title}
+              </button>
             ))}
           </div>
 
-          <div className="fortune-grid">
-            {/* 세트(모음집) 카드는 뺐다 (2026-08-31 운영자 결정) — 단품만 보여준다.
-                /set/[id] 판매 페이지 자체는 남아 있어 직접 링크는 여전히 열린다. */}
-            {/* 레퍼런스 구성: 이미지가 카드 전체를 채우고 하단 그라데이션 위에 제목·설명·CTA 오버레이 */}
-            {list.map((p) => {
+          {topic === "all" ? (
+            /* 주제마다 한 줄. 옆으로 밀어 보게 두면 한 화면에서 다섯 주제가
+               다 눈에 들어온다 — 세로 한 판일 때보다 "많다"가 먼저 읽힌다. */
+            TOPIC_ORDER.map((t) => {
+              const items = byTopic(t);
+              if (!items.length) return null;
               return (
-                /* 카드는 상세 판매 페이지로 간다 (2026-09-01 운영자 결정 — 8/31 의
-                   "바로 폼으로"를 되돌린다). 무엇을 사는지 먼저 읽고 나서 폼으로
-                   간다. 폼으로 바로 가는 길은 상세 페이지의 CTA 가 잇는다. */
-                <Link
-                  key={p.id}
-                  href={`/product/${p.id}`}
-                  className="card fortune-grid-card"
-                  data-tone={p.tone}
-                  data-product={p.id}
-                >
-                  <div className="fortune-grid-media">
-                    <CardArt p={p} className="fortune-grid-art" />
+                <div key={t} className="home-topic-row">
+                  <div className="home-topic-head">
+                    <strong>
+                      <span aria-hidden>{TOPIC_LABEL[t].emoji}</span> {TOPIC_LABEL[t].title}
+                    </strong>
+                    <small>{TOPIC_LABEL[t].desc}</small>
                   </div>
-                  <div className="fortune-grid-body">
-                    <strong>{p.title}</strong>
-                    {/* 긴 소개(cardCopy)로 복귀 (2026-08-31 운영자 결정) — 세 줄에서 자른다. */}
-                    <p>{p.cardCopy}</p>
-                    <span className="fortune-grid-foot">
-                      <span className="fortune-grid-price">
-                        {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
-                        <i className="rabbit-coin" aria-hidden>
-                          <Image src={loveRabbitLogo} alt="" width={12} height={12} />
-                        </i>
-                        <b>{readingCost}</b>
-                        <small>러빗</small>
-                      </span>
-                      <span className="fortune-grid-go" aria-hidden>›</span>
-                    </span>
+                  <div className="home-topic-scroller">
+                    {items.map((p) => (
+                      <ProductCard key={p.id} p={p} cost={readingCost} variant="rail" />
+                    ))}
                   </div>
-                </Link>
+                </div>
               );
-            })}
-          </div>
+            })
+          ) : (
+            <div className="fortune-grid">
+              {list.map((p) => (
+                <ProductCard key={p.id} p={p} cost={readingCost} variant="grid" />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지

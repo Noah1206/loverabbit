@@ -69,9 +69,15 @@ export interface Product {
   timeHorizonMonths?: number;
 }
 
-// 그리드에서 내린 상품 (2026-08-31 운영자 결정) — 홈·리딩 선택 그리드에는 안 보인다.
-// 상품 자체는 남는다: Threads 착지(/product/[id])와 /reading?c= 고정 흐름은 계속 연다.
-export const GRID_HIDDEN = new Set(["geongang", "gajok", "isa"]);
+// 그리드에서 내린 상품 — 홈·리딩 선택 그리드에서만 뺀다. 상품 자체는 남아서
+// Threads 착지(/product/[id])와 /reading?c= 고정 흐름은 계속 열린다.
+//
+// 지금은 비어 있다 (2026-09-08 운영자). 8/31 에 건강·가족·이사 셋을 내린 것은
+// 21종이 한 판에 늘어서 무엇을 파는지 안 보이던 때의 판단이었다. 홈이 주제별
+// 줄로 바뀌면서 그 이유가 없어졌고 — 오히려 "종목이 적다"는 말을 듣던 참이라
+// 셋을 도로 연다. "삶의 자리" 주제가 이 셋으로만 이루어져 있어, 닫혀 있는 동안
+// 그 주제는 탭째로 서지 못했다.
+export const GRID_HIDDEN = new Set<string>([]);
 
 export const PRODUCTS: Product[] = [
   // ── 비연애 라인이 앞에 선다 (2026-08-31 운영자 결정) ─────────
