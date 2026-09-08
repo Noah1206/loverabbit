@@ -12447,7 +12447,9 @@ input[type="radio"] {
      옆으로 밀어 보게 두는 이유: 종목이 일곱째가 되어도 줄이 안 무너진다. */
   display: flex;
   gap: 7px;
-  margin: 22px 0 0;
+  /* 종목이 맨 위로 올라왔다 (2026-09-09 운영자). 헤더 바로 밑에 붙으면
+     눌리는 자리가 헤더와 겹쳐 보인다 — 위아래로 숨 쉴 자리를 준다. */
+  margin: 16px 0 22px;
   padding: 0 20px 2px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -13113,11 +13115,11 @@ input[type="radio"] {
   position: relative;
   display: block;
   min-height: 118px;
-  /* 첫 배너는 헤더에 붙이고 폭도 끝까지 쓴다 (2026-09-09 운영자).
-     모서리를 아래쪽만 둥글게 두어 헤더와 한 몸으로 이어 보이게 한다. */
+  /* 종목 줄 아래로 내려오면서 더 이상 헤더에 붙지 않는다 — 다른 배너들과
+     같은 카드 모양으로 되돌린다 (좌우 여백 20px, 네 모서리 32px). */
   padding: 20px 20px 22px;
-  margin: 0 0 14px;
-  border-radius: 0 0 32px 32px;
+  margin: 0 20px;
+  border-radius: 32px;
   overflow: hidden;
   text-decoration: none;
   background: #fdf3dd url("/assets/genre/event-banner.webp") right center / cover no-repeat;
