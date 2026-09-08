@@ -105,11 +105,11 @@
     "REL-YUKHAP",
     "SIN-HWAGAE",
     "TG-PYEONJAE",
-    "TG-SANGGWAN",
     "P-ABSENT-ELEMENT",
     "P-DOMINANT-TENGOD",
     "P-SPOUSE-PALACE",
-    "P-ELEMENT-COMPLEMENT"
+    "P-ELEMENT-COMPLEMENT",
+    "P-STRENGTH-GAP"
   ],
   "score": {
     "value": 43,

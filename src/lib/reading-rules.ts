@@ -78,6 +78,14 @@ export interface RuleCondition {
   // 등재 전에는 reading-guard 가 상대 성향 문장을 막는다.
   /** 상대의 강약 */
   partnerStrength?: ("신강" | "중화" | "신약")[];
+  /**
+   * 두 사람의 강약 라벨이 같은가.
+   *
+   * partnerStrength 로는 "같다"를 적을 수 없다 — 라벨 셋을 양쪽에 다 적으면
+   * 아홉 짝이 전부 걸리고, 짝마다 규칙을 쪼개면 같은 문장이 셋이 된다.
+   * 기울기가 없는 것도 계산된 사실이라, 그 하나만 따로 묻는다.
+   */
+  pairStrengthEven?: boolean;
   /** 상대 명식에 아예 없는 오행 */
   partnerMissingElement?: Ohaeng[];
   /** 상대의 대운·세운·월운 십성 */
@@ -3493,6 +3501,7 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
   // ── 상대 명식 ──
   const needsPartnerFacts =
     w.partnerStrength ||
+    w.pairStrengthEven !== undefined ||
     w.partnerMissingElement ||
     w.partnerLuckTenGodAny ||
     w.partnerDominantTenGod ||
@@ -3507,6 +3516,10 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
   if (needsPartnerFacts && !partner) return false;
   if (partner) {
     if (w.partnerStrength && !w.partnerStrength.includes(partner.strength.label)) return false;
+    if (w.pairStrengthEven !== undefined) {
+      const even = me.strength.label === partner.strength.label;
+      if (even !== w.pairStrengthEven) return false;
+    }
     if (w.partnerMissingElement && !w.partnerMissingElement.some((e) => partner.missingElements.includes(e))) {
       return false;
     }
@@ -3622,6 +3635,23 @@ function monthBranchRelations(me: SajuFacts, partner: SajuFacts): string[] {
  */
 const PARTNER_RULE_FLOOR = 5;
 
+/**
+ * 강약 축 세 갈래 — 두 사람의 힘이 어느 쪽으로 기우는가.
+ *
+ * 속궁합 목차 "4장 01. 낮이밤져·낮져밤이·낮져밤져" 가 파는 축이다. 셋 중
+ * 하나는 어떤 짝에서도 반드시 켜진다(기울거나·반대로 기울거나·같거나).
+ * 그런데 켜지는 것과 12자리 안에 드는 것은 다른 문제라, 기준 케이스에서는
+ * 이 축이 통째로 밀려 그 절이 근거 없이 남았다.
+ *
+ * 우선순위를 올려 푸는 방법도 있었지만 그러면 다른 열 상품의 근거 목록이
+ * 같이 흔들린다 — 실제로 골든 열넷이 한꺼번에 틀어졌다. 자리를 하나 남기는
+ * 쪽이 닿는 범위가 좁다. PARTNER_RULE_FLOOR 와 같은 방식이다.
+ */
+const STRENGTH_AXIS_IDS = ["P-STRENGTH-GAP", "P-STRENGTH-GAP-REVERSED", "P-STRENGTH-EVEN"];
+
+/** 이 축을 절 하나로 파는 상품 — 목차가 파는 곳에만 자리를 남긴다 */
+const STRENGTH_AXIS_PRODUCTS = new Set(["sokgunghap"]);
+
 export function matchRules(
   me: SajuFacts,
   partner: SajuFacts | null,
@@ -3657,6 +3687,23 @@ export function matchRules(
     filled.push(rule);
     taken.add(rule.id);
   }
+  /* 강약 축이 통째로 밀렸으면 한 자리를 되돌려 준다.
+     내주는 자리는 **상대 규칙이 아닌 것 중 가장 가벼운 것**이다 — 위에서
+     애써 남긴 상대 자리를 여기서 도로 빼앗으면 두 장치가 서로를 지운다. */
+  if (STRENGTH_AXIS_PRODUCTS.has(productId)) {
+    const axis = matched.find((rule) => STRENGTH_AXIS_IDS.includes(rule.id));
+    if (axis && !filled.some((r) => r.id === axis.id)) {
+      const dropIndex = [...filled]
+        .map((rule, i) => ({ rule, i }))
+        .filter(({ rule }) => !isPartnerRule(rule.id))
+        .sort((a, b) => a.rule.priority - b.rule.priority || b.i - a.i)[0]?.i;
+      if (dropIndex !== undefined) {
+        filled.splice(dropIndex, 1);
+        filled.push(axis);
+      }
+    }
+  }
+
   return filled.sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
 }
 

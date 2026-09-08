@@ -404,6 +404,131 @@ export const PARTNER_RULE_REGISTRY: PartnerRuleEntry[] = [
       source: "형충회합 — 한 자리에 겹친 합과 형은 하나의 결로 읽는다.",
     },
   },
+  // ── 잠자리 주도권 (2026-09-09) ────────────────────────────
+  //
+  // 속궁합 목차 "4장 01. 낮이밤져·낮져밤이·낮져밤져" 를 받치는 세 규칙이다.
+  //
+  // 왜 새로 만들었는가. 이 목차를 고칠 때 P-STRENGTH-GAP 이 이미 같은 축을
+  // 말하고 있는 것을 봤다 — "관계의 속도를 한쪽이 정하고 다른 쪽이 맞추는".
+  // 그런데 그 규칙은 **본인 신약 + 상대 신강/중화** 한 방향에만 걸린다.
+  // 세 갈래로 파는 절을 한 방향 규칙으로 받치면, 나머지 두 경우에 그 절이
+  // 근거 없이 쓰인다. 기준 케이스 셋이 정확히 세 갈래로 갈린다:
+  // canonical 신약/신강, male-self 중화/중화, no-hour 신약/신약.
+  //
+  // 새 명리를 만든 것이 아니다. P-STRENGTH-GAP 과 같은 억부 원리이고
+  // sourceLocation 도 같다. 나머지 두 짝을 적어 세 갈래를 닫았을 뿐이다.
+  //
+  // **낮이밤져라는 말 자체는 규칙이 내주지 않는다.** 억부가 말하는 것은
+  // 힘의 기울기이지 낮과 밤의 대비가 아니다. 그래서 claim 은 전부 "평소와
+  // 가까워졌을 때가 같은가 뒤집히는가" 까지만 말하고, 세 이름 중 하나를
+  // 찍는 것은 forbidden 이 막는다. 목차의 그 말은 사람들이 아는 이름으로
+  // 절을 부르는 것이고, 본문이 파는 것은 뒤집힘의 방향이다.
+  //
+  // 수위 제한은 걸지 않는다 — reading-axis.ts 의 2026-08-24 판단과 같은 이유다.
+  {
+    status: "approved",
+    sourceId: "pair-strength-gap-reversed",
+    sourceLocation:
+      "억부 — 두 명식의 강약 차이. P-STRENGTH-GAP 과 같은 원리를 반대 방향으로 적는다.",
+    requiredFacts: ["saju_facts.strength.label", "partner_saju_facts.strength.label"],
+    resolution:
+      "P-STRENGTH-GAP 이 본인 신약 + 상대 신강/중화만 잡아 반대 짝이 비어 있었다. " +
+      "같은 원리라 새 승인이 아니라 빠진 방향을 채우는 일이다. 라벨만 쓰는 것도 같다.",
+    rule: {
+      id: "P-STRENGTH-GAP-REVERSED",
+      priority: P.high,
+      when: {
+        strength: ["신강"],
+        partnerStrength: ["신약", "중화"],
+        // 연애운은 needsPartner:false — 상대 명식이 없으니 넣지 않는다
+        domains: ["sokgunghap", "gunghap", "gyeolhon"],
+      },
+      claim:
+        "자기 힘을 오래 끌고 가는 쪽이 이쪽이라, 평소의 속도를 네가 정하기 쉬운 구조. " +
+        "다만 정하는 쪽이 늘 편한 것은 아니라, 맞춰 주던 쪽이 조용해질 때 먼저 알아채기 어려운 자리",
+      safePhrasing: "그렇게 기우는",
+      forbidden: [
+        "네가 갑이다",
+        "상대가 약자다",
+        "상대를 이용해도 된다",
+        "네 마음대로 해도 된다",
+        "낮이밤져다",
+        "낮져밤이다",
+        "낮져밤져다",
+      ],
+      source: "억부 — 두 명식의 강약 차이는 관계의 속도와 결정권의 기울기로 본다.",
+    },
+  },
+  {
+    status: "approved",
+    sourceId: "pair-strength-even",
+    sourceLocation:
+      "억부 — 두 명식의 강약이 같은 자리. 기울기가 없으면 속도를 정하는 쪽도 고정되지 않는다고 본다.",
+    requiredFacts: ["saju_facts.strength.label", "partner_saju_facts.strength.label"],
+    resolution:
+      "기울기가 없는 짝은 지금까지 강약 규칙이 하나도 안 걸렸다. '차이가 없다'도 " +
+      "계산된 사실이라 말할 수 있는 자리다. 다만 없는 것을 말하는 규칙이라 " +
+      "claim 을 **주도권이 상황마다 옮겨 간다**로만 묶었다 — 좋다 나쁘다로 넘어가지 않는다.",
+    rule: {
+      id: "P-STRENGTH-EVEN",
+      priority: P.high,
+      when: {
+        strength: ["신강", "중화", "신약"],
+        partnerStrength: ["신강", "중화", "신약"],
+        pairStrengthEven: true,
+        // 연애운은 needsPartner:false — 상대 명식이 없으니 넣지 않는다
+        domains: ["sokgunghap", "gunghap", "gyeolhon"],
+      },
+      claim:
+        "두 사람의 힘이 같은 자리에 서 있어 주도권이 한쪽으로 고정되지 않고 상황마다 " +
+        "옮겨 다니는 구조. 이끄는 쪽이 정해져 있지 않은 만큼 서로 눈치를 보다 둘 다 " +
+        "기다리는 자리가 생기기 쉬운 편",
+      safePhrasing: "고정되지 않는",
+      forbidden: [
+        "천생연분이다",
+        "완벽하게 맞는다",
+        "문제가 없다",
+        "낮이밤져다",
+        "낮져밤이다",
+        "낮져밤져다",
+      ],
+      source: "억부 — 강약이 같으면 관계의 결정권이 한쪽으로 기울지 않는다고 본다.",
+    },
+  },
+  {
+    status: "approved",
+    sourceId: "pair-spouse-palace-relation",
+    sourceLocation:
+      "일지(배우자궁) 관계 — 두 사람의 일지가 육합·삼합이면 당기고, 충·원진이면 " +
+      "밀어낸다고 본다. 계산은 pairRelationsOf 가 낸다.",
+    requiredFacts: ["saju_facts.pillars.day", "partner_saju_facts.pillars.day"],
+    resolution:
+      "배우자궁끼리의 관계는 P-SPOUSE-PALACE(상대 일지에 앉은 십성)와 다른 축이다. " +
+      "그쪽은 상대 혼자를 보고, 이쪽은 두 일지가 서로 어떻게 걸리는지를 본다. " +
+      "가까워진 뒤의 장면을 파는 절이라 이 축이 필요하다.",
+    rule: {
+      id: "P-SPOUSE-PALACE-PAIR",
+      priority: P.high,
+      when: {
+        pairRelation: ["일지육합", "일지삼합", "일지충", "일지원진"],
+        domains: ["sokgunghap", "gunghap", "gyeolhon"],
+      },
+      claim:
+        "두 사람의 배우자 자리가 서로 걸리는 조합이라, 가까워졌을 때의 호흡이 평소 " +
+        "대화의 호흡과 다르게 흘러가는 구조. 평소에 맞던 것이 그 자리에서 어긋나거나, " +
+        "평소에 어긋나던 것이 그 자리에서는 맞는 식으로 뒤집히는 자리",
+      safePhrasing: "그렇게 뒤집히는",
+      forbidden: [
+        "낮이밤져다",
+        "낮져밤이다",
+        "낮져밤져다",
+        "잠자리가 안 맞으면 헤어진다",
+        "상대는 문란하다",
+        "성적으로 문제가 있다",
+      ],
+      source: "일지 관계 — 두 배우자궁이 합하면 당기고 충·원진이면 밀어낸다고 본다.",
+    },
+  },
 ];
 
 /** 실제로 켜지는 상대 규칙 */

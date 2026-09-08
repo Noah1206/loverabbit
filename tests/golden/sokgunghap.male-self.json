@@ -104,10 +104,10 @@
     "TG-PYEONIN",
     "P-DOMINANT-TENGOD",
     "P-SPOUSE-PALACE",
+    "P-STRENGTH-EVEN",
     "P-ELEMENT-COMPLEMENT",
     "P-HIDDEN-ELEMENT",
-    "P-SHINSAL",
-    "P-MONTH-BRANCH-HARMONY"
+    "P-SHINSAL"
   ],
   "score": {
     "value": 65,

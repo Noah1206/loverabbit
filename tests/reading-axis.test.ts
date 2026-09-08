@@ -27,12 +27,22 @@ describe("상품 축", () => {
     assert.ok(axis.avoid.length > 0, "옆 상품의 물음을 막는 줄이 없다");
   });
 
-  it("선이 없는 상품은 빈 칸도 보내지 않는다", () => {
-    // 속궁합은 성인 확인을 받은 사람만 사므로 수위 선을 걷어냈다. 빈 목록을 보내면
-    // 모델이 "여기 뭔가 있어야 하는데" 로 읽고 없는 선을 지어낸다.
+  it("속궁합의 선은 수위가 아니라 근거에 관한 것이다", () => {
+    // 수위 선은 걷어낸 그대로다 — 성인 확인을 받은 사람만 사는 상품이라
+    // 조이면 에두른 문장만 남는다(reading-axis.ts 2026-08-24).
+    //
+    // 대신 2026-09-09 에 선이 하나 생겼다. 목차 4장 01 이 "낮이밤져·낮져밤이·
+    // 낮져밤져" 라는 이름으로 절을 파는데, 규칙 층이 내주는 것은 강약의
+    // 기울기까지라 셋 중 하나를 찍는 것은 근거 밖이다. 수위를 조이는 줄이
+    // 아니라 없는 판정을 막는 줄이므로, 여기 있는 것이 맞다.
+    const lines = READING_AXES.sokgunghap.line ?? [];
+    assert.equal(lines.length, 1, "속궁합의 선은 낮이밤져 하나뿐이어야 한다");
+    assert.match(lines[0], /낮이밤져/);
+    // 수위 쪽 말이 도로 들어오지 않았는지 본다
+    assert.doesNotMatch(lines.join(" "), /(성행위|신체 부위|수위|묘사하지)/);
+
     const payload = JSON.parse(buildReadingInput({ ...base, productId: "sokgunghap" }));
-    assert.equal("line" in payload.delivery.product_axis, false);
-    assert.equal(READING_AXES.sokgunghap.line, undefined);
+    assert.ok("line" in payload.delivery.product_axis);
   });
 
   it("축이 없는 상품은 그 칸 자체가 안 나간다", () => {
