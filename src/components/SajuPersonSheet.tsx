@@ -16,9 +16,15 @@ import type { GuinNodeView } from "@/lib/guin-map";
 export default function SajuPersonSheet({
   node,
   onClose,
+  onShare,
+  onDeepDive,
 }: {
   node: GuinNodeView | null;
   onClose: () => void;
+  /** 이 사람에게 결과를 보낸다. 주인에게만 넘어온다 — 남의 결과를 남이 뿌리지 않게. */
+  onShare?: (node: GuinNodeView) => void;
+  /** 유료 상세로 넘어간다. 주인에게만 넘어온다 — 두 사람의 값을 들고 가야 해서. */
+  onDeepDive?: (node: GuinNodeView) => void;
 }) {
   if (!node) return null;
   const relation = statusLine(node.contextStatus);
@@ -104,6 +110,41 @@ export default function SajuPersonSheet({
               {node.reverse.roleTagline}
             </p>
           </div>
+        )}
+
+        {/*
+          결과를 그 사람에게 보낸다 (2026-09-08).
+
+          "공유하기" 가 아니라 **누구에게** 보내는지를 적는다 — 받는 사람이
+          정해져 있으면 누르는 손이 달라진다. 링크에는 이 사람의 id 가 실려,
+          받은 사람은 폼 대신 자기 결과를 먼저 본다.
+        */}
+        {/*
+          유료 상세 — 무료는 WHAT, 유료는 WHY (2026-09-08).
+
+          무료 결과를 일부러 흐리게 만들지 않는다. 위에서 "이 사람은 이런 인연,
+          궁합 몇 점" 까지 분명히 말했다. 여기서 파는 것은 **왜 그런가** 다.
+          두 사람의 생년월일은 이미 있으니 다시 묻지 않는다.
+        */}
+        {onDeepDive && (
+          <div className="sm-deepdive">
+            <strong>왜 {node.nickname}님이 나에게 {node.roleLabel} 인연일까?</strong>
+            <ul>
+              <li>서로에게 끌리는 이유</li>
+              <li>누가 관계의 주도권을 가지는지</li>
+              <li>가까워질수록 생기는 변화</li>
+              <li>가장 조심해야 하는 시기</li>
+            </ul>
+            <button className="btn" onClick={() => onDeepDive(node)}>
+              두 사람의 상세 궁합 보기
+            </button>
+          </div>
+        )}
+
+        {onShare && (
+          <button className="btn" style={{ width: "100%", marginTop: 16 }} onClick={() => onShare(node)}>
+            {node.nickname}님에게 이 결과 보내기
+          </button>
         )}
 
         {node.conversationPrompt && (

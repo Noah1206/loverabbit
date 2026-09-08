@@ -12273,3 +12273,163 @@ input[type="radio"] {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── 공유받은 사람의 첫 화면 ── 결과가 먼저, 폼은 그다음 */
+.guin-shared-kicker {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+}
+.guin-shared-name {
+  margin-bottom: 14px;
+}
+.guin-shared-card {
+  padding: 22px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.guin-shared-tagline {
+  margin: 12px 0 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+.guin-shared-score {
+  margin: 16px 0 8px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+}
+.guin-shared-score b {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+.guin-shared-score small {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+.guin-shared-strengths {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  margin: 16px 0 0;
+  text-align: left;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+.guin-shared-strengths li {
+  padding: 10px 12px;
+  border-radius: var(--r-lg);
+  background: var(--bg-card2);
+}
+
+/* 궁금증을 파는 자리 — 여기서 가입으로 간다 */
+.guin-shared-hook {
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+}
+.guin-shared-hook strong {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.guin-shared-hook p {
+  color: var(--text-dim);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+.guin-shared-hook .btn {
+  width: 100%;
+  margin-top: 2px;
+}
+
+/* ── 홈의 사주지도 진입점 ── 무료·NEW. 유료 상품 줄보다 위 */
+.home-map-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg-card2);
+  text-decoration: none;
+  color: var(--text);
+}
+.home-map-copy {
+  display: grid;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.home-map-tags {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.home-map-tags b {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+/* 무료 — 이 카드에서 가장 중요한 한 단어다 */
+.home-map-tags i {
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text-dim);
+}
+.home-map-copy strong {
+  font-size: 1rem;
+  line-height: 1.45;
+}
+.home-map-copy small {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.home-map-cta {
+  font-size: 0.84rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+.home-map-art {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+/* ── 상세 시트의 유료 전환 ── 무료는 WHAT, 유료는 WHY */
+.sm-deepdive {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg-card2);
+}
+.sm-deepdive strong {
+  display: block;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.sm-deepdive ul {
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 12px;
+  color: var(--text-dim);
+  font-size: 0.83rem;
+}
+.sm-deepdive li::before {
+  content: "· ";
+}
+.sm-deepdive .btn {
+  width: 100%;
+}

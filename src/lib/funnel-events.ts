@@ -94,6 +94,12 @@ export const FUNNEL_EVENTS = [
   "guin_person_added",
   /** 세 명이 모여 귀인 순위가 열렸다 */
   "guin_three_people_completed",
+  /** 공유받은 사람이 결과 화면을 열었다 (?p= 링크) */
+  "guin_share_result_opened",
+  /** 그 결과를 보고 "내 지도 만들기" 를 눌렀다 — 여기서 가입으로 간다 */
+  "guin_share_result_cta_clicked",
+  /** 상세 시트에서 유료 궁합으로 넘어갔다 */
+  "guin_paid_reading_clicked",
   /** 초대받은 사람이 자기 지도를 만들었다 — 2차 바이럴 */
   "guin_second_map_created",
   /** 관계 결과 카드를 공유했다 */

@@ -48,6 +48,7 @@ import {
   type GuinRelStatus,
   type GuinRole,
 } from "@/lib/guin-map";
+import { saveReadingDraft } from "@/lib/reading-draft";
 import { downloadGuinShareImage } from "@/lib/share-image";
 import {
   discoveryOf,
@@ -84,6 +85,19 @@ const EMPTY_SLOT_HINTS: { role: GuinRole; label: string; hint: string }[] = [
   { role: "communicator", label: "대화형", hint: "서로의 생각을 풀어내기 쉬운 사람" },
   { role: "growth_teacher", label: "성장형", hint: "새로운 방향과 자극을 주는 사람" },
 ];
+
+/** 공유 링크로 들어온 사람이 먼저 보는 한 사람의 결과 */
+interface SharedResult {
+  ownerNickname: string;
+  person: {
+    id: string;
+    nickname: string;
+    roleLabel: string;
+    roleTagline: string;
+    score: number | null;
+    strengths: string[];
+  };
+}
 
 interface MapResponse extends GuinMapView {
   linkEnabled: boolean;
@@ -154,6 +168,21 @@ export default function GuinMapPage() {
     if (typeof window === "undefined") return "A";
     return normalizeCopyVariant(new URLSearchParams(window.location.search).get("v"));
   }, []);
+
+  /*
+    공유받은 사람이 보는 결과 (?p=참여자id).
+
+    주인이 "민지에게 이 결과 보내기" 로 만든 링크에 이 값이 실린다. 있으면
+    폼 대신 **그 사람의 결과부터** 보여준다 — 자기 이야기를 먼저 봐야
+    "그럼 얘는 나한테 뭐지?" 가 나온다. 없으면 예전처럼 참여 폼이다.
+  */
+  const sharedPersonId = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    return new URLSearchParams(window.location.search).get("p");
+  }, []);
+  const [sharedResult, setSharedResult] = useState<SharedResult | null>(null);
+  // 결과를 보고 "내 지도 만들기" 를 누르면 그때 폼으로 넘어간다.
+  const [wantsOwnMap, setWantsOwnMap] = useState(false);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -260,6 +289,28 @@ export default function GuinMapPage() {
       });
     }
   }, [view, inviteVariant]);
+
+  // 공유받은 결과를 읽어온다 — 링크에 ?p= 가 실려 있을 때만.
+  useEffect(() => {
+    if (!sharedPersonId || sharedResult) return;
+    let alive = true;
+    void fetch(
+      `/api/guin/${encodeURIComponent(token)}/preview/${encodeURIComponent(sharedPersonId)}`,
+      { cache: "no-store" }
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: SharedResult | null) => {
+        // 못 읽으면 조용히 넘어간다 — 예전처럼 참여 폼이 뜬다.
+        if (alive && data?.person) {
+          setSharedResult(data);
+          trackFunnel("guin_share_result_opened");
+        }
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [sharedPersonId, sharedResult, token]);
 
   // 단계 화면 계측 — 같은 단계는 한 번만.
   useEffect(() => {
@@ -368,6 +419,82 @@ export default function GuinMapPage() {
       trackFunnel(event, { product: `copy-${myVariant}`, landing: sizeBucket(view?.count ?? 0) });
     } catch {
       // 공유 창을 닫은 것 — 아무 일도 아니다.
+    }
+  };
+
+  /*
+    한 사람의 결과를 그 사람에게 보낸다.
+
+    링크에 ?p=참여자id 를 실어 보내면, 받은 사람은 폼 대신 자기 결과를 먼저 본다
+    (위 stranger 분기). 문구도 관계에 맞춰 바꾼다 — "공유하기" 보다 "네가 내
+    귀인 1위였어" 가 열어보게 만든다.
+  */
+  const sharePerson = async (node: GuinNodeView) => {
+    if (typeof window === "undefined") return;
+    const url = `${window.location.origin}/guin/${token}?v=${myVariant}&p=${encodeURIComponent(node.id)}`;
+    const text =
+      typeof node.score === "number"
+        ? `내 사주지도에서 너는 "${node.roleLabel}" 인연이야. 궁합 ${node.score}점 나왔어 🐰`
+        : `내 사주지도에서 너는 "${node.roleLabel}" 인연으로 나왔어 🐰`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "사주지도", text, url });
+      } else {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setNotice("링크를 복사했어요. 그 사람에게 보내보세요.");
+      }
+      trackFunnel("guin_result_card_shared", { product: `copy-${myVariant}` });
+    } catch {
+      // 공유 창을 닫은 것 — 아무 일도 아니다.
+    }
+  };
+
+  /*
+    유료 상세로 넘어간다 — 두 사람의 값을 들고.
+
+    서버가 봉인을 열어 생년월일 둘을 돌려주고(주인 키 확인), 그것을 리딩 초안에
+    앉힌 뒤 폼으로 보낸다. 이미 가진 값을 다시 치게 하지 않는 것이 요점이다.
+    값을 못 받으면 그냥 상품 페이지로 보낸다 — 막히는 것보다 낫다.
+  */
+  const deepDive = async (node: GuinNodeView) => {
+    trackFunnel("guin_paid_reading_clicked", { product: "sokgunghap" });
+    const key = ownerKeyOf(token);
+    try {
+      const res = await fetch(
+        `/api/guin/${encodeURIComponent(token)}/carry/${encodeURIComponent(node.id)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ownerKey: key }),
+        }
+      );
+      const data = (await res.json()) as {
+        me?: { year: number; month: number; day: number; hour: number | null } | null;
+        partner?: { year: number; month: number; day: number; hour: number | null } | null;
+      };
+      if (!res.ok || !data.me || !data.partner) throw new Error("값을 받지 못했어요");
+
+      const asForm = (b: { year: number; month: number; day: number; hour: number | null }) => ({
+        year: String(b.year),
+        month: String(b.month),
+        day: String(b.day),
+        hour: b.hour === null ? "unknown" : String(b.hour),
+        // 성별은 지도가 안 받는다 — 폼에서 한 칸만 고르면 된다.
+        gender: "",
+        calendar: "solar" as const,
+      });
+      saveReadingDraft({
+        category: "sokgunghap",
+        me: asForm(data.me),
+        partner: asForm(data.partner),
+        withPartner: true,
+        question: "",
+        createdAt: Date.now(),
+      });
+      router.push("/reading?from=guin");
+    } catch {
+      // 값 전달이 안 되면 상품 페이지로 — 거기서 처음부터 넣을 수 있다.
+      router.push("/product/sokgunghap");
     }
   };
 
@@ -506,6 +633,70 @@ export default function GuinMapPage() {
   }
 
   // ── 방문자: 참여 화면 (카피는 링크에 실려 온 안을 따른다) ──
+  /*
+    공유받은 사람의 첫 화면 — 결과가 먼저다 (2026-09-08).
+
+    전에는 링크를 열면 곧장 생년월일 폼이었다. 받은 사람 입장에서는 무엇에
+    참여하는지도 모른 채 개인정보부터 요구받는 셈이라 거기서 끊겼다
+    (지도 여섯 개에 참여자 0명).
+
+    이제 "○○님의 사주지도에서 나는 △△ 인연" 을 먼저 보여준다. 자기 이야기를
+    읽고 나면 "그럼 저 사람은 나한테 뭐지?" 가 생기고, 그 궁금증이 폼을 여는
+    손이 된다. 순서가 곧 전환율이다: RESULT → CURIOSITY → SIGNUP.
+  */
+  if (view.viewer === "stranger" && !justJoined && sharedResult && !wantsOwnMap) {
+    const { person } = sharedResult;
+    return (
+      <main className="container guin-shared" style={{ paddingTop: 48, paddingBottom: 120 }}>
+        <p className="guin-shared-kicker">{sharedResult.ownerNickname}님의 사주지도에서</p>
+        <h1 className="guin-shared-name">{person.nickname}님은</h1>
+
+        <section className="card guin-shared-card">
+          <span className="badge">{person.roleLabel} 인연</span>
+          <p className="guin-shared-tagline">{person.roleTagline}</p>
+          {typeof person.score === "number" && (
+            <>
+              <p className="guin-shared-score">
+                <b>{person.score}</b>
+                <small>점</small>
+              </p>
+              <div className="sm-sheet-meter" role="img" aria-label={`궁합 ${person.score}점`}>
+                <span style={{ width: `${Math.min(100, Math.max(4, person.score))}%` }} />
+              </div>
+            </>
+          )}
+          {person.strengths.length > 0 && (
+            <ul className="guin-shared-strengths">
+              {person.strengths.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* 여기가 이 화면의 전부다 — 반대 방향은 자기 지도를 만들어야 나온다 */}
+        <section className="card guin-shared-hook">
+          <strong>그럼 {sharedResult.ownerNickname}님은 나에게 어떤 인연일까?</strong>
+          <p>
+            내 사주지도를 만들면 {sharedResult.ownerNickname}님이 나에게 어떤 인연인지,
+            내 주변 사람들과의 관계까지 한 번에 볼 수 있어요.
+          </p>
+          <button
+            className="btn"
+            onClick={() => {
+              trackFunnel("guin_share_result_cta_clicked", { product: `copy-${inviteVariant}` });
+              setWantsOwnMap(true);
+            }}
+          >
+            내 사주지도에서 확인하기
+          </button>
+        </section>
+
+        <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 16 }}>{GUIN_DISCLAIMER}</p>
+      </main>
+    );
+  }
+
   if (view.viewer === "stranger" && !justJoined) {
     const copy = GUIN_COPY[inviteVariant];
     return (
@@ -1014,7 +1205,12 @@ export default function GuinMapPage() {
 
       <p style={{ color: "var(--text-dim)", fontSize: "0.76rem" }}>{GUIN_DISCLAIMER}</p>
     </main>
-    <SajuPersonSheet node={sheetNode} onClose={() => setSheetOpen(false)} />
+    <SajuPersonSheet
+      node={sheetNode}
+      onClose={() => setSheetOpen(false)}
+      onShare={isOwner ? sharePerson : undefined}
+      onDeepDive={isOwner ? deepDive : undefined}
+    />
 
     {/* 주인이 직접 넣는 시트. 폼은 참여 화면과 같은 것을 쓴다 — 두 벌을 만들지 않는다. */}
     {addOpen && (

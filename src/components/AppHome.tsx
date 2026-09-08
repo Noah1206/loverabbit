@@ -87,6 +87,10 @@ function ProductCard({ p, cost, variant }: { p: Product; cost: number; variant: 
   );
 }
 
+// 사주지도를 홈에서 볼 수 있는 계정. BottomNav 의 DEV_EMAILS 와 같은 목록이다 —
+// 전체 공개할 때 두 곳을 같이 지운다.
+const SAJU_MAP_EMAILS = ["ab40905045@gmail.com"];
+
 export default function AppHome() {
   const { theme } = useTheme();
   const [notice, setNotice] = useState(0);
@@ -225,6 +229,33 @@ export default function AppHome() {
           </span>
           <span className="home-today-art" aria-hidden>🌙</span>
         </Link>
+
+        {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
+
+             상품 카드 사이에 끼우지 않는다. 이건 파는 물건이 아니라 친구를
+             데려오는 기능이고, 값이 없다는 것이 가장 큰 정보다 — 그래서
+             유료 상품 줄보다 위에, 오늘의 운세 바로 아래에 둔다.
+
+             아직 만드는 중이라 탭과 같은 계정에서만 보인다(BottomNav 의
+             DEV_EMAILS 와 같은 규칙). 열 때 두 곳을 같이 푼다. */}
+        {user?.email && SAJU_MAP_EMAILS.includes(user.email) && (
+          <Link href="/guin" className="home-map-card">
+            <span className="home-map-copy">
+              <span className="home-map-tags">
+                <b>NEW</b>
+                <i>무료</i>
+              </span>
+              <strong>
+                내 주변 사람 중
+                <br />
+                누가 진짜 내 귀인일까?
+              </strong>
+              <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
+              <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
+            </span>
+            <span className="home-map-art" aria-hidden>🗺️</span>
+          </Link>
+        )}
 
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
              페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —

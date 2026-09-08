@@ -396,3 +396,36 @@ export async function claimGuinMap(mapId: string, userId: number): Promise<void>
     .is("owner_user_id", null);
   if (error) throw databaseError("귀인 지도 계정 연결", error);
 }
+
+/**
+ * 유료 상세로 넘어갈 때만 여는 생년월일 — 주인과 그 한 사람.
+ *
+ * 참여자의 생년월일은 봉인 저장이라 화면에 온 적이 없다. 이 함수는 그 규칙의
+ * 유일한 예외이고, 부르는 자리는 하나다(api/guin/[token]/carry/[id]).
+ * **주인 키 확인은 호출부가 한다** — 여기서는 열기만 한다.
+ */
+export async function carryBirthForReading(
+  map: GuinMapRow,
+  participantId: string
+): Promise<{
+  me: GuinBirthInput | null;
+  partner: GuinBirthInput | null;
+  partnerNickname: string;
+} | null> {
+  const db = getSupabaseAdmin();
+  if (!db) return null;
+  const { data, error } = await db
+    .from("lr_guin_participants")
+    .select("id,nickname,birth_sealed")
+    .eq("map_id", map.id)
+    .eq("id", participantId)
+    .maybeSingle();
+  if (error) throw databaseError("리딩 값 전달", error);
+  if (!data) return null;
+
+  return {
+    me: openBirth(map.ownerBirthSealed),
+    partner: openBirth(String(data.birth_sealed)),
+    partnerNickname: String(data.nickname),
+  };
+}
