@@ -13117,7 +13117,7 @@ input[type="radio"] {
      모서리를 아래쪽만 둥글게 두어 헤더와 한 몸으로 이어 보이게 한다. */
   padding: 20px 20px 22px;
   margin: 0 0 14px;
-  border-radius: 0 0 22px 22px;
+  border-radius: 0 0 32px 32px;
   overflow: hidden;
   text-decoration: none;
   background: #fdf3dd url("/assets/genre/event-banner.webp") right center / cover no-repeat;
@@ -13258,7 +13258,9 @@ input[type="radio"] {
   margin: 0 20px;
   min-height: 132px;
   box-sizing: border-box;
-  border-radius: 28px;
+  /* 28 → 32 (2026-09-09 운영자). 배너가 화면 폭을 거의 다 쓰는 카드라
+     모서리가 얕으면 네모난 판으로 읽힌다. */
+  border-radius: 32px;
 }
 .home-slide-dots {
   display: flex;
