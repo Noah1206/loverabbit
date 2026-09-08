@@ -25,6 +25,7 @@ import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
 import { PRODUCT_MAP } from "@/lib/products";
 import { getUser, type User } from "@/lib/user";
+import CreditSheet from "@/components/CreditSheet";
 
 export default function ReadingCheckoutPage() {
   const params = useParams<{ id: string }>();
@@ -35,6 +36,9 @@ export default function ReadingCheckoutPage() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  /* 충전 시트 — /credits 로 보내는 대신 이 자리에서 채운다 (2026-09-09).
+     사고 나서 돌아와야 하는 구조에는 한 번 더 결심할 자리가 생긴다. */
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [used, setUsed] = useState<number | null>(null);
   // 이 사람이 낼 단품 값. 서버가 열어본 장수로 정한다 (2·4·10러빗).
   const [readingCost, setReadingCost] = useState(READING_SALE_CREDITS);
@@ -290,7 +294,7 @@ export default function ReadingCheckoutPage() {
         </div>
         {user && balance !== null && !enough && !freeCoupon && (
           <p style={{ color: "var(--accent)", fontSize: "0.85rem", textAlign: "center", margin: "-4px 0 0" }}>
-            {short}러빗이 모자라요. 충전하고 돌아오면 여기서 바로 열려요.
+            {short}러빗이 모자라요. 여기서 바로 채울 수 있어요.
           </p>
         )}
         {!user && (
@@ -308,9 +312,9 @@ export default function ReadingCheckoutPage() {
           <div className="checkout-actions">
             <button className="btn btn-ghost" onClick={() => router.push("/my")}>나중에</button>
             {user && balance !== null && !enough ? (
-              <Link className="btn" href={`/credits?next=${encodeURIComponent(`/reading/${entry.readingId}/checkout`)}`}>
-                러빗 사러가기
-              </Link>
+              <button className="btn" onClick={() => setSheetOpen(true)}>
+                러빗 채우고 열기
+              </button>
             ) : (
               <button className="btn" onClick={() => void unlock()} disabled={paying || (user !== null && balance === null)}>
                 {paying ? "여는 중…" : user ? "열기" : "로그인하고 열기"}
@@ -332,6 +336,19 @@ export default function ReadingCheckoutPage() {
         <SignupModal
           reason="리딩은 계정에 묶여 보관돼요. 3초 로그인하고 열어 주세요."
           onClose={() => setShowSignup(false)}
+        />
+      )}
+
+      {user && balance !== null && (
+        <CreditSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          itemLabel={label}
+          cost={cost}
+          balance={balance}
+          userEmail={user.email}
+          userToken={user.token}
+          redirectPath={`/reading/${entry.readingId}/checkout`}
         />
       )}
     </main>

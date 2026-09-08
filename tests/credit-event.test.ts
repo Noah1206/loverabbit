@@ -83,3 +83,46 @@ test("원장 사유 이름과 라벨이 짝을 이룬다", async () => {
   assert.ok(CREDIT_REASON_LABEL.tarot, "tarot 라벨이 없다");
   assert.ok(CREDIT_REASON_LABEL.tarot_gift, "tarot_gift 라벨이 없다");
 });
+
+test("모자란 만큼을 채우는 팩이 미리 골라진다", async () => {
+  /*
+    시트가 고르는 규칙과 같은 것을 여기 옮긴다 (CreditSheet 는 리액트 훅이라
+    직접 부를 수 없다). 화면을 고칠 때 이 파일도 같이 고쳐야 하지만, 그
+    대신 이 검사가 지키는 것은 "결제하고도 못 여는 경우가 없는가" 다.
+  */
+  const { CREDIT_PACKS } = await import("../src/lib/credits");
+  const pick = (short: number) => {
+    const sorted = [...CREDIT_PACKS].sort((a, b) => a.price - b.price);
+    return sorted.find((p) => p.credits >= short) ?? sorted[sorted.length - 1];
+  };
+
+  const biggest = [...CREDIT_PACKS].sort((a, b) => b.credits - a.credits)[0];
+  for (let short = 1; short <= biggest.credits; short += 1) {
+    const p = pick(short);
+    assert.ok(
+      p.credits >= short,
+      `${short}러빗 모자란데 ${p.credits}러빗짜리를 골랐다 — 사고도 못 연다`
+    );
+  }
+});
+
+test("가장 큰 팩으로도 모자라면 가장 큰 것을 고른다 — 화면이 비지 않는다", async () => {
+  const { CREDIT_PACKS } = await import("../src/lib/credits");
+  const sorted = [...CREDIT_PACKS].sort((a, b) => a.price - b.price);
+  const biggest = [...CREDIT_PACKS].sort((a, b) => b.credits - a.credits)[0];
+  const pick = (short: number) => sorted.find((p) => p.credits >= short) ?? sorted[sorted.length - 1];
+  const p = pick(biggest.credits + 100);
+  assert.ok(p, "고른 팩이 없다");
+});
+
+test("고른 팩은 필요한 만큼 중 가장 싸다", async () => {
+  // 더 비싼 것을 미리 골라 두면 그건 권유가 아니라 떠넘기기다.
+  const { CREDIT_PACKS } = await import("../src/lib/credits");
+  const sorted = [...CREDIT_PACKS].sort((a, b) => a.price - b.price);
+  const pick = (short: number) => sorted.find((p) => p.credits >= short) ?? sorted[sorted.length - 1];
+  for (let short = 1; short <= 15; short += 1) {
+    const chosen = pick(short);
+    const cheaperEnough = sorted.filter((p) => p.credits >= short && p.price < chosen.price);
+    assert.equal(cheaperEnough.length, 0, `${short}러빗에 더 싼 선택지가 있다`);
+  }
+});
