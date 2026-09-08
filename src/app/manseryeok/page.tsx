@@ -9,6 +9,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import TermSheet, { type TermPage } from "@/components/TermSheet";
 import ZodiacMark from "@/components/ZodiacMark";
 
 import { josa } from "@/lib/korean-josa";
@@ -20,6 +21,37 @@ import {
   type Manseryeok,
 } from "@/lib/manseryeok";
 import ManseryeokForm from "./ManseryeokForm";
+
+
+/**
+ * 표 안에 그냥 적혀 있는 말들. 아는 사람에게는 이 설명이 전부 소음이라
+ * 화면에 풀어 쓰지 않고 (i) 뒤에 둔다 — 묻는 사람에게만 답한다.
+ *
+ * 규칙 표(reading-rules.ts)가 쓰는 것과 같은 뜻으로만 적는다. 여기서 새 주장을
+ * 만들지 않는다 — 용어를 풀 뿐이다.
+ */
+const MANSERYEOK_TERMS: TermPage[] = [
+  {
+    title: "만세력",
+    body: "태어난 해·달·날·시각을 천간과 지지 여덟 글자로 옮긴 표예요. 절기와 진태양시까지 맞춰 계산하면 이 여덟 글자가 나오고, 사주 풀이는 전부 여기서 시작해요.",
+  },
+  {
+    title: "명식 (사주 원국)",
+    body: "여덟 글자를 네 기둥으로 세운 것이에요. 오른쪽부터 년주·월주·일주·시주 순서고, 각 기둥은 위가 천간 아래가 지지예요. 태어난 날의 천간(일간)이 나를 뜻하는 글자예요.",
+  },
+  {
+    title: "십성",
+    body: "일간을 기준으로 나머지 글자가 어떤 관계에 놓이는지 붙인 이름이에요. 비견·식신·정재·정관처럼 열 가지가 있고, 무엇이 많고 적은지가 성향과 흐름을 읽는 실마리가 돼요.",
+  },
+  {
+    title: "지장간",
+    body: "지지 한 글자 안에 숨어 있는 천간이에요. 겉으로는 한 글자지만 안에 두세 기운이 겹쳐 있어서, 겉 글자만으로 안 보이던 결이 여기서 드러나요.",
+  },
+  {
+    title: "오행 · 강약",
+    body: "여덟 글자를 목·화·토·금·수 다섯으로 세어 본 것이 오행 분포예요. 그중 일간과 같은 편이 얼마나 되는지로 일간의 힘을 신강·중화·신약으로 가려요.",
+  },
+];
 
 export const metadata: Metadata = {
   title: "무료 만세력 — 사주 명식·십성·대운 한 번에 | 러브레빗",
@@ -70,6 +102,41 @@ function Chart({ data }: { data: Manseryeok }) {
         <h2 id="ms-chart-title">명식 (사주 원국)</h2>
         <p>{data.birthLine}</p>
       </header>
+
+      {/*
+        한눈 요약 (2026-09-08).
+
+        전에는 표 **아래** 작은 줄이었다. 여덟 글자를 읽을 줄 아는 사람에게는
+        그걸로 됐지만, 처음 온 사람은 표를 보다 지쳐 거기까지 못 갔다 —
+        만세력은 마케팅 진입점이라 처음 온 사람이 다수다.
+
+        일간·띠·강약은 이미 계산돼 있던 값이다. 계산을 더한 것이 아니라
+        읽는 순서를 뒤집었다: 결론 셋을 먼저 보고 그 근거인 표로 내려간다.
+      */}
+      <div className="ms-top">
+        <div className="ms-top-item">
+          <span className={`ms-top-badge ${OHAENG_CLASS[data.dayMaster.ohaeng]}`}>
+            {data.dayMaster.hanja}
+          </span>
+          <strong>{data.dayMaster.label}</strong>
+          <small>일간 · 나를 뜻하는 글자</small>
+        </div>
+        <div className="ms-top-item">
+          <span className="ms-top-badge ms-top-badge--art">
+            <ZodiacMark animal={data.animal} size={44} />
+          </span>
+          <strong>{data.animal}</strong>
+          <small>띠 · 태어난 해</small>
+        </div>
+        <div className="ms-top-item">
+          {/* 원 안과 아래가 같은 말이면 한 번만 한다 — 원에는 첫 글자만 */}
+          <span className="ms-top-badge ms-top-badge--plain">
+            {data.facts.strength.label.slice(0, 1)}
+          </span>
+          <strong>{data.facts.strength.label}</strong>
+          <small>일간의 힘</small>
+        </div>
+      </div>
 
       {/* 만세력은 오른쪽이 년주고 왼쪽으로 갈수록 가까운 시간이다. */}
       <div className="ms-grid">
@@ -130,27 +197,6 @@ function Chart({ data }: { data: Manseryeok }) {
         </div>
       </div>
 
-      <div className="ms-summary">
-        <div>
-          <span>일간</span>
-          <strong className={OHAENG_CLASS[data.dayMaster.ohaeng]}>
-            {data.dayMaster.hanja} {data.dayMaster.label}
-          </strong>
-        </div>
-        <div>
-          <span>띠</span>
-          {/* 그림이 준비된 띠는 그림으로, 아직이면 글자만 — 없는 파일을 걸면
-              깨진 이미지가 뜬다 (zodiac-character.ts). */}
-          <strong className="zodiac-inline">
-            <ZodiacMark animal={data.animal} size={22} />
-            {data.animal}
-          </strong>
-        </div>
-        <div>
-          <span>강약</span>
-          <strong>{data.facts.strength.label}</strong>
-        </div>
-      </div>
     </section>
   );
 }
@@ -323,7 +369,10 @@ export default async function ManseryeokPage({
     <main className="ms">
       <header className="ms-hero">
         <span className="badge">무료 · 회원가입 없음</span>
-        <h1 className="ms-h1">만세력</h1>
+        <h1 className="ms-h1">
+          만세력
+          <TermSheet pages={MANSERYEOK_TERMS} label="만세력 용어 설명" />
+        </h1>
         <p className="ms-lede">
           생년월일시를 넣으면 사주 원국과 십성·지장간·오행·신살·대운을 바로 계산합니다.
           음력과 윤달, 진태양시 보정까지 반영합니다.
