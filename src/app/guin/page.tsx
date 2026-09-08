@@ -1,6 +1,6 @@
 "use client";
 
-// 귀인 지도 — 진입과 생성.
+// 사주지도 — 진입과 생성.
 //
 // 로그인을 첫 단계에서 강제하지 않는다 (지시문 3.1). 소유권은 서버가 발급한
 // ownerKey 로 이 브라우저에 남고, 로그인은 지도 화면에서 선택적으로 잇는다.
@@ -16,10 +16,10 @@ import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type G
 import { getUser } from "@/lib/user";
 
 const CREATE_CONSENT =
-  "입력한 정보는 귀인 지도 관계 계산과 지도 관리에만 사용됩니다. 지도에 표시되는 이름은 별명이며, 생년월일과 출생시간은 다른 사람에게 공개하지 않습니다. 만 14세 이상만 이용할 수 있어요.";
+  "입력한 정보는 사주지도 관계 계산과 지도 관리에만 사용됩니다. 지도에 표시되는 이름은 별명이며, 생년월일과 출생시간은 다른 사람에게 공개하지 않습니다. 만 14세 이상만 이용할 수 있어요.";
 
 const BUSY_MESSAGE =
-  "지금 귀인지도에 사람이 많이 몰리고 있어요. 입력 내용은 저장되지 않았으니 잠시 후 다시 시도해주세요.";
+  "지금 사주지도에 사람이 많이 몰리고 있어요. 입력 내용은 저장되지 않았으니 잠시 후 다시 시도해주세요.";
 
 function GuinLanding() {
   const router = useRouter();
@@ -176,7 +176,7 @@ function GuinLanding() {
       {mode === "form" && (
         <div className="guin-landing-form">
           <GuinBirthForm
-            submitLabel="내 귀인 지도 만들기"
+            submitLabel="내 사주지도 만들기"
             consentNote={CREATE_CONSENT}
             busy={busy}
             onSubmit={create}

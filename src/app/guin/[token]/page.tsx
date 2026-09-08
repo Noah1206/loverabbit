@@ -15,6 +15,8 @@ import { useParams, useRouter } from "next/navigation";
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import GuinMapBackground, { ROLE_DOT } from "@/components/GuinMapBackground";
 import GuinMapIntro from "@/components/GuinMapIntro";
+import SajuMapCanvas from "@/components/SajuMapCanvas";
+import SajuPersonSheet from "@/components/SajuPersonSheet";
 import { trackFunnel } from "@/lib/funnel";
 import {
   fetchSavedBirth,
@@ -46,9 +48,17 @@ import {
   type GuinRole,
 } from "@/lib/guin-map";
 import { downloadGuinShareImage } from "@/lib/share-image";
+import {
+  discoveryOf,
+  GROUP_LABEL,
+  groupOf,
+  RELATION_GROUPS,
+  statusLine,
+  type RelationGroup,
+} from "@/lib/saju-map-view";
 import { getUser } from "@/lib/user";
 
-const BUSY_MESSAGE = "지금 귀인지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
+const BUSY_MESSAGE = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
 
 /*
   아직 아무도 안 들어온 지도에서 보여줄 네 자리.
@@ -91,6 +101,12 @@ export default function GuinMapPage() {
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorText, setErrorText] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  // 관계 갈래 필터. 고른 갈래 밖의 사람은 지우지 않고 가라앉힌다 —
+  // 사라지면 "내 인연 8명" 과 화면의 수가 어긋난다.
+  const [group, setGroup] = useState<RelationGroup>("all");
+  // 지도에서 누른 사람의 시트. 목록의 선택(selected)과 같은 사람을 가리키되,
+  // 시트를 닫아도 지도의 강조는 남는다 — 닫자마자 선이 흐려지면 무엇을 눌렀는지 잊는다.
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
@@ -287,7 +303,7 @@ export default function GuinMapPage() {
     const text = GUIN_COPY[myVariant].shareText;
     try {
       if (navigator.share) {
-        await navigator.share({ title: "귀인 지도", text, url: shareUrl });
+        await navigator.share({ title: "사주지도", text, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
         setNotice("링크를 복사했어요. 친구에게 보내보세요.");
@@ -400,7 +416,7 @@ export default function GuinMapPage() {
         <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>{errorText}</p>
         <button className="btn" onClick={() => void load()}>다시 시도하기</button>
         <p style={{ marginTop: 14 }}>
-          <Link href="/guin" style={{ color: "var(--accent)" }}>새로운 귀인 지도 만들어보기 →</Link>
+          <Link href="/guin" style={{ color: "var(--accent)" }}>새로운 사주지도 만들어보기 →</Link>
         </p>
       </main>
     );
@@ -484,6 +500,24 @@ export default function GuinMapPage() {
   const selectedNode = view.nodes.find((node) => node.id === selected) ?? null;
   const roleSummary = summarizeRoles(view.nodes, view.roleCounts);
 
+  /*
+    지도가 쓰는 파생값 셋. 계산은 saju-map-view.ts 가 하고 여기서는 고르기만 한다.
+
+    관계 갈래는 참여자가 고른 상태(contextStatus)에서 나온다. 아직 아무도 상태를
+    안 골랐으면 갈래가 하나뿐이라 필터를 세우지 않는다 — 칩 한 줄이 전부 '친구'
+    이면 그건 필터가 아니라 라벨이다.
+  */
+  const relationGroups = [
+    ...new Set(view.nodes.map((node) => groupOf(node.contextStatus))),
+  ].filter((key) => RELATION_GROUPS.includes(key));
+  const dimmedIds = new Set(
+    group === "all"
+      ? []
+      : view.nodes.filter((node) => groupOf(node.contextStatus) !== group).map((node) => node.id)
+  );
+  const discovery = discoveryOf(view.nodes);
+  const sheetNode = sheetOpen ? (view.nodes.find((node) => node.id === selected) ?? null) : null;
+
   const stageHeadline =
     stage === "empty"
       ? "지도가 열렸어요 · 이제 인연이 앉을 차례"
@@ -501,8 +535,10 @@ export default function GuinMapPage() {
         selectedId={selected}
       />
     <main className="container guin-scene" style={{ paddingTop: 48, paddingBottom: 120 }}>
-      <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
-      <h1 style={{ marginBottom: 4 }}>{view.ownerNickname}님의 귀인 지도</h1>
+      <p style={{ color: "var(--text-dim)", fontWeight: 700, fontSize: "0.76rem", letterSpacing: "0.04em", marginBottom: 6 }}>
+        MY SAJU MAP
+      </p>
+      <h1 style={{ marginBottom: 4 }}>{view.ownerNickname}님의 사주지도</h1>
       <p style={{ color: "var(--text-dim)", marginBottom: 6 }}>
         {stageHeadline}
         {view.ownerPersona ? ` · ${view.ownerPersona.elementLabel} 기운의 ${view.ownerPersona.animal}띠` : ""}
@@ -518,6 +554,67 @@ export default function GuinMapPage() {
         </p>
       )}
       {notice && <p className="badge" style={{ marginBottom: 10 }}>{notice}</p>}
+
+      {/*
+        지도 — 사람이 한 명이라도 있으면 여기서부터가 화면의 중심이다 (2026-09-08).
+
+        배경(GuinMapBackground)은 만지지 못하는 그림이고, 이건 누를 수 있는
+        사람들이다. 아래 관계 카드 목록과 같은 데이터를 쓰되, 목록은 읽는 자리고
+        지도는 고르는 자리다 — 지도에서 고른 사람이 목록에서도 열린다.
+      */}
+      {(isOwner || showContext) && view.count > 0 && (
+        <>
+          {/* 갈래가 둘 이상일 때만 필터를 세운다. 하나뿐이면 고를 것이 없다. */}
+          {relationGroups.length > 1 && (
+            <div className="sm-filters" role="group" aria-label="관계로 걸러보기">
+              {(["all", ...relationGroups] as RelationGroup[]).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`chip${group === key ? " on" : ""}`}
+                  aria-pressed={group === key}
+                  onClick={() => setGroup(key)}
+                >
+                  {GROUP_LABEL[key]}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <SajuMapCanvas
+            meLabel={view.ownerNickname}
+            people={view.nodes.map((node) => ({
+              id: node.id,
+              nickname: node.nickname,
+              role: node.role,
+              roleLabel: node.roleLabel,
+              score: node.score,
+            }))}
+            selectedId={selected}
+            dimmedIds={dimmedIds}
+            onSelect={(id) => {
+              setSelected(id);
+              setSheetOpen(true);
+            }}
+          />
+
+          {/* 발견 — "그래서 뭘 봐야 하는데" 에 답하는 한 줄. 없으면 안 그린다. */}
+          {discovery && (
+            <button
+              type="button"
+              className="sm-discovery"
+              onClick={() => {
+                setSelected(discovery.nodeId);
+                setSheetOpen(true);
+              }}
+            >
+              <i aria-hidden>{discovery.emoji}</i>
+              <b>{discovery.text}</b>
+              <span>확인하기 →</span>
+            </button>
+          )}
+        </>
+      )}
 
       {/* 방금 참여한 사람(또는 돌아온 참여자)의 결과 카드 — 양방향 (guin-v3) */}
       {myNode && !isOwner && (
@@ -600,7 +697,7 @@ export default function GuinMapPage() {
           {showContext && (
             <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
               <button className="btn" onClick={() => void goMakeMyMap()}>
-                내 귀인 지도도 만들어보기
+                내 사주지도도 만들어보기
               </button>
               <button className="btn btn-ghost" onClick={() => void shareLink("guin_result_card_shared")}>
                 내 결과 카드 공유하기
@@ -633,7 +730,7 @@ export default function GuinMapPage() {
             <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
               {/* 공유 전 미리보기 — 카드에 실리는 전부. 생년월일·점수는 없다. */}
               <div className="card" style={{ padding: 14, background: "var(--bg)", fontSize: "0.86rem" }}>
-                <strong>{view.ownerNickname}님의 귀인 지도</strong>
+                <strong>{view.ownerNickname}님의 사주지도</strong>
                 <p style={{ color: "var(--text-dim)", margin: "4px 0" }}>
                   {view.count > 0 ? roleSummary : "지도의 중심에 나 한 사람"}
                 </p>
@@ -680,8 +777,8 @@ export default function GuinMapPage() {
             </p>
           )}
           <p className="guin-solo-note">
-            지도 한가운데는 이미 당신이에요. 둘레의 빈 자리는 아직 오지 않은 인연이고,
-            친구가 생일을 넣으면 그 자리에 별이 하나씩 앉아요.
+            아직 지도에 나밖에 없어요. 둘레의 빈 자리는 아직 오지 않은 인연이고,
+            친구가 생일을 넣으면 그 자리에 하나씩 앉아요.
           </p>
           <ul className="guin-solo-slots" aria-label="아직 비어 있는 자리">
             {EMPTY_SLOT_HINTS.map((slot) => (
@@ -822,6 +919,7 @@ export default function GuinMapPage() {
 
       <p style={{ color: "var(--text-dim)", fontSize: "0.76rem" }}>{GUIN_DISCLAIMER}</p>
     </main>
+    <SajuPersonSheet node={sheetNode} onClose={() => setSheetOpen(false)} />
     </>
   );
 }

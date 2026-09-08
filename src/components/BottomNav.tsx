@@ -7,12 +7,12 @@ import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
 import { getUser } from "@/lib/user";
 
-// 귀인지도 탭은 아직 만드는 중 — 개발자 계정에만 보인다.
+// 사주지도 탭은 아직 만드는 중 — 개발자 계정에만 보인다.
 const DEV_EMAILS = ["ab40905045@gmail.com"];
 
 const GUIN_ITEM = {
   href: "/guin",
-  label: "귀인지도",
+  label: "사주지도",
   matches: (path: string) => path.startsWith("/guin"),
   // 궤도 위 별 — 지도 화면의 문법 그대로
   icon: (
@@ -38,7 +38,7 @@ const FAB_TIP_KEY = "fab-tip-dismissed";
 // 선을 굵혀(2.4) 무게가 실린 것처럼 읽히게 한다.
 //
 // 탭은 셋이다. "오늘"이 검수를 마치고 두 번째 자리로 돌아왔다 (2026-09-02) —
-// 매일 열어보는 것이라 홈 옆이 맞다. 귀인지도는 아직 만드는 중이라 뺐다 —
+// 매일 열어보는 것이라 홈 옆이 맞다. 사주지도는 아직 만드는 중이라 뺐다 —
 // /guin 페이지는 남아 있어 주소로는 열린다. "내 상담"은 탭에서 빼고
 // 마이 페이지 안으로 넣었다 (2026-09-03) — /my 페이지는 그대로 있다.
 const NAV_ITEMS = [

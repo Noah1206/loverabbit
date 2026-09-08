@@ -67,12 +67,14 @@ export function downloadShareImage(teaser: string) {
 }
 
 /**
- * 귀인 지도 스토리 카드. 별명·역할 분포만 싣는다 — 생년월일·점수는 카드에
+ * 사주지도 스토리 카드. 별명·역할 분포만 싣는다 — 생년월일·점수는 카드에
  * 넣지 않는다 (개인정보와 확정적 숫자 둘 다, 캡처는 어디로 갈지 모른다).
  */
 export function downloadGuinShareImage(nickname: string, roleLines: string[]) {
+  // 9:16 — 인스타 스토리 비율 (2026-09-08). 4:5(1080x1350) 였는데 스토리에
+  // 올리면 위아래가 잘렸다. 리딩 카드는 피드용이라 4:5 그대로 둔다.
   const W = 1080;
-  const H = 1350;
+  const H = 1920;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
@@ -92,12 +94,12 @@ export function downloadGuinShareImage(nickname: string, roleLines: string[]) {
   ctx.textAlign = "center";
   ctx.fillStyle = "#3f2c22";
   ctx.font = "bold 54px 'Malgun Gothic', sans-serif";
-  ctx.fillText("🐰 귀인 지도", W / 2, 190);
+  ctx.fillText("🐰 나의 사주지도", W / 2, 420);
   ctx.font = "bold 46px 'Malgun Gothic', sans-serif";
-  ctx.fillText(`${nickname}님의 인연들`, W / 2, 270);
+  ctx.fillText(`${nickname}님의 인연들`, W / 2, 510);
 
   ctx.font = "40px 'Malgun Gothic', sans-serif";
-  const startY = 430;
+  const startY = 700;
   roleLines.slice(0, 5).forEach((line, i) => {
     ctx.fillStyle = "#5a4433";
     ctx.fillText(line, W / 2, startY + i * 88);

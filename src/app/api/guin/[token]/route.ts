@@ -19,7 +19,7 @@ import { resolveUserToken } from "@/lib/tokens";
 // 누가 보느냐가 응답을 가른다: 참여 전 방문자는 노드를 받지 못한다 — 지도는
 // 참여해야 보인다 (지시문 3.5). 이 구분은 화면이 아니라 여기서 난다.
 
-const BUSY = "지금 귀인지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
+const BUSY = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
 
 async function resolveMap(token: string) {
   if (!isDatabaseConfigured()) return { error: NextResponse.json({ error: BUSY }, { status: 503 }) };
