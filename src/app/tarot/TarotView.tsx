@@ -88,7 +88,14 @@ export default function TarotView() {
   // ── 로그인 전 ──
   if (!user) {
     return (
-      <main className="container tr" style={{ paddingTop: 40, paddingBottom: 110 }}>
+      <main className="container tr" style={{ paddingTop: 32, paddingBottom: 110 }}>
+        {/* 로그인 전 화면에도 배너를 깐다 — 처음 온 사람이 가장 먼저 보는
+            자리라, 여기가 비면 무엇을 파는 곳인지 글자로만 설명하게 된다. */}
+        <div className="genre-banner">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/assets/genre/tarot-banner.webp" alt="" loading="lazy" />
+        </div>
+
         <span className="badge">{TAROT_COST}러빗</span>
         <h1 className="tr-h1">타로</h1>
         <p className="tr-lede">
