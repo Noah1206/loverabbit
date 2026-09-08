@@ -80,10 +80,18 @@ export const ZODIAC_ART_READY = new Set<string>(ZODIAC.map((z) => z.animal));
 
 const BY_ANIMAL = new Map(ZODIAC.map((z) => [z.animal, z]));
 
-/** 띠 이름으로 찾는다. 못 찾으면 null — 화면은 띠 없이 그린다. */
+/**
+ * 띠 이름으로 찾는다. 못 찾으면 null — 화면은 띠 없이 그린다.
+ *
+ * "토끼" 와 "토끼띠" 를 둘 다 받는다. 부르는 곳마다 형태가 다르기 때문이다 —
+ * computeSaju 는 "토끼" 를 주고(saju.ts:96), 만세력은 "띠" 를 붙여 저장한다
+ * (manseryeok.ts:321). 처음에 앞의 것만 받도록 만들어, 만세력 화면에서 표식이
+ * 조용히 사라졌다. 접미사를 여기서 벗기면 부르는 쪽이 무엇을 넘기든 선다.
+ */
 export function zodiacOf(animal: string | null | undefined): ZodiacCharacter | null {
   if (!animal) return null;
-  return BY_ANIMAL.get(animal.trim() as ZodiacAnimal) ?? null;
+  const name = animal.trim().replace(/띠$/, "");
+  return BY_ANIMAL.get(name as ZodiacAnimal) ?? null;
 }
 
 /**

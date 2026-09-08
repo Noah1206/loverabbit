@@ -85,3 +85,13 @@ test("등재부가 그림이 있다고 한 띠는 파일이 실제로 있다", a
     );
   }
 });
+
+test('"토끼띠" 처럼 접미사가 붙어 와도 찾는다', () => {
+  // 만세력은 "띠" 를 붙여 저장한다(manseryeok.ts:321). 처음에 이걸 놓쳐서
+  // 만세력 화면의 띠 표식이 조용히 사라졌다 — 실패가 눈에 안 띄는 종류다.
+  assert.equal(zodiacOf("토끼띠")?.branch, "묘");
+  assert.equal(zodiacOf("쥐띠")?.branch, "자");
+  assert.equal(zodiacOf(" 돼지띠 ")?.branch, "해");
+  // 접미사를 벗겨도 없는 이름은 여전히 없다
+  assert.equal(zodiacOf("유니콘띠"), null);
+});
