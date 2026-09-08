@@ -245,7 +245,6 @@ export default function AppHome() {
           먼저 보여준다.
         */}
         <section className="home-free">
-          <h2 className="home-free-title">무료로 보는 운세</h2>
           <div className="home-free-row">
             {FREE_ENTRIES.map((f) => (
               <Link key={f.href} href={f.href} className="home-free-item">
