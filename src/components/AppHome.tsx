@@ -1,27 +1,27 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import loveRabbitLogo from "../../public/logo.png";
 import SignupModal from "@/components/SignupModal";
 import { getUser, logoutUser, type User } from "@/lib/user";
 import { useTheme } from "@/components/ThemeProvider";
 
-// 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
-// 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
-import { READING_SALE_CREDITS } from "@/lib/credits";
+/*
+  앱형 홈 — 무엇이 있는지 보여주는 자리다. 파는 자리가 아니다.
+
+  상품 카드 그리드를 걷었다 (2026-09-09 운영자). 스무 종을 홈에 늘어놓으면
+  들어온 사람이 스무 개를 훑는 일부터 해야 하는데, 그 앞에서 무엇을 고를지
+  정한 사람은 거의 없다. 종목(사주·타로·궁합…)을 먼저 고르고 그 목록에서
+  사주를 고르는 순서로 바꿨다 — 고르는 일을 두 번으로 나누면 한 번에 볼
+  가짓수가 스무 개에서 여섯 개로 줄어든다.
+
+  홈에 남은 것: 이벤트, 사주지도, 가이드, 종목 여섯, 인기 순위, 공지.
+  상품 데이터는 인기 순위만 쓴다 (그리드가 없으니 카드 값도 안 읽는다).
+*/
 import GenreIcon from "@/components/GenreIcon";
 import { CREDIT_EVENT } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
-import {
-  GRID_HIDDEN,
-  PRODUCTS,
-  TOPIC_LABEL,
-  TOPIC_ORDER,
-  type Product,
-  type ProductTopic,
-} from "@/lib/products";
+import { GRID_HIDDEN, PRODUCTS } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
 
@@ -30,121 +30,20 @@ const NOTICES = [
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
 ];
 
-function CardArt({ p, height, className }: { p: Product; height?: number; className?: string }) {
-  // 로딩·실패 시에도 무드가 유지되도록 그라데이션을 밑색으로 깔고 일러스트를 얹는다
-  return (
-    <div
-      aria-hidden
-      className={className}
-      style={{
-        height,
-        position: "relative",
-        overflow: "hidden",
-        background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})`,
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={`/cards-pastel/${p.id}.jpg?v=2`}
-        alt=""
-        loading="lazy"
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 18%" }}
-      />
-    </div>
-  );
-}
-
-/**
- * 상품 카드 하나. 주제 줄(rail)과 한 판(grid)이 같은 카드를 쓴다 — 두 벌로
- * 나누면 값·링크·아트가 두 곳에서 갈라진다.
- */
-function ProductCard({ p, cost, variant }: { p: Product; cost: number; variant: "rail" | "grid" }) {
-  return (
-    /* 카드는 상세 판매 페이지로 간다 (2026-09-01 운영자 결정) — 무엇을 사는지
-       먼저 읽고 나서 폼으로 간다. */
-    <Link
-      href={`/product/${p.id}`}
-      className={`card fortune-grid-card${variant === "rail" ? " home-topic-card" : ""}`}
-      data-tone={p.tone}
-      data-product={p.id}
-    >
-      <div className="fortune-grid-media">
-        <CardArt p={p} className="fortune-grid-art" />
-      </div>
-      <div className="fortune-grid-body">
-        <strong>{p.title}</strong>
-        <p>{p.cardCopy}</p>
-        <span className="fortune-grid-foot">
-          <span className="fortune-grid-price">
-            {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
-            <i className="rabbit-coin" aria-hidden>
-              <Image src={loveRabbitLogo} alt="" width={12} height={12} />
-            </i>
-            <b>{cost}</b>
-            <small>러빗</small>
-          </span>
-          <span className="fortune-grid-go" aria-hidden>›</span>
-        </span>
-      </div>
-    </Link>
-  );
-}
-
-// 사주지도를 홈에서 볼 수 있는 계정. BottomNav 의 DEV_EMAILS 와 같은 목록이다 —
-// 전체 공개할 때 두 곳을 같이 지운다.
-
 export default function AppHome() {
   const { theme } = useTheme();
   const [notice, setNotice] = useState(0);
-  /* 주제 탭 (2026-09-08 운영자: "종목이 적다"). 21종이 세로 한 판에 쏟아지면
-     스크롤에 지친 만큼만 본 것이 전부가 된다. products.ts 의 topic 이 이미
-     다섯으로 갈라 두었는데 화면이 그걸 안 쓰고 있었다 — 데이터는 그대로 두고
-     화면만 그 축으로 세운다. "전체"는 주제별 줄로, 주제 하나를 고르면 그것만
-     한 판으로 편다. */
-  const [topic, setTopic] = useState<ProductTopic | "all">("all");
   const [user, setUser] = useState<User | null>(null);
   // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [showSignup, setShowSignup] = useState(false);
-  /* 그리드에 적는 사주 한 장 값. 사람마다 다르다 (2·4·10러빗 — 지금까지
-     열어본 장수를 탄다). 로그인 전에는 첫 장 값을 적는다: 아직 아무것도
-     열지 않은 사람이 실제로 낼 값이다. */
-  const [readingCost, setReadingCost] = useState(READING_SALE_CREDITS);
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
     return () => clearInterval(t);
   }, []);
 
-  // 못 가져와도 그냥 지나간다 — 배너는 폼으로 보내면 되고, 홈이 막히면 안 된다.
-  useEffect(() => {
-    if (!user) {
-      setReadingCost(READING_SALE_CREDITS);
-      return;
-    }
-    let alive = true;
-    // 이 사람이 다음 한 장에 낼 값. 못 가져오면 첫 장 값 그대로 둔다 —
-    // 결제창이 정본이라, 여기서 틀려도 깎이는 값은 서버가 정한다.
-    fetch("/api/credits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userToken: user.token }),
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((d: { readingCost?: number } | null) => {
-        if (alive && typeof d?.readingCost === "number") setReadingCost(d.readingCost);
-      })
-      .catch(() => {});
-    // 웹툰 배너가 쓰던 /api/my-readings 조회는 걷었다 (2026-09-02) — 배너를
-    // 숨긴 뒤로는 읽는 곳이 없어, 홈이 열릴 때마다 헛도는 요청이었다.
-    return () => {
-      alive = false;
-    };
-  }, [user]);
-
   const visible = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id));
-  const byTopic = (t: ProductTopic) => visible.filter((p) => p.topic === t);
-  const list = topic === "all" ? visible : byTopic(topic);
   /* 판매 집계가 없어 popular 태그를 순서대로 쓴다 — 순위를 지어내지 않는다 */
   const popular = visible.filter((p) => p.tags.includes("popular")).slice(0, 5);
 
@@ -322,61 +221,6 @@ export default function AppHome() {
 
         {/* 세트 줄은 홈에서 뺐다 (2026-09-01 운영자). /set/[id] 판매 페이지와
              쿠폰 정산은 그대로 살아 있어 직접 링크는 여전히 열린다. */}
-
-        {/* ── 주제 탭 + 상품 ── */}
-        <section style={{ padding: "40px 0 0" }}>
-          {/* 탭은 옆으로 민다 — 다섯이 한 줄에 다 안 들어가는 폭이 있다 */}
-          <div className="home-topic-tabs">
-            <button
-              className={`chip${topic === "all" ? " on" : ""}`}
-              onClick={() => setTopic("all")}
-            >
-              전체
-            </button>
-            {/* 상품이 하나도 없는 주제는 탭도 세우지 않는다 — 삶의 자리 셋
-                (건강·가족·이사)이 GRID_HIDDEN 에 들어 있어, 탭만 있으면
-                눌렀을 때 빈 화면이 나온다. 그 셋을 다시 열면 탭도 같이 선다. */}
-            {TOPIC_ORDER.filter((t) => byTopic(t).length > 0).map((t) => (
-              <button
-                key={t}
-                className={`chip${topic === t ? " on" : ""}`}
-                onClick={() => setTopic(t)}
-              >
-                <span aria-hidden>{TOPIC_LABEL[t].emoji}</span> {TOPIC_LABEL[t].title}
-              </button>
-            ))}
-          </div>
-
-          {topic === "all" ? (
-            /* 주제마다 한 줄. 옆으로 밀어 보게 두면 한 화면에서 다섯 주제가
-               다 눈에 들어온다 — 세로 한 판일 때보다 "많다"가 먼저 읽힌다. */
-            TOPIC_ORDER.map((t) => {
-              const items = byTopic(t);
-              if (!items.length) return null;
-              return (
-                <div key={t} className="home-topic-row">
-                  <div className="home-topic-head">
-                    <strong>
-                      <span aria-hidden>{TOPIC_LABEL[t].emoji}</span> {TOPIC_LABEL[t].title}
-                    </strong>
-                    <small>{TOPIC_LABEL[t].desc}</small>
-                  </div>
-                  <div className="home-topic-scroller">
-                    {items.map((p) => (
-                      <ProductCard key={p.id} p={p} cost={readingCost} variant="rail" />
-                    ))}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div className="fortune-grid">
-              {list.map((p) => (
-                <ProductCard key={p.id} p={p} cost={readingCost} variant="grid" />
-              ))}
-            </div>
-          )}
-        </section>
 
         {/*
           ── 지금 인기 ── (2026-09-08)
