@@ -61,6 +61,15 @@ import { getUser } from "@/lib/user";
 const BUSY_MESSAGE = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
 
 /*
+  주인이 대신 넣을 때의 안내.
+
+  본인이 아니라 내가 남의 생년월일을 넣는 자리다. 그래서 동의를 "그 사람이
+  했다" 고 적지 않는다 — 내가 책임지고 넣는다는 것을 내가 확인하는 문장이다.
+*/
+const ADD_CONSENT =
+  "내가 아는 사람의 정보를 대신 입력합니다. 실명 대신 별명을 권해요. 입력한 생년월일은 관계 계산에만 쓰이고 지도에 표시되지 않으며, 언제든 지울 수 있어요. 그 사람이 원하지 않으면 바로 삭제해 주세요.";
+
+/*
   아직 아무도 안 들어온 지도에서 보여줄 네 자리.
 
   배경 지도(GuinMapBackground)가 네 방위에 하나씩 두는 역할과 같은 순서다 —
@@ -107,6 +116,10 @@ export default function GuinMapPage() {
   // 지도에서 누른 사람의 시트. 목록의 선택(selected)과 같은 사람을 가리키되,
   // 시트를 닫아도 지도의 강조는 남는다 — 닫자마자 선이 흐려지면 무엇을 눌렀는지 잊는다.
   const [sheetOpen, setSheetOpen] = useState(false);
+  // 주인이 직접 사람을 넣는 시트
+  const [addOpen, setAddOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState("");
   const [filter, setFilter] = useState("");
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
@@ -171,6 +184,49 @@ export default function GuinMapPage() {
       clearTimeout(timeout);
     }
   }, [token, ownerKey, joined?.participantKey]);
+
+  /**
+   * 주인이 사람을 직접 넣는다.
+   *
+   * 참여 API 를 그대로 쓰되 ownerKey 를 실어 보낸다 — 서버가 그 키로 주인인지
+   * 확인하고 addedByOwner 로 표시한다. 넣고 나면 지도를 다시 읽어 새 사람이
+   * 자리에 앉는 것을 그 자리에서 보여준다.
+   */
+  const addPerson = useCallback(
+    async (value: GuinFormValue) => {
+      if (adding) return;
+      setAdding(true);
+      setAddError("");
+      try {
+        const res = await fetch(`/api/guin/${encodeURIComponent(token)}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nickname: value.nickname,
+            birth: value.birth,
+            ownerKey: ownerKeyOf(token),
+            // 같은 사람을 두 번 눌러도 한 번만 들어가게. 별명까지 넣어 서로 다른
+            // 사람을 연달아 넣을 때는 막히지 않게 한다.
+            idempotencyKey: `${joinIdempotencyKey(token)}-${value.nickname}`,
+            userToken: getUser()?.token,
+          }),
+        });
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        if (!res.ok) throw new Error(data.error ?? BUSY_MESSAGE);
+        trackFunnel("guin_person_added", { landing: sizeBucket(view?.count ?? 0) });
+        // 세 명이 모이면 귀인 순위가 열린다 — 그 순간을 따로 센다.
+        if ((view?.count ?? 0) + 1 === 3) trackFunnel("guin_three_people_completed");
+        setAddOpen(false);
+        await load();
+      } catch (e) {
+        setAddError(e instanceof Error ? e.message : BUSY_MESSAGE);
+      } finally {
+        setAdding(false);
+      }
+    },
+    [adding, token, view?.count, load]
+  );
+
 
   useEffect(() => {
     void load();
@@ -716,15 +772,35 @@ export default function GuinMapPage() {
       {/* 주인: 공유 */}
       {isOwner && (
         <section className="card" style={{ padding: 20, marginBottom: 14 }}>
+          {/*
+            사람을 넣는 길이 둘이다 (2026-09-08).
+
+            위: 내가 직접 넣는다. 기다릴 것이 없어 지도가 바로 채워진다.
+            아래: 친구에게 링크를 보낸다. 본인이 넣은 것이라 더 정확하고,
+                  그 친구가 자기 지도를 만드는 데까지 이어진다.
+
+            직접 넣기를 위에 둔다 — 링크만 있던 동안 지도 여섯 개가 전부
+            비어 있었다. 다만 링크 쪽이 관계의 정본이므로 같이 남긴다.
+          */}
           <button
             className="btn"
+            style={{ width: "100%", marginBottom: 8 }}
+            onClick={() => {
+              trackFunnel("guin_person_add_started", { landing: sizeBucket(view.count) });
+              setAddOpen(true);
+            }}
+          >
+            + 인연 추가하기
+          </button>
+          <button
+            className="btn btn-ghost"
             style={{ width: "100%" }}
             onClick={() => {
               if (!showShare) trackFunnel("guin_share_preview_opened", { landing: sizeBucket(view.count) });
               setShowShare((v) => !v);
             }}
           >
-            {stage === "empty" ? "친구 초대해서 첫 관계 열기" : "친구 한 명 더 초대하기"}
+            {stage === "empty" ? "친구에게 링크 보내기" : "친구에게 링크 보내기"}
           </button>
           {showShare && (
             <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
@@ -920,6 +996,35 @@ export default function GuinMapPage() {
       <p style={{ color: "var(--text-dim)", fontSize: "0.76rem" }}>{GUIN_DISCLAIMER}</p>
     </main>
     <SajuPersonSheet node={sheetNode} onClose={() => setSheetOpen(false)} />
+
+    {/* 주인이 직접 넣는 시트. 폼은 참여 화면과 같은 것을 쓴다 — 두 벌을 만들지 않는다. */}
+    {addOpen && (
+      <div className="rv-drawer" role="dialog" aria-label="인연 추가" onClick={() => setAddOpen(false)}>
+        <div className="rv-drawer-sheet" onClick={(event) => event.stopPropagation()}>
+          <header>
+            <strong style={{ flex: 1 }}>누구를 추가할까요?</strong>
+            <button type="button" className="rv-icon" onClick={() => setAddOpen(false)} aria-label="닫기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </button>
+          </header>
+          <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginBottom: 12, lineHeight: 1.6 }}>
+            친구가 알아볼 수 있는 별명이면 충분해요. 생년월일은 관계 계산에만 쓰고
+            지도에 표시하지 않아요.
+          </p>
+          <GuinBirthForm
+            submitLabel={adding ? "지도에 앉히는 중…" : "이 사람 지도에 추가하기"}
+            consentNote={ADD_CONSENT}
+            busy={adding}
+            onSubmit={addPerson}
+          />
+          {addError && (
+            <p style={{ color: "var(--semantic-error)", fontSize: "0.84rem", marginTop: 10 }}>{addError}</p>
+          )}
+        </div>
+      </div>
+    )}
     </>
   );
 }

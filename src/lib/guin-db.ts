@@ -8,7 +8,7 @@ import "server-only";
 
 import { open, seal } from "@/lib/crypto";
 import { personaOf, relate } from "@/lib/guin-calc";
-import { GUIN_REPORT_VERSION, generateGuinAiReport } from "@/lib/guin-report";
+import { GUIN_TEMPLATE_VERSION, buildGuinReport } from "@/lib/guin-templates";
 import type {
   GuinAiReport,
   GuinBirthInput,
@@ -168,6 +168,8 @@ export async function joinGuinMap(params: {
   birth: GuinBirthInput;
   idempotencyKey: string;
   userId: number | null;
+  /** 주인이 대신 넣었는가 (2026-09-08). 본인 동의 없이 들어온 행을 구분한다. */
+  addedByOwner?: boolean;
 }): Promise<
   | { ok: true; participantKey: string; node: GuinNodeView; replayed: boolean }
   | { ok: false; reason: "full" | "owner_birth_unreadable" | "failed" }
@@ -198,6 +200,7 @@ export async function joinGuinMap(params: {
       nickname: params.nickname,
       birth_sealed: sealBirth(params.birth),
       idempotency_key: params.idempotencyKey,
+      added_by_owner: params.addedByOwner === true,
       participant_fingerprint: fingerprint,
       consented_at: new Date().toISOString(),
     })
@@ -284,13 +287,19 @@ interface SealedNote {
 }
 
 /**
- * 참여자가 고른 실제 관계 상태를 저장하고, 그 문맥으로 AI 리포트를 만든다.
+ * 참여자가 고른 실제 관계 상태를 저장하고, 그 문맥으로 리포트를 만든다.
+ *
+ * **모델을 부르지 않는다 (2026-09-08).** 전에는 여기서 사람당 한 번씩 모델을
+ * 불렀다. 사람당 한 번이니 작아 보이지만, 이 기능의 목적은 사람을 다섯 명 열 명
+ * 넣게 만드는 것이다 — 바이럴이 성공할수록 값이 오르는 구조였다. 지금은
+ * 문구 표에서 조립한다(guin-templates.ts). 사람을 1,000명 넣어도 호출은 0이다.
+ *
+ * 유료 상세("왜 이 사람이 내 귀인인가")는 그대로 기존 리딩이 맡는다.
+ * 무료는 WHAT, 유료는 WHY 다.
  *
  * 상태는 축 점수를 건드리지 않는다 — result_json/score 는 여기서 안 바뀐다.
- * AI 가 실패하면(미설정·오류·검증 탈락) 상태만 저장되고 리포트는 null 로
- * 남는다. 화면의 템플릿 카드가 폴백이라 재시도 루프를 만들지 않는다.
- * 같은 입력으로 다시 불러도 결과가 같다(멱등) — 상태가 바뀌면 리포트를
- * 새 문맥으로 다시 만든다.
+ * 같은 입력이면 언제나 같은 문장이 나온다(해시로 고른다). 오늘 본 해석과
+ * 내일 본 해석이 다르면 그건 해석이 아니라 뽑기다.
  */
 export async function setGuinRelationshipContext(params: {
   map: GuinMapRow;
@@ -306,12 +315,13 @@ export async function setGuinRelationshipContext(params: {
   const node = nodes.find((item) => item.id === params.participantId);
   if (!node) return { ok: false, aiReport: null };
 
-  const aiReport = await generateGuinAiReport({
-    ownerNickname: params.map.ownerNickname,
+  const aiReport = buildGuinReport({
+    participantId: node.id,
     participantNickname: node.nickname,
-    node,
+    role: node.role,
+    score: node.score ?? 0,
     status: params.status,
-    userNote: note,
+    conversationPrompt: node.conversationPrompt,
   });
 
   const { error } = await db
@@ -320,7 +330,7 @@ export async function setGuinRelationshipContext(params: {
       context_status: params.status,
       context_note_sealed: note ? seal({ g: "guin-note", text: note } satisfies SealedNote) : null,
       ai_report_json: aiReport,
-      ai_report_version: aiReport ? GUIN_REPORT_VERSION : null,
+      ai_report_version: GUIN_TEMPLATE_VERSION,
       updated_at: new Date().toISOString(),
     })
     .eq("map_id", params.map.id)

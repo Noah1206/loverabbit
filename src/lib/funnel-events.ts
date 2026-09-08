@@ -85,6 +85,15 @@ export const FUNNEL_EVENTS = [
   "guin_participant_submitted",
   /** 관계 결과 카드가 보였다 */
   "guin_relationship_revealed",
+  /* ── 주인이 직접 사람을 넣는 길 (2026-09-08) ──
+     초대 링크만 있던 동안 지도 여섯 개가 전부 비어 있었다. 어느 길로 사람이
+     들어오는지를 갈라 봐야 무엇이 실제로 작동하는지 알 수 있다. */
+  /** "인연 추가하기" 를 눌렀다 */
+  "guin_person_add_started",
+  /** 주인이 사람을 직접 넣었다 */
+  "guin_person_added",
+  /** 세 명이 모여 귀인 순위가 열렸다 */
+  "guin_three_people_completed",
   /** 초대받은 사람이 자기 지도를 만들었다 — 2차 바이럴 */
   "guin_second_map_created",
   /** 관계 결과 카드를 공유했다 */

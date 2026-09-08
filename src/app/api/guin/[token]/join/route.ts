@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { joinGuinMap, listGuinNodes, loadGuinMap } from "@/lib/guin-db";
+import { isOwnerKey, joinGuinMap, listGuinNodes, loadGuinMap } from "@/lib/guin-db";
 import { birthProblem, nicknameProblem, shapeMapView, type GuinBirthInput } from "@/lib/guin-map";
 import { isDatabaseConfigured } from "@/lib/database";
 import { resolveUserToken } from "@/lib/tokens";
 
-// 친구 참여 — 이 화면이 2차 바이럴의 심장이다 (지시문 3.5).
+// 지도에 사람이 앉는 자리. 들어오는 길이 둘이다.
 //
-// 친구는 **자기** 생년월일을 직접 넣는다. 남의 정보를 대신 넣는 입력은 없다.
+// 1. **친구가 직접** — 초대 링크를 열고 자기 생년월일을 넣는다. 원래 있던 길이고,
+//    본인이 넣은 것이라 가장 정확하다.
+// 2. **주인이 대신** (2026-09-08, ownerKey 필요) — 내가 친구의 생일을 넣는다.
+//    링크를 보내고 기다리는 것만으로는 지도가 채워지지 않아서 열었다 (지도 6개에
+//    참여자 0명이었다). 대신 넣은 사람은 addedByOwner 로 표시해 구분한다.
+//
+// 2번은 남의 생년월일을 본인 동의 없이 받는 길이다. 그래서 셋을 지킨다.
+//   · ownerKey 를 확인한다 — 남의 지도에 사람을 심을 수 없다.
+//   · 생년월일은 다른 참여 경로와 똑같이 봉인해 저장한다(sealBirth). 평문으로
+//     보관하지 않고 응답에도 실리지 않는다.
+//   · 화면이 별명을 권한다. 실명을 요구하지 않는다.
+//
 // idempotencyKey 로 더블클릭·새로고침이 중복 참여자를 만들지 않는다.
 
 const BUSY = "지금 귀인지도에 사람이 많이 몰리고 있어요. 입력 내용은 저장되지 않았으니 잠시 후 다시 시도해주세요.";
@@ -18,6 +29,8 @@ interface Body {
   consent?: boolean;
   idempotencyKey?: string;
   userToken?: string;
+  /** 주인이 대신 넣을 때만. 있으면 그 키가 이 지도의 주인인지 확인한다. */
+  ownerKey?: string;
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ token: string }> }) {
@@ -51,7 +64,23 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const birthIssue = birthProblem(birth);
   if (birthIssue) return NextResponse.json({ error: birthIssue }, { status: 400 });
 
-  if (body.consent !== true) return NextResponse.json({ error: "안내를 확인하고 동의해 주세요." }, { status: 400 });
+  /*
+    주인이 대신 넣는 것인가.
+
+    ownerKey 가 왔고 그것이 이 지도의 주인 키일 때만 참이다. 키가 틀리면 그냥
+    보통 참여로 떨어뜨리지 않고 막는다 — 주인인 척하려 한 요청이기 때문이다.
+  */
+  const byOwner = typeof body.ownerKey === "string" && body.ownerKey.length > 0;
+  if (byOwner && !isOwnerKey(map, body.ownerKey)) {
+    return NextResponse.json({ error: "이 지도의 주인만 사람을 추가할 수 있어요." }, { status: 403 });
+  }
+
+  // 동의는 본인이 넣을 때 받는 것이다. 주인이 대신 넣는 자리에서는 본인이
+  // 없으므로 물을 수 없다 — 대신 화면이 별명을 권하고, 나중에 그 친구가
+  // 직접 들어오면 그때 본인 동의를 받는다.
+  if (!byOwner && body.consent !== true) {
+    return NextResponse.json({ error: "안내를 확인하고 동의해 주세요." }, { status: 400 });
+  }
 
   const idempotencyKey = (body.idempotencyKey ?? "").trim();
   if (idempotencyKey.length < 8 || idempotencyKey.length > 64) {
@@ -67,7 +96,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   try {
-    const joined = await joinGuinMap({ map, nickname, birth, idempotencyKey, userId });
+    const joined = await joinGuinMap({ map, nickname, birth, idempotencyKey, userId, addedByOwner: byOwner });
     if (!joined.ok) {
       if (joined.reason === "full") {
         return NextResponse.json({ error: "이 지도는 자리가 가득 찼어요." }, { status: 409 });
