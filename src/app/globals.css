@@ -12144,9 +12144,11 @@ input[type="radio"] {
   color: #c8b8ff;
 }
 .home-today-art {
-  font-size: 2rem;
+  width: 68px;
+  height: auto;
   flex-shrink: 0;
-  margin-left: 12px;
+  margin: -8px -2px -10px 10px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
 }
 
 /* ── 귀인 TOP 3 ── 지도 아래, 관계 카드 목록 위 */

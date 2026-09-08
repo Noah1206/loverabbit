@@ -227,7 +227,11 @@ export default function AppHome() {
             <strong>오늘 나에게 맞는 한 걸음</strong>
             <span className="home-today-cta">지금 확인하기 <i aria-hidden>›</i></span>
           </span>
-          <span className="home-today-art" aria-hidden>🌙</span>
+          {/* 대표 캐릭터인 토끼가 선다. 사람마다 자기 띠를 세우고 싶지만 홈은
+              생일을 모르고(user.ts 에 없다), 알아내려면 홈에 요청을 하나 더
+              얹어야 한다 — 로그인 안 한 사람에게는 그래도 못 띄운다. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="home-today-art" src="/assets/zodiac/rabbit-hanbok.webp" alt="" loading="lazy" />
         </Link>
 
         {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
