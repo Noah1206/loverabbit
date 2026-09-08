@@ -26,14 +26,8 @@ import { GENRES } from "@/lib/genres";
 import InquiryButton from "@/components/InquiryButton";
 
 
-const NOTICES = [
-  { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
-  { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
-];
-
 export default function AppHome() {
   const { theme } = useTheme();
-  const [notice, setNotice] = useState(0);
   /* 배너 슬라이드. 누르면 멈춘다 — 읽는 중에 넘어가면 안내가 아니라 방해다. */
   const [slide, setSlide] = useState(0);
   const [slideHeld, setSlideHeld] = useState(false);
@@ -48,9 +42,7 @@ export default function AppHome() {
   }, [slideHeld]);
 
   useEffect(() => {
-    const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
-    return () => clearInterval(t);
   }, []);
 
 
@@ -245,45 +237,6 @@ export default function AppHome() {
           홈에서 /today 로 가는 길도 여기가 잇는다.
         */}
         <TodayRadar />
-
-        {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지
-             먼저 말하고, 본문이 바뀔 때 아래에서 올라온다.
-
-             상품 그리드 아래로 내렸다 (2026-09-01 운영자 결정). 헤더 바로 밑은
-             로그인 배너가 쓰고, 홈에 들어온 사람이 먼저 볼 것은 살 수 있는
-             리딩이지 공지가 아니다. */}
-        <div className="home-notice-wrap">
-          <div className="home-notice">
-            <div className="home-notice-bar">
-              <span className="home-notice-bar-title">
-                <span aria-hidden>🐰</span> 러브레빗 소식
-              </span>
-              <span className="home-notice-bar-dots" aria-hidden>
-                <i /><i /><i />
-              </span>
-            </div>
-            <div className="home-notice-body">
-              {/* key 가 바뀌면 새로 그려지면서 올라오는 동작이 다시 돈다 */}
-              <div key={notice} className="home-notice-copy">
-                <p className="home-notice-title">{NOTICES[notice].text}</p>
-                <p className="home-notice-sub">{NOTICES[notice].sub}</p>
-              </div>
-              <div className="home-notice-tabs" role="tablist" aria-label="공지">
-                {NOTICES.map((_, i) => (
-                  <button
-                    key={i}
-                    role="tab"
-                    aria-selected={i === notice}
-                    aria-label={`공지 ${i + 1}`}
-                    className={"home-notice-tab" + (i === notice ? " on" : "")}
-                    onClick={() => setNotice(i)}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
