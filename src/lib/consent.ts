@@ -41,3 +41,15 @@ export function onConsentChange(handler: (state: ConsentState) => void): () => v
   window.addEventListener(CHANGE_EVENT, listener);
   return () => window.removeEventListener(CHANGE_EVENT, listener);
 }
+
+// ── 환영 팝업과 겹치지 않게 ─────────────────────────────────────
+//
+// 처음 온 사람 화면에 팝업 둘이 동시에 떴다. 가운데는 1,900원 카드가,
+// 아래는 쿠키 배너가 덮어 홈이 거의 보이지 않았다 — 둘 다 각자 layout 에
+// 붙어 있고 서로를 몰랐다.
+//
+// 순서를 세운다. 환영 팝업이 떠 있는 동안 배너는 기다린다. 팝업이 닫히면
+// 그때 올라온다. 이벤트로 잇는 이유는 둘이 형제 컴포넌트라 상태를 직접
+// 주고받을 길이 없어서다.
+export const WELCOME_OPEN_EVENT = "loverabbit:welcome-open";
+export const WELCOME_CLOSED_EVENT = "loverabbit:welcome-closed";

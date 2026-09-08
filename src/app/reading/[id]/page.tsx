@@ -493,12 +493,37 @@ export default function ReadingReportPage() {
     ];
     // 값이 더 비싼 것만 고르던 조건을 뺀다 — 크레딧 단일 화폐에서는 값 비교가 무의미하고,
     // 12,000원짜리를 본 사람에게 "더 비싼 것"은 없다.
-    return PRODUCTS.filter((p) => p.id !== product.id)
-      .sort((a, b) => {
-        const [ra, rb] = [rank(a), rank(b)];
-        return ra[0] - rb[0] || ra[1] - rb[1] || ra[2] - rb[2];
-      })
-      .slice(0, 2);
+    const sorted = PRODUCTS.filter((p) => p.id !== product.id).sort((a, b) => {
+      const [ra, rb] = [rank(a), rank(b)];
+      return ra[0] - rb[0] || ra[1] - rb[1] || ra[2] - rb[2];
+    });
+
+    /*
+      넷으로 늘리고, 주제가 한쪽으로 쏠리지 않게 고른다 (2026-09-08).
+
+      둘만 보여줄 때는 정렬 위쪽이 늘 같은 주제였다 — 연애를 본 사람에게
+      연애만 둘 나왔다. 같은 명식으로 볼 수 있는 것이 열아홉인데 그중 둘을,
+      그것도 한 주제에서만 보여주면 "다음에 볼 것" 이 있다는 사실 자체가
+      전달되지 않는다.
+
+      주제마다 한 장씩 먼저 뽑고(최대 3), 남는 자리를 정렬 순서로 채운다.
+    */
+    /* 맨 앞자리는 정렬이 정한 그대로 둔다 — 상대 정보가 이미 손에 있는
+       사람에게 그 사람이 필요한 리딩을 먼저 보이는 것이 원래 의도였고,
+       주제를 고르게 펴려다 그 자리를 빼앗으면 안 된다. */
+    const picked = sorted.slice(0, 1);
+    const usedTopics = new Set(picked.map((p) => p.topic));
+    for (const p of sorted) {
+      if (picked.length >= 3) break;
+      if (usedTopics.has(p.topic)) continue;
+      usedTopics.add(p.topic);
+      picked.push(p);
+    }
+    for (const p of sorted) {
+      if (picked.length >= 4) break;
+      if (!picked.includes(p)) picked.push(p);
+    }
+    return picked;
   }, [product]);
 
   const depositorCode = entry ? `레빗-${entry.readingId.slice(0, 4).toUpperCase()}` : "";

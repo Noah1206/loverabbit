@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { FIRST_READING_PRICE } from "@/lib/coupons";
+import { WELCOME_CLOSED_EVENT, WELCOME_OPEN_EVENT } from "@/lib/consent";
 import { useEscape } from "@/lib/use-escape";
 
 /*
@@ -37,8 +38,14 @@ export default function WelcomePopup() {
     } catch {
       return;
     }
+    /* 배너에게 먼저 알린다 — 팝업은 700ms 뒤에 뜨는데, 그 사이 배너가
+       올라왔다가 팝업에 덮이면 깜빡이는 것으로 보인다. 뜰 예정인 것을
+       미리 알려 처음부터 기다리게 한다. */
+    window.dispatchEvent(new Event(WELCOME_OPEN_EVENT));
     const timer = setTimeout(() => setOpen(true), 700);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [pathname]);
 
   const close = () => {
@@ -48,6 +55,8 @@ export default function WelcomePopup() {
       // 저장이 막힌 브라우저면 다음 방문에 한 번 더 뜬다. 그 정도는 괜찮다.
     }
     setOpen(false);
+    // 이제 배너가 올라와도 된다
+    window.dispatchEvent(new Event(WELCOME_CLOSED_EVENT));
   };
 
   if (!open) return null;

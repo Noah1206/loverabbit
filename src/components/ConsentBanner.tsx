@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { readConsent, writeConsent } from "@/lib/consent";
+import {
+  WELCOME_CLOSED_EVENT,
+  WELCOME_OPEN_EVENT,
+  readConsent,
+  writeConsent,
+} from "@/lib/consent";
 
 const AD_SAJU_PATHS = new Set([
   "/saju/compatibility",
@@ -24,11 +29,24 @@ export default function ConsentBanner() {
   const isAdSajuLanding = AD_SAJU_PATHS.has(normalizedPathname);
   const isReadingFlow = pathname === "/reading";
 
+  /* 환영 팝업이 떠 있으면 기다린다 (2026-09-08).
+     둘이 동시에 뜨면 가운데 카드와 아래 배너가 홈을 덮어 처음 온 사람이
+     무엇을 보러 왔는지 알 수 없게 된다. 순서를 세워 하나씩 보여준다. */
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
+
   useEffect(() => {
     setVisible(readConsent() === "unset");
+    const open = () => setWelcomeOpen(true);
+    const closed = () => setWelcomeOpen(false);
+    window.addEventListener(WELCOME_OPEN_EVENT, open);
+    window.addEventListener(WELCOME_CLOSED_EVENT, closed);
+    return () => {
+      window.removeEventListener(WELCOME_OPEN_EVENT, open);
+      window.removeEventListener(WELCOME_CLOSED_EVENT, closed);
+    };
   }, []);
 
-  if (!visible) return null;
+  if (!visible || welcomeOpen) return null;
 
   const choose = (state: "granted" | "denied") => {
     writeConsent(state);
