@@ -2502,8 +2502,10 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
-  /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 아래로 숨 쉴 자리를 둔다. */
-  padding-top: calc(76px + env(safe-area-inset-top));
+  /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 높이에 딱 맞춘다
+     (2026-09-09 운영자: 헤더 밑 공백 없이) — 첫 배너가 헤더에 붙어야
+     화면을 열자마자 배너가 보인다. 숨 쉴 자리는 배너 안쪽 여백이 낸다. */
+  padding-top: calc(60px + env(safe-area-inset-top));
 }
 
 /* 떠 있는 카드가 아니라 화면 맨 위에 붙은 면이다. 테두리도 그림자도 두지
@@ -13098,9 +13100,11 @@ input[type="radio"] {
   position: relative;
   display: block;
   min-height: 118px;
-  padding: 18px 20px;
-  margin: 14px 20px 0;
-  border-radius: 22px;
+  /* 첫 배너는 헤더에 붙이고 폭도 끝까지 쓴다 (2026-09-09 운영자).
+     모서리를 아래쪽만 둥글게 두어 헤더와 한 몸으로 이어 보이게 한다. */
+  padding: 20px 20px 22px;
+  margin: 0 0 14px;
+  border-radius: 0 0 22px 22px;
   overflow: hidden;
   text-decoration: none;
   background: #fdf3dd url("/assets/genre/event-banner.webp") right center / cover no-repeat;
