@@ -169,6 +169,12 @@ export default function TarotView() {
   // ── 고르기 ──
   return (
     <main className="container tr" style={{ paddingTop: 32, paddingBottom: 110 }}>
+      {/* 종목 배너 — 목록 페이지가 없는 종목이라 이 화면 머리가 그 자리다 */}
+      <div className="genre-banner">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/genre/tarot-banner.webp" alt="" loading="lazy" />
+      </div>
+
       <span className="badge">{TAROT_COST}러빗</span>
       <h1 className="tr-h1">무엇을 물어볼까요?</h1>
       <p className="tr-lede">
