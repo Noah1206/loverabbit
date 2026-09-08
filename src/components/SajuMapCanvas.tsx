@@ -61,7 +61,6 @@ export default function SajuMapCanvas({
               strokeOpacity={on ? 0.85 : dim ? 0.06 : 0.22}
               strokeWidth={on ? 0.7 : 0.35}
               className="sm-line"
-              style={{ animationDelay: `${120 + i * 45}ms` }}
               pathLength={1}
             />
           );
@@ -85,11 +84,7 @@ export default function SajuMapCanvas({
             key={person.id}
             type="button"
             className={`sm-node${on ? " on" : ""}${dim ? " dim" : ""}`}
-            style={{
-              left: `${spot.x}%`,
-              top: `${spot.y}%`,
-              animationDelay: `${180 + i * 55}ms`,
-            }}
+            style={{ left: `${spot.x}%`, top: `${spot.y}%` }}
             aria-pressed={on}
             onClick={() => onSelect(person.id)}
           >

@@ -9381,25 +9381,14 @@ body[data-guin-intro="1"] .tabbar {
   stroke-width: 0.3;
   stroke-dasharray: 1 1.2;
 }
+/* 2026-09-08: 떠다니던 것을 멈췄다. 계속 움직이는 배경은 읽는 것을 방해한다. */
 .guin-bg-node {
-  animation: guin-bg-float 7s ease-in-out infinite;
+  animation: none;
 }
-@keyframes guin-bg-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1.1px); }
-}
-/* 관계선이 중앙에서 스르륵 그려진다 — pathLength=1 이라 dash 값이 항상 1이면 된다 */
+/* 선은 처음부터 그려져 있다 — 들어오면 바로 지도다 (2026-09-08) */
 .guin-bg-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: guin-line-draw 0.9s ease-out forwards;
-}
-@keyframes guin-line-draw {
-  to { stroke-dashoffset: 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .guin-bg-node { animation: none; }
-  .guin-bg-line { animation: none; stroke-dashoffset: 0; }
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
 }
 
 /* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */
@@ -11875,14 +11864,10 @@ input[type="radio"] {
 }
 
 /* 선이 중앙에서 뻗어 나온다 — 한 번만. pathLength=1 이라 dash 값이 늘 1이다 */
+/* 등장 애니메이션을 걷었다 (2026-09-08 운영자). 고른 사람을 밝히는
+   전환만 남긴다 — 그건 장식이 아니라 무엇을 눌렀는지 알려주는 신호다. */
 .sm-line {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: sm-draw 420ms ease-out both;
   transition: stroke-opacity 0.18s ease, stroke-width 0.18s ease;
-}
-@keyframes sm-draw {
-  to { stroke-dashoffset: 0; }
 }
 
 /* ── 가운데: 나 ── 다른 노드보다 한 단 크다 */
@@ -11893,7 +11878,6 @@ input[type="radio"] {
   justify-items: center;
   gap: 4px;
   text-align: center;
-  animation: sm-pop 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .sm-me-face {
   width: 58px;
@@ -11926,7 +11910,6 @@ input[type="radio"] {
   border: 0;
   background: none;
   cursor: pointer;
-  animation: sm-pop 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: opacity 0.18s ease;
 }
 .sm-node-dot {
@@ -11966,19 +11949,8 @@ input[type="radio"] {
   opacity: 0.28;
 }
 
-@keyframes sm-pop {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.86); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-/* 움직임을 줄여 달라고 한 사람에게는 등장만 있고 이동은 없다 */
+/* 등장 애니메이션이 없으므로 여기서는 고른 사람의 확대만 끈다 */
 @media (prefers-reduced-motion: reduce) {
-  .sm-node,
-  .sm-me,
-  .sm-line {
-    animation: none;
-  }
-  .sm-line { stroke-dashoffset: 0; }
   .sm-node.on .sm-node-dot { transform: none; }
 }
 
