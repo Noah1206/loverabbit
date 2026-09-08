@@ -15,13 +15,14 @@ import { useTheme } from "@/components/ThemeProvider";
   사주를 고르는 순서로 바꿨다 — 고르는 일을 두 번으로 나누면 한 번에 볼
   가짓수가 스무 개에서 여섯 개로 줄어든다.
 
-  홈에 남은 것: 이벤트, 사주지도, 가이드, 종목 여섯, 인기 순위, 공지.
-  상품 데이터는 인기 순위만 쓴다 (그리드가 없으니 카드 값도 안 읽는다).
+  홈에 남은 것: 이벤트, 종목 여섯, 배너 슬라이드, 오늘의 사주, 공지.
+  상품 데이터(products.ts)는 이제 홈에서 하나도 읽지 않는다 — 무엇을 파는지는
+  종목 목록이 말하고, 홈은 어디로 갈지만 고르게 한다.
 */
 import GenreIcon from "@/components/GenreIcon";
+import TodayRadar from "@/components/TodayRadar";
 import { CREDIT_EVENT } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
-import { GRID_HIDDEN, PRODUCTS } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
 
@@ -52,9 +53,6 @@ export default function AppHome() {
     return () => clearInterval(t);
   }, []);
 
-  const visible = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id));
-  /* 판매 집계가 없어 popular 태그를 순서대로 쓴다 — 순위를 지어내지 않는다 */
-  const popular = visible.filter((p) => p.tags.includes("popular")).slice(0, 5);
 
   return (
     <div className={`theme-${theme}`} style={{ margin: "0 auto" }}>
@@ -236,32 +234,16 @@ export default function AppHome() {
         </div>
 
         {/*
-          ── 지금 인기 ── (2026-09-08)
+          ── 오늘의 사주 ── (2026-09-09 운영자)
 
-          무엇부터 볼지 모르는 사람에게 남들이 고른 것을 보여준다. 다만
-          **판매 순위 데이터가 없다** — 그래서 순위 숫자를 지어내지 않고,
-          products.ts 의 popular 태그가 붙은 것을 그 순서대로 세운다.
-          집계가 생기면 이 목록만 갈아끼우면 된다.
+          "지금 많이 보는 사주" 목록을 걷고 그 자리에 넣는다. 그 목록은 판매
+          집계가 없어 popular 태그를 순서대로 세운 것이었다 — 순위처럼 보이는데
+          순위가 아니었다.
+
+          이쪽은 오늘의 흐름에서 나온다. 매일 바뀌므로 다시 올 이유가 되고,
+          홈에서 /today 로 가는 길도 여기가 잇는다.
         */}
-        {popular.length > 0 && (
-          <section className="home-hot">
-            <div className="home-hot-head">
-              <small>어떤 사주를 볼까?</small>
-              <h2>지금 많이 보는 사주</h2>
-            </div>
-            <ol className="home-hot-list">
-              {popular.map((p, i) => (
-                <li key={p.id}>
-                  <Link href={`/product/${p.id}`}>
-                    <b className="home-hot-rank">{i + 1}</b>
-                    <span className="home-hot-title">{p.title}</span>
-                    <span className="home-hot-go" aria-hidden>›</span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
+        <TodayRadar />
 
         {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지
              먼저 말하고, 본문이 바뀔 때 아래에서 올라온다.

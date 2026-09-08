@@ -13283,3 +13283,80 @@ input[type="radio"] {
   border-radius: 999px;
   background: var(--accent);
 }
+
+/* ── 오늘의 사주 (2026-09-09) ─────────────────────────────────────
+   다섯 축을 오각형으로. 숫자를 적지 않는다 — 명리에 "재물운 87점" 같은 값은
+   없고, 있는 것은 순서다. 모양만 보여주고 읽는 것은 /today 가 한다. */
+.tr-radar {
+  margin: 26px 20px 0;
+  padding: 22px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  background: var(--bg-card);
+}
+.tr-radar header small {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+.tr-radar header h2 {
+  margin: 0;
+  font-size: 1.24rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.tr-radar-ganji {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+.tr-radar-chart {
+  position: relative;
+  width: 100%;
+  /* 라벨이 도형 바깥에 서므로 차트를 카드 폭보다 좁게 잡는다 — 그러지 않으면
+     위·좌우 라벨이 카드를 넘어 잘리거나 고정 헤더에 가린다. */
+  max-width: 258px;
+  /* 위쪽 라벨(재물운)이 제목 줄과 겹쳐 안 보였다 — 차트를 더 내린다 */
+  margin: 34px auto 10px;
+  aspect-ratio: 1;
+}
+.tr-radar-chart svg { display: block; overflow: visible; }
+.tr-radar-grid {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.tr-radar-spoke { stroke: var(--line); stroke-width: 1; }
+.tr-radar-shape {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  transition: opacity 300ms ease;
+}
+/* 흐름을 모를 때 — 값을 지어내지 않았다는 것을 흐림으로 말한다 */
+.tr-radar-chart.is-dim .tr-radar-shape {
+  fill: color-mix(in srgb, var(--text-dim) 12%, transparent);
+  stroke: var(--line);
+}
+.tr-radar-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.tr-radar-cta {
+  display: block;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-decoration: none;
+}

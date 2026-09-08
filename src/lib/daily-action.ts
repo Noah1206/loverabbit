@@ -148,6 +148,15 @@ const DOMAIN_PRIORITY: Record<Flow, FortuneDomain[]> = {
   인성: ["study", "health", "growth", "money", "career", "relationship", "love", "business"],
 };
 
+/**
+ * 우선순위를 밖에서 읽는 길. 표 자체는 감춰 둔다 — 밖에서 배열을 그대로
+ * 쥐면 정렬을 바꾸는 코드가 생기고, 그러면 오늘의 액션과 오늘의 다섯 축이
+ * 서로 다른 순서를 보게 된다. 복사본을 준다.
+ */
+export function DOMAIN_PRIORITY_OF(flow: Flow): FortuneDomain[] {
+  return [...DOMAIN_PRIORITY[flow]];
+}
+
 interface ActionCopy {
   title: string;
   action: string;
