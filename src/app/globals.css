@@ -12446,6 +12446,7 @@ input[type="radio"] {
   padding: 0 20px;
 }
 .home-genre {
+  position: relative;
   display: grid;
   justify-items: center;
   gap: 6px;
@@ -12463,20 +12464,22 @@ input[type="radio"] {
 }
 .home-genre-art {
   position: relative;
-  width: 46px;
-  height: 46px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
 }
-.home-genre-art img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+.home-genre-art svg {
+  color: var(--text);
+  display: block;
 }
 .home-genre-tag {
+  /* 아이콘 위가 아니라 칸 오른쪽 위에 붙인다 (2026-09-08) — 그림에서
+     아이콘으로 바꾸며 그림이 차던 자리가 비었고, 배지가 아이콘 획을
+     덮어 무엇인지 안 보였다. */
   position: absolute;
-  top: -4px;
-  right: -8px;
+  top: 6px;
+  right: 6px;
   padding: 1px 5px;
   border-radius: 999px;
   background: var(--accent);
@@ -12751,10 +12754,17 @@ input[type="radio"] {
   font-size: 0.84rem;
   color: var(--text-dim);
 }
-.genre-head-art {
-  width: 62px;
+/* 종목 배너 — 오른쪽 절반이 비어 있는 그림이라 그대로 깐다 */
+.genre-banner {
+  margin: 10px 0 14px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--tint-2);
+}
+.genre-banner img {
+  display: block;
+  width: 100%;
   height: auto;
-  flex-shrink: 0;
 }
 .genre-count {
   margin: 0 0 6px;

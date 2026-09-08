@@ -20,7 +20,14 @@ export interface Genre {
   label: string;
   /** 목록 화면 제목 아래 한 줄 */
   desc: string;
-  art: string;
+  /**
+   * 종목 목록 화면 머리에 깔 가로 배너. 없으면 화면이 배너 없이 그린다.
+   *
+   * 격자에 쓰는 아이콘은 여기 없다 — 그건 GenreIcon 이 선으로 그린다.
+   * 캐릭터 그림을 격자에 쓰다 걷었다 (2026-09-08 운영자): 종목 여섯에 얼굴
+   * 여섯이 서면 한 화면에 캐릭터가 너무 많아, 대표 캐릭터의 무게가 떨어진다.
+   */
+  banner?: string;
   /** 목록이 있는 종목만 이 값을 가진다. 없으면 바로 그 화면으로 간다. */
   href: string;
   /** 값 없이 열리는가 — 칸에 "무료" 를 적을지 정한다 */
@@ -32,28 +39,25 @@ export const GENRES: Genre[] = [
     id: "saju",
     label: "사주",
     desc: "내 명식으로 읽는 나의 결",
-    art: "/assets/zodiac/rabbit-hanbok.webp",
+    banner: "/assets/genre/saju-banner.webp",
     href: "/genre/saju",
   },
   {
     id: "tarot",
     label: "타로",
     desc: "뽑은 카드를 내 결에 겹쳐",
-    art: "/assets/zodiac/snake-hanbok.webp",
     href: "/tarot",
   },
   {
     id: "gunghap",
     label: "궁합",
     desc: "두 사람 사이를 읽는다",
-    art: "/assets/zodiac/rooster-hanbok.webp",
     href: "/genre/gunghap",
   },
   {
     id: "period",
     label: "주간·월간",
     desc: "이번 주와 이번 달의 흐름",
-    art: "/assets/zodiac/horse-hanbok.webp",
     href: "/period",
     free: true,
   },
@@ -61,7 +65,6 @@ export const GENRES: Genre[] = [
     id: "map",
     label: "사주지도",
     desc: "내 주변 사람들과의 인연",
-    art: "/assets/zodiac/monkey-hanbok.webp",
     href: "/guin",
     free: true,
   },
@@ -69,7 +72,6 @@ export const GENRES: Genre[] = [
     id: "manseryeok",
     label: "만세력",
     desc: "내 여덟 글자를 그대로",
-    art: "/assets/zodiac/dragon-hanbok.webp",
     href: "/manseryeok",
     free: true,
   },

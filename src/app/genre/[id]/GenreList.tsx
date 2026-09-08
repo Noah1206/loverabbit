@@ -57,9 +57,15 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
           <h1>{genre.label}</h1>
           <p>{genre.desc}</p>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="genre-head-art" src={genre.art} alt="" loading="lazy" />
       </header>
+
+      {/* 배너가 있는 종목만 깐다 — 없으면 제목만으로 충분하다 */}
+      {genre.banner && (
+        <div className="genre-banner">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={genre.banner} alt="" loading="lazy" />
+        </div>
+      )}
 
       <p className="genre-count">{items.length}가지</p>
 

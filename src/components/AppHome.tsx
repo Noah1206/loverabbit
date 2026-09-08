@@ -11,6 +11,7 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { READING_SALE_CREDITS } from "@/lib/credits";
+import GenreIcon from "@/components/GenreIcon";
 import { GENRES } from "@/lib/genres";
 import {
   GRID_HIDDEN,
@@ -236,8 +237,9 @@ export default function AppHome() {
           {GENRES.map((g) => (
             <Link key={g.id} href={g.href} className="home-genre">
               <span className="home-genre-art">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={g.art} alt="" loading="lazy" />
+                {/* 캐릭터 그림에서 선 아이콘으로 (2026-09-08 운영자) — 종목
+                    여섯에 얼굴 여섯이 서면 한 화면에 캐릭터가 너무 많다. */}
+                <GenreIcon id={g.id} size={26} />
                 {g.free && <b className="home-genre-tag">무료</b>}
               </span>
               <strong>{g.label}</strong>
