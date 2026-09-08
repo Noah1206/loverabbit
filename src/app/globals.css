@@ -1065,6 +1065,16 @@ label {
   transition: transform 200ms ease;
 }
 
+/* 헤더 아이콘을 키운다 (2026-09-09 운영자: 너무 작다).
+   44px 버튼 안에 24px 아이콘이 들어 있어 눌리는 자리보다 보이는 것이 훨씬
+   작았다. 마크업의 width/height 를 여기서 덮는 이유는 아이콘이 늘 때
+   두 곳을 따로 고치지 않게 하려는 것이다. */
+.app-header-icon svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 1.7;
+}
+
 .app-header-icon:hover,
 .app-header-icon:focus-visible {
   transform: scale(1.08);
