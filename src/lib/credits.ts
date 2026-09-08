@@ -209,7 +209,7 @@ export const DAILY_ACTION_COST = 1;
  * 그래도 값을 받는 이유: 뽑을 때마다 결과가 달라 매번이 새 상품이다. 명식이
  * 안 바뀌어 한 번 사면 끝인 사주와 달리, 여기는 반복 구매가 자연스럽다.
  */
-export const TAROT_COST = 1;
+export const TAROT_COST: number = 1;
 
 /**
  * 사주를 사면 딸려 나가는 선물 러빗 (2026-09-09 이벤트).
@@ -220,8 +220,12 @@ export const TAROT_COST = 1;
  * 사용 처리가 따라붙는데 그 전부가 이미 원장에 있다.
  *
  * 끝낼 때: 이 값을 0 으로 두면 지급이 멈춘다 (지급부가 0 이면 건너뛴다).
+ *
+ * 타입을 number 로 못 박는 이유: 리터럴 1 로 좁혀지면 `=== 0` 비교가
+ * "일어날 수 없는 비교" 로 타입 에러가 난다. 껐다 켜는 값이라 리터럴로
+ * 굳으면 안 된다.
  */
-export const TAROT_GIFT_CREDITS = 1;
+export const TAROT_GIFT_CREDITS: number = 1;
 
 export type CreditReason =
   | "signup"

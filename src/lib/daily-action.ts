@@ -293,7 +293,7 @@ const ACTIONS: Record<Flow, Record<FortuneDomain, ActionCopy>> = {
     },
     money: {
       title: "새는 돈 1개 찾기",
-      action: "안 쓰는 구독 1개를 찾아 끊자.",
+      action: "오늘은 안 쓰는 구독 1개를 찾아 끊자.",
       reason: "가진 걸 세는 날이다. 늘리기보다 새는 곳을 보는 게 맞다.",
       avoid: "오늘은 기분으로 큰 지출이나 투자 결정을 하지 마.",
       minutes: 15,
