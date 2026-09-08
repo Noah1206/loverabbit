@@ -12436,18 +12436,14 @@ input[type="radio"] {
 /* ── 무료로 보는 운세 (2026-09-08) ────────────────────────────────
    값이 없는 것들을 한 줄로 세운다. 배너로 하나씩 쌓으면 한 화면에 하나씩만
    보이고, 그 사이 만세력 같은 것은 홈에서 들어가는 길조차 없었다. */
-.home-free {
-  /* 제목을 뗐다 (2026-09-08 운영자) — 칸 이름이 이미 무엇인지 말한다.
-     제목이 잡고 있던 자리만큼 위를 띄워 앞 카드와 붙지 않게 한다. */
-  margin: 26px 0 0;
-  padding: 0 20px;
-}
-.home-free-row {
+.home-genres {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+  margin: 26px 0 0;
+  padding: 0 20px;
 }
-.home-free-item {
+.home-genre {
   display: grid;
   justify-items: center;
   gap: 6px;
@@ -12459,23 +12455,23 @@ input[type="radio"] {
   color: var(--text);
   transition: transform 140ms ease;
 }
-.home-free-item:active { transform: scale(0.96); }
+.home-genre:active { transform: scale(0.96); }
 @media (prefers-reduced-motion: reduce) {
-  .home-free-item, .home-free-item:active { transition: none; transform: none; }
+  .home-genre, .home-genre:active { transition: none; transform: none; }
 }
-.home-free-art {
+.home-genre-art {
   position: relative;
   width: 46px;
   height: 46px;
   display: grid;
   place-items: center;
 }
-.home-free-art img {
+.home-genre-art img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
-.home-free-tag {
+.home-genre-tag {
   position: absolute;
   top: -4px;
   right: -8px;
@@ -12487,7 +12483,7 @@ input[type="radio"] {
   font-weight: 800;
   letter-spacing: 0.02em;
 }
-.home-free-item strong {
+.home-genre strong {
   font-size: 0.74rem;
   font-weight: 700;
   text-align: center;
@@ -12721,4 +12717,107 @@ input[type="radio"] {
   display: block;
   text-align: center;
   margin-bottom: 6px;
+}
+
+/* ── 종목 목록 화면 (2026-09-08) ── 카드가 아니라 리스트다:
+   종목을 고르고 들어온 사람에게는 분위기보다 제목이 먼저다 */
+.genre-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.genre-back {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--text);
+  text-decoration: none;
+}
+.genre-head-copy { flex: 1; min-width: 0; }
+.genre-head-copy h1 {
+  font-size: 1.42rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.genre-head-copy p {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: var(--text-dim);
+}
+.genre-head-art {
+  width: 62px;
+  height: auto;
+  flex-shrink: 0;
+}
+.genre-count {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.genre-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.genre-list li { border-top: 1px solid var(--line); }
+.genre-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 2px;
+  text-decoration: none;
+  color: var(--text);
+}
+.genre-item-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+.genre-item-copy strong {
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.genre-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.genre-tags i {
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--tint-2);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 600;
+}
+.genre-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+.genre-price b { font-weight: 800; }
+.genre-price small { color: var(--text-dim); }
+.genre-item-art {
+  width: 96px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--tint-2);
+}
+.genre-item-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
 }

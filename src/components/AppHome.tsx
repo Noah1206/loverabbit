@@ -11,6 +11,7 @@ import { useTheme } from "@/components/ThemeProvider";
 // 앱형 홈 — 콘텐츠 마켓 레이아웃. 전역 테마 기본값은 다크이며 사용자의 선택을 저장한다.
 // 상품 데이터는 lib/products.ts 단일 소스에서 온다 (상세 판매 페이지와 공유).
 import { READING_SALE_CREDITS } from "@/lib/credits";
+import { GENRES } from "@/lib/genres";
 import {
   GRID_HIDDEN,
   PRODUCTS,
@@ -21,20 +22,6 @@ import {
 } from "@/lib/products";
 import InquiryButton from "@/components/InquiryButton";
 
-
-/**
- * 무료로 열리는 것들. 값이 없다는 것이 이 줄의 전부라, 유료 상품은 여기
- * 넣지 않는다 — 하나라도 섞이면 줄 전체가 광고로 읽힌다.
- *
- * 그림은 십이지 캐릭터를 빌려 쓴다(2026-09-08). 아이콘을 새로 그리지 않고도
- * 칸마다 얼굴이 달라져, 다섯이 한 줄에 서도 구분된다.
- */
-const FREE_ENTRIES: { href: string; label: string; art: string; tag?: string }[] = [
-  { href: "/today", label: "오늘의 운세", art: "/assets/zodiac/rabbit-hanbok.webp" },
-  { href: "/manseryeok", label: "만세력", art: "/assets/zodiac/dragon-hanbok.webp" },
-  { href: "/guin", label: "사주지도", art: "/assets/zodiac/dog-hanbok.webp", tag: "NEW" },
-  { href: "/rewards", label: "러빗 받기", art: "/assets/zodiac/pig-hanbok.webp" },
-];
 
 const NOTICES = [
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
@@ -234,30 +221,29 @@ export default function AppHome() {
         </Link>
 
         {/*
-          ── 무료로 볼 수 있는 것 ── (2026-09-08)
+          ── 종목 ── (2026-09-08)
 
-          홈에 무료가 무엇인지 말하는 자리가 없었다. 배너가 세로로 쌓여
-          한 화면에 하나씩만 보였고, 그 사이 만세력·귀인은 홈에서 들어가는
-          길조차 없었다 — 있는데 아무도 못 찾는 상태다.
+          "종목이 적다" 는 말이 20종을 팔고 있는데도 나왔다. 전부 사주 한
+          갈래로만 보였기 때문이다 — 주제(연애·재물)로는 갈라 두었지만
+          사용자가 세는 것은 주제가 아니라 **무엇을 보는가** 다.
 
-          한 줄로 세우면 "공짜로 볼 게 이만큼 있다" 가 먼저 읽힌다. 유료
-          상품 줄 위에 두는 이유도 그것이다: 값을 묻기 전에 값 없는 것을
-          먼저 보여준다.
+          궁합이 특히 그랬다. 상대를 넣어야 하는 다른 종류의 일인데 연애 주제
+          안에 상품 하나로 섞여 있어 있는 줄도 몰랐다. 열 개나 있는데도.
+
+          새 데이터는 없다. 궁합인지 아닌지는 needsPartner 가 이미 정한다.
         */}
-        <section className="home-free">
-          <div className="home-free-row">
-            {FREE_ENTRIES.map((f) => (
-              <Link key={f.href} href={f.href} className="home-free-item">
-                <span className="home-free-art">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={f.art} alt="" loading="lazy" />
-                  {f.tag && <b className="home-free-tag">{f.tag}</b>}
-                </span>
-                <strong>{f.label}</strong>
-              </Link>
-            ))}
-          </div>
-        </section>
+        <nav className="home-genres" aria-label="종목">
+          {GENRES.map((g) => (
+            <Link key={g.id} href={g.href} className="home-genre">
+              <span className="home-genre-art">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={g.art} alt="" loading="lazy" />
+                {g.free && <b className="home-genre-tag">무료</b>}
+              </span>
+              <strong>{g.label}</strong>
+            </Link>
+          ))}
+        </nav>
 
         {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
 
