@@ -13,6 +13,7 @@ import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
 import GuinRunLoader from "@/components/GuinRunLoader";
 import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
+import { captureReferralFromLocation } from "@/lib/referral";
 import { getUser } from "@/lib/user";
 
 const CREATE_CONSENT =
@@ -39,6 +40,8 @@ function GuinLanding() {
   useEffect(() => {
     if (viewed.current) return;
     viewed.current = true;
+    // 초대 코드가 붙어 있으면 집어 둔다 — 지도 화면과 같은 이유.
+    captureReferralFromLocation();
     // 이미 만든 지도가 있으면 묻지 않고 바로 연다 — 네비 탭은 입력을 다시
     // 시키지 않는다 (2026-08-31 운영자 결정). 최근 것 하나.
     const mine = myGuinMaps();

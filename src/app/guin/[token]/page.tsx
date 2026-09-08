@@ -58,6 +58,8 @@ import {
   statusLine,
   type RelationGroup,
 } from "@/lib/saju-map-view";
+import { REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
+import { captureReferralFromLocation, REFERRAL_REWARD_PARAM } from "@/lib/referral";
 import { getUser } from "@/lib/user";
 
 const BUSY_MESSAGE = "지금 사주지도에 사람이 많이 몰리고 있어요. 잠시 후 다시 시도해주세요.";
@@ -295,6 +297,17 @@ export default function GuinMapPage() {
     }
   }, [view, inviteVariant]);
 
+  /*
+    초대 코드를 집어 둔다.
+
+    지금까지 이 일을 하는 곳은 /reading 뿐이었다. 그래서 지도 링크로 들어온
+    사람은 코드가 붙어 있어도 그대로 흘려보냈다 — 공유는 일어나는데 보상은
+    한 번도 안 나가는 구조였다. 여기서도 집는다.
+  */
+  useEffect(() => {
+    captureReferralFromLocation();
+  }, []);
+
   // 공유받은 결과를 읽어온다 — 링크에 ?p= 가 실려 있을 때만.
   useEffect(() => {
     if (!sharedPersonId || sharedResult) return;
@@ -409,8 +422,24 @@ export default function GuinMapPage() {
     () => normalizeCopyVariant(storedCopyVariant(assignCopyVariant)),
     []
   );
+  /*
+    공유 링크에 초대 코드를 싣는다 (2026-09-08).
+
+    기존 추천 시스템(3러빗)을 그대로 쓴다 — 별도 보상을 새로 만들지 않는다.
+    ?ref=코드&reward=... 가 붙어 있으면 받은 사람의 브라우저가 그것을 집어
+    두었다가(referral.ts) 가입할 때 쓴다. 즉 지도를 공유해서 친구가 가입하면
+    보낸 사람에게 기존 보상이 그대로 간다.
+
+    코드가 없으면(비회원 주인) 그냥 안 붙인다. 링크는 그대로 산다.
+  */
+  const referralQuery = useMemo(() => {
+    const code = getUser()?.referralCode;
+    return code ? `&ref=${encodeURIComponent(code)}&reward=${REFERRAL_REWARD_PARAM}` : "";
+  }, []);
   const shareUrl =
-    typeof window === "undefined" ? "" : `${window.location.origin}/guin/${token}?v=${myVariant}`;
+    typeof window === "undefined"
+      ? ""
+      : `${window.location.origin}/guin/${token}?v=${myVariant}${referralQuery}`;
 
   const shareLink = async (event: "guin_share_link_copied" | "guin_result_card_shared") => {
     const text = GUIN_COPY[myVariant].shareText;
@@ -436,7 +465,7 @@ export default function GuinMapPage() {
   */
   const sharePerson = async (node: GuinNodeView) => {
     if (typeof window === "undefined") return;
-    const url = `${window.location.origin}/guin/${token}?v=${myVariant}&p=${encodeURIComponent(node.id)}`;
+    const url = `${window.location.origin}/guin/${token}?v=${myVariant}&p=${encodeURIComponent(node.id)}${referralQuery}`;
     const text =
       typeof node.score === "number"
         ? `내 사주지도에서 너는 "${node.roleLabel}" 인연이야. 궁합 ${node.score}점 나왔어 🐰`
@@ -1086,6 +1115,13 @@ export default function GuinMapPage() {
               <button className="btn" onClick={() => void shareLink("guin_share_link_copied")}>
                 공유하기 · 링크 복사
               </button>
+              {/* 기존 추천 보상을 그대로 쓴다 — 새 보상을 만들지 않았다.
+                  코드가 없는(비회원) 주인에게는 이 줄이 안 뜬다. */}
+              {referralQuery && (
+                <p style={{ color: "var(--text-dim)", fontSize: "0.78rem", textAlign: "center" }}>
+                  이 링크로 친구가 가입하면 {REFERRAL_SIGNUP_CREDITS}러빗을 받아요
+                </p>
+              )}
               <button
                 className="btn btn-ghost"
                 onClick={() => {
