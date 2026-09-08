@@ -211,6 +211,18 @@ export const DAILY_ACTION_COST = 1;
  */
 export const TAROT_COST = 1;
 
+/**
+ * 사주를 사면 딸려 나가는 선물 러빗 (2026-09-09 이벤트).
+ *
+ * 타로 한 번 값과 같게 둔다 — "타로 한 번 무료" 라고 말하려면 그만큼이어야
+ * 한다. 쿠폰을 새로 만들지 않고 러빗으로 주는 이유는, 타로 값이 1러빗이라
+ * 러빗 한 개가 곧 타로 한 번이기 때문이다. 쿠폰 종류를 늘리면 예약·만료·
+ * 사용 처리가 따라붙는데 그 전부가 이미 원장에 있다.
+ *
+ * 끝낼 때: 이 값을 0 으로 두면 지급이 멈춘다 (지급부가 0 이면 건너뛴다).
+ */
+export const TAROT_GIFT_CREDITS = 1;
+
 export type CreditReason =
   | "signup"
   | "referral_click"
@@ -221,7 +233,8 @@ export type CreditReason =
   | "refund"
   | "admin"
   | "daily_action"
-  | "tarot";
+  | "tarot"
+  | "tarot_gift";
 
 export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   signup: "가입 선물",
@@ -234,6 +247,7 @@ export const CREDIT_REASON_LABEL: Record<CreditReason, string> = {
   admin: "운영자 조정",
   daily_action: "오늘의 운세",
   tarot: "타로 뽑기",
+  tarot_gift: "사주 구매 선물 — 타로 한 번",
 };
 
 export interface CreditLedgerEntry {

@@ -13178,3 +13178,37 @@ input[type="radio"] {
   font-size: 0.68rem;
   font-weight: 800;
 }
+
+/* ── 사주 구매 선물: 타로 한 번 (2026-09-09) ──────────────────────
+   지급은 결제 확정 때 이미 끝났고, 이 카드는 그것을 알리는 자리다.
+   받은 줄 모르면 안 쓰고, 안 쓰면 교차판매가 일어나지 않는다. */
+.report-gift {
+  margin-top: 22px;
+  padding: 20px 18px;
+  border-radius: var(--r-lg);
+  border: 1px solid rgba(180, 117, 22, 0.28);
+  background: linear-gradient(135deg, rgba(253, 243, 221, 0.9), rgba(253, 236, 200, 0.7));
+  color: #4a3a1c;
+}
+.report-gift .badge {
+  background: #4a3a1c;
+  color: #fdf3dd;
+}
+.report-gift h2 {
+  margin: 10px 0 6px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.report-gift p {
+  margin: 0 0 14px;
+  font-size: 0.87rem;
+  line-height: 1.65;
+  color: #6b5a34;
+}
+.report-gift .btn {
+  width: 100%;
+  background: #4a3a1c;
+  color: #fdf3dd;
+  border-color: #4a3a1c;
+}

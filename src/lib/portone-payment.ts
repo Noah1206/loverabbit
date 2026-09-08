@@ -13,7 +13,8 @@ import {
   PortOnePaymentError,
   validatePortOneTransferPayment,
 } from "@/lib/portone-validation";
-import { completeCreditOrder, getCreditBalance } from "@/lib/credits-db";
+import { TAROT_GIFT_CREDITS } from "@/lib/credits";
+import { applyCredit, completeCreditOrder, getCreditBalance } from "@/lib/credits-db";
 import { markUnlocked } from "@/lib/store";
 import { reportApprovedPurchase } from "@/lib/purchase-conversion";
 
@@ -172,6 +173,24 @@ export async function finalizePortOnePayment(
       const conversion = await reportApprovedPurchase(paymentId);
       if (!conversion.sent) {
         console.log(`[전환] 포트원 ${paymentId} 전환 미전송: ${conversion.reason}`);
+      }
+
+      /*
+        사주를 사면 타로 한 번을 선물한다 (2026-09-09 이벤트).
+
+        이 자리인 이유: alreadyPaid 가 false 일 때만 도는 곳이라 웹훅과 완료
+        화면이 겹쳐도 한 번만 지급된다. ref 에 결제 번호를 넣어 원장의
+        (reason, ref) unique 가 한 겹 더 막는다.
+
+        실패해도 결제를 되돌리지 않는다. 선물을 못 준 것은 우리 쪽 손해지만,
+        여기서 예외를 올리면 이미 받은 돈에 대한 리딩 해금까지 뒤집힌다.
+      */
+      if (TAROT_GIFT_CREDITS > 0 && order.userId) {
+        try {
+          await applyCredit(order.userId, TAROT_GIFT_CREDITS, "tarot_gift", paymentId);
+        } catch (error) {
+          console.error(`[선물] 포트원 ${paymentId} 타로 선물 지급 실패:`, error);
+        }
       }
     }
 

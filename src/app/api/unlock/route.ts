@@ -13,7 +13,7 @@ import {
   settleCouponsForOrder,
 } from "@/lib/database";
 import { couponPrice, couponSaving } from "@/lib/coupons";
-import { saleCreditCost } from "@/lib/credits";
+import { TAROT_GIFT_CREDITS, saleCreditCost } from "@/lib/credits";
 import { InsufficientCreditsError, applyCredit, getCreditBalance, countOpenedReadings } from "@/lib/credits-db";
 import { resolveUserToken } from "@/lib/tokens";
 import { finishReading } from "@/lib/reading-finish";
@@ -540,6 +540,25 @@ export async function POST(req: NextRequest) {
       }
       const unlocked = await markUnlocked(body.readingId, { method: "toss-pg", at: now }, user.userId);
       if (isDatabaseConfigured() && !unlocked) throw new Error("DB에서 리딩을 찾을 수 없습니다.");
+
+      /*
+        사주를 사면 타로 한 번을 선물한다 (2026-09-09 이벤트).
+
+        **돈이 들어온 경로에만 붙인다.** 러빗으로 여는 길(위쪽 credits 분기)에는
+        주지 않는다 — 러빗을 쓰고 러빗을 받으면 순환이 되고, 값이 사실상
+        1러빗 깎인 것과 같아진다. 이 이벤트는 값을 깎지 않기로 한 것이다.
+
+        ref 에 주문번호를 넣어 (reason, ref) unique 가 이중 지급을 막는다.
+        실패해도 해금은 되돌리지 않는다 — 선물을 못 준 것은 우리 손해지만,
+        여기서 예외를 올리면 받은 돈에 대한 해금까지 뒤집힌다.
+      */
+      if (TAROT_GIFT_CREDITS > 0) {
+        try {
+          await applyCredit(user.userId, TAROT_GIFT_CREDITS, "tarot_gift", body.orderId);
+        } catch (giftError) {
+          console.error(`[선물] 주문 ${body.orderId} 타로 선물 지급 실패:`, giftError);
+        }
+      }
     } catch (error) {
       console.error("PG 승인 결과 저장 실패:", error);
       return NextResponse.json(

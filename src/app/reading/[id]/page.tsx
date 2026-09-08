@@ -9,7 +9,7 @@ import CardMotion from "@/components/CardMotion";
 import ChatSection from "@/components/ChatSection";
 import PaymentModal from "@/components/PaymentModal";
 import { bundleOfReading } from "@/lib/bundles";
-import { READING_PRICE_TIERS, REFERRAL_SIGNUP_CREDITS } from "@/lib/credits";
+import { READING_PRICE_TIERS, REFERRAL_SIGNUP_CREDITS, TAROT_GIFT_CREDITS } from "@/lib/credits";
 import ContinueSheet from "@/components/ContinueSheet";
 import RabbitLoader from "@/components/RabbitLoader";
 import {
@@ -1020,6 +1020,28 @@ export default function ReadingReportPage() {
                 {/* 다음 질문 — 같은 명식에서 갈라지는 두 가지. 폼을 처음부터가
                     아니라 상대 생년월일 한 칸(?from=reading)만 남긴 채로 간다.
                     값은 러빗 하나로 말한다 (2026-08-31 단일 화폐). */}
+                {/*
+                  타로 선물 안내 (2026-09-09 이벤트).
+
+                  지급은 결제 확정 때 서버가 이미 했다 — 이 줄은 그것을 알리는
+                  자리다. 받은 줄 모르면 안 쓰고, 안 쓰면 교차판매가 일어나지
+                  않는다. 리딩을 다 읽은 자리에 두는 이유도 그것이다: 여기가
+                  "그럼 다음은?" 이 생기는 지점이다.
+                */}
+                {TAROT_GIFT_CREDITS > 0 && (
+                  <section className="report-gift">
+                    <span className="badge">사주 구매 선물</span>
+                    <h2>타로 한 번이 열려 있어요</h2>
+                    <p>
+                      카드 세 장을 뽑고, 그 카드를 당신의 사주 결과 겹쳐 읽어요. 방금 본 명식
+                      그대로 쓰니 다시 입력할 것도 없어요.
+                    </p>
+                    <Link className="btn" href="/tarot">
+                      타로 뽑아보기 →
+                    </Link>
+                  </section>
+                )}
+
                 {nextReadings.length > 0 && (
                   <section className="report-crosssell">
                     <span className="badge">다음 질문</span>

@@ -61,3 +61,25 @@ test("이벤트 종료일이 날짜 모양이다", () => {
   if (!CREDIT_EVENT) return;
   assert.match(CREDIT_EVENT.until, /^\d{4}-\d{2}-\d{2}$/);
 });
+
+test("타로 선물은 타로 한 번 값과 같다", async () => {
+  // "타로 한 번 무료" 라고 말하려면 그만큼이어야 한다. 값이 어긋나면
+  // 선물을 받아도 타로를 못 뽑거나, 필요 이상으로 주게 된다.
+  const { TAROT_COST, TAROT_GIFT_CREDITS } = await import("../src/lib/credits");
+  if (TAROT_GIFT_CREDITS === 0) return; // 이벤트를 끈 상태
+  assert.equal(
+    TAROT_GIFT_CREDITS,
+    TAROT_COST,
+    `선물(${TAROT_GIFT_CREDITS})과 타로 값(${TAROT_COST})이 다르다`
+  );
+});
+
+test("원장 사유 이름과 라벨이 짝을 이룬다", async () => {
+  // 라벨이 빠지면 /my 의 러빗 내역에 빈 줄이 나온다.
+  const { CREDIT_REASON_LABEL } = await import("../src/lib/credits");
+  for (const [reason, label] of Object.entries(CREDIT_REASON_LABEL)) {
+    assert.ok(label && label.length > 1, `${reason} 의 라벨이 비었다`);
+  }
+  assert.ok(CREDIT_REASON_LABEL.tarot, "tarot 라벨이 없다");
+  assert.ok(CREDIT_REASON_LABEL.tarot_gift, "tarot_gift 라벨이 없다");
+});
