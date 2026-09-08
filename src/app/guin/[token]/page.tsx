@@ -17,6 +17,7 @@ import GuinMapBackground, { ROLE_DOT } from "@/components/GuinMapBackground";
 import GuinMapIntro from "@/components/GuinMapIntro";
 import SajuMapCanvas from "@/components/SajuMapCanvas";
 import SajuPersonSheet from "@/components/SajuPersonSheet";
+import SajuMapRanking from "@/components/SajuMapRanking";
 import { trackFunnel } from "@/lib/funnel";
 import {
   fetchSavedBirth,
@@ -866,6 +867,24 @@ export default function GuinMapPage() {
             ))}
           </ul>
         </section>
+      )}
+
+      {/*
+        귀인 TOP 3 (2026-09-08). 셋이 모이면 열리고, 안 됐으면 몇 명 남았는지 말한다.
+        지도 바로 아래가 자리다 — 지도를 보고 "그래서 누가 1등인데" 가 바로 이어진다.
+      */}
+      {(isOwner || showContext) && view.count > 0 && (
+        <SajuMapRanking
+          nodes={view.nodes}
+          onOpen={(id) => {
+            setSelected(id);
+            setSheetOpen(true);
+          }}
+          onAdd={isOwner ? () => {
+            trackFunnel("guin_person_add_started", { landing: sizeBucket(view.count) });
+            setAddOpen(true);
+          } : undefined}
+        />
       )}
 
       {/* 방금 참여한 사람에게는 아래 지도 섹션이 자기 카드 단계를 마친 뒤에 열린다 —

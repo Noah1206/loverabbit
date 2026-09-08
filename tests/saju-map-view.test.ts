@@ -14,6 +14,9 @@ import {
   ringCount,
   sortForMap,
   statusLine,
+  topThree,
+  untilRank,
+  axisHighlights,
 } from "@/lib/saju-map-view";
 import type { GuinNodeView, GuinRole } from "@/lib/guin-map";
 
@@ -130,5 +133,77 @@ describe("공유 카드 — 이름을 가린다", () => {
 
   it("한 글자는 그대로 — 가릴 것이 없다", () => {
     assert.equal(maskName("김"), "김");
+  });
+});
+
+describe("귀인 TOP 3", () => {
+  const p = (id: string, nickname: string, score: number | null) => ({
+    id,
+    nickname,
+    score,
+    roleLabel: "오른팔형",
+    roleTagline: "현실적으로 내 편이 되어주는 사람",
+  });
+
+  it("셋이 안 되면 순위를 만들지 않는다", () => {
+    assert.deepEqual(topThree([p("a", "민지", 90), p("b", "서연", 80)]), []);
+  });
+
+  it("셋부터 열리고, 점수 순으로 메달이 붙는다", () => {
+    const top = topThree([p("a", "민지", 71), p("b", "서연", 94), p("c", "현우", 83)]);
+    assert.deepEqual(top.map((t) => t.nickname), ["서연", "현우", "민지"]);
+    assert.deepEqual(top.map((t) => t.medal), ["🥇", "🥈", "🥉"]);
+  });
+
+  it("넷 이상이어도 셋만", () => {
+    const top = topThree([
+      p("a", "가", 90), p("b", "나", 80), p("c", "다", 70), p("d", "라", 60),
+    ]);
+    assert.equal(top.length, 3);
+  });
+
+  it("점수가 가려진 지도에서는 순위가 없다 — 감춘 점수로 세우지 않는다", () => {
+    assert.deepEqual(topThree([p("a", "가", null), p("b", "나", null), p("c", "다", null)]), []);
+  });
+
+  it("몇 명 남았는지 센다", () => {
+    assert.equal(untilRank(0), 3);
+    assert.equal(untilRank(2), 1);
+    assert.equal(untilRank(3), 0);
+    assert.equal(untilRank(9), 0);
+  });
+});
+
+describe("축별 1등", () => {
+  const withAxes = (id: string, nickname: string, comfort: number, help: number) => ({
+    id,
+    nickname,
+    axes: { comfort, practicalHelp: help, communication: 50, stimulation: 50 },
+  });
+
+  it("셋이 안 되면 뽑지 않는다", () => {
+    assert.deepEqual(axisHighlights([withAxes("a", "가", 90, 10)]), []);
+  });
+
+  it("축마다 1등을 뽑되 두 개까지만", () => {
+    const found = axisHighlights([
+      withAxes("a", "가", 90, 10),
+      withAxes("b", "나", 20, 95),
+      withAxes("c", "다", 50, 50),
+    ]);
+    assert.equal(found.length, 2);
+    assert.equal(found[0].nickname, "가"); // 편안함 1등
+    assert.equal(found[1].nickname, "나"); // 현실적 도움 1등
+  });
+
+  it("축이 없는 옛 노드만 있으면 아무것도 안 뽑는다", () => {
+    assert.deepEqual(
+      axisHighlights([
+        { id: "a", nickname: "가", axes: null },
+        { id: "b", nickname: "나", axes: null },
+        { id: "c", nickname: "다", axes: null },
+      ]),
+      []
+    );
   });
 });

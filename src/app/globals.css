@@ -12148,3 +12148,128 @@ input[type="radio"] {
   flex-shrink: 0;
   margin-left: 12px;
 }
+
+/* ── 귀인 TOP 3 ── 지도 아래, 관계 카드 목록 위 */
+.sm-rank {
+  padding: 20px;
+  margin-bottom: 14px;
+}
+.sm-rank-list {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+}
+.sm-rank-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg-card2);
+  cursor: pointer;
+}
+.sm-rank-list i {
+  font-style: normal;
+  font-size: 1.2rem;
+}
+.sm-rank-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.sm-rank-body b {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.94rem;
+}
+/* 점수 — 이름 옆에 붙되 이름보다 조용하게 */
+.sm-rank-body em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+}
+.sm-rank-body small {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 축별 1등 — 두 칸으로 나란히 */
+.sm-rank-extra {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sm-rank-extra button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg-card);
+  cursor: pointer;
+  min-width: 0;
+}
+.sm-rank-extra i {
+  font-style: normal;
+}
+.sm-rank-extra span {
+  display: grid;
+  min-width: 0;
+}
+.sm-rank-extra small {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sm-rank-extra b {
+  font-size: 0.86rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sm-rank-more {
+  margin-top: 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* 아직 셋이 안 됐을 때 — 잠긴 순위 */
+.sm-rank-locked {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 22px 20px;
+  margin-bottom: 14px;
+  text-align: center;
+}
+.sm-rank-locked span {
+  font-size: 1.4rem;
+}
+.sm-rank-locked b {
+  font-size: 0.92rem;
+}
+.sm-rank-locked .btn {
+  width: 100%;
+}
+
+@media (max-width: 360px) {
+  .sm-rank-extra {
+    grid-template-columns: 1fr;
+  }
+}

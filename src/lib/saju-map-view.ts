@@ -214,3 +214,105 @@ export function maskName(nickname: string): string {
   if (clean.length <= 1) return clean;
   return clean[0] + "*".repeat(Math.min(clean.length - 1, 3));
 }
+
+/* ── 귀인 TOP 3 ─────────────────────────────────────────────────────────
+   사람이 셋 모이면 순위를 연다. 순위는 사람을 더 넣게 만드는 장치이자,
+   화면을 캡처해서 보내고 싶게 만드는 자리다.
+
+   점수는 이미 계산돼 있다(guin-calc). 여기서는 세우고 자르기만 한다 —
+   새 점수를 만들지 않는다. */
+
+/** 순위가 열리는 인원 */
+export const RANK_UNLOCK_AT = 3;
+
+export interface RankedPerson {
+  id: string;
+  nickname: string;
+  score: number;
+  roleLabel: string;
+  /** 이 사람을 한 줄로 — 역할 소개말을 그대로 쓴다 */
+  tagline: string;
+  medal: string;
+}
+
+const MEDALS = ["🥇", "🥈", "🥉"];
+
+/**
+ * 궁합 상위 세 사람.
+ *
+ * 점수가 가려진 지도(showScores 꺼짐)에서는 순위를 만들지 않는다 — 점수를
+ * 감춰 놓고 그 점수로 세운 순위를 보여주면 설정이 거짓말이 된다.
+ */
+export function topThree(
+  nodes: {
+    id: string;
+    nickname: string;
+    score: number | null;
+    roleLabel: string;
+    roleTagline: string;
+  }[]
+): RankedPerson[] {
+  const scored = nodes.filter(
+    (n): n is typeof n & { score: number } => typeof n.score === "number"
+  );
+  if (scored.length < RANK_UNLOCK_AT) return [];
+  return sortForMap(scored)
+    .slice(0, 3)
+    .map((node, i) => ({
+      id: node.id,
+      nickname: node.nickname,
+      score: node.score,
+      roleLabel: node.roleLabel,
+      tagline: node.roleTagline,
+      medal: MEDALS[i],
+    }));
+}
+
+/* ── 눈에 띄는 한 명 ────────────────────────────────────────────────────
+   순위 옆에 붙는 별도 항목. "가장 편한 인연" 처럼 축 하나로 뽑는다.
+   축이 없는 옛(guin-1) 노드가 섞여 있으면 그 축은 건너뛴다. */
+
+export interface AxisHighlight {
+  emoji: string;
+  title: string;
+  nickname: string;
+  nodeId: string;
+}
+
+const AXIS_HIGHLIGHT: { key: string; emoji: string; title: string }[] = [
+  { key: "comfort", emoji: "💗", title: "마음이 가장 편한 인연" },
+  { key: "practicalHelp", emoji: "💰", title: "같이 일하면 좋은 인연" },
+  { key: "stimulation", emoji: "🔥", title: "가장 강하게 끌리는 인연" },
+  { key: "communication", emoji: "💬", title: "말이 가장 잘 통하는 인연" },
+];
+
+/**
+ * 축마다 1위인 사람 하나씩. 이미 TOP3 에 오른 사람도 나올 수 있다 —
+ * 축이 다르면 다른 이야기이므로 굳이 빼지 않는다.
+ */
+export function axisHighlights(
+  nodes: { id: string; nickname: string; axes?: Record<string, number | undefined> | null }[]
+): AxisHighlight[] {
+  const withAxes = nodes.filter((n) => n.axes);
+  if (withAxes.length < RANK_UNLOCK_AT) return [];
+
+  const out: AxisHighlight[] = [];
+  for (const { key, emoji, title } of AXIS_HIGHLIGHT) {
+    const usable = withAxes.filter((n) => typeof n.axes![key] === "number");
+    if (usable.length < RANK_UNLOCK_AT) continue;
+    // 동점이면 별명 순으로 하나만 — 공동 1위를 다 적으면 카드가 길어진다.
+    const best = usable.reduce((a, b) => {
+      const av = a.axes![key]!;
+      const bv = b.axes![key]!;
+      if (av === bv) return a.nickname.localeCompare(b.nickname) <= 0 ? a : b;
+      return av > bv ? a : b;
+    });
+    out.push({ emoji, title, nickname: best.nickname, nodeId: best.id });
+  }
+  return out.slice(0, 2);
+}
+
+/** 순위가 열리기까지 몇 명 남았는지 — 더 넣게 만드는 문구에 쓴다 */
+export function untilRank(count: number): number {
+  return Math.max(0, RANK_UNLOCK_AT - count);
+}
