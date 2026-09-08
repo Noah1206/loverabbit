@@ -72,3 +72,16 @@ test("그림 경로는 띠마다 다르고 아스키로만 이루어진다", () 
     assert.match(z.art, /^\/assets\/zodiac\/[a-z]+-hanbok\.webp$/);
   }
 });
+
+test("등재부가 그림이 있다고 한 띠는 파일이 실제로 있다", async () => {
+  // 등재부는 사람이 손으로 적는다. 파일 없이 이름만 더하면 화면에 깨진
+  // 이미지가 뜨는데, 그건 이모지 폴백보다 나쁘다 — 그 실수를 여기서 막는다.
+  const { access } = await import("node:fs/promises");
+  for (const z of ZODIAC) {
+    if (!ZODIAC_ART_READY.has(z.animal)) continue;
+    await assert.doesNotReject(
+      access(new URL(`../public${z.art}`, import.meta.url)),
+      `${z.animal}: ${z.art} 파일이 없다`
+    );
+  }
+});

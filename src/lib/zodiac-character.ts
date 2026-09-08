@@ -66,12 +66,17 @@ export const ZODIAC: readonly ZodiacCharacter[] = JIJI_ANIMAL.map((animal, i) =>
  * 이미 그려진 띠. 그림을 새로 넣을 때마다 여기에 이름을 더한다 —
  * 파일 존재를 코드가 알 길이 없으므로, 이 집합이 사람이 관리하는 등재부다.
  *
- * 지금은 비어 있다 — 열두 장 중 아무것도 아직 없다. 토끼 그림이 이미 있긴
- * 하지만 그것은 흐름용(rabbit-*-hanbok)이라 띠 자리에 그대로 쓸 수 없다.
- * 힉스필드로 뽑는 대로 하나씩 연다 (public/assets/today/README.md 의
- * 파이프라인을 그대로 따른다 — 896px, 한복, **빈손**).
+ * 열둘 다 그렸다 (2026-09-08). 힉스필드 nano_banana_pro 로 뽑고
+ * image_background_remover 로 배경을 지운 896px 투명 webp 다.
+ *
+ * 띠마다 얼굴과 옷이 다르다. 화풍만 같고 표정·자세·한복 색은 겹치지 않는다 —
+ * 같은 얼굴에 동물만 바꾸면 열둘이 한 마리로 읽힌다(첫 시도가 그랬다).
+ *
+ * 배경 제거는 반드시 힉스필드 것을 쓴다. ImageMagick 으로 흰색을 지우면
+ * 돼지의 연분홍 몸통과 크림색 바지에 구멍이 뚫리고, 가장자리 flood-fill 로
+ * 바꾸면 발밑 그림자가 캐릭터에 닿아 있어 남는다 — 둘 다 실제로 겪었다.
  */
-export const ZODIAC_ART_READY = new Set<string>([]);
+export const ZODIAC_ART_READY = new Set<string>(ZODIAC.map((z) => z.animal));
 
 const BY_ANIMAL = new Map(ZODIAC.map((z) => [z.animal, z]));
 
