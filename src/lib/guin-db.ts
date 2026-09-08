@@ -429,3 +429,34 @@ export async function carryBirthForReading(
     partnerNickname: String(data.nickname),
   };
 }
+
+/**
+ * 본인 요청 삭제 — 별명과 생년월일이 맞는 참여자를 지운다.
+ *
+ * 참여자 키가 없는 사람(주인이 대신 넣은 사람)도 스스로 지울 수 있어야 해서
+ * 있는 길이다. 확인은 지문으로 한다 — 저장할 때 만든 것과 같은 방식으로
+ * 다시 만들어 맞춰 본다. 지도에 공개된 것은 별명뿐이므로 별명만으로는
+ * 지워지지 않는다.
+ *
+ * 지운 행 수를 돌려준다. 0 이면 맞는 기록이 없는 것이다 — 호출부는 그것을
+ * "찾지 못했어요" 하나로 답한다(맞히기로 남의 생일을 캐지 못하게).
+ */
+export async function eraseByFingerprint(
+  map: GuinMapRow,
+  nickname: string,
+  birth: GuinBirthInput
+): Promise<number> {
+  const db = getSupabaseAdmin();
+  if (!db) return 0;
+  // 저장할 때와 **같은 모양**이어야 지문이 맞는다 (joinGuinMap 참고).
+  const birthdate = `${birth.year}-${birth.month}-${birth.day}`;
+  const fingerprint = participantFingerprint(map.id, birthdate, nickname);
+  const { data, error } = await db
+    .from("lr_guin_participants")
+    .delete()
+    .eq("map_id", map.id)
+    .eq("participant_fingerprint", fingerprint)
+    .select("id");
+  if (error) throw databaseError("본인 요청 삭제", error);
+  return data?.length ?? 0;
+}

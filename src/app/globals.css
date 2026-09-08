@@ -12433,3 +12433,18 @@ input[type="radio"] {
 .sm-deepdive .btn {
   width: 100%;
 }
+
+/* 내리기 — 공유 결과 화면 아래. 눈에 띄되 앞을 막지 않는다 */
+.guin-erase-link {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px;
+  border: 0;
+  background: none;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}

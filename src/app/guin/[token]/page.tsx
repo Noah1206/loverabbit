@@ -183,6 +183,11 @@ export default function GuinMapPage() {
   const [sharedResult, setSharedResult] = useState<SharedResult | null>(null);
   // 결과를 보고 "내 지도 만들기" 를 누르면 그때 폼으로 넘어간다.
   const [wantsOwnMap, setWantsOwnMap] = useState(false);
+  // "이 지도에서 나를 지워 주세요" — 본인 확인 후 자동 삭제
+  const [eraseOpen, setEraseOpen] = useState(false);
+  const [erasing, setErasing] = useState(false);
+  const [eraseError, setEraseError] = useState("");
+  const [erased, setErased] = useState(false);
 
   const load = useCallback(async () => {
     setStatus("loading");
@@ -498,6 +503,33 @@ export default function GuinMapPage() {
     }
   };
 
+  /**
+   * 본인 확인 후 이 지도에서 내 기록을 지운다.
+   *
+   * 별명과 생년월일이 저장된 지문과 맞아야 지워진다. 틀리면 서버가 "찾지
+   * 못했어요" 하나만 답한다 — 맞히기로 남의 생일을 캐는 길이 되지 않게.
+   */
+  const eraseMe = async (value: GuinFormValue) => {
+    if (erasing) return;
+    setErasing(true);
+    setEraseError("");
+    try {
+      const res = await fetch(`/api/guin/${encodeURIComponent(token)}/erase`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nickname: value.nickname, birth: value.birth }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { erased?: number; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "잠시 후 다시 시도해주세요.");
+      setErased(true);
+      trackFunnel("guin_self_erased");
+    } catch (e) {
+      setEraseError(e instanceof Error ? e.message : "잠시 후 다시 시도해주세요.");
+    } finally {
+      setErasing(false);
+    }
+  };
+
   const patchMap = async (patch: { showScores?: boolean; linkEnabled?: boolean }) => {
     if (!ownerKey) return;
     const res = await fetch(`/api/guin/${encodeURIComponent(token)}`, {
@@ -692,7 +724,54 @@ export default function GuinMapPage() {
           </button>
         </section>
 
+        {/*
+          내리기 (2026-09-08). 내가 넣은 적 없는데 지도에 올라가 있는 사람이
+          이 화면에 온다. 그 사람에게 "문의하세요" 라고 적어 두면 사람이 손으로
+          지울 때까지 남아 있는다 — 본인이 그 자리에서 지울 수 있어야 한다.
+        */}
+        <button type="button" className="guin-erase-link" onClick={() => setEraseOpen(true)}>
+          내 정보를 이 지도에서 지우고 싶어요
+        </button>
+
         <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 16 }}>{GUIN_DISCLAIMER}</p>
+
+        {eraseOpen && (
+          <div className="rv-drawer" role="dialog" aria-label="내 정보 지우기" onClick={() => setEraseOpen(false)}>
+            <div className="rv-drawer-sheet" onClick={(event) => event.stopPropagation()}>
+              <header>
+                <strong style={{ flex: 1 }}>내 정보 지우기</strong>
+                <button type="button" className="rv-icon" onClick={() => setEraseOpen(false)} aria-label="닫기">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </header>
+              {erased ? (
+                <p style={{ fontSize: "0.9rem", lineHeight: 1.6 }}>
+                  지웠어요. 이 지도에서 회원님의 별명과 생년월일, 관계 기록이 모두 삭제됐습니다.
+                </p>
+              ) : (
+                <>
+                  <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", lineHeight: 1.6, marginBottom: 12 }}>
+                    본인 확인을 위해 이 지도에 등록된 <strong>별명과 생년월일</strong>을 입력해 주세요.
+                    맞으면 바로 지워지고, 따로 승인을 기다리지 않아도 돼요.
+                  </p>
+                  <GuinBirthForm
+                    submitLabel={erasing ? "지우는 중…" : "내 정보 지우기"}
+                    consentNote="입력한 값은 본인 확인에만 쓰고 저장하지 않습니다. 확인되면 이 지도에서 회원님의 기록이 즉시 삭제됩니다."
+                    busy={erasing}
+                    onSubmit={eraseMe}
+                  />
+                  {eraseError && (
+                    <p style={{ color: "var(--semantic-error)", fontSize: "0.84rem", marginTop: 10 }}>
+                      {eraseError}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </main>
     );
   }

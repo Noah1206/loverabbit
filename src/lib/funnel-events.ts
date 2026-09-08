@@ -100,6 +100,8 @@ export const FUNNEL_EVENTS = [
   "guin_share_result_cta_clicked",
   /** 상세 시트에서 유료 궁합으로 넘어갔다 */
   "guin_paid_reading_clicked",
+  /** 본인 확인 후 스스로 기록을 지웠다 (주인이 대신 넣은 사람의 삭제권) */
+  "guin_self_erased",
   /** 초대받은 사람이 자기 지도를 만들었다 — 2차 바이럴 */
   "guin_second_map_created",
   /** 관계 결과 카드를 공유했다 */
