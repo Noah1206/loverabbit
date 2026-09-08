@@ -33,10 +33,19 @@ const NOTICES = [
 export default function AppHome() {
   const { theme } = useTheme();
   const [notice, setNotice] = useState(0);
+  /* 배너 슬라이드. 누르면 멈춘다 — 읽는 중에 넘어가면 안내가 아니라 방해다. */
+  const [slide, setSlide] = useState(0);
+  const [slideHeld, setSlideHeld] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   // localStorage 를 읽기 전에는 배너를 그리지 않는다 — 로그인한 사람에게
   // "로그인하세요" 가 한 순간 번쩍이는 것을 막는다.
   const [showSignup, setShowSignup] = useState(false);
+  useEffect(() => {
+    if (slideHeld) return;
+    const t = setInterval(() => setSlide((n) => (n + 1) % 2), 3000);
+    return () => clearInterval(t);
+  }, [slideHeld]);
+
   useEffect(() => {
     const t = setInterval(() => setNotice((n) => (n + 1) % NOTICES.length), 4500);
     setUser(getUser());
@@ -130,50 +139,6 @@ export default function AppHome() {
           </Link>
         )}
 
-        {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
-
-             상품 카드 사이에 끼우지 않는다. 이건 파는 물건이 아니라 친구를
-             데려오는 기능이고, 값이 없다는 것이 가장 큰 정보다 — 그래서
-             유료 상품 줄보다 위에, 오늘의 운세 바로 아래에 둔다.
-
-             아직 만드는 중이라 탭과 같은 계정에서만 보인다(BottomNav 의
-             DEV_EMAILS 와 같은 규칙). 열 때 두 곳을 같이 푼다. */}
-        {/* 개발자 제한을 푼다 (2026-09-08 운영자) — 공유로 퍼지는 기능이라
-            아무도 못 보면 퍼질 길이 없다. */}
-        {(
-          <Link href="/guin" className="home-map-card">
-            <span className="home-map-copy">
-              <span className="home-map-tags">
-                <b>NEW</b>
-                <i>무료</i>
-              </span>
-              <strong>
-                내 주변 사람 중
-                <br />
-                누가 진짜 내 귀인일까?
-              </strong>
-              <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
-              <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
-            </span>
-
-          </Link>
-        )}
-
-        {/* ── 처음 온 사람의 문 ── 인사하는 토끼가 실려 있는 카드. */}
-        <Link href="/guide" className="home-guide-card">
-          <span className="home-guide-copy">
-            <strong>
-              러브레빗에
-              <br />
-              처음 오셨다면?
-            </strong>
-            <small>리딩 받는 법 · 러빗</small>
-            <span className="home-guide-cta">3분 가이드 보기 <i aria-hidden>›</i></span>
-          </span>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
-        </Link>
-
         {/*
           ── 종목 ── (2026-09-08)
 
@@ -199,6 +164,70 @@ export default function AppHome() {
             </Link>
           ))}
         </nav>
+
+        {/*
+          ── 배너 슬라이드 ── (2026-09-09 운영자)
+
+          사주지도와 가이드 카드를 한 자리에 묶어 3초마다 넘긴다. 둘 다
+          "무엇을 파는가" 가 아니라 "이런 것도 있다" 를 말하는 카드라, 세로로
+          쌓으면 각자 한 화면을 먹으면서 정작 종목 줄을 아래로 밀어낸다.
+
+          종목 줄 **아래**에 둔 이유: 들어온 사람이 먼저 할 일은 무엇을 볼지
+          고르는 것이고, 이 둘은 그 다음에 눈에 들어와도 되는 것들이다.
+
+          자동으로 넘기되 점을 눌러 세울 수 있게 두었다 — 읽는 중에 넘어가면
+          그건 안내가 아니라 방해다.
+        */}
+        <div className="home-slide">
+          <div className="home-slide-track">
+            {slide === 0 ? (
+              <Link href="/guin" className="home-map-card">
+                <span className="home-map-copy">
+                  <span className="home-map-tags">
+                    <b>NEW</b>
+                    <i>무료</i>
+                  </span>
+                  <strong>
+                    내 주변 사람 중
+                    <br />
+                    누가 진짜 내 귀인일까?
+                  </strong>
+                  <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
+                  <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
+                </span>
+              </Link>
+            ) : (
+              <Link href="/guide" className="home-guide-card">
+                <span className="home-guide-copy">
+                  <strong>
+                    러브레빗에
+                    <br />
+                    처음 오셨다면?
+                  </strong>
+                  <small>리딩 받는 법 · 러빗</small>
+                  <span className="home-guide-cta">3분 가이드 보기 <i aria-hidden>›</i></span>
+                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
+              </Link>
+            )}
+          </div>
+          <div className="home-slide-dots" role="tablist" aria-label="배너">
+            {[0, 1].map((i) => (
+              <button
+                key={i}
+                role="tab"
+                aria-selected={slide === i}
+                aria-label={i === 0 ? "사주지도" : "이용 가이드"}
+                className={`home-slide-dot${slide === i ? " on" : ""}`}
+                onClick={() => {
+                  setSlide(i);
+                  setSlideHeld(true);
+                }}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* ── 웹툰 사주 ── 홈에서 숨겼다 (2026-09-02 운영자). /webtoon-saju/[id]
              페이지와 생성 경로는 그대로 살아 있어 직접 링크는 여전히 열린다 —
