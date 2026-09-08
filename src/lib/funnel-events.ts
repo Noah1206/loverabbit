@@ -98,6 +98,8 @@ export const FUNNEL_EVENTS = [
   "guin_share_result_opened",
   /** 그 결과를 보고 "내 지도 만들기" 를 눌렀다 — 여기서 가입으로 간다 */
   "guin_share_result_cta_clicked",
+  /** 참여 폼 대신 "내 지도를 만들래요" 를 눌렀다 — 남의 지도에 안 남기고 간다 */
+  "guin_invite_own_map_clicked",
   /** 상세 시트에서 유료 궁합으로 넘어갔다 */
   "guin_paid_reading_clicked",
   /** 본인 확인 후 스스로 기록을 지웠다 (주인이 대신 넣은 사람의 삭제권) */

@@ -177,7 +177,6 @@ export default function GuinMapPage() {
   }, []);
   const [sharedResult, setSharedResult] = useState<SharedResult | null>(null);
   // 결과를 보고 "내 지도 만들기" 를 누르면 그때 폼으로 넘어간다.
-  const [wantsOwnMap, setWantsOwnMap] = useState(false);
   // "이 지도에서 나를 지워 주세요" — 본인 확인 후 자동 삭제
   const [eraseOpen, setEraseOpen] = useState(false);
   const [erasing, setErasing] = useState(false);
@@ -669,6 +668,165 @@ export default function GuinMapPage() {
     되돌리려면 GuinMapIntro 를 다시 부르고 introSeenKey 로 세션당 한 번만
     보여주면 된다. 컴포넌트는 그대로 남겨 뒀다.
   */
+  if (view.viewer === "stranger" && !justJoined && sharedResult) {
+    const { person } = sharedResult;
+    return (
+      <main className="container guin-shared" style={{ paddingTop: 48, paddingBottom: 120 }}>
+        <p className="guin-shared-kicker">{sharedResult.ownerNickname}님의 사주지도에서</p>
+        <h1 className="guin-shared-name">{person.nickname}님은</h1>
+
+        <section className="card guin-shared-card">
+          <span className="badge">{person.roleLabel} 인연</span>
+          <p className="guin-shared-tagline">{person.roleTagline}</p>
+          {typeof person.score === "number" && (
+            <>
+              <p className="guin-shared-score">
+                <b>{person.score}</b>
+                <small>점</small>
+              </p>
+              <div className="sm-sheet-meter" role="img" aria-label={`궁합 ${person.score}점`}>
+                <span style={{ width: `${Math.min(100, Math.max(4, person.score))}%` }} />
+              </div>
+            </>
+          )}
+          {person.strengths.length > 0 && (
+            <ul className="guin-shared-strengths">
+              {person.strengths.map((line, i) => (
+                <li key={i}>{line}</li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* 여기가 이 화면의 전부다 — 반대 방향은 자기 지도를 만들어야 나온다 */}
+        <section className="card guin-shared-hook">
+          <strong>그럼 {sharedResult.ownerNickname}님은 나에게 어떤 인연일까?</strong>
+          <p>
+            내 사주지도를 만들면 {sharedResult.ownerNickname}님이 나에게 어떤 인연인지,
+            내 주변 사람들과의 관계까지 한 번에 볼 수 있어요.
+          </p>
+          <button
+            className="btn"
+            onClick={() => {
+              trackFunnel("guin_share_result_cta_clicked", { product: `copy-${inviteVariant}` });
+              /*
+                내 지도를 만들러 간다 (2026-09-08 수정).
+
+                전에는 setWantsOwnMap(true) 였다. 그 값은 이 화면을 가르는
+                조건에서 빼는 데만 쓰여서, 누르면 아래 **이 지도에 참여하는
+                폼**이 나왔다 — 버튼은 "내 사주지도" 라고 하는데 실제로는 남의
+                지도에 내 별명을 올리는 자리였다. 공유가 퍼지는 길이 여기서
+                끊긴다: 받은 사람이 자기 지도를 못 만들면 다음 공유가 없다.
+              */
+              router.push("/guin");
+            }}
+          >
+            내 사주지도 만들기
+          </button>
+        </section>
+
+        {/*
+          내리기 (2026-09-08). 내가 넣은 적 없는데 지도에 올라가 있는 사람이
+          이 화면에 온다. 그 사람에게 "문의하세요" 라고 적어 두면 사람이 손으로
+          지울 때까지 남아 있는다 — 본인이 그 자리에서 지울 수 있어야 한다.
+        */}
+        <button type="button" className="guin-erase-link" onClick={() => setEraseOpen(true)}>
+          내 정보를 이 지도에서 지우고 싶어요
+        </button>
+
+        <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 16 }}>{GUIN_DISCLAIMER}</p>
+
+        {eraseOpen && (
+          <div className="rv-drawer" role="dialog" aria-label="내 정보 지우기" onClick={() => setEraseOpen(false)}>
+            <div className="rv-drawer-sheet" onClick={(event) => event.stopPropagation()}>
+              <header>
+                <strong style={{ flex: 1 }}>내 정보 지우기</strong>
+                <button type="button" className="rv-icon" onClick={() => setEraseOpen(false)} aria-label="닫기">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M6 6l12 12M18 6 6 18" />
+                  </svg>
+                </button>
+              </header>
+              {erased ? (
+                <p style={{ fontSize: "0.9rem", lineHeight: 1.6 }}>
+                  지웠어요. 이 지도에서 회원님의 별명과 생년월일, 관계 기록이 모두 삭제됐습니다.
+                </p>
+              ) : (
+                <>
+                  <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", lineHeight: 1.6, marginBottom: 12 }}>
+                    본인 확인을 위해 이 지도에 등록된 <strong>별명과 생년월일</strong>을 입력해 주세요.
+                    맞으면 바로 지워지고, 따로 승인을 기다리지 않아도 돼요.
+                  </p>
+                  <GuinBirthForm
+                    submitLabel={erasing ? "지우는 중…" : "내 정보 지우기"}
+                    consentNote="입력한 값은 본인 확인에만 쓰고 저장하지 않습니다. 확인되면 이 지도에서 회원님의 기록이 즉시 삭제됩니다."
+                    busy={erasing}
+                    onSubmit={eraseMe}
+                  />
+                  {eraseError && (
+                    <p style={{ color: "var(--semantic-error)", fontSize: "0.84rem", marginTop: 10 }}>
+                      {eraseError}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    );
+  }
+
+  if (view.viewer === "stranger" && !justJoined) {
+    const copy = GUIN_COPY[inviteVariant];
+    return (
+      <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
+        <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
+        <h1 style={{ marginBottom: 8 }}>{copy.inviteTitle.replace("{owner}", view.ownerNickname)}</h1>
+        <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>{copy.inviteBody}</p>
+        <p style={{ color: "var(--text-dim)", fontSize: "0.8rem", marginBottom: 20 }}>
+          입력 후 {view.ownerNickname}님의 지도에 내 별명이 표시됩니다. 생년월일과 출생시간은
+          공개되지 않습니다.
+        </p>
+        <div className="card" style={{ padding: 20 }}>
+          <GuinBirthForm
+            initial={savedBirth}
+            submitLabel={copy.inviteCta}
+            consentNote={`입력한 정보는 관계 계산과 지도 관리에 사용됩니다. 지도에는 별명만 표시되며, 생년월일과 출생시간은 공개되지 않습니다. 결과는 재미와 자기성찰을 위한 콘텐츠이며 실제 인간관계 판단을 대신하지 않습니다. 만 14세 이상만 이용할 수 있어요.`}
+            busy={joining}
+            onSubmit={join}
+            onFirstTouch={() => trackFunnel("guin_participant_form_started", { product: `copy-${inviteVariant}` })}
+          />
+          {joinError && (
+            <p style={{ color: "var(--accent)", fontSize: "0.84rem", marginTop: 10 }}>{joinError}</p>
+          )}
+          {joining && (
+            <p style={{ color: "var(--text-dim)", fontSize: "0.84rem", marginTop: 10 }}>
+              두 사람의 관계를 살펴보고 있어요. 잠시만 기다려주세요.
+            </p>
+          )}
+        </div>
+        {/*
+          남의 지도에 안 올라가고 싶은 사람에게도 길을 준다 (2026-09-08).
+
+          이 화면은 폼 하나뿐이었다. 별명을 남기기 싫으면 나가는 것 말고 할
+          일이 없었다는 뜻이다 — 사주지도가 궁금해서 들어온 사람까지 같이
+          나간다. 자기 지도를 만드는 쪽은 남의 지도에 아무것도 남기지 않는다.
+        */}
+        <button
+          type="button"
+          className="guin-erase-link"
+          onClick={() => {
+            trackFunnel("guin_invite_own_map_clicked", { product: `copy-${inviteVariant}` });
+            router.push("/guin");
+          }}
+        >
+          대신 내 사주지도를 만들래요
+        </button>
+        <p style={{ color: "var(--text-dim)", fontSize: "0.76rem", marginTop: 16 }}>{GUIN_DISCLAIMER}</p>
+      </main>
+    );
+  }
 
   // ── 지도 화면 ──
   const isOwner = view.viewer === "owner";
