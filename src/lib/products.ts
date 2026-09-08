@@ -43,6 +43,21 @@ export interface Product {
   tone: CardTone; // 홈 카드 색 톤 (data-tone)
   ctaLabel: string; // 홈 카드와 상세 하단 버튼에 함께 쓰는 상품별 행동 문구
   ctaHook: string; // 상세 하단 버튼 위에 노출하는 짧은 기대효과
+  /**
+   * 화면에 보이는 목차 (2026-09-09).
+   *
+   * toc 는 "1장 01. 네 일주가 만드는 끌림의 기본 패턴" 꼴이다. 그 모양은
+   * 바꿀 수 없다 — 리딩 생성 프롬프트가 그대로 받고, reading-chapters.ts 가
+   * 앞머리의 "N장" 을 읽어 장을 묶으며, 가드가 절 수를 그것으로 센다.
+   *
+   * 그런데 사려는 사람에게 "일주" 나 "1장 01" 은 읽을 수 없는 말이다. 그래서
+   * **보여주는 제목만 따로 둔다.** 같은 순서, 같은 개수로 적는다 — 어긋나면
+   * 목차와 본문이 다른 것을 가리킨다.
+   *
+   * 없으면 화면이 toc 를 그대로 쓴다. 한 상품씩 옮기는 중이다.
+   */
+  tocPlain?: string[];
+
   // ── 상세 판매 페이지 ──
   headline: string; // 질문형 후킹
   sub: string;
@@ -470,6 +485,22 @@ export const PRODUCTS: Product[] = [
       "5장 02. 이 관계를 더 깊게 만드는 실행 가이드",
       "6장 01. 앞으로 6개월, 두 사람의 흐름",
       "7장 01. 오늘부터 지킬 행동강령",
+    ],
+    /* 같은 절을, 사려는 사람의 말로 (2026-09-09). 순서와 개수는 위와 같다. */
+    tocPlain: [
+      "내가 사람에게 끌리는 방식",
+      "그 사람의 관계 습관",
+      "우리가 서로에게 끌린 이유",
+      "두 사람의 상성",
+      "관계를 이끄는 쪽은 누구일까",
+      "서로가 약해지는 순간",
+      "말하지 않지만 바라는 것",
+      "마음이 식기 쉬운 때",
+      "다툰다면 어디서 다툴까",
+      "지루해지지 않으려면",
+      "더 가까워지는 방법",
+      "앞으로 여섯 달의 흐름",
+      "오늘부터 해볼 것",
     ],
   },
   {
@@ -1044,3 +1075,18 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
+
+
+/**
+ * 화면에 보여줄 목차.
+ *
+ * tocPlain 이 있으면 그것을, 없으면 toc 를 그대로 쓴다. 옮기는 중인 상품과
+ * 아직 안 옮긴 상품이 섞여 있어도 화면은 한 갈래만 부른다.
+ *
+ * 개수가 어긋나면 toc 를 쓴다 — 순서가 밀린 제목을 보여주는 것보다 낫다.
+ * (어긋난 채로 배포되는 것은 검사가 막는다.)
+ */
+export function displayToc(product: Product): string[] {
+  const plain = product.tocPlain;
+  return plain && plain.length === product.toc.length ? plain : product.toc;
+}

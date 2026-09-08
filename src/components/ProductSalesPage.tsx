@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
 import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
-import type { Product } from "@/lib/products";
+import { displayToc, type Product } from "@/lib/products";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
 // 후킹 질문 -> ??% 게이지 -> 박도사 비법서 서사 -> 리포트 구성 표 -> 대상 -> 목차 -> 후기 -> CTA
@@ -193,7 +193,7 @@ export default function ProductSalesPage({
           <h2 style={{ fontSize: "1.1rem", marginBottom: 4 }}>이런 결과를 받아요</h2>
           <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginBottom: 12 }}>풀 리딩 리포트 목차</p>
           <div className="card" style={{ padding: "6px 0" }}>
-            {product.toc.map((item, index) => (
+            {displayToc(product).map((item, index) => (
               <div key={item} className="product-reveal-item" style={{ display: "flex", gap: 12, alignItems: "baseline", padding: "9px 18px", borderTop: index === 0 ? "none" : "1px solid var(--line)" }}>
                 <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 800, color: "var(--accent)", fontSize: "0.8rem", minWidth: 22 }}>
                   {String(index + 1).padStart(2, "0")}

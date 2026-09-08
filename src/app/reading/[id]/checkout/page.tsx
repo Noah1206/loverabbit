@@ -23,7 +23,7 @@ import { saleCreditCost, KRW_PER_CREDIT, READING_SALE_CREDITS } from "@/lib/cred
 import { couponPrice, type Coupon } from "@/lib/coupons";
 import { bundleOfReading } from "@/lib/bundles";
 import { trackFunnel } from "@/lib/funnel";
-import { PRODUCT_MAP } from "@/lib/products";
+import { PRODUCT_MAP, displayToc } from "@/lib/products";
 import { getUser, type User } from "@/lib/user";
 import CreditSheet from "@/components/CreditSheet";
 
@@ -271,9 +271,9 @@ export default function ReadingCheckoutPage() {
         {/* 지금 사는 것이 무엇인지 — 가격표만 있으면 "얼마"만 남고 "왜"가 없다.
             전문의 절 제목을 보여 주면 잠긴 문 너머가 보인다. 제목은 상품 표(toc)의
             것이라 지어내는 값이 아니다. */}
-        {product && product.toc.length > 0 && (
+        {product && displayToc(product).length > 0 && (
           <ul className="checkout-toc">
-            {product.toc.map((line) => (
+            {displayToc(product).map((line) => (
               <li key={line}>{line}</li>
             ))}
           </ul>
