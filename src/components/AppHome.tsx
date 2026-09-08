@@ -22,6 +22,20 @@ import {
 import InquiryButton from "@/components/InquiryButton";
 
 
+/**
+ * 무료로 열리는 것들. 값이 없다는 것이 이 줄의 전부라, 유료 상품은 여기
+ * 넣지 않는다 — 하나라도 섞이면 줄 전체가 광고로 읽힌다.
+ *
+ * 그림은 십이지 캐릭터를 빌려 쓴다(2026-09-08). 아이콘을 새로 그리지 않고도
+ * 칸마다 얼굴이 달라져, 다섯이 한 줄에 서도 구분된다.
+ */
+const FREE_ENTRIES: { href: string; label: string; art: string; tag?: string }[] = [
+  { href: "/today", label: "오늘의 운세", art: "/assets/zodiac/rabbit-hanbok.webp" },
+  { href: "/manseryeok", label: "만세력", art: "/assets/zodiac/dragon-hanbok.webp" },
+  { href: "/guin", label: "사주지도", art: "/assets/zodiac/dog-hanbok.webp", tag: "NEW" },
+  { href: "/rewards", label: "러빗 받기", art: "/assets/zodiac/pig-hanbok.webp" },
+];
+
 const NOTICES = [
   { text: "🐰 오픈 이벤트 — 가입하면 첫 사주 1,900원", sub: "어떤 사주든 첫 한 장은 1,900원" },
   { text: "🔥 속궁합 리딩, 그 사람 정보까지 넣으면 정확도 UP", sub: "생년월일만 알아도 OK" },
@@ -89,7 +103,6 @@ function ProductCard({ p, cost, variant }: { p: Product; cost: number; variant: 
 
 // 사주지도를 홈에서 볼 수 있는 계정. BottomNav 의 DEV_EMAILS 와 같은 목록이다 —
 // 전체 공개할 때 두 곳을 같이 지운다.
-const SAJU_MAP_EMAILS = ["ab40905045@gmail.com"];
 
 export default function AppHome() {
   const { theme } = useTheme();
@@ -143,6 +156,8 @@ export default function AppHome() {
   const visible = PRODUCTS.filter((p) => !GRID_HIDDEN.has(p.id));
   const byTopic = (t: ProductTopic) => visible.filter((p) => p.topic === t);
   const list = topic === "all" ? visible : byTopic(topic);
+  /* 판매 집계가 없어 popular 태그를 순서대로 쓴다 — 순위를 지어내지 않는다 */
+  const popular = visible.filter((p) => p.tags.includes("popular")).slice(0, 5);
 
   return (
     <div className={`theme-${theme}`} style={{ margin: "0 auto" }}>
@@ -218,21 +233,32 @@ export default function AppHome() {
           <img className="home-guide-art" src="/assets/today/rabbit-hello-hanbok.webp" alt="" loading="lazy" />
         </Link>
 
-        {/* ── 오늘의 운세 ── 엔진(daily-action.ts)과 /today 는 이미 있었는데
-             홈에서 들어가는 줄이 없었다 (2026-09-08). 매일 바뀌는 유일한
-             화면이라 재방문이 여기 걸린다 — 그래서 상품 위에 둔다. */}
-        <Link href="/today" className="home-today-card">
-          <span className="home-today-copy">
-            <small>오늘의 운세</small>
-            <strong>오늘 나에게 맞는 한 걸음</strong>
-            <span className="home-today-cta">지금 확인하기 <i aria-hidden>›</i></span>
-          </span>
-          {/* 대표 캐릭터인 토끼가 선다. 사람마다 자기 띠를 세우고 싶지만 홈은
-              생일을 모르고(user.ts 에 없다), 알아내려면 홈에 요청을 하나 더
-              얹어야 한다 — 로그인 안 한 사람에게는 그래도 못 띄운다. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="home-today-art" src="/assets/zodiac/rabbit-hanbok.webp" alt="" loading="lazy" />
-        </Link>
+        {/*
+          ── 무료로 볼 수 있는 것 ── (2026-09-08)
+
+          홈에 무료가 무엇인지 말하는 자리가 없었다. 배너가 세로로 쌓여
+          한 화면에 하나씩만 보였고, 그 사이 만세력·귀인은 홈에서 들어가는
+          길조차 없었다 — 있는데 아무도 못 찾는 상태다.
+
+          한 줄로 세우면 "공짜로 볼 게 이만큼 있다" 가 먼저 읽힌다. 유료
+          상품 줄 위에 두는 이유도 그것이다: 값을 묻기 전에 값 없는 것을
+          먼저 보여준다.
+        */}
+        <section className="home-free">
+          <h2 className="home-free-title">무료로 보는 운세</h2>
+          <div className="home-free-row">
+            {FREE_ENTRIES.map((f) => (
+              <Link key={f.href} href={f.href} className="home-free-item">
+                <span className="home-free-art">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={f.art} alt="" loading="lazy" />
+                  {f.tag && <b className="home-free-tag">{f.tag}</b>}
+                </span>
+                <strong>{f.label}</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
 
         {/* ── 사주지도 ── 무료·NEW 진입점 (2026-09-08).
 
@@ -242,7 +268,9 @@ export default function AppHome() {
 
              아직 만드는 중이라 탭과 같은 계정에서만 보인다(BottomNav 의
              DEV_EMAILS 와 같은 규칙). 열 때 두 곳을 같이 푼다. */}
-        {user?.email && SAJU_MAP_EMAILS.includes(user.email) && (
+        {/* 개발자 제한을 푼다 (2026-09-08 운영자) — 공유로 퍼지는 기능이라
+            아무도 못 보면 퍼질 길이 없다. */}
+        {(
           <Link href="/guin" className="home-map-card">
             <span className="home-map-copy">
               <span className="home-map-tags">
@@ -257,7 +285,8 @@ export default function AppHome() {
               <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
               <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
             </span>
-            <span className="home-map-art" aria-hidden>🗺️</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="home-map-art" src="/assets/zodiac/monkey-hanbok.webp" alt="" loading="lazy" />
           </Link>
         )}
 
@@ -337,6 +366,34 @@ export default function AppHome() {
             </div>
           )}
         </section>
+
+        {/*
+          ── 지금 인기 ── (2026-09-08)
+
+          무엇부터 볼지 모르는 사람에게 남들이 고른 것을 보여준다. 다만
+          **판매 순위 데이터가 없다** — 그래서 순위 숫자를 지어내지 않고,
+          products.ts 의 popular 태그가 붙은 것을 그 순서대로 세운다.
+          집계가 생기면 이 목록만 갈아끼우면 된다.
+        */}
+        {popular.length > 0 && (
+          <section className="home-hot">
+            <div className="home-hot-head">
+              <small>어떤 사주를 볼까?</small>
+              <h2>지금 많이 보는 사주</h2>
+            </div>
+            <ol className="home-hot-list">
+              {popular.map((p, i) => (
+                <li key={p.id}>
+                  <Link href={`/product/${p.id}`}>
+                    <b className="home-hot-rank">{i + 1}</b>
+                    <span className="home-hot-title">{p.title}</span>
+                    <span className="home-hot-go" aria-hidden>›</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
 
         {/* ── 공지 배너 ── 제목줄 달린 창 모양. 제목줄이 무엇에 대한 알림인지
              먼저 말하고, 본문이 바뀔 때 아래에서 올라온다.

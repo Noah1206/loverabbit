@@ -47,3 +47,4 @@ cards-raw/
 .gstack/
 .DS_Store
 .env*.local
+chrome/
