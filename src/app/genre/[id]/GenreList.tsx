@@ -54,18 +54,16 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
           </svg>
         </Link>
         <div className="genre-head-copy">
+          {/* 설명 줄을 걷었다 (2026-09-09 운영자) — "내 명식으로 읽는 나의 결" 은
+              종목을 고르기 전에 하는 말이고, 여기 온 사람은 이미 골랐다. */}
           <h1>{genre.label}</h1>
-          <p>{genre.desc}</p>
         </div>
       </header>
 
-      {/* 배너가 있는 종목만 깐다 — 없으면 제목만으로 충분하다 */}
-      {genre.banner && (
-        <div className="genre-banner">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={genre.banner} alt="" loading="lazy" />
-        </div>
-      )}
+      {/* 배너를 걷었다 (2026-09-09 운영자). 종목을 이미 고르고 들어온 사람에게
+          그 종목을 다시 그림으로 설명하는 자리다 — 한 화면을 먹으면서 정작
+          고를 목록을 아래로 민다. 배너 그림(genre.banner)은 홈 종목 줄이 계속
+          쓰므로 파일은 그대로 둔다. */}
 
       <p className="genre-count">{items.length}가지</p>
 
@@ -75,10 +73,15 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
             <Link href={`/product/${p.id}`}>
               <span className="genre-item-copy">
                 <strong>{p.title}</strong>
+                {/* 네모 칩에서 해시태그로 (2026-09-09 운영자). 칩은 누를 수
+                    있어 보이는데 여기서는 못 누른다 — 글자 그대로 꼬리표다.
+                    바탕색을 걷고 # 를 붙이면 읽는 것이 된다. */}
                 <span className="genre-tags">
-                  <i>{TOPIC_LABEL[p.topic].title}</i>
-                  <i>{p.badge}</i>
-                  {p.needsPartner && <i>상대 정보 필요</i>}
+                  {/* 해시태그에는 사이 글자를 넣지 않는다 — "#일·공부" 는 태그로
+                      안 읽힌다. 표에 있는 이름을 화면에서만 붙여 쓴다. */}
+                  <i>#{TOPIC_LABEL[p.topic].title.replace(/[·\s]/g, "")}</i>
+                  <i>#{p.badge.replace(/[·\s]/g, "")}</i>
+                  {p.needsPartner && <i>#상대정보필요</i>}
                 </span>
                 <span className="genre-price">
                   {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
