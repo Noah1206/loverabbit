@@ -28,13 +28,21 @@ export default function GenreIcon({ id, size = 26 }: { id: GenreId; size?: numbe
 
   switch (id) {
     // 사주 — 여덟 글자가 네 기둥에 선 모양
+    // 사주 — 음양(태극). 격자보다 이쪽이 무엇을 보는 곳인지 한눈에 말한다
+    // (2026-09-09 운영자). 태극은 선 하나로 그려지지 않아 이 아이콘만 채움을
+    // 쓴다 — 나머지는 stroke 그대로다.
     case "saju":
       return (
         <svg {...common}>
-          <rect x="3.5" y="4" width="17" height="16" rx="2.5" />
-          <path d="M12 4v16M3.5 12h17" />
-          <circle cx="7.75" cy="8" r="1.1" />
-          <circle cx="16.25" cy="16" r="1.1" />
+          <circle cx="12" cy="12" r="9" />
+          {/* S 자 경계. 위 반원은 채우고 아래 반원은 비워 음양을 만든다 */}
+          <path
+            d="M12 3a4.5 4.5 0 0 0 0 9 4.5 4.5 0 0 1 0 9 9 9 0 0 0 0-18Z"
+            fill="currentColor"
+            stroke="none"
+          />
+          <circle cx="12" cy="7.5" r="1.15" fill="none" />
+          <circle cx="12" cy="16.5" r="1.15" fill="currentColor" stroke="none" />
         </svg>
       );
 
@@ -48,12 +56,16 @@ export default function GenreIcon({ id, size = 26 }: { id: GenreId; size?: numbe
         </svg>
       );
 
-    // 궁합 — 겹친 두 원
+    // 궁합 — 붉은 실로 묶인 두 자리 (2026-09-09 운영자).
+    // 겹친 두 원은 벤 다이어그램으로 읽혀 "무엇이 겹치나" 를 묻는 그림이었다.
+    // 궁합이 파는 것은 겹침이 아니라 두 사람이 이어져 있다는 것이다.
     case "gunghap":
       return (
         <svg {...common}>
-          <circle cx="9" cy="12" r="5.5" />
-          <circle cx="15" cy="12" r="5.5" />
+          <circle cx="6" cy="8" r="2.6" />
+          <circle cx="18" cy="16" r="2.6" />
+          {/* 두 점을 잇는 실 — 팽팽하지 않게 늘어뜨린다 */}
+          <path d="M8.4 9.4c1.6 2 2 4.4 1.2 6 1.6-1.2 4-1 5.7.4" />
         </svg>
       );
 

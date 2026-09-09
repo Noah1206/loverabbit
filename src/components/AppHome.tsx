@@ -20,6 +20,7 @@ import { useTheme } from "@/components/ThemeProvider";
   종목 목록이 말하고, 홈은 어디로 갈지만 고르게 한다.
 */
 import GenreIcon from "@/components/GenreIcon";
+import GuinTeaser from "@/components/GuinTeaser";
 import IdolPicker from "@/components/IdolPicker";
 import WorryPicker from "@/components/WorryPicker";
 import { CREDIT_EVENT } from "@/lib/credits";
@@ -38,7 +39,7 @@ export default function AppHome() {
   const [showSignup, setShowSignup] = useState(false);
   useEffect(() => {
     if (slideHeld) return;
-    const t = setInterval(() => setSlide((n) => (n + 1) % 3), 3000);
+    const t = setInterval(() => setSlide((n) => (n + 1) % 2), 3000);
     return () => clearInterval(t);
   }, [slideHeld]);
 
@@ -154,7 +155,7 @@ export default function AppHome() {
               <span className="home-genre-art">
                 {/* 캐릭터 그림에서 선 아이콘으로 (2026-09-08 운영자) — 종목
                     여섯에 얼굴 여섯이 서면 한 화면에 캐릭터가 너무 많다. */}
-                <GenreIcon id={g.id} size={26} />
+                <GenreIcon id={g.id} size={34} />
                 {g.free && <b className="home-genre-tag">무료</b>}
               </span>
               <strong>{g.label}</strong>
@@ -182,27 +183,6 @@ export default function AppHome() {
             className="home-slide-track"
             style={{ transform: `translateX(-${slide * 100}%)` }}
           >
-            <div className="home-slide-item">
-              <Link href="/guin" className="home-map-card">
-                <span className="home-map-copy">
-                  <span className="home-map-tags">
-                    <b>NEW</b>
-                    <i>무료</i>
-                  </span>
-                  <strong>
-                    내 주변 사람 중
-                    <br />
-                    누가 진짜 내 귀인일까?
-                  </strong>
-                  <small>친구·연인·동료를 등록하고 인연 지도를 만들어봐요.</small>
-                  <span className="home-map-cta">사주지도 만들기 <i aria-hidden>›</i></span>
-                </span>
-              </Link>
-            </div>
-            {/* 최애 아이돌 궁합 (2026-09-09 운영자). 여기 두는 이유: 덕질하는
-                사람이 찾는 말은 "사주" 가 아니라 "최애랑 나" 라, 궁합 종목
-                안에 상품 하나로 있으면 있는 줄도 모른다. 궁합이 그래서 종목이
-                된 것과 같은 이유다. */}
             <div className="home-slide-item">
               <Link href="/product/idol" className="home-idol-card">
                 <span className="home-idol-copy">
@@ -238,12 +218,12 @@ export default function AppHome() {
             </div>
           </div>
           <div className="home-slide-dots" role="tablist" aria-label="배너">
-            {[0, 1, 2].map((i) => (
+            {[0, 1].map((i) => (
               <button
                 key={i}
                 role="tab"
                 aria-selected={slide === i}
-                aria-label={["사주지도", "최애 아이돌 궁합", "이용 가이드"][i]}
+                aria-label={["최애 아이돌 궁합", "이용 가이드"][i]}
                 className={`home-slide-dot${slide === i ? " on" : ""}`}
                 onClick={() => {
                   setSlide(i);
@@ -253,6 +233,15 @@ export default function AppHome() {
             ))}
           </div>
         </div>
+
+        {/*
+          ── 귀인지도 ── 배너 바로 밑 (2026-09-09 운영자)
+
+          슬라이드 안에 있던 것을 꺼냈다. 배너는 3초마다 넘어가는데, 이 화면은
+          값이 없는 것(무료)이 가장 큰 정보라 그 한 줄이 넘어가면 안 된다.
+          제자리에 서서 계속 보이는 자리가 맞다.
+        */}
+        <GuinTeaser />
 
         {/*
           ── 연예인 궁합 ── (2026-09-09 운영자)

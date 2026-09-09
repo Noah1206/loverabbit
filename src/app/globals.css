@@ -12327,6 +12327,72 @@ input[type="radio"] {
    읽히도록 색만 맞춘다. */
 .home-idol-card .home-map-tags b { background: #3a2430; color: #f8eef3; }
 
+/* ── 귀인지도 ── 배너가 아니라 요소로 (2026-09-09 운영자)
+
+   참고 화면의 꼴을 따른다: 색 블록 하나에 왼쪽은 글, 오른쪽은 캐릭터.
+   배너와 다른 점은 넘어가지 않는다는 것 — 값이 없다는 정보가 이 화면에서
+   가장 큰데, 그 한 줄이 3초 뒤에 사라지면 안 된다. */
+.gt {
+  position: relative;
+  display: block;
+  margin: var(--home-section-gap) 20px 0;
+  padding: 26px 22px 24px;
+  min-height: 168px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #efe9ff 0%, #f6eef8 52%, #fdf1ee 100%);
+  color: #2b2440;
+  text-decoration: none;
+}
+.gt-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  /* 캐릭터가 오른쪽을 먹으므로 글은 그만큼 물러선다. 제목이 억지로 접히지
+     않을 만큼만 비운다 — 더 비우면 "귀인일 / 까?" 처럼 낱말이 잘린다. */
+  padding-right: 92px;
+}
+/* 검은 알약 — 참고 화면의 "피해야할 상대 ›" 자리 */
+.gt-tag {
+  justify-self: start;
+  padding: 8px 16px;
+  border-radius: 999px !important;
+  background: #2b2440;
+  color: #fff;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+.gt-tag i { font-style: normal; margin-left: 2px; }
+.gt strong {
+  /* 제목이 두 줄로 떨어지게 잡은 크기다. 더 키우면 세 줄이 되고, 그러면
+     낱말 가운데가 잘린다. */
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.38;
+  letter-spacing: -0.02em;
+}
+.gt small {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #6b6280;
+}
+.gt-art {
+  position: absolute;
+  right: -14px;
+  bottom: -6px;
+  z-index: 0;
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: right center;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 26%);
+}
+@media (max-width: 360px) {
+  /* 좁은 폭에서는 글이 캐릭터를 피할 자리가 없다 — 그림을 옅게 깔고 글이 덮는다 */
+  .gt-copy { padding-right: 60px; }
+  .gt-art { width: 150px; opacity: 0.85; }
+}
+
 /* ── 연예인 궁합 ── (2026-09-09) */
 .ip {
   margin: var(--home-section-gap) 20px 0;
@@ -12569,11 +12635,14 @@ input[type="radio"] {
 .home-genre {
   position: relative;
   flex: 0 0 auto;
-  width: 66px;
+  /* 키웠다 (2026-09-09 운영자) — 66→84. 여섯 칸이 한 화면에 다 들어가는 것을
+     맞추느라 작아져 있었는데, 작으면 무엇을 고르는 줄인지가 안 읽힌다.
+     이제 다섯 칸 반이 보이고 나머지는 밀어서 본다. */
+  width: 84px;
   display: grid;
   justify-items: center;
-  gap: 5px;
-  padding: 12px 4px 10px;
+  gap: 7px;
+  padding: 16px 4px 13px;
   border-radius: 16px;
   background: var(--bg-card);
   border: 1px solid var(--line);
@@ -12587,8 +12656,8 @@ input[type="radio"] {
 }
 .home-genre-art {
   position: relative;
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  height: 38px;
   display: grid;
   place-items: center;
 }
@@ -12608,7 +12677,7 @@ input[type="radio"] {
   border-color: transparent;
 }
 .home-genre strong {
-  font-size: 0.7rem;
+  font-size: 0.84rem;
   font-weight: 700;
   text-align: center;
   line-height: 1.25;
