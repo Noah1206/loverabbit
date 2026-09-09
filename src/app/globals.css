@@ -12335,16 +12335,23 @@ input[type="radio"] {
    참고 화면의 꼴을 따른다: 색 블록 하나에 왼쪽은 글, 오른쪽은 캐릭터.
    배너와 다른 점은 넘어가지 않는다는 것 — 값이 없다는 정보가 이 화면에서
    가장 큰데, 그 한 줄이 3초 뒤에 사라지면 안 된다. */
+/* ── 귀인지도 ── 수묵 배너로 (2026-09-09 운영자 지시)
+
+   3D 인물에서 수묵화로 바꿨다. 사주지도는 이 서비스에서 가장 명리다운
+   화면인데(사람 사이의 인연을 명식으로 잇는다), 3D 인물은 그 무게를
+   못 지고 있었다. 종목 배너들이 이미 수묵이라 결도 그쪽이 맞다.
+
+   글 자리는 왼쪽 60% — 그림이 그렇게 그려져 있다. */
 .gt {
   position: relative;
   display: block;
   margin: var(--home-section-gap) 20px 0;
-  padding: 26px 22px 24px;
-  min-height: 188px;
+  padding: 24px 22px 22px;
+  min-height: 176px;
   overflow: hidden;
-  /* 그림에서 뽑은 색 그대로 — rgb(216,207,252) (2026-09-09) */
-  background: #d8cffc;
-  color: #2b2440;
+  /* 한지색. 그림의 왼쪽 여백과 같은 색이라 이음매가 없다 */
+  background: #f6f0e4;
+  color: #2f2820;
   text-decoration: none;
   border-radius: 28px !important;
 }
@@ -12352,34 +12359,39 @@ input[type="radio"] {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 8px;
-  /* 캐릭터가 오른쪽을 먹으므로 글은 그만큼 물러선다. 제목이 억지로 접히지
-     않을 만큼만 비운다 — 더 비우면 "귀인일 / 까?" 처럼 낱말이 잘린다. */
-  padding-right: 92px;
+  gap: 9px;
+  /* 글 칸을 먼저 확보하고, 그림 쪽을 뒤에서 맞춘다 (2026-09-09).
+     칸을 좁히며 문구를 줄이는 쪽으로 가면 문구가 계속 깎인다. */
+  padding-right: 38%;
 }
-/* 검은 알약 — 참고 화면의 "피해야할 상대 ›" 자리 */
+/* 알약 — 참고 화면의 "프리미엄 | 유금" 자리. 수묵 톤이라 검정 대신
+   먹빛 갈색으로 두고, 테두리만으로 가볍게 띄운다. */
 .gt-tag {
   justify-self: start;
-  padding: 8px 16px;
+  padding: 7px 15px;
   border-radius: 999px !important;
-  background: #2b2440;
-  color: #fff;
-  font-size: 0.84rem;
+  background: rgba(94, 78, 56, 0.9);
+  color: #f6f0e4;
+  font-size: 0.8rem;
   font-weight: 800;
+  letter-spacing: 0.01em;
 }
-.gt-tag i { font-style: normal; margin-left: 2px; }
+.gt-tag i { font-style: normal; margin-left: 3px; }
 .gt strong {
-  /* 제목이 두 줄로 떨어지게 잡은 크기다. 더 키우면 세 줄이 되고, 그러면
-     낱말 가운데가 잘린다. */
-  font-size: 1.2rem;
+  font-size: 1.24rem;
   font-weight: 800;
-  line-height: 1.38;
+  line-height: 1.4;
   letter-spacing: -0.02em;
 }
 .gt small {
-  font-size: 0.84rem;
-  line-height: 1.5;
-  color: #6b6280;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #7a6c56;
+  /* 설명은 두 줄까지만. 세 줄이 되면 카드가 길어지면서 그림 아래로 내려간다 */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .gt-art {
   position: absolute;
@@ -12387,15 +12399,19 @@ input[type="radio"] {
   top: 0;
   bottom: 0;
   z-index: 0;
-  width: 58%;
+  width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: right center;
+  /* 글이 놓이는 왼쪽에서 그림을 한지색으로 풀어 준다. 글 칸을 좁히는 대신
+     그림을 물러서게 하는 쪽이다 — 문구를 깎지 않아도 된다. */
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 30%, #000 56%);
 }
 @media (max-width: 360px) {
-  /* 좁은 폭에서는 글이 캐릭터를 피할 자리가 없다 — 그림을 옅게 깔고 글이 덮는다 */
-  .gt-copy { padding-right: 60px; }
-  .gt-art { width: 150px; opacity: 0.85; }
+  /* 좁은 폭에서는 글이 그림을 피할 자리가 없다 — 글 칸을 넓히고 그림은
+     오른쪽 끝만 보이게 민다. */
+  .gt-copy { padding-right: 30%; }
+  .gt strong { font-size: 1.14rem; }
 }
 
 /* ── 연예인 궁합 ── (2026-09-09) */
