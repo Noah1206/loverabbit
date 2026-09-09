@@ -7540,6 +7540,13 @@ label.transfer-pay-confirm.busy {
   width: 100%;
   aspect-ratio: 16 / 10;
   overflow: hidden;
+  /* 전역 6px 을 여기서만 되돌린다 (2026-09-10 운영자) — 화면 맨 위에 붙어
+     좌우로도 꽉 차는 그림이라 깎을 모서리가 없다. 안의 img 도 같이 편다:
+     테두리를 넘어 그려지지는 않지만 아래 두 귀가 살짝 비친다. */
+  border-radius: 0 !important;
+}
+.product-hero-photo img {
+  border-radius: 0 !important;
 }
 
 /* 히어로 아래 본문. 좌우 여백을 히어로 글(20px)과 맞춘다 — 10px 이던 때는
