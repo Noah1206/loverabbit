@@ -56,48 +56,18 @@ export default function GenreIcon({ id, size = 26 }: { id: GenreId; size?: numbe
         </svg>
       );
 
-    // 궁합 — 붉은 실로 묶인 두 자리 (2026-09-09 운영자).
+    // 연예인 궁합 — 붉은 실로 묶인 두 자리 (2026-09-09 운영자).
     // 겹친 두 원은 벤 다이어그램으로 읽혀 "무엇이 겹치나" 를 묻는 그림이었다.
     // 궁합이 파는 것은 겹침이 아니라 두 사람이 이어져 있다는 것이다.
-    case "gunghap":
+    // 2026-09-10 에 종목이 셋으로 줄면서 이 그림이 최애 궁합으로 옮겨 왔다 —
+    // 하는 말이 같아서 새로 그리지 않았다.
+    case "idol":
       return (
         <svg {...common}>
           <circle cx="6" cy="8" r="2.6" />
           <circle cx="18" cy="16" r="2.6" />
           {/* 두 점을 잇는 실 — 팽팽하지 않게 늘어뜨린다 */}
           <path d="M8.4 9.4c1.6 2 2 4.4 1.2 6 1.6-1.2 4-1 5.7.4" />
-        </svg>
-      );
-
-    // 주간·월간 — 달력
-    case "period":
-      return (
-        <svg {...common}>
-          <rect x="3.5" y="5" width="17" height="15" rx="2.5" />
-          <path d="M3.5 10h17M8 3.5v3M16 3.5v3" />
-          <circle cx="8.5" cy="14.5" r="1.1" />
-          <circle cx="12" cy="14.5" r="1.1" />
-        </svg>
-      );
-
-    // 사주지도 — 가운데와 둘레를 이은 관계 지도
-    case "map":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="2.6" />
-          <circle cx="12" cy="4.6" r="1.8" />
-          <circle cx="18.4" cy="15.7" r="1.8" />
-          <circle cx="5.6" cy="15.7" r="1.8" />
-          <path d="M12 6.4v3M13.9 13.4l2.9 1.6M10.1 13.4l-2.9 1.6" />
-        </svg>
-      );
-
-    // 만세력 — 펼친 책
-    case "manseryeok":
-      return (
-        <svg {...common}>
-          <path d="M12 6.5S10 4.5 4.5 4.5v13C10 17.5 12 19.5 12 19.5s2-2 7.5-2v-13C14 4.5 12 6.5 12 6.5Z" />
-          <path d="M12 6.5v13" />
         </svg>
       );
   }

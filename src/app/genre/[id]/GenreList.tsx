@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment } from "react";
 
 import { displayTitle, hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
 import { GENRES, type Genre } from "@/lib/genres";
@@ -22,15 +21,7 @@ import { GENRES, type Genre } from "@/lib/genres";
  * 대신 목록을 훑는 내내 값을 먼저 읽게 만든다. 값은 상품 화면과 결제창이
  * 말하고, 깎이는 값은 어차피 서버가 정한다.
  */
-/** 배너가 끼어드는 자리 — 화면 첫 장을 다 읽고 스크롤이 붙는 지점 */
-const BANNER_AT = 3;
-
 export default function GenreList({ genre, items }: { genre: Genre; items: Product[] }) {
-  /* 최애 궁합은 배너가 대신 판다 — 줄로도 남기면 같은 상품이 한 화면에 두 번
-     나온다. 배너를 안 세우는 종목에서는 그대로 줄에 남는다. */
-  const showsIdolBanner = genre.id === "gunghap" && items.some((p) => p.id === "idol");
-  const rows = showsIdolBanner ? items.filter((p) => p.id !== "idol") : items;
-
   return (
     <main className="container genre" style={{ paddingTop: 20, paddingBottom: 110 }}>
       <header className="genre-head">
@@ -68,29 +59,9 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
           고를 목록을 아래로 민다. 배너 그림(genre.banner)은 홈 종목 줄이 계속
           쓰므로 파일은 그대로 둔다. */}
 
-      <p className="genre-count">{items.length}가지</p>
-
       <ul className="genre-list">
-        {rows.map((p, index) => (
-          <Fragment key={p.id}>
-            {/* 최애 궁합은 줄로 세우면 안 팔린다 (2026-09-09 운영자). 상대의
-                생년월일을 아는 사람만 살 수 있는 열 줄 사이에서, 이것만 상대를
-                고르기만 하면 되는 상품이다 — 그 차이가 한 줄짜리 제목으로는
-                안 보인다. 목록 위가 아니라 사이에 끼우는 이유는, 위에 두면
-                광고로 읽고 지나가기 때문이다. */}
-            {showsIdolBanner && index === BANNER_AT && (
-              <li className="genre-idol-slot">
-                <Link href="/product/idol" className="genre-idol-banner">
-                  <span className="genre-idol-copy">
-                    <small>내 최애를 찾아라</small>
-                    <strong>연예인과 궁합 보기</strong>
-                  </span>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/home/idol.jpg" alt="" loading="lazy" />
-                </Link>
-              </li>
-            )}
-            <li>
+        {items.map((p) => (
+          <li key={p.id}>
             <Link href={`/product/${p.id}`} className="genre-item">
               <span className="genre-item-copy">
                 <strong>{displayTitle(p)}</strong>
@@ -105,7 +76,7 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
                   {/* 궁합 종목에서는 안 적는다 (2026-09-09) — 이 목록은 전부
                       상대가 필요한 상품이라 열한 줄에 같은 꼬리표가 붙는다.
                       모두에게 해당하는 말은 고르는 데 안 쓰인다. */}
-                  {p.needsPartner && genre.id !== "gunghap" && <i>#상대정보필요</i>}
+                  {p.needsPartner && <i>#상대정보필요</i>}
                 </span>
               </span>
               <span className="genre-item-art" data-tone={p.tone}>
@@ -117,10 +88,22 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
                 )}
               </span>
             </Link>
-            </li>
-          </Fragment>
+          </li>
         ))}
       </ul>
+
+      {/* 주간·월간은 칸을 따로 갖지 않는다 (2026-09-10 운영자). 같은 사주를
+          다른 기간으로 보는 것이라 종목이 갈릴 일이 아니다 — 사주 목록을 다
+          훑은 자리에 한 줄로 둔다. */}
+      {genre.id === "saju" && (
+        <Link href="/period" className="genre-more">
+          <span>
+            <strong>주간·월간 운세</strong>
+            <small>이번 주와 이번 달의 흐름 · 무료</small>
+          </span>
+          <i aria-hidden>→</i>
+        </Link>
+      )}
     </main>
   );
 }

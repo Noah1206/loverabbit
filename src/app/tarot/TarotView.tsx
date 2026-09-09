@@ -145,8 +145,6 @@ export default function TarotView() {
           ))}
         </nav>
 
-        <p className="genre-count">{TOPICS.length}가지</p>
-
         <ul className="genre-list tr-topic-list">
           {TOPICS.map((t) => (
             <li key={t}>
@@ -276,8 +274,6 @@ export default function TarotView() {
           </Link>
         ))}
       </nav>
-
-      <p className="genre-count">{TOPICS.length}가지</p>
 
       {busy && <RabbitLoader message="카드를 뽑고 있어요" sub="당신 결에 겹쳐 읽는 중이에요." />}
 

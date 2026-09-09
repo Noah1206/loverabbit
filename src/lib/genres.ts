@@ -13,7 +13,7 @@
 
 import { PRODUCTS, type Product } from "@/lib/products";
 
-export type GenreId = "saju" | "tarot" | "gunghap" | "period" | "map" | "manseryeok";
+export type GenreId = "saju" | "tarot" | "idol";
 
 export interface Genre {
   id: GenreId;
@@ -34,6 +34,22 @@ export interface Genre {
   free?: boolean;
 }
 
+/*
+  종목 셋 (2026-09-10 운영자).
+
+  여섯이었다. 궁합·주간월간·사주지도·만세력이 각자 칸을 갖고 있었는데, 넷 다
+  "무엇을 볼까" 를 가르는 축이 아니었다 — 궁합은 사주의 한 갈래고, 주간월간은
+  같은 사주를 다른 기간으로 볼 뿐이며, 지도와 만세력은 파는 상품이 아니라
+  도구다. 칸이 여섯이면 고르는 일이 여섯 갈래가 되는데 실제로 갈리는 것은
+  셋이다: 내 사주를 볼까, 카드를 뽑을까, 최애와의 궁합을 볼까.
+
+  궁합 상품은 사주 목록 안에 그대로 있다(productsOfGenre 참고). 없앤 것은
+  칸이지 상품이 아니다.
+
+  /period·/guin·/manseryeok 은 제 페이지라 그대로 열린다. /genre/gunghap 만
+  404 가 된다 — 그 주소는 이 표를 보고 만들어지던 것이라 표에서 빠지면 함께
+  사라진다. 링크가 남은 곳은 없고, 상품은 전부 /genre/saju 에 있다.
+*/
 export const GENRES: Genre[] = [
   {
     id: "saju",
@@ -50,35 +66,11 @@ export const GENRES: Genre[] = [
     href: "/tarot",
   },
   {
-    id: "gunghap",
-    label: "궁합",
-    desc: "두 사람 사이를 읽는다",
+    id: "idol",
+    label: "연예인 궁합",
+    desc: "최애와 나는 어떤 결일까",
     banner: "/assets/genre/gunghap-banner.webp",
-    href: "/genre/gunghap",
-  },
-  {
-    id: "period",
-    label: "주간·월간",
-    desc: "이번 주와 이번 달의 흐름",
-    banner: "/assets/genre/period-banner.webp",
-    href: "/period",
-    free: true,
-  },
-  {
-    id: "map",
-    label: "사주지도",
-    desc: "내 주변 사람들과의 인연",
-    banner: "/assets/genre/map-banner.webp",
-    href: "/guin",
-    free: true,
-  },
-  {
-    id: "manseryeok",
-    label: "만세력",
-    desc: "내 여덟 글자를 그대로",
-    banner: "/assets/genre/manseryeok-banner.webp",
-    href: "/manseryeok",
-    free: true,
+    href: "/product/idol",
   },
 ];
 
@@ -89,7 +81,9 @@ export const GENRE_MAP = new Map(GENRES.map((g) => [g.id, g]));
  * 지도·만세력은 파는 상품이 아니라 화면 자체라 빈 배열이다.
  */
 export function productsOfGenre(id: GenreId): Product[] {
-  if (id === "gunghap") return PRODUCTS.filter((p) => p.needsPartner);
-  if (id === "saju") return PRODUCTS.filter((p) => !p.needsPartner);
+  // 사주가 궁합까지 다 안는다 (2026-09-10). 궁합을 따로 세우지 않기로 하면서
+  // 그 상품들이 갈 곳이 없어졌는데, 원래 한 뿌리라 나누지 않는 편이 맞다.
+  // 최애 궁합만 뺀다 — 그것은 제 칸을 갖는다.
+  if (id === "saju") return PRODUCTS.filter((p) => p.id !== "idol");
   return [];
 }
