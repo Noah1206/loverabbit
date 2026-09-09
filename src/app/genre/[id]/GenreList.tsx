@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { displayTitle, hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
-import type { Genre } from "@/lib/genres";
+import { GENRES, type Genre } from "@/lib/genres";
 
 /**
  * 종목 안의 사주 목록.
@@ -45,6 +45,23 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
           <h1>{genre.label}</h1>
         </div>
       </header>
+
+      {/* 종목 탭 (2026-09-09 운영자) — 뒤로 갔다 다시 들어오지 않고 옆 종목으로
+          바로 건너간다. 이름을 새로 만들지 않는다: GENRES 가 이미 여섯을 들고
+          있고, 그중 어디가 지금인지는 id 로 안다. 여섯이 한 줄에 다 안 들어가는
+          폭에서는 옆으로 밀린다 — 줄바꿈하면 탭이 두 줄이 되어 목록을 민다. */}
+      <nav className="genre-tabs" aria-label="종목">
+        {GENRES.map((g) => (
+          <Link
+            key={g.id}
+            href={g.href}
+            className="genre-tab"
+            aria-current={g.id === genre.id ? "page" : undefined}
+          >
+            {g.label}
+          </Link>
+        ))}
+      </nav>
 
       {/* 배너를 걷었다 (2026-09-09 운영자). 종목을 이미 고르고 들어온 사람에게
           그 종목을 다시 그림으로 설명하는 자리다 — 한 화면을 먹으면서 정작
