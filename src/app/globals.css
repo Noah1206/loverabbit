@@ -12609,33 +12609,27 @@ input[type="radio"] {
 }
 
 .home-genres {
+  /* 셋이 한 화면을 나눠 채운다 (2026-09-10 운영자). 여섯일 때는 옆으로 미는
+     줄이었고 칸이 84px 로 고정이라, 셋으로 줄자 오른쪽에 빈 자리가 남았다.
+     이제 미는 줄이 아니라 나누는 격자다 — 셋이 화면 폭을 삼등분한다. */
   display: grid;
-  /* 한 줄로 되돌린다 (2026-09-08 운영자). 두 줄로 두었더니 종목 줄이
-     화면을 절반 넘게 먹고 그 아래 배너가 접히는 선 밖으로 밀렸다.
-     선 아이콘은 그림보다 작아도 읽히므로 여섯이 한 줄에 들어간다.
-
-     옆으로 밀어 보게 두는 이유: 종목이 일곱째가 되어도 줄이 안 무너진다. */
-  display: flex;
-  gap: 7px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
   /* 위 여백은 제목(.home-section-title)이 진다 — 여기서 또 띄우면 제목과
      아이콘 줄이 서로 다른 덩어리로 갈라진다. */
   margin: 0 0 var(--home-section-gap);
   padding: 0 20px 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
-.home-genres::-webkit-scrollbar { display: none; }
 .home-genre {
   position: relative;
-  flex: 0 0 auto;
-  /* 키웠다 (2026-09-09 운영자) — 66→84. 여섯 칸이 한 화면에 다 들어가는 것을
-     맞추느라 작아져 있었는데, 작으면 무엇을 고르는 줄인지가 안 읽힌다.
-     이제 다섯 칸 반이 보이고 나머지는 밀어서 본다. */
-  width: 84px;
+  /* 폭은 격자가 정한다 (2026-09-10). 세로가 가로보다 길되 너무 홀쭉하지
+     않게 — 아이콘과 이름이 가운데에 넉넉히 앉을 만큼만. */
+  aspect-ratio: 5 / 6;
   display: grid;
+  align-content: center;
   justify-items: center;
-  gap: 7px;
-  padding: 16px 4px 13px;
+  gap: 12px;
+  padding: 16px 8px;
   border-radius: 16px;
   background: var(--bg-card);
   border: 1px solid var(--line);
@@ -12649,8 +12643,9 @@ input[type="radio"] {
 }
 .home-genre-art {
   position: relative;
-  width: 38px;
-  height: 38px;
+  /* 칸이 커진 만큼 아이콘도 (2026-09-10) — 38px 은 여섯 칸 시절의 값이다 */
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
 }
@@ -12670,10 +12665,11 @@ input[type="radio"] {
   border-color: transparent;
 }
 .home-genre strong {
-  font-size: 0.84rem;
+  font-size: 0.94rem;
   font-weight: 700;
   text-align: center;
   line-height: 1.25;
+  word-break: keep-all;
 }
 
 /* ── 바로가기 알약 줄 (2026-09-08) ── 두 줄로 접히며 자리를 적게 먹는다 */

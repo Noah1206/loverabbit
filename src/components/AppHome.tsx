@@ -167,7 +167,7 @@ export default function AppHome() {
               <span className="home-genre-art">
                 {/* 캐릭터 그림에서 선 아이콘으로 (2026-09-08 운영자) — 종목
                     여섯에 얼굴 여섯이 서면 한 화면에 캐릭터가 너무 많다. */}
-                <GenreIcon id={g.id} size={34} />
+                <GenreIcon id={g.id} size={42} />
                 {g.free && <b className="home-genre-tag">무료</b>}
               </span>
               <strong>{g.label}</strong>
