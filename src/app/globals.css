@@ -7570,10 +7570,9 @@ label.transfer-pay-confirm.busy {
   display: flex;
   align-items: center;
   gap: 10px;
-  /* 화면 끝까지 (2026-09-10 운영자) — 바닥 고정 버튼을 걷은 뒤로 이 화면에서
-     누를 곳은 여기 하나뿐이라, 손이 어디를 짚어도 닿아야 한다. 히어로 글의
-     좌우 여백(20px)을 음수 마진으로 밀어내고 제 여백을 다시 준다. */
-  margin: 22px -20px 4px;
+  /* 글과 같은 줄에서 시작한다 (2026-09-10 운영자). 화면 끝까지 밀었더니
+     버튼만 글보다 밖으로 나가 줄이 어긋나 보였다 — 좌우 여백을 글에 맞춘다. */
+  margin: 22px 0 4px;
   padding: 19px 22px;
   border-radius: 16px !important;
   background: var(--btn-bg);
