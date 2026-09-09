@@ -11470,8 +11470,7 @@ input[type="radio"] {
   display: flex;
   align-items: center;
   margin: 14px 20px 0;
-  padding: 20px 10px 20px 22px;
-  border-radius: 22px;
+  padding: 22px 10px 20px 22px;
   background: linear-gradient(120deg, #fdf3e7 0%, #f6e9fb 55%, #e9e4ff 100%);
   text-decoration: none;
   color: #2a2233;
@@ -12283,10 +12282,12 @@ input[type="radio"] {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 132px;
-  padding: 20px 20px 18px;
+  /* 높이·여백·모서리는 슬라이드 두 장이 같이 쓴다 (2026-09-09 운영자).
+     장마다 다르면 넘어갈 때 카드가 커졌다 작아졌다 한다 — 그건 넘어가는
+     것이 아니라 화면이 흔들리는 것으로 보인다. 값은 아래 .home-slide-item
+     안에서 한 번에 정한다. */
+  padding: 22px 22px 20px;
   margin: 14px 20px 0;
-  border-radius: 22px;
   overflow: hidden;
   text-decoration: none;
   background: linear-gradient(120deg, #f6e7ee 0%, #f2e2ea 55%, #eddfe8 100%);
@@ -13443,6 +13444,24 @@ input[type="radio"] {
 .home-slide-item {
   flex: 0 0 100%;
   min-width: 0;
+  /* 카드가 칸을 다 쓰도록 — 트랙의 align-items: stretch 와 짝이다 */
+  display: flex;
+}
+/* 슬라이드 두 장의 크기와 모서리를 여기서 한 번에 정한다 (2026-09-09 운영자).
+
+   장마다 따로 두면 넘어갈 때 카드가 커졌다 작아졌다 하고, 그건 넘어가는
+   것이 아니라 화면이 흔들리는 것으로 보인다. 새 장을 더할 때도 여기 규칙에
+   저절로 걸린다.
+
+   모서리를 크게 키웠다 — 전역 각진 규칙(!important)의 예외라 여기서도
+   !important 로만 되돌릴 수 있다. */
+.home-slide-item > a {
+  display: flex;
+  /* 높이를 칸에 맞춘다. min-height 만으로는 글이 긴 장이 더 커진다 —
+     트랙을 stretch 로 두고 여기서 100% 를 받아야 두 장이 같아진다. */
+  height: 100%;
+  min-height: 158px;
+  border-radius: 32px !important;
 }
 /* 슬라이드 안에서는 카드 자신의 위아래 여백을 쓰지 않는다. 두 카드의 원래
    높이가 달라(사주지도가 더 길다) 짧은 쪽에 맞추면 아래가 튄다 — 같은 키로
