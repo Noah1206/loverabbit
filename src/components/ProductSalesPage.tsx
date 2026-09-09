@@ -72,33 +72,11 @@ export default function ProductSalesPage({
       <ProductRevealObserver />
 
       {/* ── 히어로 ──
-          글이 위, 그림이 아래 (2026-08-27). 전에는 그림 위에 글을 얹고 그림이
-          떠오르며 숨쉬고 그 위에 영상까지 겹쳤다. 지금은 아이콘 → 물음 → 상품명
-          → 설명 → 값 → 그림 순서로 그냥 세운다. 움직이는 것은 없다 — 그림은
-          정지 사진 한 장이고 첫 화면에서 바로 뜬다. */}
+          그림이 맨 위, 화면 끝까지 (2026-09-09 운영자). 전에는 이모지 하나가
+          둥둥 떠 있고 그 아래 글, 다시 그 아래 그림이었다 — 첫 화면에서 무엇을
+          파는지는 안 보이고 움직이는 이모지만 보였다. 이모지는 아예 걷었다.
+          지금은 그림 → 물음 → 상품명 → 설명 순서고, 움직이는 것은 없다. */}
       <section className="product-hero-stack">
-        <span className="product-hero-icon" aria-hidden>{product.emoji}</span>
-        <p className="product-hero-question">{headline}</p>
-        <h1 className="product-hero-title">{product.title}</h1>
-        <p className="product-hero-sub">{sub}</p>
-        {activeOffer && (
-          /* 단위는 러빗 하나다 (2026-08-31 결정) — 위에서 "9,900원"을 보고
-             아래 버튼에서 "19러빗"을 만나면 같은 값인지 알 수 없다. 정가는
-             러빗으로 접어 긋고, 원화는 환율 안내로만 한 번 적는다. */
-          <p className="product-hero-offer">
-            <s>{Math.round(product.price / KRW_PER_CREDIT)}러빗</s>
-            {/* 값은 열어본 장수를 탄다 (2·4·10러빗). 여기는 서버 컴포넌트라
-                그 사람이 몇 장 열었는지 모르므로 "첫 장" 이라고 밝혀 적는다. */}
-            <strong>첫 장 {READING_PRICE_TIERS[0]}러빗</strong>
-            <span>
-              {KRW_PER_CREDIT.toLocaleString("ko-KR")}원이 1러빗 · 두 번째 장부터는{" "}
-              {READING_PRICE_TIERS[1]}러빗 · 명식은 결제 전에 확인
-            </span>
-          </p>
-        )}
-        {hero?.adultOnly && (
-          <p className="product-hero-adult">성인 대상 · 노골적 묘사가 아닌 관계 친밀도 해석입니다.</p>
-        )}
         <div
           className="product-hero-photo"
           style={{ background: `linear-gradient(160deg, ${product.grad[0]}, ${product.grad[1]})` }}
@@ -114,6 +92,29 @@ export default function ProductSalesPage({
               sizes="(max-width: 640px) 100vw, 640px"
               style={{ objectFit: "cover", objectPosition: "center 18%" }}
             />
+          )}
+        </div>
+        <div className="product-hero-copy">
+          <p className="product-hero-question">{headline}</p>
+          <h1 className="product-hero-title">{product.title}</h1>
+          <p className="product-hero-sub">{sub}</p>
+          {activeOffer && (
+            /* 단위는 러빗 하나다 (2026-08-31 결정) — 위에서 "9,900원"을 보고
+               아래 버튼에서 "19러빗"을 만나면 같은 값인지 알 수 없다. 정가는
+               러빗으로 접어 긋고, 원화는 환율 안내로만 한 번 적는다. */
+            <p className="product-hero-offer">
+              <s>{Math.round(product.price / KRW_PER_CREDIT)}러빗</s>
+              {/* 값은 열어본 장수를 탄다 (2·4·10러빗). 여기는 서버 컴포넌트라
+                  그 사람이 몇 장 열었는지 모르므로 "첫 장" 이라고 밝혀 적는다. */}
+              <strong>첫 장 {READING_PRICE_TIERS[0]}러빗</strong>
+              <span>
+                {KRW_PER_CREDIT.toLocaleString("ko-KR")}원이 1러빗 · 두 번째 장부터는{" "}
+                {READING_PRICE_TIERS[1]}러빗 · 명식은 결제 전에 확인
+              </span>
+            </p>
+          )}
+          {hero?.adultOnly && (
+            <p className="product-hero-adult">성인 대상 · 노골적 묘사가 아닌 관계 친밀도 해석입니다.</p>
           )}
         </div>
       </section>

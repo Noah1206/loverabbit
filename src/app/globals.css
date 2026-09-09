@@ -1691,86 +1691,10 @@ label {
   }
 }
 
-.product-hero {
-  position: relative;
-  height: clamp(330px, 92vw, 390px);
-  overflow: hidden;
-}
-
-.product-hero-art,
-.product-hero-shade {
-  position: absolute;
-  inset: 0;
-}
-
-.product-hero-shade {
-  background: linear-gradient(180deg, rgba(10, 10, 12, 0.26), transparent 28%, rgba(10, 10, 12, 0.97) 84%);
-}
-
-.product-hero-copy {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  left: 20px;
-}
-
-/* 히어로 첫 사진 - 배경이 정지 사진처럼 보이지 않게 천천히 떠오르게 한다 */
-.product-hero-art {
-  transform-origin: 50% 38%;
-  will-change: transform, opacity;
-  animation:
-    product-hero-arrive 1.15s cubic-bezier(0.22, 1, 0.36, 1) both,
-    product-hero-breathe 10s 1.15s ease-in-out infinite alternate;
-}
-
-.product-hero-shade {
-  animation: product-hero-veil 900ms 100ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.product-hero-copy {
-  will-change: transform, opacity;
-  animation: product-hero-copy-rise 720ms 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes product-hero-arrive {
-  from {
-    opacity: 0;
-    transform: scale(1.06) translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translate3d(0, 0, 0);
-  }
-}
-
-@keyframes product-hero-breathe {
-  from { transform: scale(1) translate3d(0, 0, 0); }
-  to { transform: scale(1.016) translate3d(0, -3px, 0); }
-}
-
-@keyframes product-hero-veil {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes product-hero-copy-rise {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 16px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .product-hero-art,
-  .product-hero-shade,
-  .product-hero-copy {
-    animation: none;
-  }
-}
+/* 2026-08-27 히어로(그림 위에 글을 얹던 화면)의 규칙들을 걷었다 (2026-09-09).
+   .product-hero / -art / -shade / -copy 와 그 애니메이션 넷은 쓰는 마크업이
+   더는 없다. 특히 .product-hero-copy 의 position:absolute 가 새 히어로의
+   같은 이름을 붙잡아 글을 화면 밖으로 던지고 있었다. */
 
 .product-page .product-score-card {
   position: relative;
@@ -7640,41 +7564,21 @@ label.transfer-pay-confirm.busy {
 }
 
 /* ── 상품 히어로: 글 위, 그림 아래 (2026-08-27) ── */
+/* 그림이 먼저, 글이 받는다 (2026-09-09 운영자).
+   가운데 정렬을 걷었다 — 참고 화면처럼 글이 왼쪽에서 시작하면 여러 줄짜리
+   설명이 읽는 줄을 잃지 않는다. 가운데 정렬은 한 줄일 때만 편하다. */
 .product-hero-stack {
   display: grid;
-  justify-items: center;
-  text-align: center;
-  padding: 34px 10px 0;
+  padding: 0 0 4px;
 }
-
-.product-hero-icon {
-  font-size: 3.4rem;
-  line-height: 1;
-  margin-bottom: 22px;
-  filter: drop-shadow(0 6px 18px rgba(255, 120, 200, 0.28));
-  /* 둥둥 떠 있다. 히어로에서 유일하게 움직이는 것 — 그림은 가만히 있고 아이콘만. */
-  animation: product-hero-float 3.2s ease-in-out infinite;
-  will-change: transform;
-}
-
-@keyframes product-hero-float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-3deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(3deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .product-hero-icon {
-    animation: none;
-  }
+.product-hero-copy {
+  display: grid;
+  padding: 20px 20px 0;
+  text-align: left;
 }
 
 .product-hero-question {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--text-dim);
   font-size: 1.02rem;
   font-weight: 600;
@@ -7683,9 +7587,9 @@ label.transfer-pay-confirm.busy {
 }
 
 .product-hero-title {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   color: var(--accent);
-  font-size: 2rem;
+  font-size: 1.72rem;
   font-weight: 900;
   line-height: 1.2;
   word-break: keep-all;
@@ -7693,7 +7597,6 @@ label.transfer-pay-confirm.busy {
 
 .product-hero-sub {
   margin: 0;
-  max-width: 34ch;
   color: var(--text);
   font-size: 1rem;
   line-height: 1.6;
@@ -7706,12 +7609,13 @@ label.transfer-pay-confirm.busy {
   font-size: 0.74rem;
 }
 
+/* 화면 끝까지 간다. 100vw + 음수 마진으로 하면 그리드 트랙이 100vw 로
+   늘어나 옆의 글이 화면 밖으로 밀린다 — 부모가 이미 화면 폭이므로
+   width:100% 로 충분하다. 모서리는 안 깎는다: 위가 화면 맨 위다. */
 .product-hero-photo {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  margin-top: 22px;
-  border-radius: var(--r-xl);
+  aspect-ratio: 16 / 10;
   overflow: hidden;
 }
 
