@@ -106,6 +106,33 @@ export default function AppHome() {
             424명 중 297명이 이 화면만 보고 나갔다 — 첫 요구가 로그인이었다. */}
 
         {/*
+          ── 이벤트 배너 ── (2026-09-09)
+
+          값을 깎지 않고 러빗을 더 준다. 콘텐츠가 계속 늘어나는 단계라 가격을
+          내리면 정가 인식을 다시 세우기 어렵다 — 할인은 한 번 하면 그 값이
+          정가가 되고, "더 준다" 는 끝나도 값이 그대로다.
+
+          헤더 바로 아래로 올렸다 (2026-09-09 운영자). 기간이 걸린 줄이라 —
+          끝나면 사라진다 — 그동안은 가장 먼저 눈에 들어와야 한다. 종목은
+          없어지지 않으므로 한 칸 밀려도 계속 그 자리에 있다.
+          CREDIT_EVENT 를 null 로 두면 이 줄이 통째로 사라지고, 그때는 종목이
+          다시 맨 위가 된다.
+        */}
+        {CREDIT_EVENT && (
+          <Link href="/credits" className="home-event-card">
+            <span className="home-event-copy">
+              <b>{CREDIT_EVENT.title}</b>
+              <strong>
+                충전하면
+                <br />
+                러빗을 더 드려요
+              </strong>
+              <span className="home-event-cta">충전하러 가기 <i aria-hidden>›</i></span>
+            </span>
+          </Link>
+        )}
+
+        {/*
           ── 종목 ── (2026-09-08)
 
           "종목이 적다" 는 말이 20종을 팔고 있는데도 나왔다. 전부 사주 한
@@ -130,31 +157,6 @@ export default function AppHome() {
             </Link>
           ))}
         </nav>
-
-        {/*
-          ── 이벤트 배너 ── (2026-09-09)
-
-          값을 깎지 않고 러빗을 더 준다. 콘텐츠가 계속 늘어나는 단계라 가격을
-          내리면 정가 인식을 다시 세우기 어렵다 — 할인은 한 번 하면 그 값이
-          정가가 되고, "더 준다" 는 끝나도 값이 그대로다.
-
-          종목 줄 아래로 내렸다 (2026-09-09 운영자). 들어온 사람이 먼저 할 일은
-          무엇을 볼지 고르는 것이고, 충전은 볼 것을 정한 뒤의 일이다.
-          CREDIT_EVENT 를 null 로 두면 이 줄이 사라진다.
-        */}
-        {CREDIT_EVENT && (
-          <Link href="/credits" className="home-event-card">
-            <span className="home-event-copy">
-              <b>{CREDIT_EVENT.title}</b>
-              <strong>
-                충전하면
-                <br />
-                러빗을 더 드려요
-              </strong>
-              <span className="home-event-cta">충전하러 가기 <i aria-hidden>›</i></span>
-            </span>
-          </Link>
-        )}
 
         {/*
           ── 배너 슬라이드 ── (2026-09-09 운영자)
