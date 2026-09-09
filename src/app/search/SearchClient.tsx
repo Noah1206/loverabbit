@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import loveRabbitLogo from "../../../public/logo.png";
 import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
-import { hasCardArt, PRODUCTS, TOPIC_LABEL, type Product } from "@/lib/products";
+import { displayTitle, hasCardArt, PRODUCTS, TOPIC_LABEL, type Product } from "@/lib/products";
 import { getUser } from "@/lib/user";
 
 /**
@@ -160,7 +160,7 @@ export default function SearchClient() {
               <li key={p.id}>
                 <Link href={`/product/${p.id}`}>
                   <span className="genre-item-copy">
-                    <strong>{p.title}</strong>
+                    <strong>{displayTitle(p)}</strong>
                     <span className="genre-tags">
                       <i>{TOPIC_LABEL[p.topic].title}</i>
                       <i>{p.badge}</i>

@@ -1240,6 +1240,40 @@ export function hasCardArt(productId: string): boolean {
   return CARD_ART.has(productId);
 }
 
+
+/**
+ * 목록에 적는 이름 (2026-09-09 운영자).
+ *
+ * 두 가지를 한다.
+ *
+ * 1. 꼬리의 "사주" 를 뗀다. 스물세 개 중 열아홉이 "사주" 로 끝나는데, 사주
+ *    종목 안에서는 전부 사주라 그 두 글자가 정보를 하나도 안 준다 —
+ *    "재물운 사주 / 건강운 사주 / 가족운 사주" 가 되면 눈이 앞 글자만 읽는다.
+ *
+ * 2. 앞에 이번 달을 붙인다. "지금 보는 것" 이라는 감각을 주고, 매달 저절로
+ *    바뀌어 같은 목록이 새로 보인다.
+ *
+ * **표의 title 은 안 건드린다.** 그 값은 리딩 라벨로도 가고(route.ts 의
+ * shortLabel 폴백), 프롬프트와 저장된 리딩이 그것을 쓴다. 화면 이름을 거기
+ * 섞으면 지난달에 산 리딩의 제목이 이번 달 이름으로 바뀐다.
+ *
+ * 달을 안 붙이는 것들:
+ *   sinnyeon·habangi  제목이 이미 기간을 말한다. "9월 신년운세" 는 어느 해
+ *                     이야기인지를 흐린다.
+ *   yeonae            "9월 올해의 연애운" 은 달과 해가 부딪힌다.
+ *   idol              최애와의 궁합에 달이 뜻을 더하지 않는다.
+ */
+const NO_MONTH_PREFIX = new Set(["sinnyeon", "habangi", "yeonae", "idol"]);
+
+export function displayTitle(product: Product, now = new Date()): string {
+  const base = product.title.replace(/\s*사주$/, "");
+  if (NO_MONTH_PREFIX.has(product.id)) return base;
+  const month = Number(
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "numeric" }).format(now)
+  );
+  return `${month}월 ${base}`;
+}
+
 export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
 
 

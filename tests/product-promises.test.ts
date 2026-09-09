@@ -14,7 +14,7 @@ import { describe, it } from "node:test";
 import fs from "node:fs";
 import path from "node:path";
 
-import { CARD_ART, PRODUCTS } from "@/lib/products";
+import { CARD_ART, PRODUCTS, displayTitle } from "@/lib/products";
 import { promiseHorizonMonths } from "@/lib/reading-scope";
 import { UPCOMING_MONTHS } from "@/lib/saju-facts";
 
@@ -104,5 +104,41 @@ describe("카드 일러스트", () => {
     for (const id of CARD_ART) {
       assert.ok(PRODUCTS.some((p) => p.id === id), `${id} 는 상품이 아니다`);
     }
+  });
+});
+
+// 목록에 적는 이름 (2026-09-09).
+//
+// 화면 이름과 표의 title 은 다른 값이다. title 은 리딩 라벨로도 가므로
+// (route.ts 의 shortLabel 폴백), 둘이 섞이면 지난달에 산 리딩의 제목이
+// 이번 달 이름으로 바뀐다.
+describe("목록 이름", () => {
+  it("꼬리의 \"사주\" 를 뗀다", () => {
+    for (const p of PRODUCTS) {
+      assert.ok(!displayTitle(p).endsWith("사주"), `${p.id}: 화면 이름이 아직 "사주" 로 끝난다`);
+    }
+  });
+
+  it("표의 title 은 안 바뀐다", () => {
+    // 화면 이름을 만든다고 원본이 바뀌면 저장된 리딩의 제목이 흔들린다.
+    const before = PRODUCTS.map((p) => p.title);
+    PRODUCTS.forEach((p) => displayTitle(p));
+    assert.deepEqual(PRODUCTS.map((p) => p.title), before);
+  });
+
+  it("기간을 이미 말하는 상품에는 달을 안 붙인다", () => {
+    const now = new Date("2026-09-09T12:00:00+09:00");
+    for (const id of ["sinnyeon", "habangi", "yeonae", "idol"]) {
+      const p = PRODUCTS.find((x) => x.id === id);
+      assert.ok(p, `${id} 가 없다`);
+      assert.ok(!/^\d+월/.test(displayTitle(p, now)), `${id}: 달이 붙었다`);
+    }
+  });
+
+  it("나머지는 이번 달이 앞에 선다", () => {
+    const now = new Date("2026-09-09T12:00:00+09:00");
+    const p = PRODUCTS.find((x) => x.id === "jaemul");
+    assert.ok(p);
+    assert.equal(displayTitle(p, now), "9월 재물운");
   });
 });

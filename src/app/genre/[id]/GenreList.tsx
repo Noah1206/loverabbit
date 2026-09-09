@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import loveRabbitLogo from "../../../../public/logo.png";
 import { READING_SALE_CREDITS } from "@/lib/credits";
-import { hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
+import { displayTitle, hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
 import type { Genre } from "@/lib/genres";
 import { getUser } from "@/lib/user";
 
@@ -72,7 +72,7 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
           <li key={p.id}>
             <Link href={`/product/${p.id}`}>
               <span className="genre-item-copy">
-                <strong>{p.title}</strong>
+                <strong>{displayTitle(p)}</strong>
                 {/* 네모 칩에서 해시태그로 (2026-09-09 운영자). 칩은 누를 수
                     있어 보이는데 여기서는 못 누른다 — 글자 그대로 꼬리표다.
                     바탕색을 걷고 # 를 붙이면 읽는 것이 된다. */}
