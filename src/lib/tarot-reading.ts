@@ -60,8 +60,53 @@ export interface TarotDraw {
   topicLabel: string;
   question: string;
   cards: DrawnCard[];
-  /** 뽑은 시각 — 같은 뽑기를 다시 보여줄 때 쓴다 */
+  /** 이 뽑기를 가르는 열쇠 (사람×날×물음). 무작위로 뽑았으면 null */
+  drawKey: string | null;
+  /** 뽑은 시각 — 사람에게 보여줄 값 */
   drawnAt: string;
+}
+
+/**
+ * 씨앗 하나에서 이어지는 난수열 (mulberry32).
+ *
+ * 암호용이 아니다 — 카드를 고르는 데만 쓴다. 필요한 성질은 둘뿐이다:
+ * 같은 씨앗이면 같은 값이 나올 것, 씨앗이 한 글자만 달라도 크게 흩어질 것.
+ */
+function rngFrom(seed: string): () => number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < seed.length; i += 1) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** 서울 날짜 (YYYY-MM-DD). 하루의 경계가 사용자가 사는 날과 같아야 한다. */
+export function seoulDay(now = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+/**
+ * 이 뽑기를 가르는 열쇠. 사람 × 날 × 물음.
+ *
+ * 같은 사람이 같은 날 같은 것을 물으면 같은 패가 나온다. 이 값이 곧 과금의
+ * ref 이기도 해서, (reason, ref) unique 가 이중 청구를 실제로 막는다 —
+ * 시각을 넣으면 요청마다 값이 달라져 그 잠금이 아무것도 안 잠근다.
+ */
+export function drawKey(userId: number, topic: TarotTopic, day = seoulDay()): string {
+  return `${userId}:${day}:${topic}`;
 }
 
 /**
@@ -69,9 +114,14 @@ export interface TarotDraw {
  *
  * 서버에서만 부른다. 화면이 뽑으면 새로고침으로 원하는 카드가 나올 때까지
  * 다시 뽑을 수 있고, 그건 타로가 아니라 뽑기다.
+ *
+ * **서버로 옮기는 것만으로는 안 막힌다** (2026-09-09). 뒤로 갔다 다시 들어오면
+ * 서버가 또 뽑아 새 패를 준다. 그래서 뽑기를 무작위가 아니라 씨앗에서 낸다 —
+ * key 를 주면 그 key 로 정해진 패가 나오고, 다시 불러도 같은 것이 나온다.
+ * key 없이 부르면 예전처럼 무작위다(테스트와 미리보기가 그 길을 쓴다).
  */
-export function drawFor(topic: TarotTopic, rand?: () => number): TarotDraw {
-  const three = drawThree(rand);
+export function drawFor(topic: TarotTopic, key?: string): TarotDraw {
+  const three = drawThree(key ? rngFrom(key) : undefined);
   return {
     topic,
     topicLabel: TOPIC_LABEL[topic].title,
@@ -82,6 +132,9 @@ export function drawFor(topic: TarotTopic, rand?: () => number): TarotDraw {
       positionNote: pos.note,
       card: three[i],
     })),
+    // 씨앗으로 뽑았으면 그 씨앗이 곧 이 뽑기의 이름이다. 시각은 사람에게
+    // 보여줄 값이라 따로 남긴다.
+    drawKey: key ?? null,
     drawnAt: new Date().toISOString(),
   };
 }

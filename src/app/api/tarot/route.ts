@@ -13,6 +13,7 @@ import {
   TAROT_SYSTEM_PROMPT,
   buildTarotFacts,
   drawFor,
+  drawKey,
   isTopic,
 } from "@/lib/tarot-reading";
 import { resolveUserToken } from "@/lib/tokens";
@@ -92,7 +93,12 @@ export async function POST(request: NextRequest) {
   }
 
   // ── 1. 뽑기 ──
-  const draw = drawFor(body.topic);
+  //
+  // 사람×날×물음으로 정해진 패다. 뒤로 갔다 다시 들어와도 같은 카드가 나온다 —
+  // 새로고침으로 마음에 드는 패까지 돌리는 것이 타로가 아니기 때문이고, 이 값이
+  // 곧 과금의 ref 라 이중 청구도 여기서 함께 막힌다.
+  const key = drawKey(user.userId, body.topic);
+  const draw = drawFor(body.topic, key);
   const { packet } = buildTarotFacts({
     draw,
     birthdate: profile.birthdate,
@@ -161,10 +167,13 @@ export async function POST(request: NextRequest) {
 
   // ── 4. 과금 ──
   //
-  // 여기까지 왔으면 사람이 받을 것이 손에 있다. ref 에 뽑은 시각을 넣어
-  // (reason, ref) unique 가 같은 뽑기의 이중 청구를 막게 한다.
+  // 여기까지 왔으면 사람이 받을 것이 손에 있다. ref 는 뽑기의 열쇠 그대로다 —
+  // (reason, ref) unique 가 같은 뽑기의 이중 청구를 막는다.
+  //
+  // 예전에는 여기에 뽑은 시각을 넣었는데, 시각은 요청마다 달라서 그 잠금이
+  // 아무것도 안 잠갔다. 같은 사람이 같은 날 같은 것을 물어도 두 번 청구됐다.
   try {
-    await applyCredit(user.userId, -TAROT_COST, "tarot", `${user.userId}:${draw.drawnAt}`);
+    await applyCredit(user.userId, -TAROT_COST, "tarot", key);
   } catch (error) {
     if (error instanceof InsufficientCreditsError) {
       return NextResponse.json(
