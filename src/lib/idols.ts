@@ -349,6 +349,18 @@ export const IDOL_GROUPS: IdolGroup[] = [
       { name: "도운", birth: "1995-08-06" },
     ],
   },
+  {
+    id: "rescene",
+    label: "리센느",
+    aliases: ["RESCENE"],
+    members: [
+      { name: "원이", birth: "2004-05-25" },
+      { name: "리브", birth: "2006-10-11" },
+      { name: "미나미", birth: "2006-11-29" },
+      { name: "메이", birth: "2008-08-19" },
+      { name: "제나", birth: "2008-11-27" },
+    ],
+  },
 ];
 
 export const IDOL_GROUP_MAP = new Map(IDOL_GROUPS.map((g) => [g.id, g]));
@@ -384,4 +396,5 @@ export const IDOL_CHIP_ORDER = [
   "exo",
   "bigbang",
   "day6",
+  "rescene",
 ] as const;
