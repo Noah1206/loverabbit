@@ -13102,14 +13102,6 @@ input[type="radio"] {
   font-style: normal;
   font-weight: 500;
 }
-.genre-price {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.82rem;
-}
-.genre-price b { font-weight: 800; }
-.genre-price small { color: var(--text-dim); }
 .genre-item-art {
   width: 96px;
   height: 72px;

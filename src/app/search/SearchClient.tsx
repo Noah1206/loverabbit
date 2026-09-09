@@ -1,14 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import loveRabbitLogo from "../../../public/logo.png";
-import { READING_SALE_CREDITS } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
 import { displayTitle, hasCardArt, PRODUCTS, TOPIC_LABEL, type Product } from "@/lib/products";
-import { getUser } from "@/lib/user";
 
 /**
  * 검색 — 이름을 아는 사람의 지름길.
@@ -23,6 +19,9 @@ import { getUser } from "@/lib/user";
  *
  * 찾는 밭: 제목·설명·배지·주제 이름·종목 이름. 태그(popular/new)는 넣지
  * 않는다 — 사용자가 치는 말이 아니다.
+ *
+ * 값은 여기서 안 적는다 (2026-09-09 운영자). 종목 목록과 같은 이유다 —
+ * 상품마다 다르지 않은 숫자라 고르는 데 안 쓰이면서 줄마다 반복된다.
  */
 
 /** 검색 대상 문자열. 상품이 이미 들고 있는 값만 잇는다. */
@@ -41,31 +40,11 @@ function haystack(p: Product): string {
 
 export default function SearchClient() {
   const [q, setQ] = useState("");
-  const [cost, setCost] = useState(READING_SALE_CREDITS);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 검색하러 온 사람은 칠 준비가 돼 있다 — 열자마자 커서를 준다.
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
-
-  useEffect(() => {
-    const user = getUser();
-    if (!user) return;
-    let alive = true;
-    fetch("/api/credits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userToken: user.token }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { readingCost?: number } | null) => {
-        if (alive && typeof d?.readingCost === "number") setCost(d.readingCost);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
   }, []);
 
   const term = q.trim().toLowerCase();
@@ -165,13 +144,6 @@ export default function SearchClient() {
                       <i>{TOPIC_LABEL[p.topic].title}</i>
                       <i>{p.badge}</i>
                       {p.needsPartner && <i>상대 정보 필요</i>}
-                    </span>
-                    <span className="genre-price">
-                      <i className="rabbit-coin" aria-hidden>
-                        <Image src={loveRabbitLogo} alt="" width={12} height={12} />
-                      </i>
-                      <b>{cost}</b>
-                      <small>러빗</small>
                     </span>
                   </span>
                   <span className="genre-item-art" data-tone={p.tone}>

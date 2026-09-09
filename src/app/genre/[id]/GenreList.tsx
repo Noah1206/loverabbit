@@ -1,14 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
-import loveRabbitLogo from "../../../../public/logo.png";
-import { READING_SALE_CREDITS } from "@/lib/credits";
 import { displayTitle, hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
 import type { Genre } from "@/lib/genres";
-import { getUser } from "@/lib/user";
 
 /**
  * 종목 안의 사주 목록.
@@ -20,30 +15,13 @@ import { getUser } from "@/lib/user";
  *
  * 태그는 새로 만들지 않는다. 주제 이름(TOPIC_LABEL)과 상품이 이미 들고 있는
  * badge, 그리고 상대가 필요한지 여부 — 셋 다 있는 값이다.
+ *
+ * **값은 여기서 안 적는다** (2026-09-09 운영자). 스물세 줄에 같은 숫자가
+ * 스물세 번 찍히는데, 상품마다 다르지 않으므로 고르는 데 쓸 정보가 아니다.
+ * 대신 목록을 훑는 내내 값을 먼저 읽게 만든다. 값은 상품 화면과 결제창이
+ * 말하고, 깎이는 값은 어차피 서버가 정한다.
  */
 export default function GenreList({ genre, items }: { genre: Genre; items: Product[] }) {
-  /* 이 사람이 다음 한 장에 낼 값. 못 가져오면 첫 장 값 그대로 둔다 —
-     결제창이 정본이라 여기서 틀려도 깎이는 값은 서버가 정한다. */
-  const [cost, setCost] = useState(READING_SALE_CREDITS);
-
-  useEffect(() => {
-    const user = getUser();
-    if (!user) return;
-    let alive = true;
-    fetch("/api/credits", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userToken: user.token }),
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { readingCost?: number } | null) => {
-        if (alive && typeof d?.readingCost === "number") setCost(d.readingCost);
-      })
-      .catch(() => {});
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   return (
     <main className="container genre" style={{ paddingTop: 20, paddingBottom: 110 }}>
@@ -82,14 +60,6 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
                   <i>#{TOPIC_LABEL[p.topic].title.replace(/[·\s]/g, "")}</i>
                   <i>#{p.badge.replace(/[·\s]/g, "")}</i>
                   {p.needsPartner && <i>#상대정보필요</i>}
-                </span>
-                <span className="genre-price">
-                  {/* 러빗 코인 — 동그라미 안의 토끼 로고가 화폐 기호다 */}
-                  <i className="rabbit-coin" aria-hidden>
-                    <Image src={loveRabbitLogo} alt="" width={12} height={12} />
-                  </i>
-                  <b>{cost}</b>
-                  <small>러빗</small>
                 </span>
               </span>
               <span className="genre-item-art" data-tone={p.tone}>
