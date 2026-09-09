@@ -113,9 +113,18 @@ describe("카드 일러스트", () => {
 // (route.ts 의 shortLabel 폴백), 둘이 섞이면 지난달에 산 리딩의 제목이
 // 이번 달 이름으로 바뀐다.
 describe("목록 이름", () => {
-  it("꼬리의 \"사주\" 를 뗀다", () => {
-    for (const p of PRODUCTS) {
-      assert.ok(!displayTitle(p).endsWith("사주"), `${p.id}: 화면 이름이 아직 "사주" 로 끝난다`);
+  it("꼬리의 \"사주\" 를 그대로 둔다", () => {
+    // 한동안 뗐었다 (2026-09-09 오전) — 종목 안에서는 전부 사주라 정보를 안
+    // 준다는 이유였다. 같은 날 오후에 되돌렸다: 목록 밖(검색 결과·홈)에서는
+    // 그 두 글자가 무엇을 파는지 말하는 유일한 말이다.
+    const p = PRODUCTS.find((x) => x.id === "jaemul");
+    assert.ok(p);
+    assert.ok(displayTitle(p).endsWith("사주"), "화면 이름에서 사주가 떨어졌다");
+
+    // 표가 "사주" 로 끝나는 것은 전부 화면에서도 그대로 끝난다
+    for (const q of PRODUCTS) {
+      if (!/\s*사주$/.test(q.title)) continue;
+      assert.ok(displayTitle(q).endsWith("사주"), `${q.id}: 화면 이름에서 사주가 떨어졌다`);
     }
   });
 
@@ -139,6 +148,6 @@ describe("목록 이름", () => {
     const now = new Date("2026-09-09T12:00:00+09:00");
     const p = PRODUCTS.find((x) => x.id === "jaemul");
     assert.ok(p);
-    assert.equal(displayTitle(p, now), "9월 재물운");
+    assert.equal(displayTitle(p, now), "9월 재물운 사주");
   });
 });

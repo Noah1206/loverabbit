@@ -9930,9 +9930,12 @@ body[data-guin-intro="1"] .tabbar {
   }
 }
 
-/* ── 각진 모서리 ── 둥근 모서리를 쓰지 않는다. 200곳 넘는 자리를 각각
-   고치는 대신 여기서 한 번에 눌러 둔다. 새로 쓰는 border-radius 도 자동으로
-   여기에 걸린다.
+/* ── 모서리 ── 조금만 깎는다 (2026-09-09 운영자).
+
+   전에는 0 이었다. 200곳 넘는 자리를 각각 고치는 대신 여기서 한 번에 눌러
+   두는 방식은 그대로 두고, 누르는 값만 0 에서 6px 로 옮긴다 — 완전히 각지면
+   화면이 딱딱하고, 자리마다 제 값을 살리면 8px·12px·24px 이 한 화면에 섞여
+   들쭉날쭉해진다. 한 값으로 조금씩만 깎으면 둘 다 피한다.
 
    아래 목록만 예외 — 위에서 이미 50%(정원)로 선언한 자리들이다. 아바타·점
    인디케이터·로더처럼 동그라미가 모양이 아니라 뜻인 곳이라, 각지면 각진 게
@@ -9940,7 +9943,7 @@ body[data-guin-intro="1"] .tabbar {
 *,
 *::before,
 *::after {
-  border-radius: 0 !important;
+  border-radius: 6px !important;
 }
 .admin-empty-orders > span,
 .app-header-logo,
@@ -12996,13 +12999,44 @@ input[type="radio"] {
 /* 줄 사이 선을 걷었다 (2026-09-09 운영자). 스물세 줄에 스물세 개의 선이
    그이면 목록이 표로 읽힌다 — 고르는 자리가 아니라 훑는 자리가 된다.
    줄을 가르는 일은 여백이 한다. */
-.genre-list a {
+/* 타로의 줄은 button 이다 — 눌러도 페이지를 옮기지 않고 그 자리에서 카드를
+   뽑기 때문이다 (2026-09-09). 모양은 a 와 한 글자도 다르면 안 되므로 같은
+   선언을 함께 받는다. button 이 기본으로 들고 오는 것들만 여기서 지운다. */
+.genre-list button.genre-item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.genre-list a,
+.genre-list button.genre-item,
+.genre-list span.genre-item {
   display: flex;
   align-items: stretch;
   gap: 14px;
   padding: 14px 2px;
   text-decoration: none;
   color: var(--text);
+  /* 누를 때 검은 사각형이 덮이지 않게 (2026-09-09 운영자). 줄 전체가 링크라
+     기본 하이라이트가 줄 하나를 통째로 칠한다 — 눌린 것이 아니라 화면이
+     깜빡인 것처럼 보인다. */
+  -webkit-tap-highlight-color: transparent;
+}
+/* 제목은 검정 (2026-09-09 운영자).
+   li > a:not([class]) 가 본문 링크를 파랗게 하는 규칙인데, 줄 전체를 감싼
+   이 a 가 클래스가 없어 거기 걸려 제목이 파랬다. a 에 이름을 주는 것으로
+   규칙 밖으로 뺐고, 여기서 한 번 더 못 박는다. */
+.genre-list a.genre-item,
+.genre-list a.genre-item strong,
+.genre-list button.genre-item,
+.genre-list button.genre-item strong {
+  color: var(--text);
+}
+.genre-list a:active,
+.genre-list button.genre-item:active {
+  opacity: 0.62;
 }
 /* 제목은 위, 해시태그는 아래 (2026-09-09 운영자). 가운데로 모으면 둘이
    한 덩어리로 붙어 어느 것이 제목인지 눈이 한 번 더 재야 한다.

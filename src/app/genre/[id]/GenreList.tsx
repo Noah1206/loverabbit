@@ -91,7 +91,7 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
               </li>
             )}
             <li>
-            <Link href={`/product/${p.id}`}>
+            <Link href={`/product/${p.id}`} className="genre-item">
               <span className="genre-item-copy">
                 <strong>{displayTitle(p)}</strong>
                 {/* 네모 칩에서 해시태그로 (2026-09-09 운영자). 칩은 누를 수

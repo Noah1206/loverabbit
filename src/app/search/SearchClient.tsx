@@ -137,7 +137,7 @@ export default function SearchClient() {
           <ul className="genre-list">
             {hits.map((p) => (
               <li key={p.id}>
-                <Link href={`/product/${p.id}`}>
+                <Link href={`/product/${p.id}`} className="genre-item">
                   <span className="genre-item-copy">
                     <strong>{displayTitle(p)}</strong>
                     <span className="genre-tags">

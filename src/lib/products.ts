@@ -1247,14 +1247,12 @@ export function hasCardArt(productId: string): boolean {
 /**
  * 목록에 적는 이름 (2026-09-09 운영자).
  *
- * 두 가지를 한다.
+ * 앞에 이번 달을 붙인다. "지금 보는 것" 이라는 감각을 주고, 매달 저절로
+ * 바뀌어 같은 목록이 새로 보인다.
  *
- * 1. 꼬리의 "사주" 를 뗀다. 스물세 개 중 열아홉이 "사주" 로 끝나는데, 사주
- *    종목 안에서는 전부 사주라 그 두 글자가 정보를 하나도 안 준다 —
- *    "재물운 사주 / 건강운 사주 / 가족운 사주" 가 되면 눈이 앞 글자만 읽는다.
- *
- * 2. 앞에 이번 달을 붙인다. "지금 보는 것" 이라는 감각을 주고, 매달 저절로
- *    바뀌어 같은 목록이 새로 보인다.
+ * 꼬리의 "사주" 는 그대로 둔다 (2026-09-09 운영자). 한동안 뗐었는데 —
+ * 종목 안에서는 전부 사주라 정보를 안 준다는 이유였다 — 목록 밖(검색 결과,
+ * 홈)에서는 그 두 글자가 무엇을 파는지 말하는 유일한 말이었다.
  *
  * **표의 title 은 안 건드린다.** 그 값은 리딩 라벨로도 가고(route.ts 의
  * shortLabel 폴백), 프롬프트와 저장된 리딩이 그것을 쓴다. 화면 이름을 거기
@@ -1269,12 +1267,13 @@ export function hasCardArt(productId: string): boolean {
 const NO_MONTH_PREFIX = new Set(["sinnyeon", "habangi", "yeonae", "idol"]);
 
 export function displayTitle(product: Product, now = new Date()): string {
-  const base = product.title.replace(/\s*사주$/, "");
-  if (NO_MONTH_PREFIX.has(product.id)) return base;
+  // 달을 안 붙이는 넷은 제목 그대로다. 넷 다 "사주" 로 끝나지 않아
+  // (올해의 연애운·신년운세·하반기 총운·최애 아이돌 궁합) 뗄 것도 없다.
+  if (NO_MONTH_PREFIX.has(product.id)) return product.title;
   const month = Number(
     new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", month: "numeric" }).format(now)
   );
-  return `${month}월 ${base}`;
+  return `${month}월 ${product.title}`;
 }
 
 export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
