@@ -1,12 +1,18 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
+import ProductMonthNote from "@/components/ProductMonthNote";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
 import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
 import { hasCardArt, displayToc, type Product } from "@/lib/products";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
-// 후킹 질문 -> ??% 게이지 -> 박도사 비법서 서사 -> 리포트 구성 표 -> 대상 -> 목차 -> 후기 -> CTA
+// 후킹 질문 -> 이번 달이 무슨 달인가 -> ??% 게이지 -> 리포트 구성 표 -> 목차 -> CTA
+//
+// 2026-09-09 에 둘을 걷었다. 박도사 비법서 서사는 한 화면을 통째로 먹으면서
+// 검증할 수 없는 주장을 하고 있었고(승인된 사실 밖이다), "누가 보면 좋을까요"
+// 는 바로 아래 목차가 같은 말을 더 구체적으로 한다. 대신 이번 달이 사주로
+// 무슨 달인지를 계산해 적는다 — 그건 지어낸 말이 아니라 엔진이 내는 값이다.
 //
 // 이 화면으로 들어오는 문은 둘이다. /product/[id] 로 직접 들어오는 길과, 광고가
 // 데려오는 /saju/<랜딩> 길.
@@ -113,6 +119,8 @@ export default function ProductSalesPage({
       </section>
 
       <div style={{ padding: "20px 10px 0", display: "grid", gap: 26 }}>
+        <ProductMonthNote product={product} />
+
         {/* ── ??% 게이지 ──
             "우리의 {이름}은?" 으로 묻지 않는다. 조사가 이름 끝소리를 안 따라가
             "속궁합 지수은?" 이 나오고, 혼자 보는 상품에서는 "우리의" 도 틀린다. */}
@@ -128,34 +136,6 @@ export default function ProductSalesPage({
             {product.meterLabels.map((label) => <span key={label}>{label}</span>)}
             <strong aria-label="결과 미공개">?</strong>
           </div>
-        </section>
-
-        {/* ── 박도사 비법서 서사 (2026-08-25, 「연담비결」을 대체) ──
-            사진은 public/lore/parkdosa-manuscript.jpg (운영자 제공, 2026-08-25).
-            파일만 갈아 끼우면 된다 - 비율이 바뀌면 아래 width/height 도 맞춘다. */}
-        <section className="card product-story-card product-lore product-reveal">
-          <p className="product-lore-kicker">본 사주 분석의 뿌리</p>
-          <h2 className="product-lore-title">정재계가 줄 서서 찾던 전설, 박도사</h2>
-          <p className="product-lore-name">제산 박재현(박도사)</p>
-          <figure className="product-lore-figure product-reveal-item">
-            <Image
-              src="/lore/parkdosa-manuscript.jpg"
-              alt="제산 박재현(박도사)이 손으로 적은 비법서 필사본"
-              width={795}
-              height={373}
-              sizes="(max-width: 640px) 100vw, 600px"
-            />
-            <span className="product-lore-seal" aria-hidden>秘傳</span>
-            <figcaption>제산 박재현(박도사)가 직접 짚어 내린 비법서</figcaption>
-          </figure>
-          <ul className="product-lore-points">
-            <li className="product-reveal-item">제산 박재현, 부산·함양을 무대로 한 시대를 풍미한 전설급 사주가</li>
-            <li className="product-reveal-item">당대 정·재계 인사들이 운명을 묻고자 줄을 섰던 인물</li>
-            <li className="product-reveal-item">책 한 권 남기지 않고, 오직 손으로 적은 비법서만 남겼다</li>
-          </ul>
-          <p className="product-lore-close product-reveal-item">
-            세상에 거의 남지 않은 그의 비법서, 그 풀이 원리를 현대 명리로 복원해, 당신의 사주에 그대로 적용합니다.
-          </p>
         </section>
 
         {/* ── 리포트 구성 표 (2026-08-25) ──
@@ -177,19 +157,6 @@ export default function ProductSalesPage({
             <div className="product-reveal-item"><dt>실행 가이드</dt><dd>{product.reportFacets.action}</dd></div>
           </dl>
           <p className="product-report-close product-reveal-item">{product.ctaHook}</p>
-        </section>
-
-        {/* ── 대상 ── */}
-        <section className="product-reveal">
-          <h2 style={{ fontSize: "1.1rem", marginBottom: 12 }}>이 사주는 누가 보면 좋을까요?</h2>
-          <div style={{ display: "grid", gap: 8 }}>
-            {product.audience.map((item) => (
-              <div key={item} className="card product-reveal-item" style={{ padding: "12px 16px", display: "flex", gap: 10, alignItems: "center" }}>
-                <span style={{ color: "var(--accent)", fontWeight: 900 }}>✓</span>
-                <span style={{ fontSize: "0.9rem" }}>{item}</span>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* ── 목차 ── */}
