@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 import { IDOL_CHIP_ORDER, IDOL_GROUP_MAP } from "@/lib/idols";
 
@@ -15,28 +14,26 @@ import { IDOL_CHIP_ORDER, IDOL_GROUP_MAP } from "@/lib/idols";
   세 가지 — 그룹·활동명·생년월일 — 뿐이고, 계산에 필요하지 않은 것은 담지
   않는다.
 
-  칩만 두고 그림을 안 쓴 이유: 얼굴 사진은 초상이라 이 저장소가 들고 있을
-  것이 아니다. 대신 섹션 자체에 캐릭터 그림을 한 장 세워 결을 맞춘다.
+  얼굴 사진은 쓰지 않는다 — 초상이라 이 저장소가 들고 있을 것이 아니다.
+
+  제목 옆 작은 그림도 걷었다 (2026-09-09). 그림이 3D 인물로 바뀌면서, 작게
+  잘리면 사람 얼굴이 반만 나온다. 배너에 큰 그림이 이미 서 있으므로 여기서는
+  글과 알약만으로 충분하다.
+
+  "더보기" 를 걷었다 (2026-09-09). 옆으로 미는 줄이 되면서 접을 이유가
+  없어졌다 — 서른셋이 한 줄에 있어도 자리를 더 먹지 않고, 접으면 오히려
+  뒤에 뭐가 있는지 모른다.
 */
-
-/** 처음 보이는 칩 수. 나머지는 "더보기" 뒤에 */
-const FOLD = 8;
-
 export default function IdolPicker() {
-  const [open, setOpen] = useState(false);
-  const ids = open ? IDOL_CHIP_ORDER : IDOL_CHIP_ORDER.slice(0, FOLD);
-
   return (
     <section className="ip">
       <header className="ip-head">
         <small>최애와 나, 무슨 사이?!</small>
         <h2>연예인 궁합</h2>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="ip-art" src="/home/idol.jpg" alt="" loading="lazy" />
       </header>
 
       <div className="ip-chips">
-        {ids.map((id) => {
+        {IDOL_CHIP_ORDER.map((id) => {
           const g = IDOL_GROUP_MAP.get(id);
           if (!g) return null;
           return (
@@ -45,11 +42,6 @@ export default function IdolPicker() {
             </Link>
           );
         })}
-        {!open && IDOL_CHIP_ORDER.length > FOLD && (
-          <button className="ip-chip ip-chip-more" onClick={() => setOpen(true)}>
-            더보기
-          </button>
-        )}
       </div>
     </section>
   );

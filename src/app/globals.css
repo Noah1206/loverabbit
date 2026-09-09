@@ -12290,7 +12290,10 @@ input[type="radio"] {
   margin: 14px 20px 0;
   overflow: hidden;
   text-decoration: none;
-  background: linear-gradient(120deg, #f6e7ee 0%, #f2e2ea 55%, #eddfe8 100%);
+  /* 그림에서 뽑은 색 그대로 (2026-09-09). 그림이 단색 배경 위의 3D 인물이라,
+     카드가 조금이라도 다르면 그림 왼쪽 끝에 세로 선이 생긴다. 눈으로 맞추지
+     않고 그림의 픽셀을 읽어 적었다 — rgb(246,202,219). */
+  background: #f6cadb;
   color: #3a2430;
 }
 .home-idol-copy { position: relative; z-index: 1; display: grid; gap: 4px; flex: 1; min-width: 0; padding-right: 72px; }
@@ -12310,19 +12313,18 @@ input[type="radio"] {
 /* 캐릭터 그림 (2026-09-09). 이모지를 걷었다 — 12지신 캐릭터가 이미 있는데
    이모지를 세우면 그 자리만 남의 그림이 된다. */
 .home-idol-art {
-  /* 흐름에서 빼고 카드 오른쪽 끝에 붙인다 — 글이 폭을 다 쓰고, 그림은 그
-     위에 얹힌다. flex 칸으로 두면 그림이 글을 밀어 두 줄이 세 줄이 된다. */
+  /* 카드 오른쪽을 통째로 덮는다. 그림의 배경색이 카드와 같은 단색이라
+     이음매가 안 보인다 — mask 로 흐리게 풀 필요가 없어졌다 (2026-09-09).
+     예전 그림은 배경이 그라데이션이라 네모로 잘려 보였다. */
   position: absolute;
-  right: -6px;
-  bottom: -8px;
+  right: 0;
+  top: 0;
+  bottom: 0;
   z-index: 0;
-  width: 168px;
-  aspect-ratio: 16 / 9;
+  width: 62%;
+  height: 100%;
   object-fit: cover;
-  object-position: center center;
-  /* multiply 를 걷었다 — 분홍 바탕에 곱하면 캐릭터가 탁해진다. 대신 그림의
-     배경이 카드와 같은 계열이라 그대로 얹어도 이음매가 안 보인다. */
-  mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+  object-position: right center;
 }
 /* 딱지는 사주지도 카드의 것을 그대로 쓴다 (home-map-tags) — 분홍 바탕에서도
    읽히도록 색만 맞춘다. */
@@ -12338,11 +12340,13 @@ input[type="radio"] {
   display: block;
   margin: var(--home-section-gap) 20px 0;
   padding: 26px 22px 24px;
-  min-height: 168px;
+  min-height: 188px;
   overflow: hidden;
-  background: linear-gradient(120deg, #efe9ff 0%, #f6eef8 52%, #fdf1ee 100%);
+  /* 그림에서 뽑은 색 그대로 — rgb(216,207,252) (2026-09-09) */
+  background: #d8cffc;
   color: #2b2440;
   text-decoration: none;
+  border-radius: 28px !important;
 }
 .gt-copy {
   position: relative;
@@ -12379,14 +12383,14 @@ input[type="radio"] {
 }
 .gt-art {
   position: absolute;
-  right: -14px;
-  bottom: -6px;
+  right: 0;
+  top: 0;
+  bottom: 0;
   z-index: 0;
-  width: 168px;
-  aspect-ratio: 16 / 9;
+  width: 58%;
+  height: 100%;
   object-fit: cover;
   object-position: right center;
-  mask-image: linear-gradient(90deg, transparent 0%, #000 26%);
 }
 @media (max-width: 360px) {
   /* 좁은 폭에서는 글이 캐릭터를 피할 자리가 없다 — 그림을 옅게 깔고 글이 덮는다 */
@@ -12399,8 +12403,6 @@ input[type="radio"] {
   margin: var(--home-section-gap) 20px 0;
 }
 .ip-head {
-  position: relative;
-  padding-right: 96px;
   margin-bottom: 12px;
 }
 .ip-head small {
@@ -12416,39 +12418,40 @@ input[type="radio"] {
   font-weight: 800;
   letter-spacing: -0.02em;
 }
-/* 캐릭터 한 장. 얼굴 사진 대신 이 그림이 섹션의 결을 진다 */
-.ip-art {
-  position: absolute;
-  right: -4px;
-  top: -14px;
-  width: 96px;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-  border-radius: 14px;
-  mask-image: linear-gradient(90deg, transparent 0%, #000 30%);
-}
+
+/* 알약 줄 (2026-09-09 운영자 재작업).
+
+   테두리만 있는 알약이 두 줄로 접혀 있었다. 그러면 이름표가 흩어진 표처럼
+   보이고, "더보기" 를 눌러 서른셋이 펼쳐지면 화면 절반이 알약이 된다.
+
+   옆으로 미는 한 줄로 바꾼다 — 고민 고르기 줄과 같은 문법이다. 접히지
+   않으므로 몇 개든 늘어나도 자리를 더 먹지 않고, 옆에 더 있다는 것이
+   잘린 알약으로 보인다. 채운 알약이라 눌리는 것처럼 읽힌다. */
 .ip-chips {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+.ip-chips::-webkit-scrollbar { display: none; }
 .ip-chip {
-  padding: 9px 16px;
-  border: 1.5px solid var(--text);
-  border-radius: 999px;
-  background: none;
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  padding: 11px 18px;
+  border: 0;
+  background: var(--tint-2);
   color: var(--text);
   font: inherit;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
+  white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
 }
-.ip-chip-more {
-  border-color: transparent;
-  background: var(--tint-2);
-  color: var(--text-dim);
-}
+
 
 /* ── 홈 섹션 (신년·하반기) ── 각자 제목을 갖고 선다 (2026-09-09) */
 .home-sec {
@@ -13457,8 +13460,13 @@ input[type="radio"] {
    !important 로만 되돌릴 수 있다. */
 .home-slide-item > a {
   display: flex;
-  /* 높이를 칸에 맞춘다. min-height 만으로는 글이 긴 장이 더 커진다 —
-     트랙을 stretch 로 두고 여기서 100% 를 받아야 두 장이 같아진다. */
+  /* 칸을 가로세로 다 채운다.
+
+     height 만 맞췄더니 폭이 갈렸다 (350 vs 250) — 칸이 flex 컨테이너라
+     자식이 기본값(flex: 0 1 auto)으로 제 내용만큼만 늘어난다. flex: 1 로
+     칸을 다 쓰게 하고, min-width: 0 으로 글이 길어도 칸을 넘지 않게 한다. */
+  flex: 1;
+  min-width: 0;
   height: 100%;
   min-height: 158px;
   border-radius: 32px !important;
