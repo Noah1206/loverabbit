@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Fragment } from "react";
 
 import { displayTitle, hasCardArt, TOPIC_LABEL, type Product } from "@/lib/products";
 import type { Genre } from "@/lib/genres";
@@ -21,7 +22,14 @@ import type { Genre } from "@/lib/genres";
  * 대신 목록을 훑는 내내 값을 먼저 읽게 만든다. 값은 상품 화면과 결제창이
  * 말하고, 깎이는 값은 어차피 서버가 정한다.
  */
+/** 배너가 끼어드는 자리 — 화면 첫 장을 다 읽고 스크롤이 붙는 지점 */
+const BANNER_AT = 3;
+
 export default function GenreList({ genre, items }: { genre: Genre; items: Product[] }) {
+  /* 최애 궁합은 배너가 대신 판다 — 줄로도 남기면 같은 상품이 한 화면에 두 번
+     나온다. 배너를 안 세우는 종목에서는 그대로 줄에 남는다. */
+  const showsIdolBanner = genre.id === "gunghap" && items.some((p) => p.id === "idol");
+  const rows = showsIdolBanner ? items.filter((p) => p.id !== "idol") : items;
 
   return (
     <main className="container genre" style={{ paddingTop: 20, paddingBottom: 110 }}>
@@ -46,8 +54,26 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
       <p className="genre-count">{items.length}가지</p>
 
       <ul className="genre-list">
-        {items.map((p) => (
-          <li key={p.id}>
+        {rows.map((p, index) => (
+          <Fragment key={p.id}>
+            {/* 최애 궁합은 줄로 세우면 안 팔린다 (2026-09-09 운영자). 상대의
+                생년월일을 아는 사람만 살 수 있는 열 줄 사이에서, 이것만 상대를
+                고르기만 하면 되는 상품이다 — 그 차이가 한 줄짜리 제목으로는
+                안 보인다. 목록 위가 아니라 사이에 끼우는 이유는, 위에 두면
+                광고로 읽고 지나가기 때문이다. */}
+            {showsIdolBanner && index === BANNER_AT && (
+              <li className="genre-idol-slot">
+                <Link href="/product/idol" className="genre-idol-banner">
+                  <span className="genre-idol-copy">
+                    <small>내 최애를 찾아라</small>
+                    <strong>연예인과 궁합 보기</strong>
+                  </span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/home/idol.jpg" alt="" loading="lazy" />
+                </Link>
+              </li>
+            )}
+            <li>
             <Link href={`/product/${p.id}`}>
               <span className="genre-item-copy">
                 <strong>{displayTitle(p)}</strong>
@@ -59,7 +85,10 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
                       안 읽힌다. 표에 있는 이름을 화면에서만 붙여 쓴다. */}
                   <i>#{TOPIC_LABEL[p.topic].title.replace(/[·\s]/g, "")}</i>
                   <i>#{p.badge.replace(/[·\s]/g, "")}</i>
-                  {p.needsPartner && <i>#상대정보필요</i>}
+                  {/* 궁합 종목에서는 안 적는다 (2026-09-09) — 이 목록은 전부
+                      상대가 필요한 상품이라 열한 줄에 같은 꼬리표가 붙는다.
+                      모두에게 해당하는 말은 고르는 데 안 쓰인다. */}
+                  {p.needsPartner && genre.id !== "gunghap" && <i>#상대정보필요</i>}
                 </span>
               </span>
               <span className="genre-item-art" data-tone={p.tone}>
@@ -71,7 +100,8 @@ export default function GenreList({ genre, items }: { genre: Genre; items: Produ
                 )}
               </span>
             </Link>
-          </li>
+            </li>
+          </Fragment>
         ))}
       </ul>
     </main>
