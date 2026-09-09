@@ -20,7 +20,6 @@ import { useTheme } from "@/components/ThemeProvider";
   종목 목록이 말하고, 홈은 어디로 갈지만 고르게 한다.
 */
 import GenreIcon from "@/components/GenreIcon";
-import GuinTeaser from "@/components/GuinTeaser";
 import IdolPicker from "@/components/IdolPicker";
 import WorryPicker from "@/components/WorryPicker";
 import { CREDIT_EVENT } from "@/lib/credits";
@@ -39,7 +38,7 @@ export default function AppHome() {
   const [showSignup, setShowSignup] = useState(false);
   useEffect(() => {
     if (slideHeld) return;
-    const t = setInterval(() => setSlide((n) => (n + 1) % 2), 3000);
+    const t = setInterval(() => setSlide((n) => (n + 1) % 3), 3000);
     return () => clearInterval(t);
   }, [slideHeld]);
 
@@ -191,6 +190,22 @@ export default function AppHome() {
             className="home-slide-track"
             style={{ transform: `translateX(-${slide * 100}%)` }}
           >
+            {/* 사주지도 (2026-09-09 운영자). 슬라이드 안으로 되돌렸다 —
+                아래에 따로 세웠던 것을 여기로 옮긴다. */}
+            <div className="home-slide-item">
+              <Link href="/guin" className="gt">
+                <span className="gt-copy">
+                  <strong>
+                    내 주변 사람 중
+                    <br />
+                    누가 진짜 내 귀인일까?
+                  </strong>
+                  <small>친구·연인·동료를 등록하면 인연 지도가 그려져요</small>
+                </span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="gt-art" src="/home/guin.jpg" alt="" loading="lazy" />
+              </Link>
+            </div>
             <div className="home-slide-item">
               <Link href="/product/idol" className="home-idol-card">
                 <span className="home-idol-copy">
@@ -226,12 +241,12 @@ export default function AppHome() {
             </div>
           </div>
           <div className="home-slide-dots" role="tablist" aria-label="배너">
-            {[0, 1].map((i) => (
+            {[0, 1, 2].map((i) => (
               <button
                 key={i}
                 role="tab"
                 aria-selected={slide === i}
-                aria-label={["최애 아이돌 궁합", "이용 가이드"][i]}
+                aria-label={["사주지도", "최애 아이돌 궁합", "이용 가이드"][i]}
                 className={`home-slide-dot${slide === i ? " on" : ""}`}
                 onClick={() => {
                   setSlide(i);
@@ -241,15 +256,6 @@ export default function AppHome() {
             ))}
           </div>
         </div>
-
-        {/*
-          ── 귀인지도 ── 배너 바로 밑 (2026-09-09 운영자)
-
-          슬라이드 안에 있던 것을 꺼냈다. 배너는 3초마다 넘어가는데, 이 화면은
-          값이 없는 것(무료)이 가장 큰 정보라 그 한 줄이 넘어가면 안 된다.
-          제자리에 서서 계속 보이는 자리가 맞다.
-        */}
-        <GuinTeaser />
 
         {/*
           ── 연예인 궁합 ── (2026-09-09 운영자)

@@ -12345,9 +12345,11 @@ input[type="radio"] {
 .gt {
   position: relative;
   display: block;
-  margin: var(--home-section-gap) 20px 0;
+  /* 슬라이드 안에 산다 (2026-09-09) — 바깥 여백은 슬라이드 칸이 이미 갖고
+     있으므로 여기서 또 주면 칸을 넘는다. 높이·모서리도 .home-slide-item > a
+     가 정하는 값을 따른다. */
+  margin: 14px 20px 0;
   padding: 24px 22px 22px;
-  min-height: 176px;
   overflow: hidden;
   /* 한지색. 그림의 왼쪽 여백과 같은 색이라 이음매가 없다 */
   background: #f6f0e4;
@@ -12359,7 +12361,10 @@ input[type="radio"] {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 9px;
+  /* 위아래로 벌리지 않고 가운데에 모은다 — 슬라이드 칸이 카드보다 높아
+     grid 가 기본으로 늘리면 제목과 설명이 멀어진다. */
+  align-content: center;
+  gap: 8px;
   /* 글 칸을 먼저 확보하고, 그림 쪽을 뒤에서 맞춘다 (2026-09-09).
      칸을 좁히며 문구를 줄이는 쪽으로 가면 문구가 계속 깎인다. */
   padding-right: 38%;
