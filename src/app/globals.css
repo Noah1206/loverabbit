@@ -12281,7 +12281,7 @@ input[type="radio"] {
   background: linear-gradient(120deg, #f6e7ee 0%, #f2e2ea 55%, #eddfe8 100%);
   color: #3a2430;
 }
-.home-idol-copy { position: relative; z-index: 1; display: grid; gap: 4px; flex: 1; min-width: 0; }
+.home-idol-copy { position: relative; z-index: 1; display: grid; gap: 4px; flex: 1; min-width: 0; padding-right: 72px; }
 .home-idol-card strong {
   font-size: 1.1rem;
   font-weight: 800;
@@ -12295,7 +12295,23 @@ input[type="radio"] {
   font-weight: 800;
   color: #b03a63;
 }
-.home-idol-art { font-size: 2.4rem; flex: none; position: relative; z-index: 1; }
+/* 캐릭터 그림 (2026-09-09). 이모지를 걷었다 — 12지신 캐릭터가 이미 있는데
+   이모지를 세우면 그 자리만 남의 그림이 된다. */
+.home-idol-art {
+  /* 흐름에서 빼고 카드 오른쪽 끝에 붙인다 — 글이 폭을 다 쓰고, 그림은 그
+     위에 얹힌다. flex 칸으로 두면 그림이 글을 밀어 두 줄이 세 줄이 된다. */
+  position: absolute;
+  right: -6px;
+  bottom: -8px;
+  z-index: 0;
+  width: 168px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center center;
+  /* multiply 를 걷었다 — 분홍 바탕에 곱하면 캐릭터가 탁해진다. 대신 그림의
+     배경이 카드와 같은 계열이라 그대로 얹어도 이음매가 안 보인다. */
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+}
 /* 딱지는 사주지도 카드의 것을 그대로 쓴다 (home-map-tags) — 분홍 바탕에서도
    읽히도록 색만 맞춘다. */
 .home-idol-card .home-map-tags b { background: #3a2430; color: #f8eef3; }
@@ -12317,6 +12333,14 @@ input[type="radio"] {
   background: var(--bg-card);
   color: var(--text);
   text-decoration: none;
+}
+.home-year-art {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fdf8f1;
+  margin-bottom: 2px;
 }
 .home-year-badge {
   font-size: 0.68rem;
@@ -13467,10 +13491,13 @@ input[type="radio"] {
 .wp {
   margin: 26px 0 0;
   padding: 22px 0 18px;
-  background: var(--canvas-cream);
+  /* 더 밝게 (2026-09-09 운영자). 크림 단색은 카드(흰색)와 붙어 한 덩어리로
+     보였다 — 위에서 아래로 아주 옅게 풀면 카드가 그 위에 떠 보인다. */
+  background: linear-gradient(180deg, #fffdfa 0%, #fdf7ef 100%);
   color: var(--text);
   border-radius: 28px;
   margin-inline: 20px;
+  border: 1px solid #f2e9dc;
 }
 .wp-head { padding: 0 20px; }
 .wp-head small {
@@ -13490,7 +13517,7 @@ input[type="radio"] {
   margin: 12px 20px 16px;
   padding: 13px 15px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.66);
+  background: #fff8ee;
   font-size: 0.88rem;
   line-height: 1.55;
   color: #6d6157;
@@ -13522,14 +13549,14 @@ input[type="radio"] {
   border-radius: 14px;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  /* 손그림의 종이색과 같은 밑색 — 그림이 뜨기 전에도 결이 이어진다 */
+  /* 그림의 배경색과 같은 밑색 — 그림이 뜨기 전에도 결이 이어진다 */
   background: #fdf8f1;
 }
 .wp-card-art img {
   width: 100%;
   height: 100%;
-  /* contain 이다. 손그림은 여백까지가 그림이라 cover 로 자르면 캐릭터의
-     귀나 말풍선이 잘린다 — 상품 사진(cover)과 다른 점이다. */
+  /* contain 이다. 캐릭터 그림은 여백까지가 그림이라 cover 로 자르면 귀나
+     떠 있는 하트가 잘린다 — 상품 사진(cover)과 다른 점이다. */
   object-fit: contain;
 }
 .wp-card-q {

@@ -213,7 +213,8 @@ export default function AppHome() {
                   <small>최애 생년월일만 알면 돼요. 두 명식이 만나는 자리를 봅니다.</small>
                   <span className="home-idol-cta">최애 궁합 보기 <i aria-hidden>›</i></span>
                 </span>
-                <span className="home-idol-art" aria-hidden>🎤</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="home-idol-art" src="/home/idol.jpg" alt="" loading="lazy" />
               </Link>
             </div>
             <div className="home-slide-item">
@@ -277,11 +278,15 @@ export default function AppHome() {
         */}
         <div className="home-year-row">
           <Link href="/product/sinnyeon" className="home-year-card">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="home-year-art" src="/home/sinnyeon.jpg" alt="" loading="lazy" />
             <span className="home-year-badge">신년운세</span>
             <strong>다가올 한 해,<br />나에게 어떤 해일까?</strong>
             <small>다음 해 세운이 만드는 한 해의 결</small>
           </Link>
           <Link href="/product/habangi" className="home-year-card">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="home-year-art" src="/home/habangi.jpg" alt="" loading="lazy" />
             <span className="home-year-badge">하반기 운세</span>
             <strong>올해 남은 달,<br />어떻게 흘러갈까?</strong>
             <small>몇 월에 밀고 몇 월에 다질지</small>
