@@ -1234,6 +1234,9 @@ export const CARD_ART = new Set<string>([
   "bamgijil", "baramgi", "bimil", "dohwasal", "gajok", "geongang", "gongbu",
   "gwontaegi", "gyeolhon", "hwanseung", "ibyeol", "isa", "jaehoe", "jaemul",
   "jikeop", "jikjang", "jjak", "sokgunghap", "sseom", "yeonae",
+  // 홈 배너로 먼저 그린 셋. 목록은 cards-pastel 만 보므로 같은 그림을
+  // 4:3 으로 잘라 옮겨 왔다 (2026-09-09).
+  "sinnyeon", "habangi", "idol",
 ]);
 
 export function hasCardArt(productId: string): boolean {
