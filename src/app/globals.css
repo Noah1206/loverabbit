@@ -13821,7 +13821,9 @@ input[type="radio"] {
      보였다 — 위에서 아래로 아주 옅게 풀면 카드가 그 위에 떠 보인다. */
   background: linear-gradient(180deg, #fffdfa 0%, #fdf7ef 100%);
   color: var(--text);
-  border-radius: 28px;
+  /* 모서리를 키웠다 (2026-09-09 운영자) — 슬라이드 배너(32px)와 같은 결로.
+     전역 각진 규칙이 !important 라 여기서도 !important 로만 되돌린다. */
+  border-radius: 32px !important;
   margin-inline: 20px;
   border: 1px solid #f2e9dc;
 }
@@ -13868,14 +13870,15 @@ input[type="radio"] {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border-radius: 20px;
+  /* 카드도 같이 키운다 — 바깥이 둥근데 안이 각지면 안쪽이 더 각져 보인다 */
+  border-radius: 24px !important;
   background: #fff;
   color: var(--text);
   /* 크림 위의 흰 카드는 경계가 흐려진다 — 아주 옅은 그림자로 띄운다 */
   box-shadow: 0 2px 10px rgba(93, 74, 54, 0.08);
 }
 .wp-card-art {
-  border-radius: 14px;
+  border-radius: 18px !important;
   overflow: hidden;
   aspect-ratio: 4 / 3;
   /* 그림의 배경색과 같은 밑색 — 그림이 뜨기 전에도 결이 이어진다 */
