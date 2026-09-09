@@ -361,6 +361,111 @@ export const IDOL_GROUPS: IdolGroup[] = [
       { name: "제나", birth: "2008-11-27" },
     ],
   },
+  // ── 2024~2025 데뷔 (2026-09-09) ──
+  // 아래 전부 위키백과와 나무위키 두 곳의 멤버 표가 날짜까지 일치한 것만 적었다.
+  // 한 곳만 나온 그룹은 넣지 않았다.
+  {
+    id: "nctwish",
+    label: "NCT WISH",
+    aliases: ["엔시티 위시"],
+    members: [
+      { name: "시온", birth: "2002-05-11" },
+      { name: "리쿠", birth: "2003-06-28" },
+      { name: "유우시", birth: "2004-04-05" },
+      { name: "재희", birth: "2005-06-21" },
+      { name: "료", birth: "2007-08-04" },
+      { name: "사쿠야", birth: "2007-11-18" },
+    ],
+  },
+  {
+    id: "katseye",
+    label: "캣츠아이",
+    aliases: ["KATSEYE"],
+    members: [
+      { name: "마농", birth: "2002-06-26" },
+      { name: "소피아", birth: "2002-12-31" },
+      { name: "다니엘라", birth: "2004-07-01" },
+      { name: "라라", birth: "2005-11-03" },
+      { name: "메간", birth: "2006-02-10" },
+      { name: "윤채", birth: "2007-12-06" },
+    ],
+  },
+  {
+    id: "izna",
+    label: "이즈나",
+    aliases: ["izna"],
+    members: [
+      { name: "마이", birth: "2004-10-28" },
+      { name: "방지민", birth: "2005-05-08" },
+      { name: "코코", birth: "2006-11-14" },
+      { name: "유사랑", birth: "2007-04-18" },
+      { name: "최정은", birth: "2007-08-04" },
+      { name: "정세비", birth: "2008-01-22" },
+    ],
+  },
+  {
+    id: "meovv",
+    label: "미야오",
+    aliases: ["MEOVV"],
+    members: [
+      { name: "수인", birth: "2005-04-12" },
+      { name: "가원", birth: "2005-04-27" },
+      { name: "안나", birth: "2005-11-17" },
+      { name: "나린", birth: "2007-08-15" },
+      { name: "엘라", birth: "2008-12-01" },
+    ],
+  },
+  {
+    id: "hearts2hearts",
+    label: "하츠투하츠",
+    aliases: ["Hearts2Hearts"],
+    members: [
+      { name: "카르멘", birth: "2006-03-28" },
+      { name: "지우", birth: "2006-09-07" },
+      { name: "유하", birth: "2007-04-12" },
+      { name: "스텔라", birth: "2007-06-18" },
+      { name: "주은", birth: "2008-12-03" },
+      { name: "에이나", birth: "2008-12-20" },
+      { name: "이안", birth: "2009-10-09" },
+      { name: "예온", birth: "2010-04-19" },
+    ],
+  },
+  {
+    id: "kiiikiii",
+    label: "키키",
+    aliases: ["KiiiKiii"],
+    members: [
+      { name: "이솔", birth: "2005-09-18" },
+      { name: "수이", birth: "2006-04-10" },
+      { name: "지유", birth: "2006-05-14" },
+      { name: "하음", birth: "2006-11-14" },
+      { name: "키야", birth: "2010-12-18" },
+    ],
+  },
+  {
+    id: "alldayproject",
+    label: "올데이 프로젝트",
+    aliases: ["ALLDAY PROJECT"],
+    members: [
+      { name: "애니", birth: "2002-01-23" },
+      { name: "타잔", birth: "2002-09-27" },
+      { name: "베일리", birth: "2004-02-24" },
+      { name: "우찬", birth: "2005-01-20" },
+      { name: "영서", birth: "2005-11-13" },
+    ],
+  },
+  {
+    id: "cortis",
+    label: "코르티스",
+    aliases: ["CORTIS"],
+    members: [
+      { name: "제임스", birth: "2005-10-14" },
+      { name: "주훈", birth: "2008-01-03" },
+      { name: "마틴", birth: "2008-03-20" },
+      { name: "성현", birth: "2009-01-13" },
+      { name: "건호", birth: "2009-02-14" },
+    ],
+  },
 ];
 
 export const IDOL_GROUP_MAP = new Map(IDOL_GROUPS.map((g) => [g.id, g]));
@@ -397,4 +502,12 @@ export const IDOL_CHIP_ORDER = [
   "bigbang",
   "day6",
   "rescene",
+  "nctwish",
+  "katseye",
+  "izna",
+  "meovv",
+  "hearts2hearts",
+  "kiiikiii",
+  "alldayproject",
+  "cortis",
 ] as const;
