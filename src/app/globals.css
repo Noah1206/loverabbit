@@ -13085,10 +13085,13 @@ input[type="radio"] {
   gap: 8px;
   padding: 2px 0;
 }
+/* 굵기 대신 크기로 (2026-09-10 운영자). 800 은 제목을 굵게 만들지만 줄이
+   스물세 개면 굵은 글자만 스물세 줄이라 오히려 하나도 안 도드라진다.
+   굵기를 보통으로 내리고 크기를 키우면 제목이 조용하면서 먼저 읽힌다. */
 .genre-item-copy strong {
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  font-size: 1.18rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .genre-tags {
   display: flex;
