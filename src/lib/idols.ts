@@ -38,6 +38,19 @@ export interface IdolGroup {
   label: string;
   /** 같은 그룹을 다른 이름으로 찾는 사람들 — 검색에만 쓴다 */
   aliases?: string[];
+  /**
+   * 카드에 적는 짧은 표기 (2026-09-09).
+   *
+   * 로고를 쓰지 않는 이유: 그룹 로고는 소속사의 등록 상표다. 내려받아 이
+   * 저장소에 담고 유료 서비스에 쓰면 무단 사용이 된다. 생년월일만 담고
+   * 사진·본명을 뺀 것과 같은 선이다.
+   *
+   * 대신 이니셜과 고유색으로 카드를 만든다. 상표를 안 쓰면서 이름이 한눈에
+   * 들어오고, 새 그룹을 더할 때 그림을 구할 필요도 없다.
+   */
+  mark: string;
+  /** 카드 바탕색. 그룹의 대표색에서 고르되 글자가 읽히는 명도로 */
+  color: string;
   members: IdolMember[];
 }
 
@@ -46,6 +59,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "bts",
     label: "BTS",
     aliases: ["방탄소년단"],
+    mark: "BTS",
+    color: "#6b5ce7",
     members: [
       { name: "진", birth: "1992-12-04" },
       { name: "슈가", birth: "1993-03-09" },
@@ -60,6 +75,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "blackpink",
     label: "블랙핑크",
     aliases: ["BLACKPINK"],
+    mark: "BP",
+    color: "#e8467c",
     members: [
       { name: "지수", birth: "1995-01-03" },
       { name: "제니", birth: "1996-01-16" },
@@ -71,6 +88,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "newjeans",
     label: "뉴진스",
     aliases: ["NewJeans"],
+    mark: "NJ",
+    color: "#4a7bd4",
     members: [
       { name: "민지", birth: "2004-05-07" },
       { name: "하니", birth: "2004-10-06" },
@@ -83,6 +102,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "ive",
     label: "IVE",
     aliases: ["아이브"],
+    mark: "IVE",
+    color: "#3f6fbd",
     members: [
       { name: "안유진", birth: "2003-09-01" },
       { name: "가을", birth: "2002-09-24" },
@@ -96,6 +117,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "aespa",
     label: "에스파",
     aliases: ["aespa"],
+    mark: "æ",
+    color: "#111827",
     members: [
       { name: "카리나", birth: "2000-04-11" },
       { name: "지젤", birth: "2000-10-30" },
@@ -107,6 +130,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "lesserafim",
     label: "르세라핌",
     aliases: ["LE SSERAFIM"],
+    mark: "LSF",
+    color: "#3b4a6b",
     members: [
       { name: "김채원", birth: "2000-08-01" },
       { name: "사쿠라", birth: "1998-03-19" },
@@ -119,12 +144,16 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "iu",
     label: "아이유",
     aliases: ["IU"],
+    mark: "IU",
+    color: "#a5628a",
     members: [{ name: "아이유", birth: "1993-05-16" }],
   },
   {
     id: "riize",
     label: "라이즈",
     aliases: ["RIIZE"],
+    mark: "RIIZE",
+    color: "#2f6b5e",
     members: [
       { name: "쇼타로", birth: "2000-11-25" },
       { name: "은석", birth: "2002-02-14" },
@@ -138,6 +167,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "tws",
     label: "TWS",
     aliases: ["투어스"],
+    mark: "TWS",
+    color: "#4a86c9",
     members: [
       { name: "신유", birth: "2003-05-19" },
       { name: "도훈", birth: "2004-01-10" },
@@ -151,6 +182,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "illit",
     label: "아일릿",
     aliases: ["ILLIT"],
+    mark: "ILLIT",
+    color: "#c0568f",
     members: [
       { name: "윤아", birth: "2004-09-15" },
       { name: "민주", birth: "2004-11-16" },
@@ -163,6 +196,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "txt",
     label: "투모로우바이투게더",
     aliases: ["TXT", "투바투"],
+    mark: "TXT",
+    color: "#2f5fa8",
     members: [
       { name: "연준", birth: "1999-09-13" },
       { name: "수빈", birth: "2000-12-05" },
@@ -175,6 +210,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "monstax",
     label: "몬스타엑스",
     aliases: ["MONSTA X"],
+    mark: "MX",
+    color: "#2b2b3d",
     members: [
       { name: "셔누", birth: "1992-06-18" },
       { name: "민혁", birth: "1993-11-03" },
@@ -188,6 +225,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "seventeen",
     label: "세븐틴",
     aliases: ["SEVENTEEN"],
+    mark: "SVT",
+    color: "#d4568c",
     members: [
       { name: "에스쿱스", birth: "1995-08-08" },
       { name: "정한", birth: "1995-10-04" },
@@ -208,6 +247,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "straykids",
     label: "스트레이키즈",
     aliases: ["Stray Kids", "스키즈"],
+    mark: "SKZ",
+    color: "#b03a3a",
     members: [
       { name: "방찬", birth: "1997-10-03" },
       { name: "리노", birth: "1998-10-25" },
@@ -223,6 +264,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "enhypen",
     label: "엔하이픈",
     aliases: ["ENHYPEN"],
+    mark: "EN-",
+    color: "#3d4a7a",
     members: [
       { name: "정원", birth: "2003-02-09" },
       { name: "희승", birth: "2001-10-15" },
@@ -237,6 +280,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "nct127",
     label: "NCT 127",
     aliases: ["NCT"],
+    mark: "127",
+    color: "#5aa06e",
     members: [
       { name: "태일", birth: "1994-06-14" },
       { name: "쟈니", birth: "1995-02-09" },
@@ -253,6 +298,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "twice",
     label: "트와이스",
     aliases: ["TWICE"],
+    mark: "TWICE",
+    color: "#e06a9c",
     members: [
       { name: "나연", birth: "1995-09-22" },
       { name: "정연", birth: "1996-11-01" },
@@ -269,6 +316,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "redvelvet",
     label: "레드벨벳",
     aliases: ["Red Velvet"],
+    mark: "RV",
+    color: "#c0392b",
     members: [
       { name: "아이린", birth: "1991-03-29" },
       { name: "슬기", birth: "1994-02-10" },
@@ -281,6 +330,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "gidle",
     label: "아이들",
     aliases: ["(G)I-DLE", "여자아이들"],
+    mark: "(G)",
+    color: "#8e44ad",
     members: [
       { name: "미연", birth: "1997-01-31" },
       { name: "민니", birth: "1997-10-23" },
@@ -293,6 +344,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "nmixx",
     label: "엔믹스",
     aliases: ["NMIXX"],
+    mark: "NMX",
+    color: "#2f7fa8",
     members: [
       { name: "해원", birth: "2002-01-11" },
       { name: "설윤", birth: "2004-04-26" },
@@ -305,6 +358,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "itzy",
     label: "있지",
     aliases: ["ITZY"],
+    mark: "ITZY",
+    color: "#d4467c",
     members: [
       { name: "예지", birth: "2000-05-26" },
       { name: "리아", birth: "2000-07-21" },
@@ -317,6 +372,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "exo",
     label: "엑소",
     aliases: ["EXO"],
+    mark: "EXO",
+    color: "#37474f",
     members: [
       { name: "시우민", birth: "1990-03-26" },
       { name: "수호", birth: "1991-05-22" },
@@ -332,6 +389,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "bigbang",
     label: "빅뱅",
     aliases: ["BIGBANG"],
+    mark: "BB",
+    color: "#c9992e",
     members: [
       { name: "지드래곤", birth: "1988-08-18" },
       { name: "태양", birth: "1988-05-18" },
@@ -342,6 +401,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "day6",
     label: "데이식스",
     aliases: ["DAY6"],
+    mark: "DAY6",
+    color: "#3f7f9e",
     members: [
       { name: "성진", birth: "1993-01-08" },
       { name: "영케이", birth: "1993-12-19" },
@@ -353,6 +414,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "rescene",
     label: "리센느",
     aliases: ["RESCENE"],
+    mark: "RSC",
+    color: "#7a5fa8",
     members: [
       { name: "원이", birth: "2004-05-25" },
       { name: "리브", birth: "2006-10-11" },
@@ -368,6 +431,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "nctwish",
     label: "NCT WISH",
     aliases: ["엔시티 위시"],
+    mark: "WISH",
+    color: "#4a90b8",
     members: [
       { name: "시온", birth: "2002-05-11" },
       { name: "리쿠", birth: "2003-06-28" },
@@ -381,6 +446,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "katseye",
     label: "캣츠아이",
     aliases: ["KATSEYE"],
+    mark: "KE",
+    color: "#7a4fa0",
     members: [
       { name: "마농", birth: "2002-06-26" },
       { name: "소피아", birth: "2002-12-31" },
@@ -394,6 +461,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "izna",
     label: "이즈나",
     aliases: ["izna"],
+    mark: "izna",
+    color: "#b8477a",
     members: [
       { name: "마이", birth: "2004-10-28" },
       { name: "방지민", birth: "2005-05-08" },
@@ -407,6 +476,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "meovv",
     label: "미야오",
     aliases: ["MEOVV"],
+    mark: "MEOVV",
+    color: "#2b2b2b",
     members: [
       { name: "수인", birth: "2005-04-12" },
       { name: "가원", birth: "2005-04-27" },
@@ -419,6 +490,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "hearts2hearts",
     label: "하츠투하츠",
     aliases: ["Hearts2Hearts"],
+    mark: "H2H",
+    color: "#c9527a",
     members: [
       { name: "카르멘", birth: "2006-03-28" },
       { name: "지우", birth: "2006-09-07" },
@@ -434,6 +507,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "kiiikiii",
     label: "키키",
     aliases: ["KiiiKiii"],
+    mark: "Kiii",
+    color: "#4a9ec9",
     members: [
       { name: "이솔", birth: "2005-09-18" },
       { name: "수이", birth: "2006-04-10" },
@@ -446,6 +521,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "alldayproject",
     label: "올데이 프로젝트",
     aliases: ["ALLDAY PROJECT"],
+    mark: "ADP",
+    color: "#2b2b3d",
     members: [
       { name: "애니", birth: "2002-01-23" },
       { name: "타잔", birth: "2002-09-27" },
@@ -458,6 +535,8 @@ export const IDOL_GROUPS: IdolGroup[] = [
     id: "cortis",
     label: "코르티스",
     aliases: ["CORTIS"],
+    mark: "CTS",
+    color: "#3a5f8a",
     members: [
       { name: "제임스", birth: "2005-10-14" },
       { name: "주훈", birth: "2008-01-03" },

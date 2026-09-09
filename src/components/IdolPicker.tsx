@@ -23,6 +23,9 @@ import { IDOL_CHIP_ORDER, IDOL_GROUP_MAP } from "@/lib/idols";
   "더보기" 를 걷었다 (2026-09-09). 옆으로 미는 줄이 되면서 접을 이유가
   없어졌다 — 서른셋이 한 줄에 있어도 자리를 더 먹지 않고, 접으면 오히려
   뒤에 뭐가 있는지 모른다.
+
+  카드마다 이니셜 표식을 세운다. 그룹 로고를 쓸 수 없어서(등록 상표) 고유색
+  위에 이니셜을 얹은 것인데, 글자만 있던 알약보다 눈으로 고르기 쉽다.
 */
 export default function IdolPicker() {
   return (
@@ -32,13 +35,19 @@ export default function IdolPicker() {
         <h2>연예인 궁합</h2>
       </header>
 
-      <div className="ip-chips">
+      <div className="ip-cards">
         {IDOL_CHIP_ORDER.map((id) => {
           const g = IDOL_GROUP_MAP.get(id);
           if (!g) return null;
           return (
-            <Link key={id} href={`/idol/${id}`} className="ip-chip">
-              {g.label}
+            <Link key={id} href={`/idol/${id}`} className="ip-card">
+              {/* 로고 대신 이니셜 카드 (2026-09-09 운영자). 그룹 로고는 소속사의
+                  등록 상표라 담을 수 없다 — 생년월일만 담고 사진·본명을 뺀 것과
+                  같은 선이다. 이니셜과 고유색으로 그 자리를 대신한다. */}
+              <span className="ip-card-mark" style={{ background: g.color }}>
+                {g.mark}
+              </span>
+              <strong>{g.label}</strong>
             </Link>
           );
         })}
