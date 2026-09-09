@@ -1619,8 +1619,9 @@ label {
   max-width: 640px;
   min-height: 100dvh;
   margin: 0 auto;
-  /* 고정 CTA 바(128px) + 바닥 여백(24px) + 버튼 두께보다 넉넉해야 마지막 문단이
-     가리지 않는다 */
+  /* 상품 상세는 고정 CTA 를 걷었지만(2026-09-10), 광고 랜딩·세트 화면은 이
+     클래스를 쓰면서 아직 고정 버튼을 세운다 — 그 화면들의 마지막 문단이
+     가리지 않도록 여백은 그대로 둔다. 상세만 아래에서 줄인다. */
   padding-bottom: calc(190px + env(safe-area-inset-bottom));
   overflow: clip;
   background:
@@ -7557,21 +7558,44 @@ label.transfer-pay-confirm.busy {
   padding-right: 0;
 }
 
+/* 고정 버튼이 없는 화면은 바닥을 그만큼 비워 둘 필요가 없다 (2026-09-10).
+   .product-page 의 190px 는 고정 버튼을 쓰는 광고 랜딩·세트를 위한 값이다. */
+.product-page:not(:has(.product-sticky-shell)) {
+  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+}
+
 /* ── 히어로 아래 버튼 (2026-09-10 운영자) ── 아래 고정 버튼과 같은 곳으로
    가는 같은 문구다. 첫 화면에서 손이 닿는 자리에 하나 더 둔다. */
 .product-hero-cta {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 18px;
-  padding: 15px 20px;
-  border-radius: 14px !important;
+  /* 화면 끝까지 (2026-09-10 운영자) — 바닥 고정 버튼을 걷은 뒤로 이 화면에서
+     누를 곳은 여기 하나뿐이라, 손이 어디를 짚어도 닿아야 한다. 히어로 글의
+     좌우 여백(20px)을 음수 마진으로 밀어내고 제 여백을 다시 준다. */
+  margin: 22px -20px 4px;
+  padding: 19px 22px;
+  border-radius: 16px !important;
   background: var(--btn-bg);
   color: var(--btn-ink);
   text-decoration: none;
 }
-.product-hero-cta strong { flex: 1; font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; }
-.product-hero-cta i { font-style: normal; font-size: 1.05rem; }
+.product-hero-cta-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.product-hero-cta strong {
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.product-hero-cta small {
+  font-size: 0.8rem;
+  opacity: 0.72;
+}
+.product-hero-cta i { flex: 0 0 auto; font-style: normal; font-size: 1.15rem; }
 .product-hero-cta:active { opacity: 0.86; }
 
 /* ── 글로 읽는 자리 ── 카드도 표도 아니다 (2026-09-10 운영자).

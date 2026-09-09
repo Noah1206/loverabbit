@@ -126,7 +126,20 @@ export default function ProductSalesPage({
               두 버튼이 다른 말을 하면 어느 쪽이 진짜인지 재게 된다. */}
           {ctaHref && (
             <ProductCtaGate href={ctaHref} className="product-hero-cta">
-              <strong>{product.ctaLabel}</strong>
+              <span className="product-hero-cta-copy">
+                {/* 값을 버튼에 적는다 — 사람은 버튼에서 "얼마인지" 를 먼저 찾고,
+                    그 답이 없으면 누르기 전에 스크롤을 올린다. 바닥 고정 버튼이
+                    하던 일을 여기가 물려받았다 (2026-09-10). 값은 열어본 장수를
+                    타므로(2·4·10러빗) "첫 장" 이라고 밝혀 적는다. */}
+                {activeOffer ? (
+                  <>
+                    <strong>첫 장 {READING_PRICE_TIERS[0]}러빗으로 확인하기</strong>
+                    <small>{product.ctaHook}</small>
+                  </>
+                ) : (
+                  <strong>{product.ctaLabel}</strong>
+                )}
+              </span>
               <i aria-hidden>→</i>
             </ProductCtaGate>
           )}
