@@ -28,7 +28,7 @@ import {
 } from "@/lib/meta-events";
 import { trackFunnel } from "@/lib/funnel";
 import SignupModal from "@/components/SignupModal";
-import { PAY_BEFORE_GENERATE } from "@/lib/reading-gate";
+import { PAY_BEFORE_GENERATE, REQUIRE_LOGIN_BEFORE_FORM } from "@/lib/reading-gate";
 import type { ReadingStepName } from "@/lib/funnel-events";
 
 // 카테고리 목록은 상품 카탈로그에서 파생한다 (상품 추가 시 여기 손댈 필요 없음)
@@ -592,7 +592,7 @@ export default function ReadingPage() {
       만들어 4건을 팔았고 AI 값이 매출을 넘었다. 안 사는 사람의 글을 먼저 만드는
       구조에서는 트래픽이 늘수록 손해가 커진다. 주인 없는 주문은 만들 수도 없다.
     */
-    if (PAY_BEFORE_GENERATE && !user) {
+    if (REQUIRE_LOGIN_BEFORE_FORM && !user) {
       // 소셜 로그인은 페이지를 통째로 떠났다가 돌아온다. 상태에만 둔 초안은 그때
       // 사라져서, 다 채운 사람이 성별 칸부터 다시 봤다. 여기서 저장해 두면 위의
       // 복귀 복원이 값을 찾고, 로그인이 돼 있으니 그대로 생성으로 넘어간다.

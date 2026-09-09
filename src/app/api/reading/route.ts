@@ -32,7 +32,7 @@ import {
   rewriteFlagged,
 } from "@/lib/reading-compose";
 import { saveResume } from "@/lib/reading-resume";
-import { PAY_BEFORE_GENERATE } from "@/lib/reading-gate";
+import { PAY_BEFORE_GENERATE, REQUIRE_LOGIN_BEFORE_FORM } from "@/lib/reading-gate";
 import { recordAiUsage } from "@/lib/ai-usage";
 
 // 조각을 동시에 던지므로 벽시계 시간은 가장 느린 조각 하나다. 그래도 60초는
@@ -191,13 +191,17 @@ export async function POST(req: NextRequest) {
   const userId = user?.userId ?? null;
 
   /*
-    결제 전에 만들지 않기로 한 뒤로, 이 자리가 로그인 관문이다.
+    로그인 관문을 결제 앞으로 되돌렸다 (2026-09-10 운영자).
 
-    전에는 익명으로 미리보기를 만들고 결제 앞에서 로그인을 받았다. 그때는 관문을
-    뒤로 미룰수록 폼을 끝내는 사람이 늘었기 때문이다. 지금은 폼 뒤에 오는 것이
-    무료 글이 아니라 주문이라, 주인 없는 주문을 만들 수가 없다.
+    한동안 이 자리에서 막았다. 결제 전에 만들지 않기로 하면서 "주인 없는 주문은
+    만들 수 없다" 고 본 것인데, 실제로 여기서 막는 것은 주문이 아니라 계산이다 —
+    명식·지수·목차는 값이 안 드는 계산이고, 글은 어차피 /api/unlock 이 결제 뒤에
+    만든다(deferGeneration). 그래서 비용 보호는 그대로 두고 관문만 옮긴다.
+
+    주인 없는 리딩은 user_id 가 빈 채로 저장되어 기기 보관함에만 살고, 결제를
+    시작할 때 claimReading 이 계정에 붙인다.
   */
-  if (PAY_BEFORE_GENERATE && !userId) {
+  if (REQUIRE_LOGIN_BEFORE_FORM && !userId) {
     return NextResponse.json(
       { error: "사주를 세우려면 먼저 로그인해주세요.", needSignup: true },
       { status: 401 }

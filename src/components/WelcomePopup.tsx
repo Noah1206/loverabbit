@@ -24,6 +24,18 @@ import { useEscape } from "@/lib/use-escape";
 const KEY = "lr_welcome_popup_v1";
 const SHOW_ON = [/^\/$/, /^\/product\//, /^\/saju\//];
 
+/*
+  꺼 둔다 (2026-09-10 운영자).
+
+  "첫 가입 한정 혜택" 이라 적힌 팝업이 홈·상품 화면에서 세션마다 눈앞을
+  막았다. 로그인을 결제 앞으로 미루기로 한 마당에(reading-gate.ts 의
+  REQUIRE_LOGIN_BEFORE_FORM), 아직 아무것도 안 본 사람에게 가입 이야기를
+  먼저 꺼내는 화면이 남아 있으면 앞뒤가 안 맞는다.
+
+  지우지 않고 스위치만 둔다 — 값과 문구는 그대로라 다시 켜면 그대로 뜬다.
+*/
+const ENABLED = false;
+
 export default function WelcomePopup() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -32,6 +44,7 @@ export default function WelcomePopup() {
   });
 
   useEffect(() => {
+    if (!ENABLED) return;
     if (!SHOW_ON.some((re) => re.test(pathname ?? ""))) return;
     try {
       if (sessionStorage.getItem(KEY)) return;
