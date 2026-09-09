@@ -136,7 +136,9 @@ export default function GuidePage() {
         <img className="guide-rabbit-sm anim-sway" src="/assets/today/rabbit-obanggi.webp" alt="" width={120} height={120} />
         <h2 className="guide-h2">매일 공짜로 주는 것</h2>
         <p className="guide-pastel-body">
-          아래 탭 <strong>오늘의 사주</strong>에서 매일 오방기를 하나 뽑아.
+          {/* 2026-09-09: 가운데 탭이 사주지도로 바뀌어 "아래 탭" 이 더는 길이
+              아니다. 홈과 바로 아래 링크가 그 자리를 대신한다. */}
+          <strong>오늘의 사주</strong>에서 매일 오방기를 하나 뽑아.
           <br />
           오늘의 행동 한 줄은 매일 공짜야.
           <br />

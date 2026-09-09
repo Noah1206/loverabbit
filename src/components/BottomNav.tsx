@@ -5,25 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import loveRabbitLogo from "../../public/logo.png";
-import { getUser } from "@/lib/user";
-
-// 사주지도 탭은 아직 만드는 중 — 개발자 계정에만 보인다.
-const DEV_EMAILS = ["ab40905045@gmail.com"];
-
-const GUIN_ITEM = {
-  href: "/guin",
-  label: "사주지도",
-  matches: (path: string) => path.startsWith("/guin"),
-  // 궤도 위 별 — 지도 화면의 문법 그대로
-  icon: (
-    <>
-      <ellipse cx="12" cy="12" rx="9" ry="4.6" />
-      <circle cx="12" cy="12" r="1.6" />
-      <circle cx="4.8" cy="9.4" r="1.1" />
-      <circle cx="19.2" cy="14.6" r="1.1" />
-    </>
-  ),
-} as const;
 
 // FAB 위 튜토리얼 말풍선 — 한 번 닫으면 다시 안 뜬다
 const FAB_TIP_KEY = "fab-tip-dismissed";
@@ -37,10 +18,11 @@ const FAB_TIP_KEY = "fab-tip-dismissed";
 // 아이콘은 전부 24 격자에 stroke 로만 그린다. 채움 없음 — 활성일 때 CSS 가
 // 선을 굵혀(2.4) 무게가 실린 것처럼 읽히게 한다.
 //
-// 탭은 셋이다. "오늘"이 검수를 마치고 두 번째 자리로 돌아왔다 (2026-09-02) —
-// 매일 열어보는 것이라 홈 옆이 맞다. 사주지도는 아직 만드는 중이라 뺐다 —
-// /guin 페이지는 남아 있어 주소로는 열린다. "내 상담"은 탭에서 빼고
-// 마이 페이지 안으로 넣었다 (2026-09-03) — /my 페이지는 그대로 있다.
+// 탭은 셋이다. 가운데 자리는 2026-09-09 에 "오늘의 사주"에서 "사주지도"로
+// 바뀌었다 (운영자) — 오늘의 사주는 홈에서 이미 배너로 들어가고, 지도는
+// 홈에서 슬라이드 한 장 안에 묻혀 있어 여기 세우는 편이 낫다. /today 는
+// 그대로 살아 있고 홈과 주소로 들어간다. "내 상담"은 탭에서 빼고 마이
+// 페이지 안으로 넣었다 (2026-09-03) — /my 페이지는 그대로 있다.
 const NAV_ITEMS = [
   {
     href: "/",
@@ -56,12 +38,12 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/today",
-    label: "오늘의 사주",
+    href: "/guin",
+    label: "사주지도",
     fab: true, // 가운데 큰 원형 버튼 — 바 위로 솟고, 밑에 라벨이 보인다
-    matches: (path: string) => path.startsWith("/today"),
-    // 오늘의 사주를 보는 곳 — 브랜드 얼굴(원형 토끼 로고)을 그대로 얹는다.
-    // stroke 아이콘 대신 이미지라, 렌더에서 logo 플래그로 분기한다.
+    matches: (path: string) => path.startsWith("/guin"),
+    // 브랜드 얼굴(원형 토끼 로고)을 그대로 얹는다. stroke 아이콘 대신
+    // 이미지라, 렌더에서 logo 플래그로 분기한다.
     logo: true as const,
   },
   {
@@ -87,18 +69,15 @@ const NAV_ITEMS = [
 export default function BottomNav() {
   const path = usePathname();
 
-  // 하이드레이션 불일치를 피하려고 마운트 뒤에만 켠다 (개발자 탭도 같은 이유)
+  // 하이드레이션 불일치를 피하려고 마운트 뒤에만 켠다
   const [showTip, setShowTip] = useState(false);
-  const [isDev, setIsDev] = useState(false);
   useEffect(() => {
     try {
       if (!localStorage.getItem(FAB_TIP_KEY)) setShowTip(true);
     } catch {}
-    const email = getUser()?.email?.toLowerCase();
-    if (email && DEV_EMAILS.includes(email)) setIsDev(true);
   }, []);
 
-  const items = isDev ? [...NAV_ITEMS, GUIN_ITEM] : [...NAV_ITEMS];
+  const items = NAV_ITEMS;
   const found = items.findIndex((item) => item.matches(path));
   const routeIndex = found < 0 ? 0 : found;
   const dismissTip = () => {
@@ -114,9 +93,9 @@ export default function BottomNav() {
 
   return (
     <nav className="tabbar" aria-label="주요 메뉴">
-      {showTip && !path.startsWith("/today") && (
+      {showTip && !path.startsWith("/guin") && (
         <div className="fab-tip" role="status">
-          오늘의 사주 보러가기
+          사주지도 보러가기
           <button type="button" aria-label="안내 닫기" onClick={dismissTip}>
             ×
           </button>
