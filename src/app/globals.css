@@ -12325,6 +12325,69 @@ input[type="radio"] {
 .home-sec {
   margin: var(--home-section-gap) 20px 0;
 }
+
+/* ── 연도 섹션 (신년·하반기) ── 2026-09-09 운영자, 참고 화면 기준.
+
+   제목이 커진다. "신년운세" 를 작게 적고 그림에 연도를 맡기던 것을 뒤집어,
+   제목이 "2027 붉은 양의 해" 를 말하고 그림은 받치기만 한다 — 어느 해
+   이야기인지가 스크롤 중에 먼저 읽혀야 하는 것이라서. */
+.home-year-head {
+  margin-bottom: 12px;
+}
+.home-year-head small {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+.home-year-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.62rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+.home-year-head h2 i {
+  font-size: 1.42rem;
+  font-style: normal;
+  line-height: 1;
+}
+.home-year-card {
+  display: block;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text);
+}
+.home-year-card img {
+  display: block;
+  width: 100%;
+  /* 그림이 4:3 이라 16/9 로 자르면 위아래가 깎인다. 하반기 토끼는 머리가
+     위쪽에 있어 가운데를 자르면 정수리가 날아간다 — 위를 기준으로 자른다
+     (2026-09-09). */
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center 18%;
+  background: var(--tint-1);
+}
+.home-year-copy {
+  display: grid;
+  gap: 3px;
+  padding: 11px 2px 0;
+}
+.home-year-copy strong {
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.home-year-copy small {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
 .home-sec-head {
   margin-bottom: 10px;
 }

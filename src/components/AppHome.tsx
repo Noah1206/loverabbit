@@ -24,11 +24,16 @@ import IdolPicker from "@/components/IdolPicker";
 import WorryPicker from "@/components/WorryPicker";
 import { CREDIT_EVENT } from "@/lib/credits";
 import { GENRES } from "@/lib/genres";
+import { seoulYear, yearLabelOf } from "@/lib/year-label";
 import InquiryButton from "@/components/InquiryButton";
 
 
 export default function AppHome() {
   const { theme } = useTheme();
+  /* 해 이름은 렌더 때 센다 — 모듈 바깥에서 계산하면 빌드 시각에 굳어,
+     해가 바뀌어도 다시 배포할 때까지 지난해를 말한다. */
+  const thisYear = seoulYear();
+  const nextYear = yearLabelOf(thisYear + 1);
   /* 배너 슬라이드. 누르면 멈춘다 — 읽는 중에 넘어가면 안내가 아니라 방해다. */
   const [slide, setSlide] = useState(0);
   const [slideHeld, setSlideHeld] = useState(false);
@@ -291,32 +296,45 @@ export default function AppHome() {
           값은 적지 않는다. 홈은 products.ts 를 읽지 않기로 한 자리라(파일 첫
           주석), 값을 적으려면 그 결정을 깨야 한다. 값은 상세가 말한다.
         */}
-        <section className="home-sec">
-          <header className="home-sec-head">
-            <small>다가올 한 해, 지금 미리 맞춰보세요</small>
-            <h2>신년운세</h2>
+        {/* 제목에 연도를 세운다 (2026-09-09 운영자). "신년운세" 만으로는 어느
+            해 이야기인지 안 보인다 — 12월에 보는 사람과 3월에 보는 사람이 같은
+            글자를 다르게 읽는다. 해 이름(정미년 · 붉은 양의 해)까지 계산해서
+            적으면 그 해가 어떤 해인지가 제목에서 끝난다.
+
+            손으로 안 적는다. year-label.ts 가 사주 엔진에서 간지를 뽑는다 —
+            해가 바뀌면 홈도 저절로 바뀐다. */}
+        <section className="home-sec home-year">
+          <header className="home-year-head">
+            <small>내년 인생 타이밍, 지금 미리 맞춰보세요!</small>
+            <h2>
+              <i aria-hidden>🔥</i>
+              {nextYear.year} {nextYear.phrase}
+            </h2>
           </header>
-          <Link href="/product/sinnyeon" className="home-sec-card">
+          <Link href="/product/sinnyeon" className="home-year-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/home/sinnyeon.jpg" alt="" loading="lazy" />
-            <span className="home-sec-copy">
-              <strong>다가올 한 해, 나에게 어떤 해일까?</strong>
+            <span className="home-year-copy">
+              <strong>{nextYear.ganji}년 정통사주 신년운세</strong>
               <small>다음 해 세운이 만드는 한 해의 결</small>
             </span>
           </Link>
         </section>
 
         {/* ── 하반기 총운 ── 신년과 같은 틀, 다른 철 */}
-        <section className="home-sec">
-          <header className="home-sec-head">
+        <section className="home-sec home-year">
+          <header className="home-year-head">
             <small>올해 마무리 잘하고 싶다면?</small>
-            <h2>하반기 운세</h2>
+            <h2>
+              <i aria-hidden>✅</i>
+              {thisYear} 하반기 운세
+            </h2>
           </header>
-          <Link href="/product/habangi" className="home-sec-card">
+          <Link href="/product/habangi" className="home-year-card">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/home/habangi.jpg" alt="" loading="lazy" />
-            <span className="home-sec-copy">
-              <strong>올해 남은 달, 어떻게 흘러갈까?</strong>
+            <span className="home-year-copy">
+              <strong>{thisYear} 하반기, 남은 달은 어떻게 흘러갈까?</strong>
               <small>몇 월에 밀고 몇 월에 다질지</small>
             </span>
           </Link>
