@@ -115,7 +115,7 @@ export default function TarotView() {
   // ── 로그인 전 ──
   if (!user) {
     return (
-      <main className="container tr" style={{ paddingTop: 32, paddingBottom: 110 }}>
+      <main className="container tr" style={{ paddingTop: 32 }}>
         {/* 로그인 전에도 목록을 보여준다 (2026-09-09 운영자). 배너 한 장으로는
             무엇을 파는지 글자로만 설명하게 된다 — 다섯 줄을 그대로 펴 두면
             처음 온 사람도 고를 것을 먼저 보고, 로그인은 그 아래에서 묻는다.
@@ -183,7 +183,7 @@ export default function TarotView() {
   // ── 결과 ──
   if (result) {
     return (
-      <main className="container tr" style={{ paddingTop: 32, paddingBottom: 110 }}>
+      <main className="container tr" style={{ paddingTop: 32 }}>
         <p className="tr-question">{result.draw.question}</p>
         <h1 className="tr-h1">{result.draw.topicLabel} 타로</h1>
 
@@ -248,7 +248,7 @@ export default function TarotView() {
 
   // ── 고르기 ──
   return (
-    <main className="container tr" style={{ paddingTop: 32, paddingBottom: 110 }}>
+    <main className="container tr" style={{ paddingTop: 32 }}>
       {/* 사주 종목과 같은 머리 (2026-09-09 운영자) — 배너를 걷고 제목과 탭을
           세운다. 타로만 다른 모양이면 두 화면이 서로 다른 앱처럼 읽힌다. */}
       <header className="genre-head">

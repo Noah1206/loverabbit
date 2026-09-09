@@ -85,7 +85,7 @@ export default function PeriodView() {
   // ── 로그인 전 ──
   if (!user) {
     return (
-      <main className="container pf" style={{ paddingTop: 40, paddingBottom: 110 }}>
+      <main className="container pf" style={{ paddingTop: 40 }}>
         <span className="badge">무료</span>
         <h1 className="pf-h1">이번 주·이번 달 운세</h1>
         <p className="pf-lede">
@@ -103,7 +103,7 @@ export default function PeriodView() {
   }
 
   return (
-    <main className="container pf" style={{ paddingTop: 32, paddingBottom: 110 }}>
+    <main className="container pf" style={{ paddingTop: 32 }}>
       <span className="badge">무료</span>
       <h1 className="pf-h1">{period === "week" ? "이번 주" : "이번 달"} 운세</h1>
 

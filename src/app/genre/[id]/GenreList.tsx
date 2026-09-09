@@ -23,7 +23,7 @@ import { GENRES, type Genre } from "@/lib/genres";
  */
 export default function GenreList({ genre, items }: { genre: Genre; items: Product[] }) {
   return (
-    <main className="container genre" style={{ paddingTop: 20, paddingBottom: 110 }}>
+    <main className="container genre" style={{ paddingTop: 20 }}>
       <header className="genre-head">
         <Link href="/" className="genre-back" aria-label="홈으로">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">

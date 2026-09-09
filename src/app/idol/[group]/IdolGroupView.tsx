@@ -16,7 +16,7 @@ import type { IdolGroup } from "@/lib/idols";
 */
 export default function IdolGroupView({ group }: { group: IdolGroup }) {
   return (
-    <main className="container ig" style={{ paddingTop: 28, paddingBottom: 110 }}>
+    <main className="container ig" style={{ paddingTop: 28 }}>
       <Link href="/" className="ig-back" aria-label="홈으로">
         ‹ 홈
       </Link>

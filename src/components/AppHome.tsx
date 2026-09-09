@@ -341,7 +341,7 @@ export default function AppHome() {
         </section>
 
         {/* ── 푸터 ── */}
-        <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
+        <footer style={{ marginTop: 32, padding: "24px 20px 0", borderTop: "1px solid var(--line)" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, fontSize: "0.82rem" }}>
             <div>
               <strong style={{ color: "var(--text-dim)", fontSize: "0.78rem" }}>지원</strong>

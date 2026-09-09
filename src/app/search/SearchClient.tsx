@@ -60,7 +60,7 @@ export default function SearchClient() {
   }, [term]);
 
   return (
-    <main className="container search" style={{ paddingTop: 20, paddingBottom: 110 }}>
+    <main className="container search" style={{ paddingTop: 20 }}>
       <header className="genre-head">
         <Link href="/" className="genre-back" aria-label="홈으로">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">

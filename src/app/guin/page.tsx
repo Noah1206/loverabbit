@@ -150,7 +150,7 @@ function GuinLanding() {
   };
 
   return (
-    <main className="container guin-landing" style={{ paddingTop: 28, paddingBottom: 120 }}>
+    <main className="container guin-landing" style={{ paddingTop: 28 }}>
       {busy && <GuinRunLoader />}
 
       {/* 딱딱한 제목+문단 대신 토끼가 서 있는 무대 — 폼은 그 아래 카드에 앉는다 */}

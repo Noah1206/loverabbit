@@ -673,7 +673,7 @@ export default function GuinMapPage() {
   if (view.viewer === "stranger" && !justJoined && sharedResult) {
     const { person } = sharedResult;
     return (
-      <main className="container guin-shared" style={{ paddingTop: 48, paddingBottom: 120 }}>
+      <main className="container guin-shared" style={{ paddingTop: 48 }}>
         <p className="guin-shared-kicker">{sharedResult.ownerNickname}님의 사주지도에서</p>
         <h1 className="guin-shared-name">{person.nickname}님은</h1>
 
@@ -785,7 +785,7 @@ export default function GuinMapPage() {
   if (view.viewer === "stranger" && !justJoined) {
     const copy = GUIN_COPY[inviteVariant];
     return (
-      <main className="container" style={{ paddingTop: 48, paddingBottom: 120 }}>
+      <main className="container" style={{ paddingTop: 48 }}>
         <p style={{ color: "var(--accent)", fontWeight: 800, marginBottom: 8 }}>GUIN MAP</p>
         <h1 style={{ marginBottom: 8 }}>{copy.inviteTitle.replace("{owner}", view.ownerNickname)}</h1>
         <p style={{ color: "var(--text-dim)", marginBottom: 14 }}>{copy.inviteBody}</p>
@@ -882,7 +882,7 @@ export default function GuinMapPage() {
     {/* 배경 지도 그림을 걷었다 (2026-09-09 운영자) — 별자리는 예뻤지만 사람이
         늘수록 이름이 겹쳐 읽을 수 없었고, "내가 누구를 등록했더라" 를 한눈에
         못 봤다. 이제 아래 격자가 그 일을 한다. 배경은 그냥 배경이다. */}
-    <main className="container guin-scene" style={{ paddingTop: 20, paddingBottom: 120 }}>
+    <main className="container guin-scene" style={{ paddingTop: 20 }}>
       {/* 맨 위는 내 정보다 (2026-09-09 운영자). 인스타 프로필처럼 — 누구의
           지도인지, 내 기운은 무엇인지, 몇 명이 모였는지를 한 덩어리로. */}
       <header className="gp-head">

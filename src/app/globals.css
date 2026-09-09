@@ -187,8 +187,12 @@ body {
   width: min(100%, var(--app-max-width));
   min-height: 100dvh;
   margin-inline: auto;
-  /* 탭바(72px, 바닥에 붙음) + 솟은 FAB(24px)를 비우고 여유 — 마지막 요소가 가리지 않게 */
-  padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  /* 탭바(72px, 바닥에 붙음)만 비운다 (2026-09-10 운영자). 112px 이던 것은
+     가운데 FAB 이 24px 솟아 있을 때의 값인데, 그 원판은 걷었다. 게다가 화면
+     마다 110~120px 을 또 얹고 있어서 바닥에 150px 짜리 빈 칸이 생겼다 —
+     끝까지 내리면 아무것도 없는 자리가 한 화면의 6분의 1이었다.
+     여기서 한 번만 비우고, 화면 쪽 값은 전부 걷었다. */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
   position: relative;
   isolation: isolate;
   overflow-x: clip;
@@ -2330,9 +2334,9 @@ label {
      (2026-09-09 운영자: 헤더 밑 공백 없이) — 첫 배너가 헤더에 붙어야
      화면을 열자마자 배너가 보인다. 숨 쉴 자리는 배너 안쪽 여백이 낸다. */
   padding-top: calc(60px + env(safe-area-inset-top));
-  /* 하단 탭바가 72px 로 고정돼 떠 있다. 그만큼 비워 두지 않으면 마지막
-     내용이 탭바에 가린다 — 상품 그리드를 걷어 화면이 짧아지면서 드러났다. */
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  /* 탭바 자리는 .app-viewport 가 이미 비운다 (2026-09-10) — 여기서 또 84px 을
+     얹어 홈 바닥에만 빈 칸이 두 겹이었다. */
+  padding-bottom: 0;
 }
 
 /* 떠 있는 카드가 아니라 화면 맨 위에 붙은 면이다. 테두리도 그림자도 두지
@@ -7561,7 +7565,8 @@ label.transfer-pay-confirm.busy {
 /* 고정 버튼이 없는 화면은 바닥을 그만큼 비워 둘 필요가 없다 (2026-09-10).
    .product-page 의 190px 는 고정 버튼을 쓰는 광고 랜딩·세트를 위한 값이다. */
 .product-page:not(:has(.product-sticky-shell)) {
-  padding-bottom: calc(40px + env(safe-area-inset-bottom));
+  /* app-viewport 가 이미 탭바만큼 비운다 — 여기서 또 얹으면 두 번 비운다 */
+  padding-bottom: 8px;
 }
 
 /* ── 히어로 아래 버튼 (2026-09-10 운영자) ── 아래 고정 버튼과 같은 곳으로
