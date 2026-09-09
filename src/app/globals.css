@@ -10006,8 +10006,13 @@ input[type="radio"] {
 .guin-landing-form {
   border-radius: 24px !important;
 }
+/* 인풋만 덜 깎는다 (2026-09-09 운영자). 22px 은 48px 높이의 거의 절반이라
+   알약이 된다 — 글자를 넣는 칸은 알약이 아니라 칸으로 보여야 한다. 옆의
+   토글·양음력 조각은 누르는 것이라 알약 그대로 둔다. */
 .guin-landing-form input,
-.guin-landing-form select,
+.guin-landing-form select {
+  border-radius: 10px !important;
+}
 .guin-landing-form .guin-hour-toggle,
 .guin-landing-form .guin-cal-seg,
 .guin-landing-form .guin-cal-seg button {
