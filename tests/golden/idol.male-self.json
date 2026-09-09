@@ -1,0 +1,141 @@
+{
+  "product": "idol",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": {
+    "birth": {
+      "year": 1990,
+      "month": 2,
+      "day": 14,
+      "hour": 3,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "경오",
+      "month": "무인",
+      "day": "경술",
+      "hour": "정축"
+    },
+    "dayMaster": "경금",
+    "strength": {
+      "label": "중화",
+      "score": 45
+    },
+    "dominantTenGods": [
+      "정관",
+      "편인",
+      "비견"
+    ],
+    "missingElements": [
+      "수"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "홍염",
+      "화개",
+      "원진"
+    ],
+    "relations": [
+      "인오술 화국"
+    ],
+    "xing": [
+      "chou_xu_wei_three_xing:축술:partial"
+    ],
+    "luck": {
+      "major": "갑술 편재",
+      "yearly": "병오 편관",
+      "monthly": "병신 편관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "rules": [
+    "IDOL-META-NO-HOUR-PARTNER",
+    "IDOL-PAIR-COMPLEMENT",
+    "IDOL-PARTNER-PDGBIGEOP",
+    "IDOL-PARTNER-PDGGWAN",
+    "IDOL-PARTNER-PDGIN",
+    "IDOL-SELF-METAL",
+    "MISS-WOOD",
+    "TG-PYEONIN",
+    "TG-BIGYEON",
+    "SELF-METAL-EVEN",
+    "SELF-BALANCED"
+  ],
+  "score": {
+    "value": 58,
+    "band": "닿는 결",
+    "factors": [
+      {
+        "label": "일간 같은 오행",
+        "delta": 5
+      },
+      {
+        "label": "오행이 무난하다",
+        "delta": 3
+      }
+    ]
+  },
+  "scope": {
+    "label": "최애 아이돌 궁합 (내 명식과 최애의 명식이 만나는 결 — 끌리는 이유, 두 기운이 맞물리는 자리와 어긋나는 자리, 닮은 점과 다른 점)",
+    "outline": [
+      "1장 01. 내 일간 — 내가 끌리는 결",
+      "1장 02. 최애의 일간 — 그 사람이 가진 결",
+      "2장 01. 두 오행의 만남 — 채우는가 부딪히는가",
+      "2장 02. 상대가 내게 오는 십성 — 끌림의 성질",
+      "3장 01. 내게 없는 오행을 그 사람이 갖고 있는가",
+      "3장 02. 닮은 점 — 같은 기운이 겹치는 자리",
+      "4장 01. 다른 점 — 결이 어긋나는 자리",
+      "4장 02. 지지의 합충 — 편안한 자리와 부딪히는 자리",
+      "5장 01. 덕질에서 힘을 얻는 방식",
+      "6장 01. 최애를 보며 나에 대해 알게 되는 것"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "product": "habangi",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "HALF-LUCK-BIGEOP",
+    "HALF-LUCK-SIKSANG",
+    "HALF-WEAK",
+    "HALF-CHUNG",
+    "HALF-MISSING",
+    "HALF-SELF-WOOD",
+    "HALF-SIN-HWAGAE"
+  ],
+  "score": {
+    "value": 47,
+    "band": "고르는 구간",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -12
+      },
+      {
+        "label": "세운 식신",
+        "delta": 9
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 4
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -4
+      }
+    ]
+  },
+  "scope": {
+    "label": "하반기 총운 (올해 남은 달의 월운 흐름 — 달마다 무엇이 세지고 무엇이 눌리는지, 움직일 달과 다질 달, 연말까지의 행동)",
+    "outline": [
+      "1장 01. 올해 세운과 내 명식 — 지금 어디에 서 있는가",
+      "1장 02. 남은 달의 큰 그림 — 하반기의 결",
+      "2장 01. 달마다의 흐름 — 남은 달을 하나씩",
+      "2장 02. 세지는 달 — 밀어도 되는 자리",
+      "3장 01. 눌리는 달 — 결정을 미룰 자리",
+      "3장 02. 합충이 흔드는 달 — 조심할 지점",
+      "4장 01. 일과 돈 — 남은 달에 무게가 실리는 쪽",
+      "4장 02. 사람과 관계 — 남은 달의 온도",
+      "5장 01. 연말까지의 행동 순서",
+      "6장 01. 오늘부터 지킬 행동강령"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

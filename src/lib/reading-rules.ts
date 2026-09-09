@@ -50,6 +50,16 @@ export interface RuleCondition {
   relationKind?: ("천간합" | "지지충" | "지지육합" | "삼합")[];
   /** 대운·세운·월운 십성 */
   luckTenGodAny?: string[];
+  /**
+   * 다음 해 세운의 십성 (2026-09-09).
+   *
+   * luckTenGodAny 와 따로 두는 이유: 저쪽은 **지금 돌고 있는 운** 셋을 한 묶음으로
+   * 본다. 신년운세가 파는 것은 지금이 아니라 아직 오지 않은 해라, 같은 칸에 넣으면
+   * "올해 관성운" 과 "내년 관성운" 이 구별되지 않는다. 계산은 이미 나와 있다 —
+   * saju-facts 의 luckContext.upcoming.nextYear 가 그 해의 간지와 십성을 낸다.
+   */
+  nextYearTenGodAny?: string[];
+
   /** 두 명식 사이의 관계 */
   pairRelation?: PairRelation[];
   /** 상대 명식이 있어야만 켜지는 규칙 */
@@ -1067,6 +1077,577 @@ export const READING_RULES: ReadingRule[] = [
     safePhrasing: "그렇게 반응하는",
     forbidden: ["서로밖에 없다"],
     source: "궁합 — 일간 천간합은 두 사람이 서로에게 기반(羈絆)되는 조합.",
+  },
+
+  // ── 총운 2종 (2026-09-09 운영자) ─────────────────────────
+  //
+  // sinnyeon(신년운세)·habangi(하반기 총운)도 태그된 규칙만 쓴다
+  // (NON_ROMANCE_PRODUCTS). 연애 문구로 쓰인 규칙이 한 해의 총운에 승인
+  // 사실로 들어가면 "내년 총운" 이 연애 리포트가 된다.
+  //
+  // 두 상품의 축이 다르다는 점이 규칙을 가른다.
+  //   신년  — 아직 오지 않은 해. nextYearTenGodAny 로 다음 해 세운을 본다.
+  //   하반기 — 이미 돌고 있는 구간. luckTenGodAny 로 지금 세운·월운을 본다.
+  // 같은 십성이라도 "올 해"와 "온 해"는 사람이 할 수 있는 일이 다르다 —
+  // 앞의 것은 준비고 뒤의 것은 배치다. 문장도 그 축으로 갈라 적었다.
+  //
+  // 아래 전부 십신 통설·오행 성정·강약 통설·합충의 기계적 정의에서 온 교과
+  // 수준의 해석이다. 새 명리 주장을 만들지 않았다.
+
+  // ── 신년: 다음 해 세운의 십성 ──────────────────────────
+  {
+    id: "YEAR-NEXT-BIGEOP",
+    priority: 88,
+    when: { nextYearTenGodAny: ["비견", "겁재"], domains: ["sinnyeon"] },
+    claim: "다음 해는 나와 같은 기운이 겹쳐 드는 해라, 몫과 경계를 먼저 정해 두어야 힘이 덜 새는 구조",
+    safePhrasing: "그렇게 몫이 나뉘기 쉬운 해",
+    forbidden: ["동업하면 망한다", "돈을 떼인다", "사람에게 배신당한다"],
+    source: "십신 통설 — 비겁은 나와 같은 기운. 재를 나누고 힘을 겨루는 자리로 본다.",
+  },
+  {
+    id: "YEAR-NEXT-SIKSANG",
+    priority: 88,
+    when: { nextYearTenGodAny: ["식신", "상관"], domains: ["sinnyeon"] },
+    claim: "다음 해는 안에 있던 것이 밖으로 나가는 해라, 벌여 두었던 것을 형태로 만들기 좋은 구조",
+    safePhrasing: "그렇게 나가는 해",
+    forbidden: ["반드시 성공한다", "무조건 시작해야 한다"],
+    source: "십신 통설 — 식상은 일간이 내보내는 기운. 표현·산출의 자리로 본다.",
+  },
+  {
+    id: "YEAR-NEXT-JAESEONG",
+    priority: 88,
+    when: { nextYearTenGodAny: ["정재", "편재"], domains: ["sinnyeon"] },
+    claim: "다음 해는 손에 잡히는 것으로 무게가 옮겨 가는 해라, 벌이는 폭보다 감당할 크기를 먼저 재야 하는 구조",
+    safePhrasing: "그렇게 실리는 해",
+    forbidden: ["큰돈이 들어온다", "투자하면 반드시 번다", "재물운이 터진다"],
+    source: "십신 통설 — 재성은 일간이 다스리는 기운. 실물·결과의 자리로 본다.",
+  },
+  {
+    id: "YEAR-NEXT-GWANSEONG",
+    priority: 88,
+    when: { nextYearTenGodAny: ["정관", "편관"], domains: ["sinnyeon"] },
+    claim: "다음 해는 형태와 책임이 또렷해지는 해라, 새로 벌이기보다 맡은 것의 경계를 세우는 데 힘이 실리는 구조",
+    safePhrasing: "그렇게 조여 오는 해",
+    forbidden: ["승진한다", "합격한다", "관재수가 있다"],
+    source: "십신 통설 — 관성은 일간을 다스리는 기운. 규율·직분의 자리로 본다.",
+  },
+  {
+    id: "YEAR-NEXT-INSEONG",
+    priority: 88,
+    when: { nextYearTenGodAny: ["정인", "편인"], domains: ["sinnyeon"] },
+    claim: "다음 해는 밖으로 벌이기보다 안으로 채우는 해라, 확장보다 배우고 정비하는 쪽에 힘이 붙는 구조",
+    safePhrasing: "그렇게 채우는 해",
+    forbidden: ["아무것도 하면 안 된다", "쉬어야만 한다"],
+    source: "십신 통설 — 인성은 일간을 돕는 기운. 배움·의지처의 자리로 본다.",
+  },
+  // 신년: 강약이 그 해를 어떻게 받는가
+  {
+    id: "YEAR-NEXT-STRONG",
+    priority: 74,
+    when: { strength: ["신강"], domains: ["sinnyeon"] },
+    claim: "명식의 힘이 실려 있어 다음 해의 기운을 밀어내는 쪽에 가까워, 밀어붙일 곳을 하나로 좁힐수록 결과가 모이는 구조",
+    safePhrasing: "그렇게 감당하는 편",
+    forbidden: ["무엇이든 다 된다", "적수가 없다"],
+    source: "강약 통설 — 신강은 일간의 힘이 실린 상태. 설기(泄氣)하는 쪽이 순하다.",
+  },
+  {
+    id: "YEAR-NEXT-WEAK",
+    priority: 74,
+    when: { strength: ["신약"], domains: ["sinnyeon"] },
+    claim: "명식의 힘이 얕아 다음 해의 기운에 눌리기 쉬워, 벌이는 수를 줄이고 기댈 곳을 먼저 만들어야 하는 구조",
+    safePhrasing: "그렇게 눌리기 쉬운 편",
+    forbidden: ["아무것도 못 한다", "실패한다"],
+    source: "강약 통설 — 신약은 일간의 힘이 얕은 상태. 부조(扶助)받는 쪽이 순하다.",
+  },
+  {
+    id: "YEAR-NEXT-BALANCED",
+    priority: 74,
+    when: { strength: ["중화"], domains: ["sinnyeon"] },
+    claim: "명식이 한쪽으로 기울지 않아 다음 해의 기운을 고르게 받는 편이라, 해의 결이 크게 흔들기보다 방향을 정해 주는 구조",
+    safePhrasing: "그렇게 고르게 받는 편",
+    forbidden: ["운이 평범하다", "아무 일도 없다"],
+    source: "강약 통설 — 중화는 일간의 힘이 치우치지 않은 상태.",
+  },
+  // 신년: 원국의 충 — 흔들리는 자리
+  {
+    id: "YEAR-NEXT-CHUNG",
+    priority: 70,
+    when: { relationKind: ["지지충"], domains: ["sinnyeon"] },
+    claim: "명식 안에 마주쳐 부딪히는 자리가 있어, 한 해가 바뀔 때 그 자리부터 먼저 움직이는 구조",
+    safePhrasing: "그 자리가 흔들리는",
+    forbidden: ["사고가 난다", "큰일이 생긴다", "이사를 반드시 해야 한다"],
+    source: "합충 — 지지충은 두 자리가 정면으로 부딪히는 관계.",
+  },
+  {
+    id: "YEAR-NEXT-MISSING",
+    priority: 68,
+    when: {
+      missingElement: ["목", "화", "토", "금", "수"],
+      domains: ["sinnyeon"],
+    },
+    claim: "명식에 비어 있는 오행이 있어, 그 결이 필요한 대목에서 한 해 내내 힘이 덜 붙는 구조",
+    safePhrasing: "그쪽이 얕은",
+    forbidden: ["그 오행을 채우면 운이 트인다", "그것만 하면 다 된다"],
+    source: "오행 — 명식에 없는 오행은 그 성정이 얕은 자리로 본다.",
+  },
+
+  // ── 하반기: 지금 돌고 있는 운의 십성 ────────────────────
+  {
+    id: "HALF-LUCK-BIGEOP",
+    priority: 88,
+    when: { luckTenGodAny: ["비견", "겁재"], domains: ["habangi"] },
+    claim: "지금 구간은 나와 같은 기운이 겹쳐 몫이 섞이기 쉬워, 남은 달에 얽힌 것부터 정리해 두는 쪽이 맞는 구조",
+    safePhrasing: "그렇게 섞이기 쉬운 구간",
+    forbidden: ["돈을 떼인다", "배신당한다"],
+    source: "운 — 비겁운은 나눔·경쟁. 재를 나누는 자리로 본다.",
+  },
+  {
+    id: "HALF-LUCK-SIKSANG",
+    priority: 88,
+    when: { luckTenGodAny: ["식신", "상관"], domains: ["habangi"] },
+    claim: "지금 구간은 표현과 산출이 늘어나 남은 달에 꺼내 놓는 일이 잘 굴러가는 구조",
+    safePhrasing: "그렇게 나가는 구간",
+    forbidden: ["반드시 성과가 난다", "지금 시작하면 무조건 된다"],
+    source: "운 — 식상운은 일간이 내보내는 흐름. 표현·산출이 는다.",
+  },
+  {
+    id: "HALF-LUCK-JAESEONG",
+    priority: 88,
+    when: { luckTenGodAny: ["정재", "편재"], domains: ["habangi"] },
+    claim: "지금 구간은 실물과 결과 쪽으로 무게가 쏠려, 남은 달에는 벌이기보다 이미 가진 것을 헤아리기 좋은 구조",
+    safePhrasing: "그렇게 실리는 구간",
+    forbidden: ["돈이 들어온다", "투자 적기다"],
+    source: "운 — 재성운은 일간이 다스리는 흐름. 실물·결과가 눈에 든다.",
+  },
+  {
+    id: "HALF-LUCK-GWANSEONG",
+    priority: 88,
+    when: { luckTenGodAny: ["정관", "편관"], domains: ["habangi"] },
+    claim: "지금 구간은 형태와 책임이 조여 오는 흐름이라, 남은 달에는 벌인 것을 마무리로 몰아 두는 쪽이 맞는 구조",
+    safePhrasing: "그렇게 조여 오는 구간",
+    forbidden: ["승진한다", "관재수가 있다", "합격한다"],
+    source: "운 — 관성운은 일간을 다스리는 흐름. 규율·직분이 또렷해진다.",
+  },
+  {
+    id: "HALF-LUCK-INSEONG",
+    priority: 88,
+    when: { luckTenGodAny: ["정인", "편인"], domains: ["habangi"] },
+    claim: "지금 구간은 안으로 채우는 흐름이라, 남은 달에는 넓히기보다 점검하고 배우는 쪽에 힘이 붙는 구조",
+    safePhrasing: "그렇게 채우는 구간",
+    forbidden: ["아무것도 하면 안 된다", "무조건 쉬어야 한다"],
+    source: "운 — 인성운은 일간을 돕는 흐름. 배움·정비가 는다.",
+  },
+  // 하반기: 강약이 지금 구간을 어떻게 받는가
+  {
+    id: "HALF-STRONG",
+    priority: 74,
+    when: { strength: ["신강"], domains: ["habangi"] },
+    claim: "명식의 힘이 실려 있어 지금 구간을 밀어내는 쪽에 가까워, 남은 달에 벌일 곳을 하나로 좁힐수록 결과가 모이는 구조",
+    safePhrasing: "그렇게 감당하는 편",
+    forbidden: ["무엇이든 다 된다"],
+    source: "강약 통설 — 신강은 일간의 힘이 실린 상태. 설기하는 쪽이 순하다.",
+  },
+  {
+    id: "HALF-WEAK",
+    priority: 74,
+    when: { strength: ["신약"], domains: ["habangi"] },
+    claim: "명식의 힘이 얕아 지금 구간에 눌리기 쉬워, 남은 달에는 벌이는 수를 줄이고 회복할 자리를 남겨 두어야 하는 구조",
+    safePhrasing: "그렇게 눌리기 쉬운 편",
+    forbidden: ["아무것도 못 한다", "건강이 나빠진다"],
+    source: "강약 통설 — 신약은 일간의 힘이 얕은 상태. 부조받는 쪽이 순하다.",
+  },
+  {
+    id: "HALF-BALANCED",
+    priority: 74,
+    when: { strength: ["중화"], domains: ["habangi"] },
+    claim: "명식이 한쪽으로 기울지 않아 지금 구간을 고르게 받는 편이라, 남은 달의 결이 크게 흔들기보다 순서를 정해 주는 구조",
+    safePhrasing: "그렇게 고르게 받는 편",
+    forbidden: ["운이 평범하다"],
+    source: "강약 통설 — 중화는 일간의 힘이 치우치지 않은 상태.",
+  },
+  {
+    id: "HALF-CHUNG",
+    priority: 70,
+    when: { relationKind: ["지지충"], domains: ["habangi"] },
+    claim: "명식 안에 정면으로 부딪히는 자리가 있어, 그 자리를 건드리는 달에 유난히 크게 흔들리는 구조",
+    safePhrasing: "그 자리가 걸리는",
+    forbidden: ["사고가 난다", "반드시 이사해야 한다"],
+    source: "합충 — 지지충은 두 자리가 정면으로 부딪히는 관계.",
+  },
+  {
+    id: "HALF-MISSING",
+    priority: 68,
+    when: {
+      missingElement: ["목", "화", "토", "금", "수"],
+      domains: ["habangi"],
+    },
+    claim: "명식에 비어 있는 오행이 있어, 그 결이 필요한 달에 힘이 덜 붙고 같은 대목에서 되풀이해 걸리는 구조",
+    safePhrasing: "그쪽이 얕은",
+    forbidden: ["그 오행을 채우면 운이 트인다"],
+    source: "오행 — 명식에 없는 오행은 그 성정이 얕은 자리로 본다.",
+  },
+  {
+    id: "HALF-XING-NOW",
+    priority: 72,
+    when: { xingLuckScope: ["세운", "월운"], domains: ["habangi"] },
+    claim: "지금 구간의 글자가 명식과 형(刑)을 이뤄, 남은 달 가운데 유독 걸리는 대목이 생기는 구조",
+    safePhrasing: "요즘 유독 걸리는",
+    forbidden: ["송사가 생긴다", "다친다", "수술한다"],
+    source: "형 — 운의 글자가 원국과 형을 이루는 구간. 걸림이 드러나는 자리로 본다.",
+  },
+
+
+  // ── 총운 둘째 층 (2026-09-09) ───────────────────────────
+  //
+  // 첫 층(십성·강약·충)만으로는 어떤 명식에서 규칙이 셋만 켜졌다. 열한 절이
+  // 판단 셋 위에 서면 같은 말이 형태만 바꿔 되풀이된다(reading-coverage 의
+  // MIN_UNIQUE_RULES 가 다섯이다). 오행 성정·합·신살은 어느 명식에나 걸리는
+  // 층이라, 이 층을 얹으면 최소선이 채워진다.
+  //
+  // 문장을 새로 짓지 않았다. 이미 승인된 SELF-*·REL-*·SIN-* 의 판단을 총운의
+  // 물음(한 해를 어떻게 쓰는가)으로 옮겨 적은 것이다 — 원본이 연애 문장이라
+  // 그대로 태그만 넓힐 수는 없었다.
+  {
+    id: "YEAR-SELF-WOOD",
+    priority: 66,
+    when: { dayMasterElement: ["목"], domains: ["sinnyeon"] },
+    claim: "한 해의 방향을 먼저 정해 두어야 몸이 따라가는 결 — 명분이 서지 않으면 힘이 안 붙는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 木은 시작·성장·곧음(仁).",
+  },
+  {
+    id: "HALF-SELF-WOOD",
+    priority: 66,
+    when: { dayMasterElement: ["목"], domains: ["habangi"] },
+    claim: "한 해의 방향을 먼저 정해 두어야 몸이 따라가는 결 — 명분이 서지 않으면 힘이 안 붙는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 木은 시작·성장·곧음(仁).",
+  },
+  {
+    id: "YEAR-SELF-FIRE",
+    priority: 66,
+    when: { dayMasterElement: ["화"], domains: ["sinnyeon"] },
+    claim: "밖으로 드러날 때 힘이 붙는 결 — 혼자 묵히면 오히려 식는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 火는 드러냄·확산·예(禮).",
+  },
+  {
+    id: "HALF-SELF-FIRE",
+    priority: 66,
+    when: { dayMasterElement: ["화"], domains: ["habangi"] },
+    claim: "밖으로 드러날 때 힘이 붙는 결 — 혼자 묵히면 오히려 식는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 火는 드러냄·확산·예(禮).",
+  },
+  {
+    id: "YEAR-SELF-EARTH",
+    priority: 66,
+    when: { dayMasterElement: ["토"], domains: ["sinnyeon"] },
+    claim: "한꺼번에 옮기기보다 고르게 다져야 남는 결 — 급히 방향을 틀면 무너지는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 土는 중재·축적·신(信).",
+  },
+  {
+    id: "HALF-SELF-EARTH",
+    priority: 66,
+    when: { dayMasterElement: ["토"], domains: ["habangi"] },
+    claim: "한꺼번에 옮기기보다 고르게 다져야 남는 결 — 급히 방향을 틀면 무너지는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 土는 중재·축적·신(信).",
+  },
+  {
+    id: "YEAR-SELF-METAL",
+    priority: 66,
+    when: { dayMasterElement: ["금"], domains: ["sinnyeon"] },
+    claim: "끊고 맺는 것이 분명해야 힘이 도는 결 — 어중간하게 남겨 두면 오래 끌리는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 金은 결단·정리·의(義).",
+  },
+  {
+    id: "HALF-SELF-METAL",
+    priority: 66,
+    when: { dayMasterElement: ["금"], domains: ["habangi"] },
+    claim: "끊고 맺는 것이 분명해야 힘이 도는 결 — 어중간하게 남겨 두면 오래 끌리는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 金은 결단·정리·의(義).",
+  },
+  {
+    id: "YEAR-SELF-WATER",
+    priority: 66,
+    when: { dayMasterElement: ["수"], domains: ["sinnyeon"] },
+    claim: "겉으로 드러내기 전에 안에서 먼저 재는 결 — 재는 시간을 주지 않으면 헛도는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 水는 지혜·유연·지(智).",
+  },
+  {
+    id: "HALF-SELF-WATER",
+    priority: 66,
+    when: { dayMasterElement: ["수"], domains: ["habangi"] },
+    claim: "겉으로 드러내기 전에 안에서 먼저 재는 결 — 재는 시간을 주지 않으면 헛도는 구조",
+    safePhrasing: "그런 결",
+    forbidden: ["그 오행이라 반드시 잘된다", "성격이 나쁘다"],
+    source: "오행 성정 — 水는 지혜·유연·지(智).",
+  },
+  {
+    id: "YEAR-REL-YUKHAP",
+    priority: 64,
+    when: { relationKind: ["지지육합"], domains: ["sinnyeon"] },
+    claim: "묶여 붙드는 자리가 있어, 정리해야 할 것도 손에서 잘 안 놓이는 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["절대 안 바뀐다"],
+    source: "형충회합 — 육합은 두 지지가 묶여 서로를 붙든다.",
+  },
+  {
+    id: "HALF-REL-YUKHAP",
+    priority: 64,
+    when: { relationKind: ["지지육합"], domains: ["habangi"] },
+    claim: "묶여 붙드는 자리가 있어, 정리해야 할 것도 손에서 잘 안 놓이는 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["절대 안 바뀐다"],
+    source: "형충회합 — 육합은 두 지지가 묶여 서로를 붙든다.",
+  },
+  {
+    id: "YEAR-REL-SAMHAP",
+    priority: 64,
+    when: { relationKind: ["삼합"], domains: ["sinnyeon"] },
+    claim: "세 글자가 한 축으로 모여 그쪽 일이 크게 벌어지고 다른 축은 얇아지는 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["뭐든 이룬다"],
+    source: "형충회합 — 삼합은 생지·왕지·고지가 모여 한 국(局)을 이룬다.",
+  },
+  {
+    id: "HALF-REL-SAMHAP",
+    priority: 64,
+    when: { relationKind: ["삼합"], domains: ["habangi"] },
+    claim: "세 글자가 한 축으로 모여 그쪽 일이 크게 벌어지고 다른 축은 얇아지는 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["뭐든 이룬다"],
+    source: "형충회합 — 삼합은 생지·왕지·고지가 모여 한 국(局)을 이룬다.",
+  },
+  {
+    id: "YEAR-REL-CHEONHAP",
+    priority: 64,
+    when: { relationKind: ["천간합"], domains: ["sinnyeon"] },
+    claim: "천간이 묶여 겉으로 드러나는 태도와 안에서 정한 것이 갈리기 쉬운 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["이중인격이다"],
+    source: "형충회합 — 천간합은 두 천간이 묶여 기반(羈絆)된다.",
+  },
+  {
+    id: "HALF-REL-CHEONHAP",
+    priority: 64,
+    when: { relationKind: ["천간합"], domains: ["habangi"] },
+    claim: "천간이 묶여 겉으로 드러나는 태도와 안에서 정한 것이 갈리기 쉬운 구조",
+    safePhrasing: "그렇게 묶인",
+    forbidden: ["이중인격이다"],
+    source: "형충회합 — 천간합은 두 천간이 묶여 기반(羈絆)된다.",
+  },
+  {
+    id: "YEAR-SIN-YEOKMA",
+    priority: 62,
+    when: { shinsal: ["역마"], domains: ["sinnyeon"] },
+    claim: "자리와 환경이 바뀔 때 일이 함께 움직여, 이동이 걸리는 대목에서 흐름이 전환되는 구조",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["반드시 이사한다", "해외에 나간다"],
+    source: "신살 — 역마는 삼합 생지의 충. 이동·변동으로 본다.",
+  },
+  {
+    id: "HALF-SIN-YEOKMA",
+    priority: 62,
+    when: { shinsal: ["역마"], domains: ["habangi"] },
+    claim: "자리와 환경이 바뀔 때 일이 함께 움직여, 이동이 걸리는 대목에서 흐름이 전환되는 구조",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["반드시 이사한다", "해외에 나간다"],
+    source: "신살 — 역마는 삼합 생지의 충. 이동·변동으로 본다.",
+  },
+  {
+    id: "YEAR-SIN-HWAGAE",
+    priority: 62,
+    when: { shinsal: ["화개"], domains: ["sinnyeon"] },
+    claim: "혼자 정리하는 시간이 있어야 기운이 도는 편이라, 일정이 빽빽할수록 오히려 더디게 가는 구조",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["사람을 못 만난다"],
+    source: "신살 — 화개는 삼합의 고지. 고독·수렴으로 본다.",
+  },
+  {
+    id: "HALF-SIN-HWAGAE",
+    priority: 62,
+    when: { shinsal: ["화개"], domains: ["habangi"] },
+    claim: "혼자 정리하는 시간이 있어야 기운이 도는 편이라, 일정이 빽빽할수록 오히려 더디게 가는 구조",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["사람을 못 만난다"],
+    source: "신살 — 화개는 삼합의 고지. 고독·수렴으로 본다.",
+  },
+  {
+    id: "YEAR-SIN-YANGIN",
+    priority: 62,
+    when: { shinsal: ["양인"], domains: ["sinnyeon"] },
+    claim: "밀어붙이는 힘이 강해 결정적인 대목에서 한 번에 밀거나 한 번에 접는 경향",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["폭력적이다", "사고가 난다"],
+    source: "신살 — 양인은 양간의 겁재 자리. 극왕(極旺)의 칼로 본다.",
+  },
+  {
+    id: "HALF-SIN-YANGIN",
+    priority: 62,
+    when: { shinsal: ["양인"], domains: ["habangi"] },
+    claim: "밀어붙이는 힘이 강해 결정적인 대목에서 한 번에 밀거나 한 번에 접는 경향",
+    safePhrasing: "그런 기운이 앉은",
+    forbidden: ["폭력적이다", "사고가 난다"],
+    source: "신살 — 양인은 양간의 겁재 자리. 극왕(極旺)의 칼로 본다.",
+  },
+
+  // ── 아이돌 궁합 (2026-09-09) ────────────────────────────
+  //
+  // 연애 상품이라 NON_ROMANCE_PRODUCTS 에 넣지 않는다 — 태그 없는 규칙도
+  // 그대로 받는다. 다만 이 상품에만 필요한 두 명식 규칙을 아래에 세운다.
+  // 최애는 태어난 시를 모르므로 시주에 기댄 조건은 쓰지 않는다.
+  //
+  // 판매 페이지가 파는 것은 "왜 끌렸는가"의 구조지 사귈 수 있는지가 아니다.
+  // forbidden 이 그 선을 진다 — 만날 수 있다·이어진다는 말은 계산에 없다.
+  {
+    id: "IDOL-PAIR-COMPLEMENT",
+    priority: 90,
+    when: { needsPartner: true, pairElementComplement: ["목", "화", "토", "금", "수"], domains: ["idol"] },
+    claim: "내 명식에 얕은 오행을 상대가 갖고 있어, 그 결을 볼 때 유난히 편안하고 채워지는 느낌이 드는 구조",
+    safePhrasing: "그렇게 채워지는",
+    forbidden: ["운명이다", "만날 수 있다", "사귀게 된다"],
+    source: "오행 — 없는 오행을 상대가 가진 조합은 보완으로 본다.",
+  },
+  {
+    id: "IDOL-PAIR-YUKHAP",
+    priority: 88,
+    when: { needsPartner: true, pairRelation: ["일지육합"], domains: ["idol"] },
+    claim: "두 사람의 일지가 서로를 붙잡는 조합이라, 한번 눈에 들어오면 오래 머무르게 되는 구조",
+    safePhrasing: "그렇게 머무는",
+    forbidden: ["천생연분이다", "이어진다"],
+    source: "궁합 — 일지 육합은 두 자리가 묶이는 조합.",
+  },
+  {
+    id: "IDOL-PAIR-CHUNG",
+    priority: 88,
+    when: { needsPartner: true, pairRelation: ["일지충"], domains: ["idol"] },
+    claim: "두 사람의 일지가 정면으로 마주 서는 조합이라, 나와 정반대인 결에 끌리면서도 이해가 안 되는 대목이 남는 구조",
+    safePhrasing: "그렇게 부딪히는",
+    forbidden: ["악연이다", "보면 안 된다"],
+    source: "궁합 — 일지 충은 두 자리가 마주쳐 부딪히는 조합.",
+  },
+  {
+    id: "IDOL-PAIR-GANHAP",
+    priority: 86,
+    when: { needsPartner: true, pairRelation: ["일간합"], domains: ["idol"] },
+    claim: "두 일간이 묶이는 조합이라, 남들이 보는 그 사람과 내가 보는 그 사람이 달라지는 구조",
+    safePhrasing: "그렇게 달리 보이는",
+    forbidden: ["서로밖에 없다", "특별한 인연이다"],
+    source: "궁합 — 일간 천간합은 두 일간이 기반(羈絆)되는 조합.",
+  },
+  {
+    id: "IDOL-PARTNER-PDGBIGEOP",
+    priority: 76,
+    when: { needsPartner: true, partnerDominantTenGod: ["비견", "겁재"], domains: ["idol"] },
+    claim: "상대의 명식은 스스로 서는 기운이 두드러져, 기대기보다 나란히 서는 결로 보이는 구조",
+    safePhrasing: "그런 결로 보이는",
+    forbidden: ["그 사람은 이런 성격이다", "실제로 그렇다"],
+    source: "십신 통설 — 비겁은 자립·대등의 별. 공개된 생년월일로 세운 명식의 결까지만 말한다.",
+  },
+  {
+    id: "IDOL-PARTNER-PDGSIKSANG",
+    priority: 76,
+    when: { needsPartner: true, partnerDominantTenGod: ["식신", "상관"], domains: ["idol"] },
+    claim: "상대의 명식은 안에 있는 것을 밖으로 내보내는 기운이 두드러져, 표현하는 자리에서 가장 그 사람다워지는 구조",
+    safePhrasing: "그런 결로 보이는",
+    forbidden: ["그 사람은 이런 성격이다", "실제로 그렇다"],
+    source: "십신 통설 — 식상은 표현·산출의 별. 공개된 생년월일로 세운 명식의 결까지만 말한다.",
+  },
+  {
+    id: "IDOL-PARTNER-PDGJAE",
+    priority: 76,
+    when: { needsPartner: true, partnerDominantTenGod: ["정재", "편재"], domains: ["idol"] },
+    claim: "상대의 명식은 손에 잡히는 것으로 향하는 기운이 두드러져, 감각과 실물 쪽에서 결이 서는 구조",
+    safePhrasing: "그런 결로 보이는",
+    forbidden: ["그 사람은 이런 성격이다", "실제로 그렇다"],
+    source: "십신 통설 — 재성은 실물·감각의 별. 공개된 생년월일로 세운 명식의 결까지만 말한다.",
+  },
+  {
+    id: "IDOL-PARTNER-PDGGWAN",
+    priority: 76,
+    when: { needsPartner: true, partnerDominantTenGod: ["정관", "편관"], domains: ["idol"] },
+    claim: "상대의 명식은 형태와 책임 쪽 기운이 두드러져, 맡은 자리에서 결이 또렷해지는 구조",
+    safePhrasing: "그런 결로 보이는",
+    forbidden: ["그 사람은 이런 성격이다", "실제로 그렇다"],
+    source: "십신 통설 — 관성은 규율·직분의 별. 공개된 생년월일로 세운 명식의 결까지만 말한다.",
+  },
+  {
+    id: "IDOL-PARTNER-PDGIN",
+    priority: 76,
+    when: { needsPartner: true, partnerDominantTenGod: ["정인", "편인"], domains: ["idol"] },
+    claim: "상대의 명식은 안으로 받아들이는 기운이 두드러져, 채우고 되새기는 자리에서 결이 깊어지는 구조",
+    safePhrasing: "그런 결로 보이는",
+    forbidden: ["그 사람은 이런 성격이다", "실제로 그렇다"],
+    source: "십신 통설 — 인성은 배움·수용의 별. 공개된 생년월일로 세운 명식의 결까지만 말한다.",
+  },
+  {
+    id: "IDOL-SELF-WOOD",
+    priority: 70,
+    when: { dayMasterElement: ["목"], domains: ["idol"] },
+    claim: "곧게 뻗는 결에 눈이 가고, 방향이 분명한 사람에게 끌리기 쉬운 구조",
+    safePhrasing: "그쪽으로 눈이 가는",
+    forbidden: ["그런 사람만 만난다", "그 오행이라 반드시 그렇다"],
+    source: "오행 성정 — 木은 시작·성장·곧음(仁).",
+  },
+  {
+    id: "IDOL-SELF-FIRE",
+    priority: 70,
+    when: { dayMasterElement: ["화"], domains: ["idol"] },
+    claim: "환하게 드러나는 결에 눈이 가고, 밝게 번지는 사람에게 끌리기 쉬운 구조",
+    safePhrasing: "그쪽으로 눈이 가는",
+    forbidden: ["그런 사람만 만난다", "그 오행이라 반드시 그렇다"],
+    source: "오행 성정 — 火는 드러냄·확산·예(禮).",
+  },
+  {
+    id: "IDOL-SELF-EARTH",
+    priority: 70,
+    when: { dayMasterElement: ["토"], domains: ["idol"] },
+    claim: "묵묵히 받아 두는 결에 눈이 가고, 흔들리지 않는 사람에게 끌리기 쉬운 구조",
+    safePhrasing: "그쪽으로 눈이 가는",
+    forbidden: ["그런 사람만 만난다", "그 오행이라 반드시 그렇다"],
+    source: "오행 성정 — 土는 중재·축적·신(信).",
+  },
+  {
+    id: "IDOL-SELF-METAL",
+    priority: 70,
+    when: { dayMasterElement: ["금"], domains: ["idol"] },
+    claim: "분명하게 매듭짓는 결에 눈이 가고, 단정한 사람에게 끌리기 쉬운 구조",
+    safePhrasing: "그쪽으로 눈이 가는",
+    forbidden: ["그런 사람만 만난다", "그 오행이라 반드시 그렇다"],
+    source: "오행 성정 — 金은 결단·정리·의(義).",
+  },
+  {
+    id: "IDOL-SELF-WATER",
+    priority: 70,
+    when: { dayMasterElement: ["수"], domains: ["idol"] },
+    claim: "깊이 재는 결에 눈이 가고, 속을 다 보이지 않는 사람에게 끌리기 쉬운 구조",
+    safePhrasing: "그쪽으로 눈이 가는",
+    forbidden: ["그런 사람만 만난다", "그 오행이라 반드시 그렇다"],
+    source: "오행 성정 — 水는 지혜·유연·지(智).",
+  },
+  {
+    id: "IDOL-META-NO-HOUR-PARTNER",
+    priority: 94,
+    when: { needsPartner: true, domains: ["idol"] },
+    claim: "상대의 태어난 시는 공개된 값이 아니라 시주가 서지 않으므로, 세 기둥 안에서만 읽고 범위를 넓게 잡아야 함",
+    safePhrasing: "단정하지 않고 폭을 두는",
+    forbidden: ["상대의 시주로 보면", "그 사람 시주가 말해주듯"],
+    source: "계산 한계 — 최애의 출생 시각은 입력받지 않는다. 연·월·일 세 기둥으로만 본다.",
   },
 
   // ── 계산의 한계 ────────────────────────────────────────
@@ -2836,7 +3417,7 @@ function dayBranchClashed(facts: SajuFacts): boolean {
  * 것들이라("상대의 반응에 따라 온도가…"), 이 상품들에서는 태그된 규칙만
  * 쓴다 — 재물 리딩에 연애 문장이 승인 사실로 들어가면 안 된다.
  */
-const NON_ROMANCE_PRODUCTS = new Set(["jikeop", "jaemul", "gongbu", "geongang", "gajok", "isa", "jikjang"]);
+const NON_ROMANCE_PRODUCTS = new Set(["jikeop", "jaemul", "gongbu", "geongang", "gajok", "isa", "jikjang", "sinnyeon", "habangi"]);
 
 function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, productId: string): boolean {
   const w = rule.when;
@@ -2869,6 +3450,10 @@ function matches(rule: ReadingRule, me: SajuFacts, partner: SajuFacts | null, pr
       me.luckContext.monthly.tenGod,
     ].filter(Boolean) as string[];
     if (!w.luckTenGodAny.some((t) => running.includes(t))) return false;
+  }
+  if (w.nextYearTenGodAny) {
+    const next = me.luckContext.upcoming.nextYear?.tenGod;
+    if (!next || !w.nextYearTenGodAny.includes(next)) return false;
   }
   if (w.femaleShangguanCandidate !== undefined) {
     // gender 는 사용자가 입력해야만 생기는 값이라 명시된 성별로 본다.

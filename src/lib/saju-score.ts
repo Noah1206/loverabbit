@@ -362,6 +362,15 @@ const RECIPES: Record<string, Recipe> = {
   dohwasal: { subject: "me", base: 42, weights: { dohwaLoad: 1.5, luckFavor: 0.4, stability: 0.3 } },
   // 올해 연애운 — 세운 중심
   yeonae: { subject: "me", base: 48, weights: { luckFavor: 1.5, dohwaLoad: 0.6, stability: 0.5 } },
+  // ── 총운 2종 (2026-09-09) ──
+  // 한 해의 결이 축이므로 운(luckFavor)이 가장 무겁고, 그 기운을 감당하는지가
+  // 그 다음(stability)이다. 도화·관성처럼 영역에 붙은 인자는 넣지 않는다 —
+  // 총운의 숫자가 특정 영역 쪽으로 기울면 그 영역 상품과 답이 갈린다.
+  sinnyeon: { subject: "me", base: 50, weights: { luckFavor: 1.4, stability: 1.0, elementFlow: 0.5 } },
+  habangi: { subject: "me", base: 50, weights: { luckFavor: 1.5, stability: 0.9, elementFlow: 0.4 } },
+  // 최애 궁합 — 두 명식의 맞물림과 오행 보완이 전부. 운은 안 본다:
+  // 이 상품이 파는 것은 시기가 아니라 끌림의 구조다.
+  idol: { subject: "me", base: 50, weights: { pairHarmony: 1.2, elementFlow: 1.0 } },
 };
 
 const FACTORS: Record<FactorName, (subject: SajuFacts, other: SajuFacts | null) => ScoreFactor[]> = {

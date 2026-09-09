@@ -1,0 +1,97 @@
+{
+  "product": "sinnyeon",
+  "case": "no-hour",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1996,
+      "month": 11,
+      "day": 3,
+      "hour": null,
+      "gender": "F"
+    },
+    "pillars": {
+      "year": "병자",
+      "month": "무술",
+      "day": "갑진",
+      "hour": null
+    },
+    "dayMaster": "갑목",
+    "strength": {
+      "label": "신약",
+      "score": 31
+    },
+    "dominantTenGods": [
+      "편재",
+      "식신",
+      "정인"
+    ],
+    "missingElements": [
+      "금"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "화개"
+    ],
+    "relations": [
+      "진술충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "을미 겁재",
+      "yearly": "병오 식신",
+      "monthly": "병신 식신",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "YEAR-NEXT-SIKSANG",
+    "YEAR-NEXT-WEAK",
+    "YEAR-NEXT-CHUNG",
+    "YEAR-NEXT-MISSING",
+    "YEAR-SELF-WOOD",
+    "YEAR-SIN-HWAGAE"
+  ],
+  "score": {
+    "value": 46,
+    "band": "고르는 해",
+    "factors": [
+      {
+        "label": "대운 겁재",
+        "delta": -11
+      },
+      {
+        "label": "세운 식신",
+        "delta": 8
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -5
+      },
+      {
+        "label": "신약으로 기울었다",
+        "delta": 4
+      }
+    ]
+  },
+  "scope": {
+    "label": "신년운세 (다음 해 세운과 지금 대운이 만나 만드는 한 해의 결 — 무엇이 열리고 무엇을 지켜야 하는 해인지, 분기별 강약과 그 해의 행동 방향)",
+    "outline": [
+      "1장 01. 내 일간과 다음 해 세운 — 그 해의 기본 결",
+      "1장 02. 지금 대운 — 내가 서 있는 구간",
+      "1장 03. 대운과 세운의 겹침 — 세지는가 어긋나는가",
+      "2장 01. 강약과 감당 — 그 해의 기운을 어떻게 받는가",
+      "2장 02. 합충이 만드는 흔들림 — 어느 자리가 움직이는가",
+      "3장 01. 열리는 자리 — 그 해에 힘이 실리는 곳",
+      "3장 02. 지켜야 할 자리 — 힘이 새는 곳",
+      "4장 01. 분기의 결 — 밀어붙일 구간과 다질 구간",
+      "4장 02. 되풀이되기 쉬운 실수 — 내 명식의 버릇",
+      "5장 01. 사람·일·돈 — 그 해에 무게가 실리는 순서",
+      "6장 01. 새해에 지킬 행동강령"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}

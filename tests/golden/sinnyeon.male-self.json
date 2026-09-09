@@ -1,0 +1,99 @@
+{
+  "product": "sinnyeon",
+  "case": "male-self",
+  "now": "2026-08-25T03:00:00.000Z",
+  "me": {
+    "birth": {
+      "year": 1989,
+      "month": 6,
+      "day": 30,
+      "hour": 22,
+      "gender": "M"
+    },
+    "pillars": {
+      "year": "기사",
+      "month": "경오",
+      "day": "신유",
+      "hour": "기해"
+    },
+    "dayMaster": "신금",
+    "strength": {
+      "label": "중화",
+      "score": 46
+    },
+    "dominantTenGods": [
+      "편인",
+      "겁재",
+      "비견"
+    ],
+    "missingElements": [
+      "목"
+    ],
+    "absentElements": [],
+    "shinsal": [
+      "도화",
+      "홍염",
+      "역마"
+    ],
+    "relations": [
+      "사해충"
+    ],
+    "xing": [],
+    "luck": {
+      "major": "병인 정관",
+      "yearly": "병오 정관",
+      "monthly": "병신 정관",
+      "upcomingMonths": 6,
+      "nextYear": "정미"
+    }
+  },
+  "partner": null,
+  "rules": [
+    "YEAR-NEXT-GWANSEONG",
+    "YEAR-NEXT-BALANCED",
+    "YEAR-NEXT-CHUNG",
+    "YEAR-NEXT-MISSING",
+    "YEAR-SELF-METAL",
+    "YEAR-SIN-YEOKMA"
+  ],
+  "score": {
+    "value": 80,
+    "band": "크게 여는 해",
+    "factors": [
+      {
+        "label": "대운 정관",
+        "delta": 15
+      },
+      {
+        "label": "세운 정관",
+        "delta": 11
+      },
+      {
+        "label": "중화에 가깝다",
+        "delta": 9
+      },
+      {
+        "label": "명식 안의 충 1개",
+        "delta": -5
+      }
+    ]
+  },
+  "scope": {
+    "label": "신년운세 (다음 해 세운과 지금 대운이 만나 만드는 한 해의 결 — 무엇이 열리고 무엇을 지켜야 하는 해인지, 분기별 강약과 그 해의 행동 방향)",
+    "outline": [
+      "1장 01. 내 일간과 다음 해 세운 — 그 해의 기본 결",
+      "1장 02. 지금 대운 — 내가 서 있는 구간",
+      "1장 03. 대운과 세운의 겹침 — 세지는가 어긋나는가",
+      "2장 01. 강약과 감당 — 그 해의 기운을 어떻게 받는가",
+      "2장 02. 합충이 만드는 흔들림 — 어느 자리가 움직이는가",
+      "3장 01. 열리는 자리 — 그 해에 힘이 실리는 곳",
+      "3장 02. 지켜야 할 자리 — 힘이 새는 곳",
+      "4장 01. 분기의 결 — 밀어붙일 구간과 다질 구간",
+      "4장 02. 되풀이되기 쉬운 실수 — 내 명식의 버릇",
+      "5장 01. 사람·일·돈 — 그 해에 무게가 실리는 순서",
+      "6장 01. 새해에 지킬 행동강령"
+    ],
+    "dropped": [],
+    "notes": []
+  }
+}
