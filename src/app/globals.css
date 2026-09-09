@@ -12286,6 +12286,78 @@ input[type="radio"] {
 }
 .home-map-tags b { background: #2f2621; color: #f3ecdf; }
 .home-map-tags i { background: rgba(47, 38, 33, 0.1); color: #5c4d42; }
+
+/* ── 최애 아이돌 궁합 ── 슬라이드 셋째 장 (2026-09-09).
+   사주지도 카드와 같은 틀을 쓴다 — 한 슬라이드 안에서 장마다 결이 다르면
+   넘어가는 것이 아니라 화면이 바뀌는 것처럼 읽힌다. 색만 분홍 쪽으로 민다. */
+.home-idol-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 132px;
+  padding: 20px 20px 18px;
+  margin: 14px 20px 0;
+  border-radius: 22px;
+  overflow: hidden;
+  text-decoration: none;
+  background: linear-gradient(120deg, #f6e7ee 0%, #f2e2ea 55%, #eddfe8 100%);
+  color: #3a2430;
+}
+.home-idol-copy { position: relative; z-index: 1; display: grid; gap: 4px; flex: 1; min-width: 0; }
+.home-idol-card strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+}
+.home-idol-card small { font-size: 0.78rem; color: #7a5a68; }
+.home-idol-cta {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #b03a63;
+}
+.home-idol-art { font-size: 2.4rem; flex: none; position: relative; z-index: 1; }
+/* 딱지는 사주지도 카드의 것을 그대로 쓴다 (home-map-tags) — 분홍 바탕에서도
+   읽히도록 색만 맞춘다. */
+.home-idol-card .home-map-tags b { background: #3a2430; color: #f8eef3; }
+
+/* ── 한 해 총운 ── 신년·하반기를 나란히 (2026-09-09) */
+.home-year-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 14px 20px 0;
+}
+.home-year-card {
+  display: grid;
+  gap: 5px;
+  align-content: start;
+  padding: 16px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg-card);
+  color: var(--text);
+  text-decoration: none;
+}
+.home-year-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--text-dim);
+}
+.home-year-card strong {
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+.home-year-card small {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
 /* ── 상세 시트의 유료 전환 ── 무료는 WHAT, 유료는 WHY */
 .sm-deepdive {
   margin-top: 16px;

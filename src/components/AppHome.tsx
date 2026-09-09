@@ -37,7 +37,7 @@ export default function AppHome() {
   const [showSignup, setShowSignup] = useState(false);
   useEffect(() => {
     if (slideHeld) return;
-    const t = setInterval(() => setSlide((n) => (n + 1) % 2), 3000);
+    const t = setInterval(() => setSlide((n) => (n + 1) % 3), 3000);
     return () => clearInterval(t);
   }, [slideHeld]);
 
@@ -193,6 +193,27 @@ export default function AppHome() {
                 </span>
               </Link>
             </div>
+            {/* 최애 아이돌 궁합 (2026-09-09 운영자). 여기 두는 이유: 덕질하는
+                사람이 찾는 말은 "사주" 가 아니라 "최애랑 나" 라, 궁합 종목
+                안에 상품 하나로 있으면 있는 줄도 모른다. 궁합이 그래서 종목이
+                된 것과 같은 이유다. */}
+            <div className="home-slide-item">
+              <Link href="/product/idol" className="home-idol-card">
+                <span className="home-idol-copy">
+                  <span className="home-map-tags">
+                    <b>NEW</b>
+                  </span>
+                  <strong>
+                    내가 최애한테 끌린 이유,
+                    <br />
+                    사주에 있을까?
+                  </strong>
+                  <small>최애 생년월일만 알면 돼요. 두 명식이 만나는 자리를 봅니다.</small>
+                  <span className="home-idol-cta">최애 궁합 보기 <i aria-hidden>›</i></span>
+                </span>
+                <span className="home-idol-art" aria-hidden>🎤</span>
+              </Link>
+            </div>
             <div className="home-slide-item">
               <Link href="/guide" className="home-guide-card">
                 <span className="home-guide-copy">
@@ -210,12 +231,12 @@ export default function AppHome() {
             </div>
           </div>
           <div className="home-slide-dots" role="tablist" aria-label="배너">
-            {[0, 1].map((i) => (
+            {[0, 1, 2].map((i) => (
               <button
                 key={i}
                 role="tab"
                 aria-selected={slide === i}
-                aria-label={i === 0 ? "사주지도" : "이용 가이드"}
+                aria-label={["사주지도", "최애 아이돌 궁합", "이용 가이드"][i]}
                 className={`home-slide-dot${slide === i ? " on" : ""}`}
                 onClick={() => {
                   setSlide(i);
@@ -237,6 +258,33 @@ export default function AppHome() {
           상품이 두 가지 말로 팔린다.
         */}
         <WorryPicker />
+
+        {/*
+          ── 한 해 총운 ── (2026-09-09 운영자)
+
+          신년과 하반기를 나란히 세운다. 둘은 같은 물음의 앞뒤라 한 줄에 있어야
+          고르는 것이 된다 — 따로 흩어 두면 둘 다 "운세 하나" 로 보이고 하나만
+          팔린다.
+
+          고민 고르기 아래에 둔 이유: 저기는 "지금 무엇이 걸리는가" 를 묻고
+          여기는 "한 해가 어떤 결인가" 를 묻는다. 걸리는 것이 없어서 아래까지
+          내려온 사람에게 걸리는 것 없이도 볼 것을 준다.
+
+          값은 적지 않는다. 홈은 products.ts 를 읽지 않기로 한 자리라(파일 첫
+          주석), 값을 적으려면 그 결정을 깨야 한다. 값은 상세가 말한다.
+        */}
+        <div className="home-year-row">
+          <Link href="/product/sinnyeon" className="home-year-card">
+            <span className="home-year-badge">신년운세</span>
+            <strong>다가올 한 해,<br />나에게 어떤 해일까?</strong>
+            <small>다음 해 세운이 만드는 한 해의 결</small>
+          </Link>
+          <Link href="/product/habangi" className="home-year-card">
+            <span className="home-year-badge">하반기 운세</span>
+            <strong>올해 남은 달,<br />어떻게 흘러갈까?</strong>
+            <small>몇 월에 밀고 몇 월에 다질지</small>
+          </Link>
+        </div>
 
         {/* ── 푸터 ── */}
         <footer style={{ marginTop: 44, padding: "26px 20px 10px", borderTop: "1px solid var(--line)" }}>
