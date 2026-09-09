@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import ProductMonthNote from "@/components/ProductMonthNote";
+import ProductRecommend from "@/components/ProductRecommend";
 import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
@@ -204,6 +205,11 @@ export default function ProductSalesPage({
             ))}
           </div>
         </section>
+
+        {/* 맨 아래에 다른 상품 몇 개 (2026-09-10 운영자). 여기까지 읽고도 안
+            산 사람에게 "그럼 이건 어때요" 를 묻는 자리다 — 같은 주제를 먼저
+            세운다. 줄 모양은 목록 화면(.genre-list)을 그대로 쓴다. */}
+        <ProductRecommend product={product} />
 
         {/* ── 광고 특별가 — 오퍼가 살아 있을 때만 ── */}
         {activeOffer ? (

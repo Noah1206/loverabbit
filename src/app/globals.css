@@ -7618,6 +7618,14 @@ label.transfer-pay-confirm.busy {
   color: var(--text-dim);
 }
 
+/* ── 이런 것도 추천드려요 ── 목록 화면의 줄을 그대로 쓴다 (2026-09-10). */
+.product-recommend h2 {
+  margin: 0 0 6px;
+  font-size: 1.24rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
 /* ── 목차 카드 슬라이드 ── 세로로 긴 카드를 옆으로 민다.
    한 장 반이 보이는 폭이라 다음 장이 있다는 것이 보인다. */
 .product-toc-title {
@@ -7636,12 +7644,23 @@ label.transfer-pay-confirm.busy {
 .product-toc-rail {
   display: flex;
   gap: 10px;
+  /* 화면 끝까지 뚫되 첫 장은 글과 같은 줄에서 시작한다 (2026-09-10 운영자).
+     스크롤 컨테이너의 padding-left 는 스크롤 원점이라 첫 장을 밀어 주지
+     못한다 — 잰 값이 3px 로, 글(23px)보다 왼쪽이었다. 마지막 장 뒤의 여백도
+     padding-right 로는 안 생겨서, 양끝을 가짜 칸(::before/::after)으로
+     받친다. scroll-padding 은 스냅이 멈추는 자리를 같이 맞춘다. */
   margin: 0 -20px;
-  padding: 2px 20px 6px;
+  padding: 2px 0 6px;
+  scroll-padding-left: 20px;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+}
+.product-toc-rail::before,
+.product-toc-rail::after {
+  content: "";
+  flex: 0 0 10px;
 }
 .product-toc-rail::-webkit-scrollbar { display: none; }
 .product-toc-card {
