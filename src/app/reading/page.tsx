@@ -453,6 +453,25 @@ export default function ReadingPage() {
     setOfferId(offer?.id);
     const bundle = found ? resolveBundle(found.id, params.get("bundle")) : null;
     setBundleId(bundle?.id);
+
+    /*
+      상대 생년월일을 URL 로 받는다 (2026-09-09) — 연예인 궁합에서 온 길.
+
+      최애의 생일을 외우는 사람은 드물어서, 이름을 누르면 그 값을 들고 온다.
+      공개 프로필의 생년월일이라 URL 에 실어도 새로 새는 것이 없다.
+
+      사람이 고쳐 넣어도 그대로 둔다: 이 값은 화면의 첫 값일 뿐이고, 다음
+      칸에서 사용자가 바꾸면 그쪽이 이긴다. 이상한 값이 들어오면 그냥 무시한다
+      — 폼이 어차피 다시 검사한다.
+    */
+    const pb = params.get("pb");
+    if (found?.needsPartner && pb && /^\d{4}-\d{2}-\d{2}$/.test(pb)) {
+      const [y, m, d] = pb.split("-").map(Number);
+      if (y >= 1900 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+        setPartner((prev) => ({ ...prev, year: String(y), month: String(m), day: String(d) }));
+        setPartnerChosen(true);
+      }
+    }
     // 광고·홈 카드로 들어와 상품이 정해져 있으면(found) 선택·mode 단계를 아예
     // 건너뛴다 — fixed 흐름. 아니면 picker 흐름으로 맨 뒤에서 고른다.
     setCategorySelectionMode(found ? "fixed" : "picker");
