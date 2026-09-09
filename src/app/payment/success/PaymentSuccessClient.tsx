@@ -16,33 +16,22 @@ export default function PaymentSuccessClient({
   paymentKey,
   orderId,
   amount,
-  paymentId,
-  portOneCode,
-  portOneMessage,
 }: {
   readingId: string;
   paymentKey: string;
   orderId: string;
   amount: number;
-  paymentId: string;
-  portOneCode: string;
-  portOneMessage: string;
 }) {
   const started = useRef(false);
   const [full, setFull] = useState("");
   const [error, setError] = useState("");
-  const portOnePayment = Boolean(paymentId);
-  const referenceId = paymentId || orderId;
+  const referenceId = orderId;
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
 
     const confirm = async () => {
-      if (portOneCode) {
-        setError(portOneMessage || "계좌이체를 완료하지 못했어요.");
-        return;
-      }
       const user = getUser();
       if (!user) {
         setError("로그인 정보가 없어 결제를 승인하지 못했어요. 고객센터에 주문번호를 알려주세요.");
@@ -60,12 +49,12 @@ export default function PaymentSuccessClient({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             readingId,
-            method: portOnePayment ? "portone-pg" : "toss-pg",
+            method: "toss-pg",
             userToken: user.token,
             attribution: readAttribution(),
-            ...(portOnePayment
-              ? { paymentId }
-              : { paymentKey, orderId, amount }),
+            paymentKey,
+            orderId,
+            amount,
           }),
         });
         const data = (await response.json().catch(() => ({}))) as {
@@ -111,7 +100,7 @@ export default function PaymentSuccessClient({
     };
 
     void confirm();
-  }, [amount, orderId, paymentId, paymentKey, portOneCode, portOneMessage, portOnePayment, readingId, referenceId]);
+  }, [amount, orderId, paymentKey, readingId, referenceId]);
 
   return (
     <main className="payment-result-shell">

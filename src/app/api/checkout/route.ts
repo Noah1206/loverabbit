@@ -2,8 +2,6 @@ import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createOrder, getUsableCoupon, isDatabaseConfigured, reserveCoupon } from "@/lib/database";
 import { couponPrice, couponSaving } from "@/lib/coupons";
-import { getPortOneNoticeUrl } from "@/lib/portone-notice-url";
-import { getPortOneServerConfig, hasAnyPortOneServerSetting } from "@/lib/portone-payment";
 import { getReading } from "@/lib/store";
 import { resolveUserToken } from "@/lib/tokens";
 import { normalizeAttribution } from "@/lib/attribution";
@@ -24,15 +22,7 @@ interface Body {
 
 export async function POST(request: NextRequest) {
   const body = (await request.json().catch(() => ({}))) as Body;
-  const portOneConfig = getPortOneServerConfig();
-  const usePortOne = Boolean(portOneConfig);
-  if (hasAnyPortOneServerSetting() && !portOneConfig) {
-    return NextResponse.json(
-      { error: "포트원 결제 키 설정을 확인해주세요." },
-      { status: 503 }
-    );
-  }
-  if (!usePortOne && (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY)) {
+  if (!process.env.TOSS_SECRET_KEY || !process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY) {
     return NextResponse.json(
       { error: "토스페이먼츠 결제 키 설정이 아직 완료되지 않았어요." },
       { status: 503 }
@@ -40,9 +30,6 @@ export async function POST(request: NextRequest) {
   }
   if (process.env.NODE_ENV === "production" && !isDatabaseConfigured()) {
     return NextResponse.json({ error: "결제 DB 연결을 준비 중입니다." }, { status: 503 });
-  }
-  if (usePortOne && !isDatabaseConfigured()) {
-    return NextResponse.json({ error: "포트원 결제 DB 연결을 준비 중입니다." }, { status: 503 });
   }
 
   let user;
@@ -90,13 +77,13 @@ export async function POST(request: NextRequest) {
   const amount = coupon ? couponPrice(reading.price, coupon) : reading.price;
 
   const attribution = normalizeAttribution(body.attribution);
-  const orderId = `${usePortOne ? "LRP" : "LR"}_${randomUUID().replace(/-/g, "")}`;
+  const orderId = `LR_${randomUUID().replace(/-/g, "")}`;
   try {
     const orderRowId = await createOrder({
       userId: user.userId,
       readingId: reading.id,
       kind: "reading",
-      method: usePortOne ? "portone-pg" : "toss-pg",
+      method: "toss-pg",
       status: "pending",
       amount,
       providerOrderId: orderId,
@@ -134,7 +121,6 @@ export async function POST(request: NextRequest) {
     listPrice: reading.price,
     discount: coupon?.discount ?? 0,
     orderName: "러브레빗 사주 전문 리딩",
-    provider: usePortOne ? "portone" : "toss",
-    ...(usePortOne ? { noticeUrl: getPortOneNoticeUrl(request.nextUrl.origin) } : {}),
+    provider: "toss",
   });
 }

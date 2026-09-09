@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import PortOneTransferForm, { PORTONE_TRANSFER_CONFIGURED } from "@/components/PortOneTransferForm";
 import PurchaseNotice from "@/components/PurchaseNotice";
 import SignupModal from "@/components/SignupModal";
 import TransferSteps from "@/components/TransferSteps";
@@ -142,7 +141,6 @@ export default function CreditsPage() {
 
   if (!checked) return <main className="container" style={{ paddingTop: 48 }} />;
 
-  const portone = PORTONE_TRANSFER_CONFIGURED && PAYMENT_METHOD_OPEN.portone;
   const manual = TRANSFER_ACCOUNTS.length > 0 && PAYMENT_METHOD_OPEN.manual;
 
   // BEST 배지 — 할인율이 가장 큰 팩. 전부 0% 면 제일 큰 팩(단가가 유리).
@@ -289,16 +287,7 @@ export default function CreditsPage() {
               <div className="cc-cta-idle">상품을 선택하세요</div>
             ) : (
               <div className="cc-cta-wrap">
-                {portone ? (
-                  <PortOneTransferForm
-                    amount={pack.price}
-                    customerEmail={user.email}
-                    checkoutEndpoint="/api/credits/checkout"
-                    checkoutBody={{ userToken: user.token, packId: pack.id }}
-                    redirectPath="/payment/credits-success"
-                    buttonLabel={`${pack.price.toLocaleString()}원 계좌이체하고 충전`}
-                  />
-                ) : manual ? (
+                {manual ? (
                   <div className="transfer-payment-fallback">
                     <p style={{ color: "var(--cc-dim)", fontSize: "0.84rem", marginBottom: 10 }}>
                       입금자명에 <strong>{creditDepositorCode(user.token)}</strong> 를 적어 주세요. 확인되면 바로 들어와요.

@@ -598,34 +598,11 @@ body {
   line-height: 1.55;
 }
 
-.portone-transfer-form {
-  display: grid;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.portone-transfer-form label {
-  display: grid;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 0.84rem;
-  font-weight: 700;
-  text-align: left;
-}
-
-.portone-transfer-form input {
-  width: 100%;
-}
-
-.portone-transfer-form .toss-payment-submit {
-  margin-top: 4px;
-}
-
 .toss-payment-intro {
   margin: 5px 0 12px;
 }
 
-/* ── 결제 수단 고르기 — 계좌이체 두 갈래(바로 열림 / 직접 송금)를 나란히 ── */
+/* ── 결제 수단 고르기 ── */
 .pay-method-pick {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(0, 1fr));

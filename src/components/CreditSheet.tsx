@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import PortOneTransferForm, { PORTONE_TRANSFER_CONFIGURED } from "@/components/PortOneTransferForm";
 import { CREDIT_PACKS, bonusOf, type CreditPack } from "@/lib/credits";
 import { useEscape } from "@/lib/use-escape";
 
@@ -134,22 +133,10 @@ export default function CreditSheet({
         )}
 
         <div className="cs-pay">
-          {PORTONE_TRANSFER_CONFIGURED ? (
-            <PortOneTransferForm
-              amount={pack.price}
-              customerEmail={userEmail}
-              checkoutEndpoint="/api/credits/checkout"
-              checkoutBody={{ userToken, packId: pack.id }}
-              redirectPath={redirectPath}
-              buttonLabel={`${pack.price.toLocaleString()}원 결제하고 채우기`}
-            />
-          ) : (
-            /* 결제 수단이 아직 안 붙은 환경 — 시트 안에서 막다른 곳이 되지
-               않게 충전 화면으로 보낼 길은 남긴다. */
-            <a className="btn" href={`/credits?next=${encodeURIComponent(redirectPath)}`}>
-              충전하러 가기
-            </a>
-          )}
+          {/* 충전은 충전 화면에서 한다 — 시트는 길만 낸다. */}
+          <a className="btn" href={`/credits?next=${encodeURIComponent(redirectPath)}`}>
+            충전하러 가기
+          </a>
         </div>
 
         <p className="cs-note">충전한 러빗은 사주·타로 어디에나 쓸 수 있어요.</p>

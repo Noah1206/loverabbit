@@ -2,9 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useEscape } from "@/lib/use-escape";
-import PortOneTransferForm, {
-  PORTONE_TRANSFER_CONFIGURED,
-} from "@/components/PortOneTransferForm";
 import {
   couponPrice,
   couponSaving,
@@ -73,7 +70,6 @@ export default function PaymentModal({
     (2026-08-21 운영자 결정).
   */
   const methods: PayMethod[] = [];
-  if (PORTONE_TRANSFER_CONFIGURED && PAYMENT_METHOD_OPEN.portone) methods.push("portone");
   if (transferConfigured && PAYMENT_METHOD_OPEN.manual) methods.push("manual");
   if (methods.length === 0 && TOSS_CLIENT_KEY && PAYMENT_METHOD_OPEN.toss) methods.push("toss");
 
@@ -262,16 +258,6 @@ export default function PaymentModal({
             {transferSubmitting ? "여는 중…" : "쿠폰으로 지금 열기"}
             <span aria-hidden>→</span>
           </button>
-        ) : method === "portone" ? (
-          <PortOneTransferForm
-            key={payAmount}
-            amount={payAmount}
-            customerEmail={customerEmail}
-            checkoutEndpoint="/api/checkout"
-            checkoutBody={{ readingId, userToken, couponId: coupon?.id }}
-            redirectPath={`/payment/success?readingId=${encodeURIComponent(readingId)}`}
-            buttonLabel={`${payAmount.toLocaleString()}원 계좌이체하고 전문 보기`}
-          />
         ) : method === "manual" ? (
           <div className="transfer-payment-fallback">
             <TransferSteps
@@ -303,11 +289,9 @@ export default function PaymentModal({
 
               결제대행사 이름은 손님에게 적지 않는다. 알 필요가 없는 말이고,
               닫아 둔 수단의 이름이 번들에 남아 소스에서 읽히기도 한다. */}
-          {method === "portone"
-            ? "결제 완료는 서버에서 한 번 더 확인하니 안심하세요."
-            : method === "manual"
-              ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
-              : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
+          {method === "manual"
+            ? "입금 확인 요청을 누르면 승인 대기 화면에서 자동으로 확인해드려요."
+            : "토스페이먼츠 결제창에서 카드·간편결제를 선택할 수 있어요."}
         </p>
       </div>
     </div>
