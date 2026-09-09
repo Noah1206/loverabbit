@@ -13735,7 +13735,7 @@ input[type="radio"] {
 }
 .wp-head h2 {
   margin: 0;
-  font-size: 1.26rem;
+  font-size: 1.32rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -13759,12 +13759,15 @@ input[type="radio"] {
 }
 .wp-rail::-webkit-scrollbar { display: none; }
 .wp-card {
-  flex: 0 0 66%;
-  max-width: 210px;
+  /* 키웠다 (2026-09-09 운영자) — 66%/210px 에서 78%/268px 로. 카드가 작아
+     그림 안의 캐릭터가 무엇을 하는지 안 보였고, 물음도 세 줄로 접혔다.
+     한 장 반이 보이는 것은 그대로다: 옆에 더 있다는 것이 보여야 민다. */
+  flex: 0 0 78%;
+  max-width: 268px;
   scroll-snap-align: start;
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 12px;
+  padding: 14px;
   border-radius: 20px;
   background: #fff;
   color: var(--text);
@@ -13788,7 +13791,7 @@ input[type="radio"] {
 .wp-card-q {
   margin: 0;
   min-height: 2.8em;
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   font-weight: 800;
   line-height: 1.45;
   letter-spacing: -0.01em;
@@ -13798,11 +13801,11 @@ input[type="radio"] {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 11px;
+  padding: 13px;
   border-radius: 999px;
   background: var(--accent);
   color: var(--accent-ink);
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 800;
   text-decoration: none;
 }
