@@ -126,6 +126,11 @@ export default function TarotView() {
               <section key={c.position} className="card tr-card">
                 <header>
                   <small>{c.positionLabel}</small>
+                  {/* 카드 그림 (2026-09-09). 파일 이름이 카드 id 라 표에 경로를
+                      따로 두지 않는다 — 두 곳에 적으면 한 곳이 뒤처진다.
+                      그림 안에 글자를 넣지 않았으므로 이름과 번호는 아래가 적는다. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="tr-card-art" src={`/tarot/${c.card.id}.jpg`} alt="" loading="lazy" />
                   <strong>{c.card.name}</strong>
                   <i>{c.card.number}</i>
                 </header>

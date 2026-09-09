@@ -12938,6 +12938,16 @@ input[type="radio"] {
   font-weight: 700;
   color: var(--accent);
 }
+/* 카드 그림 (2026-09-09). 세로로 쌓이는 배치라 폭을 다 쓰지 않는다 —
+   한 장이 화면을 덮으면 세 장을 겹쳐 읽는 흐름이 끊긴다. */
+.tr-card-art {
+  width: 148px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+  margin: 6px 0 8px;
+  background: linear-gradient(160deg, #241a3a, #0f0d18);
+}
 .tr-card header strong {
   font-size: 1.22rem;
   font-weight: 800;
