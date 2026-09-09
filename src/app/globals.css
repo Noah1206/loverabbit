@@ -2393,7 +2393,9 @@ label {
   /* 섹션 사이 간격 하나로 묶는다 (2026-09-09 운영자). 전에는 16/18/26/14 가
      제각각이라 어디는 붙고 어디는 떠 보였다 — 한 값으로 두면 화면을 내릴 때
      리듬이 생기고, 바꿀 때도 한 곳만 고친다. */
-  --home-section-gap: 30px;
+  /* 섹션 사이 (2026-09-09 운영자) — 30px 에서 44px 로 넓혔다. 홈이 여덟 줄로
+     늘면서 어디서 한 이야기가 끝나고 다음이 시작하는지가 안 보였다. */
+  --home-section-gap: 44px;
   /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 높이에 딱 맞춘다
      (2026-09-09 운영자: 헤더 밑 공백 없이) — 첫 배너가 헤더에 붙어야
      화면을 열자마자 배너가 보인다. 숨 쉴 자리는 배너 안쪽 여백이 낸다. */
@@ -10060,6 +10062,7 @@ body[data-guin-intro="1"] .tabbar {
 .profile-label-toggle button span,
 .rabbit-coin,
 .rabbit-loader-art,
+.home-slide-dot,
 .reading-generating-dots i,
 .reading-generating-stage-mark,
 .report-summary li::before,
@@ -13591,8 +13594,10 @@ input[type="radio"] {
   transition: width 240ms ease, background 240ms ease;
 }
 .home-slide-dot.on {
+  /* 켜진 점만 알약으로 늘어난다. 정원 예외 목록에 걸려 있으므로 여기서
+     !important 로 다시 눌러 준다 — 안 그러면 늘어난 막대가 반원이 된다. */
   width: 16px;
-  border-radius: 999px;
+  border-radius: 999px !important;
   background: var(--accent);
 }
 
