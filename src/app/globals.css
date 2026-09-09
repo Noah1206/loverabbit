@@ -12364,19 +12364,6 @@ input[type="radio"] {
      칸을 좁히며 문구를 줄이는 쪽으로 가면 문구가 계속 깎인다. */
   padding-right: 38%;
 }
-/* 알약 — 참고 화면의 "프리미엄 | 유금" 자리. 수묵 톤이라 검정 대신
-   먹빛 갈색으로 두고, 테두리만으로 가볍게 띄운다. */
-.gt-tag {
-  justify-self: start;
-  padding: 7px 15px;
-  border-radius: 999px !important;
-  background: rgba(94, 78, 56, 0.9);
-  color: #f6f0e4;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-}
-.gt-tag i { font-style: normal; margin-left: 3px; }
 .gt strong {
   font-size: 1.24rem;
   font-weight: 800;
