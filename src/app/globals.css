@@ -12543,7 +12543,7 @@ input[type="radio"] {
      배너의 아래 여백과 겹쳐 접히므로 두 배로 벌어지지 않는다. */
   margin-block-start: var(--home-section-gap);
   padding: 0 20px;
-  font-size: 1.02rem;
+  font-size: 1.24rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text);
