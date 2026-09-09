@@ -30,18 +30,21 @@ const TOPIC_EMOJI: Record<TarotTopic, string> = {
   choice: "🔀",
 };
 
-/* 주제마다 대표 카드 한 장 (2026-09-09 운영자).
+/* 주제마다 그림 한 장 (2026-09-10 운영자).
 
-   목록을 사주 종목과 같은 모양으로 세우려면 줄마다 그림이 있어야 한다. 새로
-   그리지 않는다 — 이 상품이 이미 78장을 들고 있고, 그중 그 주제를 가장 곧게
-   말하는 카드를 고르면 된다. 뽑히는 카드와는 상관없다: 여기 그림은 "무엇을
-   묻는 자리인가" 를 말할 뿐이다. */
-const TOPIC_CARD: Record<TarotTopic, string> = {
-  love: "the-lovers",
-  relationship: "cups-02",
-  work: "the-chariot",
-  money: "pentacles-01",
-  choice: "the-hanged-man",
+   처음에는 78장 중에서 골라 썼다. 카드 그림은 세로라 96x72 칸에서 위아래가
+   잘렸고, 무엇보다 사주 목록의 3D 토끼들 사이에서 혼자 결이 달랐다 — 같은
+   목록 모양을 쓰기로 한 이상 그림도 같은 결이어야 한다.
+
+   그래서 주제마다 토끼를 한 장씩 새로 뽑았다(Higgsfield, 상품 카드와 같은
+   레퍼런스). 뽑히는 카드와는 상관없다: 여기 그림은 "무엇을 묻는 자리인가" 를
+   말할 뿐이다. */
+const TOPIC_ART: Record<TarotTopic, string> = {
+  love: "love",
+  relationship: "relationship",
+  work: "work",
+  money: "money",
+  choice: "choice",
 };
 
 /* 줄 아래 해시태그. 사주 목록의 #주제 #배지 와 같은 자리다. */
@@ -150,6 +153,10 @@ export default function TarotView() {
               <span className="genre-item">
                 <span className="genre-item-copy">
                   <strong>{TOPIC_LABEL[t].title} 타로</strong>
+                  {/* 무엇을 묻는 자리인지 한 줄로 (2026-09-10 운영자). 물음은
+                      새로 쓰지 않는다 — TOPIC_LABEL 이 이미 들고 있고, 뽑고
+                      나면 결과 화면 머리에 같은 문장이 다시 선다. */}
+                  <small className="tr-topic-q">{TOPIC_LABEL[t].question}</small>
                   <span className="genre-tags">
                     {TOPIC_TAGS[t].map((tag) => (
                       <i key={tag}>#{tag}</i>
@@ -158,7 +165,7 @@ export default function TarotView() {
                 </span>
                 <span className="genre-item-art">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/tarot/${TOPIC_CARD[t]}.jpg`} alt="" loading="lazy" />
+                  <img src={`/tarot-topic/${TOPIC_ART[t]}.jpg`} alt="" loading="lazy" />
                 </span>
               </span>
             </li>
@@ -284,6 +291,10 @@ export default function TarotView() {
               <button type="button" className="genre-item" onClick={() => void draw(t)}>
                 <span className="genre-item-copy">
                   <strong>{TOPIC_LABEL[t].title} 타로</strong>
+                  {/* 무엇을 묻는 자리인지 한 줄로 (2026-09-10 운영자). 물음은
+                      새로 쓰지 않는다 — TOPIC_LABEL 이 이미 들고 있고, 뽑고
+                      나면 결과 화면 머리에 같은 문장이 다시 선다. */}
+                  <small className="tr-topic-q">{TOPIC_LABEL[t].question}</small>
                   <span className="genre-tags">
                     {TOPIC_TAGS[t].map((tag) => (
                       <i key={tag}>#{tag}</i>
@@ -292,7 +303,7 @@ export default function TarotView() {
                 </span>
                 <span className="genre-item-art">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={`/tarot/${TOPIC_CARD[t]}.jpg`} alt="" loading="lazy" />
+                  <img src={`/tarot-topic/${TOPIC_ART[t]}.jpg`} alt="" loading="lazy" />
                 </span>
               </button>
             </li>

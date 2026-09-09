@@ -13018,6 +13018,24 @@ input[type="radio"] {
 /* 타로의 줄은 button 이다 — 눌러도 페이지를 옮기지 않고 그 자리에서 카드를
    뽑기 때문이다 (2026-09-09). 모양은 a 와 한 글자도 다르면 안 되므로 같은
    선언을 함께 받는다. button 이 기본으로 들고 오는 것들만 여기서 지운다. */
+/* 타로 줄의 물음 한 줄 (2026-09-10 운영자). 제목과 해시태그 사이에 앉아
+   "무엇을 묻는 자리인가" 를 말한다. 사주 줄에는 없는 것이라 타로에만 둔다 —
+   사주는 제목이 이미 "9월 재물운 사주" 로 다 말하고, 타로는 "연애 타로" 만
+   으로는 무엇을 묻는지가 안 선다. */
+.tr-topic-q {
+  display: block;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--text-dim);
+  word-break: keep-all;
+}
+/* 물음이 한 줄 더 들어오므로 줄 안을 위아래로 벌리지 않는다 — 셋이 고르게
+   붙어야 한 덩어리로 읽힌다. */
+.tr-topic-list .genre-item-copy {
+  justify-content: center;
+  gap: 5px;
+}
+
 .genre-list button.genre-item {
   width: 100%;
   border: 0;
