@@ -24,7 +24,7 @@ import {
   type SajuProfileView,
 } from "@/lib/saju-profile";
 import type { Ohaeng } from "@/lib/saju";
-import { PRODUCTS } from "@/lib/products";
+import { hasCardArt, PRODUCTS } from "@/lib/products";
 import { getUser, type User } from "@/lib/user";
 
 // 오늘의 사주 액션 — 토끼가 데리고 가는 세 걸음.
@@ -748,8 +748,12 @@ function TodayShelf() {
             aria-hidden
             style={{ background: `linear-gradient(160deg, ${p.grad[0]}, ${p.grad[1]})` }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
+            {/* 그림이 있는 상품만 건다 (2026-09-09) — 없으면 밑색만 남는다.
+                깨진 그림 표식은 밑색보다 나쁘다: 화면이 고장난 것처럼 보인다. */}
+            {hasCardArt(p.id) && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
+            )}
           </span>
         </Link>
       ))}

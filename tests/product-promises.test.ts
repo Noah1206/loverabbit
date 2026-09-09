@@ -11,7 +11,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { PRODUCTS } from "@/lib/products";
+import fs from "node:fs";
+import path from "node:path";
+
+import { CARD_ART, PRODUCTS } from "@/lib/products";
 import { promiseHorizonMonths } from "@/lib/reading-scope";
 import { UPCOMING_MONTHS } from "@/lib/saju-facts";
 
@@ -66,5 +69,40 @@ describe("상품 약속", () => {
     }
     // 2026-08-25 결혼의 "3년"을 첫 해로 줄여 지금은 하나도 없다. 생기면 여기 적고 이유를 남긴다.
     assert.deepEqual(over.map((p) => p.id), []);
+  });
+});
+
+// 카드 일러스트 표가 디스크와 어긋나지 않는지 (2026-09-09).
+//
+// 표를 손으로 세운 이유는 서버 컴포넌트(ProductSalesPage)가 이걸 읽기
+// 때문이다 — 거기서 fs 를 뒤질 수 없다. 손으로 세운 표는 반드시 어긋나므로
+// 양방향으로 잡는다: 표에 있는데 파일이 없으면 깨진 그림 표식이 나가고,
+// 파일이 있는데 표에 없으면 그린 그림이 안 걸린다.
+describe("카드 일러스트", () => {
+  const DIR = path.join(process.cwd(), "public", "cards-pastel");
+
+  it("표에 적힌 상품은 파일이 실제로 있다", () => {
+    for (const id of CARD_ART) {
+      assert.ok(
+        fs.existsSync(path.join(DIR, `${id}.jpg`)),
+        `${id}: CARD_ART 에 있는데 public/cards-pastel/${id}.jpg 가 없다`
+      );
+    }
+  });
+
+  it("파일이 있는 상품은 표에도 있다 — 그린 그림이 안 걸리면 안 된다", () => {
+    for (const file of fs.readdirSync(DIR)) {
+      if (!file.endsWith(".jpg")) continue;
+      const id = file.replace(/\.jpg$/, "");
+      // 상품이 아닌 파일(내린 랜딩용 등)은 표에 없어도 된다
+      if (!PRODUCTS.some((p) => p.id === id)) continue;
+      assert.ok(CARD_ART.has(id), `${id}: 파일은 있는데 CARD_ART 에 없다`);
+    }
+  });
+
+  it("표에 적힌 것은 전부 실제 상품이다", () => {
+    for (const id of CARD_ART) {
+      assert.ok(PRODUCTS.some((p) => p.id === id), `${id} 는 상품이 아니다`);
+    }
   });
 });

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PRODUCT_MAP } from "@/lib/products";
+import { hasCardArt, PRODUCT_MAP } from "@/lib/products";
 import { getUser } from "@/lib/user";
 
 /*
@@ -60,8 +60,12 @@ export default function WorryPicker() {
         {items.map((p) => (
           <article key={p.id} className="wp-card" data-tone={p.tone}>
             <div className="wp-card-art">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
+              {/* 그림이 있는 상품만 건다 (2026-09-09) — 없으면 밑색만 남는다.
+                  깨진 그림 표식은 밑색보다 나쁘다: 화면이 고장난 것처럼 보인다. */}
+              {hasCardArt(p.id) && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
+              )}
             </div>
             <p className="wp-card-q">{p.headline}</p>
             <Link href={`/product/${p.id}`} className="wp-card-btn">

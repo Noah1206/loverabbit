@@ -1218,6 +1218,28 @@ export const PRODUCTS: Product[] = [
     ],
   },];
 
+
+/**
+ * 카드 일러스트가 있는 상품 (2026-09-09).
+ *
+ * 없는 상품은 밑색(grad)만 깔고 그림을 안 건다 — 브라우저가 그리는 깨진 그림
+ * 표식은 밑색보다 나쁘다. 화면이 고장난 것처럼 보인다.
+ *
+ * 파일을 읽어 자동으로 세우지 않는 이유: 이 표를 서버 컴포넌트가 읽는데
+ * (ProductSalesPage), 거기서 fs 를 뒤지면 상품 하나 그릴 때마다 디스크를 친다.
+ * public/cards-pastel/ 에 그림을 넣을 때 여기에 id 를 한 줄 더하는 것이 그
+ * 값보다 싸다. 표가 디스크와 어긋나는 것은 테스트가 양방향으로 잡는다.
+ */
+export const CARD_ART = new Set<string>([
+  "bamgijil", "baramgi", "bimil", "dohwasal", "gajok", "geongang", "gongbu",
+  "gwontaegi", "gyeolhon", "hwanseung", "ibyeol", "isa", "jaehoe", "jaemul",
+  "jikeop", "jikjang", "jjak", "sokgunghap", "sseom", "yeonae",
+]);
+
+export function hasCardArt(productId: string): boolean {
+  return CARD_ART.has(productId);
+}
+
 export const PRODUCT_MAP: Record<string, Product> = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
 
 

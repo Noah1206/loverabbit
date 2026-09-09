@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
 import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
-import { displayToc, type Product } from "@/lib/products";
+import { hasCardArt, displayToc, type Product } from "@/lib/products";
 
 // 상품 상세 판매 페이지 — "돈을 낼만한 이유"를 만드는 설득 구조:
 // 후킹 질문 -> ??% 게이지 -> 박도사 비법서 서사 -> 리포트 구성 표 -> 대상 -> 목차 -> 후기 -> CTA
@@ -97,14 +97,18 @@ export default function ProductSalesPage({
           className="product-hero-photo"
           style={{ background: `linear-gradient(160deg, ${product.grad[0]}, ${product.grad[1]})` }}
         >
-          <Image
-            src={`/cards-pastel/${product.id}.jpg?v=2`}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 640px) 100vw, 640px"
-            style={{ objectFit: "cover", objectPosition: "center 18%" }}
-          />
+          {/* 그림이 있는 상품만 건다 — 없으면 밑색(grad)만 남는다 (2026-09-09).
+              서버 컴포넌트라 onError 로 접을 수 없어 표(CARD_ART)로 가른다. */}
+          {hasCardArt(product.id) && (
+            <Image
+              src={`/cards-pastel/${product.id}.jpg?v=2`}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 640px) 100vw, 640px"
+              style={{ objectFit: "cover", objectPosition: "center 18%" }}
+            />
+          )}
         </div>
       </section>
 
