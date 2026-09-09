@@ -13,8 +13,8 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
-import GuinMapBackground, { ROLE_DOT } from "@/components/GuinMapBackground";
-import SajuMapCanvas from "@/components/SajuMapCanvas";
+import { ROLE_DOT } from "@/components/GuinMapBackground";
+import SajuMapGrid from "@/components/SajuMapGrid";
 import SajuPersonSheet from "@/components/SajuPersonSheet";
 import SajuMapRanking from "@/components/SajuMapRanking";
 import { trackFunnel } from "@/lib/funnel";
@@ -879,20 +879,35 @@ export default function GuinMapPage() {
 
   return (
     <>
-      <GuinMapBackground
-        ownerLabel={view.ownerNickname}
-        nodes={view.nodes.map((node) => ({ id: node.id, nickname: node.nickname, role: node.role, score: node.score }))}
-        selectedId={selected}
-      />
-    <main className="container guin-scene" style={{ paddingTop: 48, paddingBottom: 120 }}>
-      <p style={{ color: "var(--text-dim)", fontWeight: 700, fontSize: "0.76rem", letterSpacing: "0.04em", marginBottom: 6 }}>
-        MY SAJU MAP
-      </p>
-      <h1 style={{ marginBottom: 4 }}>{view.ownerNickname}님의 사주지도</h1>
-      <p style={{ color: "var(--text-dim)", marginBottom: 6 }}>
-        {stageHeadline}
-        {view.ownerPersona ? ` · ${view.ownerPersona.elementLabel} 기운의 ${view.ownerPersona.animal}띠` : ""}
-      </p>
+    {/* 배경 지도 그림을 걷었다 (2026-09-09 운영자) — 별자리는 예뻤지만 사람이
+        늘수록 이름이 겹쳐 읽을 수 없었고, "내가 누구를 등록했더라" 를 한눈에
+        못 봤다. 이제 아래 격자가 그 일을 한다. 배경은 그냥 배경이다. */}
+    <main className="container guin-scene" style={{ paddingTop: 20, paddingBottom: 120 }}>
+      {/* 맨 위는 내 정보다 (2026-09-09 운영자). 인스타 프로필처럼 — 누구의
+          지도인지, 내 기운은 무엇인지, 몇 명이 모였는지를 한 덩어리로. */}
+      <header className="gp-head">
+        <span className="gp-avatar" aria-hidden>
+          {view.ownerPersona ? (
+            <ZodiacMark animal={view.ownerPersona.animal} size={44} />
+          ) : (
+            view.ownerNickname.slice(0, 1)
+          )}
+        </span>
+        <div className="gp-head-copy">
+          <h1>{view.ownerNickname}</h1>
+          {view.ownerPersona && (
+            <p className="gp-persona">
+              {view.ownerPersona.elementLabel} 기운의 {view.ownerPersona.animal}띠
+              {view.ownerPersona.dayGan ? ` · 일간 ${view.ownerPersona.dayGan}` : ""}
+            </p>
+          )}
+        </div>
+        <div className="gp-count">
+          <b>{view.count}</b>
+          <span>인연</span>
+        </div>
+      </header>
+      <p className="gp-stage">{stageHeadline}</p>
       {stage === "two" && (
         <p style={{ color: "var(--text-dim)", fontSize: "0.86rem", marginBottom: 8 }}>
           두 사람은 서로 다른 방식으로 당신에게 영향을 줘요.
@@ -931,17 +946,13 @@ export default function GuinMapPage() {
             </div>
           )}
 
-          <SajuMapCanvas
-            meLabel={view.ownerNickname}
-            people={view.nodes.map((node) => ({
-              id: node.id,
-              nickname: node.nickname,
-              role: node.role,
-              roleLabel: node.roleLabel,
-              score: node.score,
-            }))}
+          {/* 별자리 캔버스를 격자로 바꿨다 (2026-09-09 운영자). 관계를 방위와
+              거리로 말하던 그림 대신, 등록한 사람을 릴스처럼 세 칸으로 편다 —
+              가까운 순서로 앞에 서므로 순위도 그대로 보인다. 필터(dimmedIds)는
+              격자에서 아예 빼고 거르므로 흐리게 둘 것이 없다. */}
+          <SajuMapGrid
+            nodes={view.nodes.filter((node) => !dimmedIds.has(node.id))}
             selectedId={selected}
-            dimmedIds={dimmedIds}
             onSelect={(id) => {
               setSelected(id);
               setSheetOpen(true);

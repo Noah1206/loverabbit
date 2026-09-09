@@ -5811,13 +5811,31 @@ body:has(.product-page[data-landing]) .consent-banner {
 
 .rv-drawer-sheet {
   width: min(100vw, var(--app-max-width));
-  max-height: 82dvh;
+  /* 탭바 높이만큼 비워 둔다 (2026-09-09 운영자). 서랍은 탭바보다 위에 뜨지만
+     (z 70 > 60) 바닥이 화면 바닥이라, 마지막 요소가 탭바 뒤에 깔렸다 —
+     인연 추가 시트에서는 그게 하필 확인 버튼이었다. 안이 스크롤돼도 끝까지
+     내리면 여전히 가려서, 스크롤이 안 되는 것처럼 보였다.
+
+     높이도 같이 줄인다. 82dvh 로 두면 탭바를 피한 만큼 시트가 화면 밖으로
+     밀려 위가 잘린다. */
+  max-height: calc(88dvh - 72px - env(safe-area-inset-bottom));
   overflow-y: auto;
-  padding: 16px 16px calc(22px + env(safe-area-inset-bottom));
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: calc(72px + env(safe-area-inset-bottom));
+  padding: 16px 16px 22px;
   border-radius: var(--r-xl) var(--r-xl) 0 0;
   border-top: 1px solid var(--line);
   background: var(--bg);
   animation: rv-sheet-up 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 탭바가 없는 화면(리딩 뷰어)에서는 비워 둘 것이 없다. 경로로 가르지 않고
+   그 서랍에만 표식을 단다 — 탭바를 숨기는 화면이 늘어도 여기는 안 바뀐다. */
+.rv-drawer-sheet.is-full {
+  max-height: 82dvh;
+  margin-bottom: 0;
+  padding-bottom: calc(22px + env(safe-area-inset-bottom));
 }
 
 @keyframes rv-sheet-up {
@@ -9088,6 +9106,137 @@ body[data-guin-intro="1"] .tabbar {
 }
 
 /* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */
+/* ── 사주지도 머리: 내 정보 ── (2026-09-09 운영자)
+   인스타 프로필 줄과 같은 짜임 — 얼굴, 이름과 한 줄 설명, 오른쪽에 수. */
+.gp-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0 12px;
+}
+.gp-avatar {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  flex: 0 0 auto;
+  border-radius: 50% !important;
+  background: var(--tint-1);
+  border: 1px solid var(--line);
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+.gp-head-copy { flex: 1; min-width: 0; }
+.gp-head-copy h1 {
+  margin: 0;
+  font-size: 1.16rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.gp-persona {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+.gp-count {
+  flex: 0 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+}
+.gp-count b { font-size: 1.16rem; font-weight: 800; line-height: 1; }
+.gp-count span { font-size: 0.72rem; color: var(--text-dim); }
+.gp-stage {
+  margin: 0 0 12px;
+  font-size: 0.86rem;
+  color: var(--text-dim);
+}
+
+/* ── 사람 격자 ── 릴스처럼 세 칸.
+   세 칸이면 얼굴이 알아볼 만큼 크면서 한 화면에 아홉이 들어온다. 두 칸은
+   앨범처럼 느긋해지고 네 칸은 얼굴이 뭉갠다. */
+.smg { margin: 0 0 18px; }
+.smg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+.smg-cell {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 6px 12px;
+  border: 0;
+  background: var(--tint-1);
+  font: inherit;
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+}
+.smg-cell.on { background: var(--tint-2); }
+.smg-cell:active { opacity: 0.62; }
+.smg-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50% !important;
+}
+.smg-face img { width: 46px; height: 46px; object-fit: contain; }
+/* 점수는 얼굴 오른쪽 아래에 작게 — 이름을 밀어내지 않는다 */
+.smg-score {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  min-width: 22px;
+  padding: 1px 4px;
+  border-radius: 999px !important;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.64rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.smg-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.smg-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+.smg-role i {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50% !important;
+}
+/* 첫 칸 표식 — 가장 가까운 사람 */
+.smg-top {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 6px;
+  border-radius: 999px !important;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.6rem;
+  font-weight: 800;
+}
+
 .guin-scene {
   position: relative;
   z-index: 1;
@@ -11541,118 +11690,10 @@ input[type="radio"] {
 }
 
 /* ── 지도 상자 ── 세로 화면의 절반 남짓. 사람이 늘어도 상자는 그대로다 */
-.sm-canvas {
-  position: relative;
-  width: 100%;
-  height: min(58vh, 420px);
-  margin: 6px 0 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background:
-    radial-gradient(circle at 50% 50%, var(--tint-1), transparent 62%),
-    var(--bg-card2);
-  overflow: hidden;
-}
+/* 별자리 캔버스(.sm-canvas / -lines / -line / -me / -node …)를 걷었다
+   (2026-09-09 운영자) — 격자(.smg)가 그 자리를 대신하고 쓰는 마크업이 없다.
+   아래 .sm-filters 와 .sm-discovery 는 격자 위아래에서 계속 쓰인다. */
 
-.sm-lines {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-/* 선이 중앙에서 뻗어 나온다 — 한 번만. pathLength=1 이라 dash 값이 늘 1이다 */
-/* 등장 애니메이션을 걷었다 (2026-09-08 운영자). 고른 사람을 밝히는
-   전환만 남긴다 — 그건 장식이 아니라 무엇을 눌렀는지 알려주는 신호다. */
-.sm-line {
-  transition: stroke-opacity 0.18s ease, stroke-width 0.18s ease;
-}
-
-/* ── 가운데: 나 ── 다른 노드보다 한 단 크다 */
-.sm-me {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: grid;
-  justify-items: center;
-  gap: 4px;
-  text-align: center;
-}
-.sm-me-face {
-  width: 58px;
-  height: 58px;
-  display: grid;
-  place-items: center;
-  font-size: 1.6rem;
-  border-radius: 50%;
-  background: var(--bg-card);
-  border: 2px solid var(--accent);
-  box-shadow: var(--btn-shadow);
-}
-.sm-me b {
-  font-size: 0.82rem;
-  padding: 2px 10px;
-  border-radius: var(--r-pill);
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-/* ── 사람 노드 ── 버튼이다. 이름이 겹치지 않게 폭을 묶는다 */
-.sm-node {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  display: grid;
-  justify-items: center;
-  gap: 3px;
-  width: 74px;
-  padding: 0;
-  border: 0;
-  background: none;
-  cursor: pointer;
-  transition: opacity 0.18s ease;
-}
-.sm-node-dot {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--bg-card);
-  border: 2px solid var(--line);
-  font-size: 0.9rem;
-  font-style: normal;
-  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.18s ease;
-}
-.sm-node-name {
-  max-width: 74px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: var(--text);
-  background: color-mix(in srgb, var(--bg-card) 82%, transparent);
-  padding: 1px 6px;
-  border-radius: var(--r-pill);
-}
-.sm-node.on .sm-node-dot {
-  transform: scale(1.16);
-  box-shadow: var(--btn-shadow);
-}
-.sm-node.on .sm-node-name {
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-/* 필터에 걸러진 사람 — 지우지 않고 가라앉힌다 */
-.sm-node.dim {
-  opacity: 0.28;
-}
-
-/* 등장 애니메이션이 없으므로 여기서는 고른 사람의 확대만 끈다 */
-@media (prefers-reduced-motion: reduce) {
-  .sm-node.on .sm-node-dot { transform: none; }
-}
-
-/* ── 필터 칩 줄 ── 기존 .chip 을 그대로 쓰고 배치만 준다 */
 .sm-filters {
   display: flex;
   gap: 6px;

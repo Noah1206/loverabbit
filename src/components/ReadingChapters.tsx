@@ -512,7 +512,9 @@ export function IndexDrawer({
   if (!open) return null;
   return (
     <div className="rv-drawer" role="dialog" aria-label="목차" onClick={onClose}>
-      <div className="rv-drawer-sheet" onClick={(event) => event.stopPropagation()}>
+      {/* 리딩 뷰어는 탭바를 숨기는 화면이라 바닥을 비워 둘 필요가 없다 (is-full).
+          다른 서랍들은 탭바 높이만큼 띄운다 — globals.css 참고 (2026-09-09). */}
+      <div className="rv-drawer-sheet is-full" onClick={(event) => event.stopPropagation()}>
         <header>
           <Seal concept={concept} size={30} />
           <strong>{productLabel}</strong>
