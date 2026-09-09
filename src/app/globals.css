@@ -13479,11 +13479,19 @@ input[type="radio"] {
 /* ── 고민 고르기 (2026-09-09) ─────────────────────────────────────
    상품 목록 대신 물음으로 묻는다. 옆으로 밀어 보게 두는 이유: 세로로
    늘어놓으면 목록이 되고, 목록은 훑는 것이지 고르는 것이 아니다. */
+/* ── 고민 고르기 ── (2026-09-09 운영자)
+
+   색을 사이트 톤으로 되돌린다. 남색 바탕에 파란 버튼은 참고한 화면의 색이지
+   이 사이트의 색이 아니었다 — 홈에서 이 블록만 다른 앱처럼 보였다.
+
+   여기는 크림(--canvas-cream)과 먹색(--accent)으로 간다. 강조는 파랑 대신
+   먹색 알약 버튼이 지고, 카드는 흰 종이로 띄운다. 손그림 카드가 크림 배경
+   위에 얹히면 종이에 붙인 스티커처럼 읽힌다. */
 .wp {
   margin: 26px 0 0;
   padding: 22px 0 18px;
-  background: #1c2b3f;
-  color: #eaf1fb;
+  background: var(--canvas-cream);
+  color: var(--text);
   border-radius: 28px;
   margin-inline: 20px;
 }
@@ -13491,7 +13499,8 @@ input[type="radio"] {
 .wp-head small {
   display: block;
   font-size: 0.78rem;
-  color: #8fa6c4;
+  font-weight: 700;
+  color: #9c8f81;
   margin-bottom: 4px;
 }
 .wp-head h2 {
@@ -13504,10 +13513,10 @@ input[type="radio"] {
   margin: 12px 20px 16px;
   padding: 13px 15px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.66);
   font-size: 0.88rem;
   line-height: 1.55;
-  color: #cfdcee;
+  color: #6d6157;
 }
 .wp-rail {
   display: flex;
@@ -13528,19 +13537,23 @@ input[type="radio"] {
   padding: 12px;
   border-radius: 20px;
   background: #fff;
-  color: #1c2b3f;
+  color: var(--text);
+  /* 크림 위의 흰 카드는 경계가 흐려진다 — 아주 옅은 그림자로 띄운다 */
+  box-shadow: 0 2px 10px rgba(93, 74, 54, 0.08);
 }
 .wp-card-art {
   border-radius: 14px;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  background: var(--tint-2);
+  /* 손그림의 종이색과 같은 밑색 — 그림이 뜨기 전에도 결이 이어진다 */
+  background: #fdf8f1;
 }
 .wp-card-art img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 18%;
+  /* contain 이다. 손그림은 여백까지가 그림이라 cover 로 자르면 캐릭터의
+     귀나 말풍선이 잘린다 — 상품 사진(cover)과 다른 점이다. */
+  object-fit: contain;
 }
 .wp-card-q {
   margin: 0;
@@ -13557,8 +13570,8 @@ input[type="radio"] {
   gap: 6px;
   padding: 11px;
   border-radius: 999px;
-  background: #4b7bec;
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: 0.9rem;
   font-weight: 800;
   text-decoration: none;
@@ -13567,6 +13580,6 @@ input[type="radio"] {
 .wp-foot {
   margin: 14px 20px 0;
   font-size: 0.76rem;
-  color: #8fa6c4;
+  color: #9c8f81;
   text-align: center;
 }

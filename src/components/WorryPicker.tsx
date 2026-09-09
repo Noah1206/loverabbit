@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { hasCardArt, PRODUCT_MAP } from "@/lib/products";
+import { PRODUCT_MAP } from "@/lib/products";
 import { getUser } from "@/lib/user";
+import { WORRY_IDS } from "@/components/worry-ids";
 
 /*
   고민 고르기 — 상품 목록 대신 물음으로 묻는다.
@@ -22,15 +23,6 @@ import { getUser } from "@/lib/user";
   된다.
 */
 
-/** 카드에 세울 고민들. 상품 id 만 적고 문구는 products.ts 에서 가져온다. */
-const WORRY_IDS = [
-  "jaehoe",
-  "sseom",
-  "gwontaegi",
-  "baramgi",
-  "jjak",
-  "gyeolhon",
-] as const;
 
 export default function WorryPicker() {
   const [name, setName] = useState<string>("");
@@ -60,12 +52,16 @@ export default function WorryPicker() {
         {items.map((p) => (
           <article key={p.id} className="wp-card" data-tone={p.tone}>
             <div className="wp-card-art">
-              {/* 그림이 있는 상품만 건다 (2026-09-09) — 없으면 밑색만 남는다.
-                  깨진 그림 표식은 밑색보다 나쁘다: 화면이 고장난 것처럼 보인다. */}
-              {hasCardArt(p.id) && (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={`/cards-pastel/${p.id}.jpg?v=2`} alt="" loading="lazy" />
-              )}
+              {/* 이 줄만의 그림이다 (2026-09-09 운영자). 상품 카드
+                  (cards-pastel)는 3D 렌더라 "무엇을 파는가" 를 말하는데, 여기서
+                  묻는 것은 "무엇이 걸리는가" 다 — 사는 사람의 기분에 가까운
+                  그림이 필요했다. 그래서 고민마다 손그림 한 장을 따로 둔다.
+
+                  그림 안에 글자를 넣지 않았다. 물음은 아래 wp-card-q 가 적고,
+                  그 문구는 상품의 headline 이다 — 그림에 새기면 상품 문구를
+                  고칠 때마다 그림을 다시 그려야 한다. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/worry/${p.id}.jpg`} alt="" loading="lazy" />
             </div>
             <p className="wp-card-q">{p.headline}</p>
             <Link href={`/product/${p.id}`} className="wp-card-btn">
