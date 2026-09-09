@@ -144,6 +144,9 @@ export default function AppHome() {
 
           새 데이터는 없다. 궁합인지 아닌지는 needsPartner 가 이미 정한다.
         */}
+        {/* 종목 줄이 무엇인지 한 줄로 말한다 (2026-09-09 운영자). 아이콘 여섯만
+            서 있으면 무엇을 고르는 자리인지 읽는 데 한 박자 걸린다. */}
+        <h2 className="home-section-title">장르별 운세</h2>
         <nav className="home-genres" aria-label="종목">
           {GENRES.map((g) => (
             <Link key={g.id} href={g.href} className="home-genre">

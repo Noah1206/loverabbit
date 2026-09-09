@@ -2390,6 +2390,10 @@ label {
 
 /* 홈 상단바 — 하단 탭바와 같은 불투명 블랙 재질 */
 .app-home-shell {
+  /* 섹션 사이 간격 하나로 묶는다 (2026-09-09 운영자). 전에는 16/18/26/14 가
+     제각각이라 어디는 붙고 어디는 떠 보였다 — 한 값으로 두면 화면을 내릴 때
+     리듬이 생기고, 바꿀 때도 한 곳만 고친다. */
+  --home-section-gap: 30px;
   /* 상단바가 화면 맨 위(0)에 붙어 60px 높이로 선다. 그 높이에 딱 맞춘다
      (2026-09-09 운영자: 헤더 밑 공백 없이) — 첫 배너가 헤더에 붙어야
      화면을 열자마자 배너가 보인다. 숨 쉴 자리는 배너 안쪽 여백이 낸다. */
@@ -12321,7 +12325,7 @@ input[type="radio"] {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin: 14px 20px 0;
+  margin: var(--home-section-gap) 20px 0;
 }
 .home-year-card {
   display: grid;
@@ -12412,6 +12416,22 @@ input[type="radio"] {
 /* ── 무료로 보는 운세 (2026-09-08) ────────────────────────────────
    값이 없는 것들을 한 줄로 세운다. 배너로 하나씩 쌓으면 한 화면에 하나씩만
    보이고, 그 사이 만세력 같은 것은 홈에서 들어가는 길조차 없었다. */
+/* ── 섹션 제목 ── (2026-09-09 운영자)
+   섹션마다 무엇을 고르는 자리인지 한 줄로 말한다. 좌우 20px 은 아래 줄들의
+   안쪽 여백과 맞춘 값이다 — 제목만 어긋나면 줄이 두 개로 보인다. */
+.home-section-title {
+  margin: 0 0 10px;
+  /* 이벤트 배너가 없는 날(CREDIT_EVENT = null)에는 이 제목이 헤더 바로 밑
+     첫 줄이 된다 — 그때 붙어 보이지 않게 앞에 자리를 둔다. 배너가 있으면
+     배너의 아래 여백과 겹쳐 접히므로 두 배로 벌어지지 않는다. */
+  margin-block-start: var(--home-section-gap);
+  padding: 0 20px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
 .home-genres {
   display: grid;
   /* 한 줄로 되돌린다 (2026-09-08 운영자). 두 줄로 두었더니 종목 줄이
@@ -12421,9 +12441,9 @@ input[type="radio"] {
      옆으로 밀어 보게 두는 이유: 종목이 일곱째가 되어도 줄이 안 무너진다. */
   display: flex;
   gap: 7px;
-  /* 종목이 맨 위로 올라왔다 (2026-09-09 운영자). 헤더 바로 밑에 붙으면
-     눌리는 자리가 헤더와 겹쳐 보인다 — 위아래로 숨 쉴 자리를 준다. */
-  margin: 16px 0 22px;
+  /* 위 여백은 제목(.home-section-title)이 진다 — 여기서 또 띄우면 제목과
+     아이콘 줄이 서로 다른 덩어리로 갈라진다. */
+  margin: 0 0 var(--home-section-gap);
   padding: 0 20px 2px;
   overflow-x: auto;
   scrollbar-width: none;
@@ -13103,7 +13123,7 @@ input[type="radio"] {
      모서리를 걷어 가장자리까지 붙인다 — 카드가 아니라 띠로 읽히게. 안쪽
      여백은 다른 카드의 글자와 세로줄을 맞추려고 20px 을 그대로 둔다. */
   padding: 20px 20px 22px;
-  margin: 0;
+  margin: 0 0 var(--home-section-gap);
   border-radius: 0;
   overflow: hidden;
   text-decoration: none;
@@ -13224,7 +13244,7 @@ input[type="radio"] {
    둘을 다 그려 두고 트랙을 옆으로 민다. 하나씩 갈아 끼우면 움직임이 보이지
    않고 넘어가는 방향도 알 수 없다. */
 .home-slide {
-  margin-top: 18px;
+  margin-top: var(--home-section-gap);
   overflow: hidden;
 }
 .home-slide-track {
@@ -13490,7 +13510,7 @@ input[type="radio"] {
    먹색 알약 버튼이 지고, 카드는 흰 종이로 띄운다. 손그림 카드가 크림 배경
    위에 얹히면 종이에 붙인 스티커처럼 읽힌다. */
 .wp {
-  margin: 26px 0 0;
+  margin: var(--home-section-gap) 0 0;
   padding: 22px 0 18px;
   /* 더 밝게 (2026-09-09 운영자). 크림 단색은 카드(흰색)와 붙어 한 덩어리로
      보였다 — 위에서 아래로 아주 옅게 풀면 카드가 그 위에 떠 보인다. */
