@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { ReactNode } from "react";
 import ProductMonthNote from "@/components/ProductMonthNote";
+import ProductCtaGate from "@/components/ProductCtaGate";
 import ProductRevealObserver from "@/components/ProductRevealObserver";
 import type { AdOffer } from "@/lib/ad-offers";
 import { KRW_PER_CREDIT, READING_PRICE_TIERS } from "@/lib/credits";
@@ -44,6 +45,7 @@ export default function ProductSalesPage({
   sticky,
   landingType,
   children,
+  ctaHref,
 }: {
   product: Product;
   /** 값이 붙은 오퍼. 없으면 정가를 말하고 특별가 줄도 안 띄운다 */
@@ -56,6 +58,8 @@ export default function ProductSalesPage({
   landingType?: string;
   /** 픽셀 트래커처럼 문 쪽에서만 붙이는 것 */
   children?: ReactNode;
+  /** 히어로 아래 버튼이 갈 곳. 없으면 그 버튼을 안 그린다 */
+  ctaHref?: string;
 }) {
   const badge = hero?.badge ?? product.badge;
   const headline = hero?.headline ?? product.headline;
@@ -116,10 +120,20 @@ export default function ProductSalesPage({
           {hero?.adultOnly && (
             <p className="product-hero-adult">성인 대상 · 노골적 묘사가 아닌 관계 친밀도 해석입니다.</p>
           )}
+          {/* 그림 바로 아래 한 번 더 (2026-09-10 운영자). 아래 고정 버튼은
+              스크롤 중에는 손에 닿지만, 첫 화면에서 "그래서 어디로 가면
+              되는데" 를 묻는 사람에게는 늦다. 같은 곳으로 가는 같은 문구다 —
+              두 버튼이 다른 말을 하면 어느 쪽이 진짜인지 재게 된다. */}
+          {ctaHref && (
+            <ProductCtaGate href={ctaHref} className="product-hero-cta">
+              <strong>{product.ctaLabel}</strong>
+              <i aria-hidden>→</i>
+            </ProductCtaGate>
+          )}
         </div>
       </section>
 
-      <div style={{ padding: "20px 10px 0", display: "grid", gap: 26 }}>
+      <div className="product-body">
         <ProductMonthNote product={product} />
 
         {/* ── ??% 게이지 ──
@@ -144,34 +158,36 @@ export default function ProductSalesPage({
             요약한 것이다. 분량의 글자 수는 실제 발급본(재회 15절 11,197자,
             속궁합 12절 10,965자, 이별 10절 8,619자)에서 잰 절당 약 800자를
             보수적으로 곱한 값이다 - 부풀리지 않는다. */}
-        <section className="card product-report product-reveal">
-          <p className="product-lore-kicker">전체 리포트 구성</p>
-          <h2 className="product-report-title">전체 리포트에서 확인하는 것</h2>
-          <p className="product-report-sub">
+        {/* 카드와 표를 걷고 글로 (2026-09-10 운영자). 네 줄짜리 표는 값이
+            나란히 놓일 때 쓰는 것인데 여기 있는 것은 서로 견줄 값이 아니라
+            "무엇을 받는가" 를 잇달아 말하는 문장이다. 밑색과 테두리를 걷으니
+            읽는 것이 된다. */}
+        <section className="product-plain product-reveal">
+          <h2>전체 리포트에서 확인하는 것</h2>
+          <p>
             {tocTopic(product.toc[0])}부터 {tocTopic(product.toc[product.toc.length - 2])}까지{" "}
-            {product.toc.length}개 섹션으로 정리해드려요
+            {product.toc.length}개 섹션, 약 {approxChars(product.toc.length)}를 드려요.
           </p>
-          <dl className="product-report-rows">
-            <div className="product-reveal-item"><dt>분량</dt><dd>{product.toc.length}개 섹션 · 약 {approxChars(product.toc.length)} 제공</dd></div>
-            <div className="product-reveal-item"><dt>핵심 판단</dt><dd>{product.reportFacets.judgement}</dd></div>
-            <div className="product-reveal-item"><dt>관계 리스크</dt><dd>{product.reportFacets.risk}</dd></div>
-            <div className="product-reveal-item"><dt>실행 가이드</dt><dd>{product.reportFacets.action}</dd></div>
-          </dl>
-          <p className="product-report-close product-reveal-item">{product.ctaHook}</p>
+          <p>
+            {product.reportFacets.judgement}을 짚고, {product.reportFacets.risk}를 미리 보고,{" "}
+            {product.reportFacets.action}까지 함께 담겨요.
+          </p>
+          <p className="product-plain-close">{product.ctaHook}</p>
         </section>
 
-        {/* ── 목차 ── */}
+        {/* ── 목차 ── 세로로 긴 카드를 옆으로 민다 (2026-09-10 운영자).
+            열다섯 줄을 세로로 세우면 그 자체가 한 화면을 먹으면서 "많다" 는
+            것만 남고 무엇이 있는지는 안 읽힌다. 옆으로 밀면 한 장씩 읽게 되고,
+            반쯤 보이는 다음 장이 더 있다는 것을 말한다. */}
         <section className="product-reveal">
-          <h2 style={{ fontSize: "1.1rem", marginBottom: 4 }}>이런 결과를 받아요</h2>
-          <p style={{ fontSize: "0.85rem", color: "var(--text-dim)", marginBottom: 12 }}>풀 리딩 리포트 목차</p>
-          <div className="card" style={{ padding: "6px 0" }}>
+          <h2 className="product-toc-title">이런 결과를 받아요</h2>
+          <p className="product-toc-sub">풀 리딩 리포트 목차</p>
+          <div className="product-toc-rail">
             {displayToc(product).map((item, index) => (
-              <div key={item} className="product-reveal-item" style={{ display: "flex", gap: 12, alignItems: "baseline", padding: "9px 18px", borderTop: index === 0 ? "none" : "1px solid var(--line)" }}>
-                <span style={{ fontVariantNumeric: "tabular-nums", fontWeight: 800, color: "var(--accent)", fontSize: "0.8rem", minWidth: 22 }}>
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span style={{ fontSize: "0.88rem" }}>{item}</span>
-              </div>
+              <article key={item} className="product-toc-card">
+                <span className="product-toc-no">{String(index + 1).padStart(2, "0")}</span>
+                <p>{item}</p>
+              </article>
             ))}
           </div>
         </section>

@@ -40,6 +40,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
     <ProductSalesPage
       product={p}
       activeOffer={activeOffer}
+      ctaHref={cta}
       sticky={
         <div className="product-sticky-shell">
           <ProductCtaGate href={cta} className="product-sticky-cta">
