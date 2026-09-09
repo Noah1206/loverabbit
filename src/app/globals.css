@@ -13887,9 +13887,10 @@ input[type="radio"] {
 .wp-card-art img {
   width: 100%;
   height: 100%;
-  /* contain 이다. 캐릭터 그림은 여백까지가 그림이라 cover 로 자르면 귀나
-     떠 있는 하트가 잘린다 — 상품 사진(cover)과 다른 점이다. */
-  object-fit: contain;
+  /* cover 로 돌아왔다 (2026-09-09). 그림에 배경(방·벤치·카페)이 생기면서
+     여백이 없어졌다 — 여백이 없으면 contain 이 카드 안에 그림을 띄워 위아래로
+     빈 띠를 만든다. 채우는 쪽이 맞다. */
+  object-fit: cover;
 }
 .wp-card-q {
   margin: 0;
