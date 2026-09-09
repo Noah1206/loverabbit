@@ -27,8 +27,6 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
   const [marketingOk, setMarketingOk] = useState(true);
   const [submitting, setSubmitting] = useState(true);
   const [error, setError] = useState("");
-  // 로그인은 됐는데 이 기기에 남기지 못한 경우 — 실패가 아니라 주의사항이다
-  const [storageWarning, setStorageWarning] = useState(false);
   /**
    * 몇 번 실패했는지.
    *
@@ -51,7 +49,6 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
        실패를 예외로 올리면 성공한 로그인이 "실패"로 표시된다 — 알리기만 하고
        가던 길은 그대로 간다. */
     const stored = saveUser(user);
-    if (!stored) setStorageWarning(true);
     // 가입/로그인 완료 — 로그인 수단 이름만 보낸다. 이메일 원문은 전송하지 않는다.
     trackCompleteRegistration(data.authProvider ?? "unknown");
     if (getPendingReferral()) clearPendingReferral();
@@ -78,12 +75,25 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       ? `/credits?welcome=1&next=${encodeURIComponent(back)}`
       : back;
     setNeedsProfile(false);
-    setCompleted(true);
-    // 저장에 실패한 사람에게는 그 안내를 읽을 시간을 준다 — 800ms 는 너무 짧다
-    redirectTimer.current = window.setTimeout(() => {
+    /*
+      성공 화면을 걷었다 (2026-09-09 운영자). 로그인이 끝난 사람이 원한 것은
+      "준비 완료!" 를 읽는 일이 아니라 가려던 화면이다 — 800ms 짜리 자축은
+      그 사이에 낀 문일 뿐이다. 연결이 끝나면 바로 보낸다.
+
+      저장이 막힌 브라우저는 예외다. "창을 닫으면 다시 로그인해야 해요" 는
+      읽지 못하면 다음에 그 사람이 겪는 일이라, 그때만 화면을 세우고 시간을
+      준다. 성공을 알리는 화면이 아니라 경고를 읽히는 화면이다.
+    */
+    const go = () => {
       takeAuthReturn();
       window.location.replace(destination);
-    }, stored ? 800 : 3200);
+    };
+    if (stored) {
+      go();
+      return;
+    }
+    setCompleted(true);
+    redirectTimer.current = window.setTimeout(go, 3200);
   };
 
   const connectSession = async (profile?: { termsAccepted: boolean; marketingOk: boolean }) => {
@@ -128,17 +138,13 @@ export default function AuthComplete({ nextPath }: { nextPath: string }) {
       <section className="card auth-card">
         <div className="auth-rabbit" aria-hidden><BrandMark size={44} /></div>
         {completed ? (
+          /* 여기 서는 사람은 저장이 막힌 브라우저뿐이다 — 로그인이 정상 저장된
+             사람은 이 화면을 지나지 않고 바로 목적지로 간다. */
           <div className="auth-success" role="status" aria-live="polite">
-            <span className="auth-success-check" aria-hidden="true">✓</span>
-            <h1>준비 완료!</h1>
-            <p>선택한 운명을 보러 이동하고 있어요.</p>
-            {storageWarning && (
-              // 로그인은 됐다. 다만 이 브라우저가 저장을 막아 다음에 다시 물어본다.
-              <p className="auth-storage-warning">
-                이 브라우저는 로그인 정보를 저장하지 않아요(시크릿 모드 등). 지금은 그대로
-                이어지지만, 창을 닫으면 다시 로그인해야 해요.
-              </p>
-            )}
+            <p className="auth-storage-warning">
+              이 브라우저는 로그인 정보를 저장하지 않아요(시크릿 모드 등). 지금은 그대로
+              이어지지만, 창을 닫으면 다시 로그인해야 해요.
+            </p>
           </div>
         ) : !needsProfile ? (
           <>

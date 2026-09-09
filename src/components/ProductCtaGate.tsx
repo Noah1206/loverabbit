@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import AuthReadyTransition from "@/components/AuthReadyTransition";
-import { getUser } from "@/lib/user";
 
 // 상품 상세·광고 랜딩의 고정 CTA.
 //
@@ -31,27 +29,12 @@ export default function ProductCtaGate({
   children: ReactNode;
   onClick?: () => void;
 }) {
-  const [showReady, setShowReady] = useState(false);
-
+  /* 로그인한 사람에게 "준비 완료!" 를 800ms 세우던 연출을 걷었다
+     (2026-09-09 운영자). 누른 사람이 기다린 것은 그 화면이 아니라 폼이다 —
+     이제 둘 다 같은 길로, 바로 간다. */
   return (
-    <>
-      <Link
-        href={href}
-        className={className}
-        onClick={(e) => {
-          onClick?.();
-          // 이미 로그인한 사람에게는 전환 연출을 한 번 끼운다. 비로그인은
-          // 연출 없이 바로 폼으로 - 처음 온 사람에게 한 박자라도 덜 세운다.
-          if (getUser()) {
-            e.preventDefault();
-            if (!showReady) setShowReady(true);
-          }
-        }}
-      >
-        {children}
-      </Link>
-
-      {showReady ? <AuthReadyTransition href={href} /> : null}
-    </>
+    <Link href={href} className={className} onClick={onClick}>
+      {children}
+    </Link>
   );
 }

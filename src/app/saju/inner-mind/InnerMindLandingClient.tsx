@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import SignupModal from "@/components/SignupModal";
-import AuthReadyTransition from "@/components/AuthReadyTransition";
 import { getUser } from "@/lib/user";
 import { trackPreviewStarted, trackViewContent } from "@/lib/meta-events";
 import { INNER_MIND_PARTICIPANT_COUNT } from "@/lib/participant-counts";
@@ -37,7 +36,6 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
   const [stage, setStage] = useState<"intro" | "situation">("intro");
   const [picked, setPicked] = useState<string | null>(null);
   const [showSignup, setShowSignup] = useState(false);
-  const [showReady, setShowReady] = useState(false);
 
   const formPath = offerActive
     ? `/reading?c=sseom&offer=${encodeURIComponent(OFFER_ID)}`
@@ -56,7 +54,9 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
       setShowSignup(true);
       return;
     }
-    setShowReady(true);
+    // 로그인한 사람은 바로 폼으로 (2026-09-09 운영자). "준비 완료!" 를 800ms
+    // 세우던 자리다 — 누른 사람이 기다린 것은 그 화면이 아니라 폼이다.
+    window.location.assign(formPath);
   };
 
   return (
@@ -130,7 +130,6 @@ export default function InnerMindFlow({ offerActive }: { offerActive: boolean })
           onClose={() => setShowSignup(false)}
         />
       ) : null}
-      {showReady ? <AuthReadyTransition href={formPath} /> : null}
     </div>
   );
 }
