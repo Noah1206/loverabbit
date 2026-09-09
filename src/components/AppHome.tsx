@@ -59,6 +59,14 @@ export default function AppHome() {
             LoveRabbit
           </strong>
           <div className="app-header-actions">
+            {/* 찾는 이름이 이미 있는 사람의 지름길 — 종목·고민을 지나지 않고
+                바로 상품으로 간다. 돋보기는 설명이 필요 없는 몇 안 되는 모양이다. */}
+            <Link href="/search" className="app-header-icon" aria-label="검색">
+              <svg aria-hidden width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="M16 16l4.4 4.4" />
+              </svg>
+            </Link>
             <Link href="/credits" className="app-header-icon" aria-label="크레딧 충전 · 내 러빗">
               {/* 쌓인 동전 — 눌러서 가는 곳이 충전 페이지다. BottomNav 처럼 24 격자 stroke 로만 */}
               <svg aria-hidden width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
