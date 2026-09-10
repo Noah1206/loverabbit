@@ -12309,14 +12309,14 @@ input[type="radio"] {
 }
 .ip-head small {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--text-dim);
   margin-bottom: 3px;
 }
 .ip-head h2 {
   margin: 0;
-  font-size: 1.32rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -12394,7 +12394,7 @@ input[type="radio"] {
 }
 .home-year-head small {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--text-dim);
   margin-bottom: 5px;
@@ -12595,16 +12595,20 @@ input[type="radio"] {
 /* ── 섹션 제목 ── (2026-09-09 운영자)
    섹션마다 무엇을 고르는 자리인지 한 줄로 말한다. 좌우 20px 은 아래 줄들의
    안쪽 여백과 맞춘 값이다 — 제목만 어긋나면 줄이 두 개로 보인다. */
+/* 섹션 제목은 한 단 크게 (2026-09-10 운영자). 1.24rem 은 본문(0.95)과 두
+   눈금 차이라, 훑을 때 제목인지 문장인지가 한 박자 늦게 읽혔다. 섹션이 바뀌는
+   자리는 글자 크기만으로도 알 수 있어야 한다. 아래 .wp-head / .ip-head /
+   .home-year-head 도 같은 값으로 맞춘다 — 넷이 다르면 구분이 아니라 소음이다. */
 .home-section-title {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   /* 이벤트 배너가 없는 날(CREDIT_EVENT = null)에는 이 제목이 헤더 바로 밑
      첫 줄이 된다 — 그때 붙어 보이지 않게 앞에 자리를 둔다. 배너가 있으면
      배너의 아래 여백과 겹쳐 접히므로 두 배로 벌어지지 않는다. */
   margin-block-start: var(--home-section-gap);
   padding: 0 20px;
-  font-size: 1.24rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   color: var(--text);
 }
 
@@ -13912,14 +13916,14 @@ input[type="radio"] {
 .wp-head { padding: 0 20px; }
 .wp-head small {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: #9c8f81;
   margin-bottom: 4px;
 }
 .wp-head h2 {
   margin: 0;
-  font-size: 1.32rem;
+  font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
