@@ -205,7 +205,14 @@ export default function AppHome() {
                     <br />
                     누가 진짜 내 귀인일까?
                   </strong>
-                  <small>친구·연인·동료를 등록하면 인연 지도가 그려져요</small>
+                  {/* 줄 끝에 "그려져요" 한 마디만 남던 것을 끊어 준다
+                      (2026-09-10 운영자). 무엇을 등록하는가 / 그러면 무엇이
+                      되는가 — 뜻이 갈리는 자리가 줄이 갈릴 자리다. */}
+                  <small>
+                    친구·연인·동료를 등록하면
+                    <br />
+                    인연 지도가 그려져요
+                  </small>
                 </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="gt-art" src="/home/guin.jpg" alt="" loading="lazy" />
@@ -222,7 +229,12 @@ export default function AppHome() {
                     <br />
                     사주에 있을까?
                   </strong>
-                  <small>최애 생년월일만 알면 돼요. 두 명식이 만나는 자리를 봅니다.</small>
+                  {/* 문장이 둘이다 — 마침표가 줄이 갈릴 자리다 */}
+                  <small>
+                    최애 생년월일만 알면 돼요.
+                    <br />
+                    두 명식이 만나는 자리를 봅니다.
+                  </small>
                   <span className="home-idol-cta">최애 궁합 보기 <i aria-hidden>›</i></span>
                 </span>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
