@@ -10,7 +10,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 import GuinBirthForm, { type GuinFormValue } from "@/components/GuinBirthForm";
-import GuinRunLoader from "@/components/GuinRunLoader";
 import { trackFunnel } from "@/lib/funnel";
 import { fetchSavedBirth, myGuinMaps, rememberMyGuinMap, takeGuinPrefill, type GuinPrefill } from "@/lib/guin-local";
 import { captureReferralFromLocation } from "@/lib/referral";
@@ -151,8 +150,6 @@ function GuinLanding() {
 
   return (
     <main className="container guin-landing" style={{ paddingTop: 28 }}>
-      {busy && <GuinRunLoader />}
-
       {/* 딱딱한 제목+문단 대신 토끼가 서 있는 무대 — 폼은 그 아래 카드에 앉는다 */}
       <header className="guin-landing-hero">
         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -8,7 +8,7 @@
 // 방문자 → 참여자 전환이 2차 바이럴의 심장이다 (지시문 5항). 참여를 마친
 // 사람에게는 방금 넣은 값으로 자기 지도를 바로 만들 길을 연다.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
@@ -1171,10 +1171,9 @@ export default function GuinMapPage() {
               {view.ownerPersona.elementLabel} 기운의 {view.ownerPersona.animal}띠
             </p>
           )}
-          <p className="guin-solo-note">
-            아직 지도에 나밖에 없어요. 둘레의 빈 자리는 아직 오지 않은 인연이고,
-            친구가 생일을 넣으면 그 자리에 하나씩 앉아요.
-          </p>
+          {/* 설명을 한 줄로 줄였다 (2026-09-12 운영자) — 빈 지도 앞에서 두 줄을
+              읽히는 것보다 다음에 할 일 하나를 보여주는 편이 낫다. */}
+          <p className="guin-solo-note">아직 나 혼자예요. 친구가 생일을 넣으면 옆자리에 앉아요.</p>
           <ul className="guin-solo-slots" aria-label="아직 비어 있는 자리">
             {EMPTY_SLOT_HINTS.map((slot) => (
               <li key={slot.role}>
@@ -1209,12 +1208,16 @@ export default function GuinMapPage() {
           화면에 새로 나타나는 것이 항상 하나가 되도록. */}
       {/* 2명 — 축별 비교 */}
       {(isOwner || showContext) && stage === "two" && view.nodes.every((node) => node.axes) && (
-        <AxisComparison nodes={view.nodes} showScores={isOwner || view.showScores} />
+        <Fold label="관계 축 비교">
+          <AxisComparison nodes={view.nodes} showScores={isOwner || view.showScores} />
+        </Fold>
       )}
 
       {/* 3명+ — 분포와 패턴 리포트 */}
       {(isOwner || showContext) && stage === "three_plus" && (
-        <PatternReport nodes={view.nodes} roleSummary={roleSummary} />
+        <Fold label="내 주변 인연 분포">
+          <PatternReport nodes={view.nodes} roleSummary={roleSummary} />
+        </Fold>
       )}
 
       {/* 관계 카드 목록 */}
@@ -1295,16 +1298,18 @@ export default function GuinMapPage() {
 
       {/* 주인: 공개 범위 설정 */}
       {isOwner && (
-        <section className="card" style={{ padding: 20, marginBottom: 14 }}>
+        <section className="guin-fold">
           <button
-            className="btn btn-ghost"
-            style={{ width: "100%" }}
+            type="button"
+            className="guin-fold-head"
+            aria-expanded={showSettings}
             onClick={() => {
               if (!showSettings) trackFunnel("guin_privacy_settings_opened");
               setShowSettings((v) => !v);
             }}
           >
-            지도 공개 범위 설정
+            <span>지도 공개 범위 설정</span>
+            <i aria-hidden className={showSettings ? "on" : undefined}>⌄</i>
           </button>
           {showSettings && (
             <div style={{ marginTop: 12, display: "grid", gap: 10, fontSize: "0.88rem" }}>
@@ -1471,6 +1476,28 @@ function NodeDetail({ node }: { node: GuinNodeView }) {
 }
 
 /** 축 점수 가로 막대 — 값이 숨겨진 지도에서는 부르지 않는다. */
+/*
+  접어 두는 자리 (2026-09-12 운영자).
+
+  결과 화면에 블록이 열 개 펼쳐져 있었다. 분석 카드(축 비교·인연 분포)는
+  공들인 기능이지만 처음 온 사람이 한꺼번에 볼 것은 아니다 — 지도와 사람
+  목록을 먼저 보고, 더 볼 사람만 연다.
+
+  지우지 않고 접는 이유: 있는 것이 문제가 아니라 동시에 보이는 것이 문제다.
+*/
+function Fold({ label, children }: { label: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="guin-fold">
+      <button type="button" className="guin-fold-head" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <span>{label}</span>
+        <i aria-hidden className={open ? "on" : undefined}>⌄</i>
+      </button>
+      {open && <div className="guin-fold-body">{children}</div>}
+    </section>
+  );
+}
+
 function AxisBar({ nickname, value, color, best }: { nickname: string; value: number; color: string; best: boolean }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "72px 1fr 34px", gap: 8, alignItems: "center" }}>

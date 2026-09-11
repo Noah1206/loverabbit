@@ -94,7 +94,7 @@ export default function GuinBirthForm({
   };
 
   return (
-    <div style={{ display: "grid", gap: 12 }}>
+    <div style={{ display: "grid", gap: 18 }}>
       {/* 라벨은 접었다 (2026-09-04) — 플레이스홀더가 같은 말을 하는데 위에
           한 번 더 적으면 글자만 는다. 스크린리더에는 aria-label 로 남긴다. */}
       <input
@@ -109,7 +109,7 @@ export default function GuinBirthForm({
         disabled={busy}
       />
 
-      <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: "grid", gap: 10 }}>
         {/* 달력 선택이 입력값의 해석을 정한다 — 인풋 바로 위, 같은 폭으로 세운다 */}
         <div className="guin-cal-seg" role="group" aria-label="달력 종류">
           {(

@@ -9164,6 +9164,42 @@ body[data-guin-intro="1"] .tabbar {
 }
 
 /* 지도 화면의 카드는 반투명 — 뒤의 지도가 비쳐 보인다 */
+/* ── 접어 두는 블록 ── (2026-09-12 운영자)
+   결과 화면의 분석 카드를 한 줄로 접는다. 카드가 아니라 줄이다 — 접힌 것이
+   또 카드면 "블록이 하나 더" 로 세어진다. */
+.guin-fold {
+  margin: 0 0 14px;
+}
+.guin-fold-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 4px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: none;
+  font: inherit;
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+.guin-fold-head i {
+  font-style: normal;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  transition: transform 160ms ease;
+}
+.guin-fold-head i.on { transform: rotate(180deg); }
+.guin-fold-head:active { opacity: 0.62; }
+@media (prefers-reduced-motion: reduce) {
+  .guin-fold-head i { transition: none; }
+}
+.guin-fold-body { padding-top: 2px; }
+
 /* ── 사주지도 머리: 내 정보 ── (2026-09-09 운영자)
    인스타 프로필 줄과 같은 짜임 — 얼굴, 이름과 한 줄 설명, 오른쪽에 수. */
 .gp-head {
@@ -11676,12 +11712,15 @@ input[type="radio"] {
   background: linear-gradient(120deg, #f6efff, #ffeef5);
   color: #5c4b8a;
 }
+/* 테두리와 그림자를 걷었다 (2026-09-12 운영자). 흰 바탕 위의 흰 카드에
+   테두리까지 두르면 칸이 갇혀 보인다 — 입력하러 온 사람에게 그 답답함이
+   제일 먼저 닿는다. 배경도 화면과 같게 두고 여백만 넓혀 숨을 틔운다. */
 .guin-landing-form {
-  background: var(--bg-card);
-  border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 22px 20px;
-  box-shadow: 0 8px 26px rgba(80, 60, 120, 0.08);
+  background: none;
+  border: 0;
+  border-radius: 0 !important;
+  padding: 4px 2px 8px;
+  box-shadow: none;
 }
 /* 폼 안의 입력·토글이 카드 반경을 따라 부드러워지게 */
 .guin-landing-form input,
