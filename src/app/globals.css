@@ -12624,22 +12624,53 @@ input[type="radio"] {
   margin: 0 0 var(--home-section-gap);
   padding: 0 20px 2px;
 }
+/* ── 종목 칸 ── 셋이 저마다 제 색을 갖는다 (2026-09-11 운영자).
+
+   셋 다 흰 바탕에 회색 테두리라, 무엇이 다른지는 아이콘 하나로만 갈렸다.
+   종목이 이미 뜻하는 색을 옅게 깔아 준다 — 사주는 명리의 금빛, 타로는 카드의
+   보랏빛, 연예인 궁합은 붉은 실의 분홍. 진하게 칠하지 않는다: 칸이 셋뿐이라
+   색이 세면 화면이 그것부터 읽힌다. */
 .home-genre {
   position: relative;
-  /* 폭은 격자가 정한다 (2026-09-10). 세로가 가로보다 길되 너무 홀쭉하지
-     않게 — 아이콘과 이름이 가운데에 넉넉히 앉을 만큼만. */
-  aspect-ratio: 5 / 6;
+  aspect-ratio: 4 / 5;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 12px;
-  padding: 16px 8px;
-  border-radius: 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--line);
+  gap: 9px;
+  padding: 18px 10px;
+  border-radius: 18px;
+  background: var(--g-bg, var(--bg-card));
+  border: 1px solid var(--g-line, var(--line));
   text-decoration: none;
   color: var(--text);
+  overflow: hidden;
   transition: transform 140ms ease;
+}
+/* 아이콘 뒤의 옅은 동그라미 — 아이콘이 허공에 뜨지 않고 자리를 갖는다 */
+.home-genre-art::before {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50% !important;
+  background: var(--g-orb, transparent);
+}
+.home-genre[data-genre="saju"] {
+  --g-bg: #fdf9f0;
+  --g-line: #f0e6d2;
+  --g-orb: rgba(198, 154, 62, 0.14);
+  --g-ink: #8a6a22;
+}
+.home-genre[data-genre="tarot"] {
+  --g-bg: #faf7fd;
+  --g-line: #e9e2f4;
+  --g-orb: rgba(124, 92, 176, 0.14);
+  --g-ink: #61489a;
+}
+.home-genre[data-genre="idol"] {
+  --g-bg: #fdf6f8;
+  --g-line: #f5e2e8;
+  --g-orb: rgba(199, 84, 118, 0.14);
+  --g-ink: #a8455f;
 }
 .home-genre:active { transform: scale(0.96); }
 @media (prefers-reduced-motion: reduce) {
@@ -12647,14 +12678,14 @@ input[type="radio"] {
 }
 .home-genre-art {
   position: relative;
-  /* 칸이 커진 만큼 아이콘도 (2026-09-10) — 38px 은 여섯 칸 시절의 값이다 */
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
 }
 .home-genre-art svg {
-  color: var(--text);
+  position: relative;
+  color: var(--g-ink, var(--text));
   display: block;
 }
 .home-genre-tag {
@@ -12663,17 +12694,22 @@ input[type="radio"] {
      배지는 뗀다 — 무료라는 정보는 종목 화면이 첫 줄에 말한다. */
   display: none;
 }
-/* 값이 없는 종목은 칸 색으로 구분한다 — 글자를 더 얹지 않고 톤으로 말한다 */
-.home-genre:has(.home-genre-tag) {
-  background: var(--tint-1);
-  border-color: transparent;
-}
 .home-genre strong {
-  font-size: 0.94rem;
-  font-weight: 700;
+  font-size: 0.96rem;
+  font-weight: 800;
   text-align: center;
   line-height: 1.25;
+  letter-spacing: -0.01em;
   word-break: keep-all;
+}
+/* 설명 한 줄. 이름보다 작고 옅게 — 읽히되 이름을 가리지 않는다. */
+.home-genre small {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--text-dim);
+  word-break: keep-all;
+  padding: 0 2px;
 }
 
 /* ── 바로가기 알약 줄 (2026-09-08) ── 두 줄로 접히며 자리를 적게 먹는다 */

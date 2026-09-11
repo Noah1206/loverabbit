@@ -28,6 +28,14 @@ import { seoulYear, yearLabelOf } from "@/lib/year-label";
 import InquiryButton from "@/components/InquiryButton";
 
 
+/* 홈 칸에서 쓰는 짧은 설명 (2026-09-11 운영자).
+   genres.ts 의 desc 는 목록 화면용이라 칸에 넣으면 줄 끝에 한 글자가 남는다. */
+const GENRE_TILE_DESC: Record<string, string> = {
+  saju: "내 명식으로 읽는 결",
+  tarot: "카드를 내 결에 겹쳐",
+  idol: "최애와 나의 결",
+};
+
 export default function AppHome() {
   const { theme } = useTheme();
   /* 해 이름은 렌더 때 센다 — 모듈 바깥에서 계산하면 빌드 시각에 굳어,
@@ -163,14 +171,21 @@ export default function AppHome() {
         <h2 className="home-section-title">장르별 운세</h2>
         <nav className="home-genres" aria-label="종목">
           {GENRES.map((g) => (
-            <Link key={g.id} href={g.href} className="home-genre">
+            <Link key={g.id} href={g.href} className="home-genre" data-genre={g.id}>
               <span className="home-genre-art">
                 {/* 캐릭터 그림에서 선 아이콘으로 (2026-09-08 운영자) — 종목
                     여섯에 얼굴 여섯이 서면 한 화면에 캐릭터가 너무 많다. */}
-                <GenreIcon id={g.id} size={42} />
+                <GenreIcon id={g.id} size={40} />
                 {g.free && <b className="home-genre-tag">무료</b>}
               </span>
               <strong>{g.label}</strong>
+              {/* 한 줄 설명 (2026-09-11 운영자). 이름만 있으면 "타로" 가 무엇을
+                  주는 자리인지 눌러 봐야 안다.
+
+                  칸이 124px 라 genres.ts 의 desc 를 그대로 넣으면 둘째 줄에
+                  "결" 한 글자만 남는다. 칸 안에서 쓸 짧은 말을 따로 둔다 —
+                  desc 는 종목 목록·검색이 계속 쓰므로 건드리지 않는다. */}
+              <small>{GENRE_TILE_DESC[g.id] ?? g.desc}</small>
             </Link>
           ))}
         </nav>
